@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Student Management | Vertical Table with Parent Profile View</title>
+    <!-- Tailwind + Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#6b7280',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #f0f2f5; font-family: 'Inter', system-ui, sans-serif; }
+        .student-table-container { scroll-behavior: smooth; }
+        .student-row { transition: all 0.2s ease; }
+        .student-row:hover { background-color: #f8fafc; transform: translateX(2px); }
+        .modal-backdrop { backdrop-filter: blur(3px); background-color: rgba(0,0,0,0.5); }
+        .dropdown-menu { transition: all 0.15s; }
+        .photo-placeholder { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .info-label { font-size: 0.65rem; font-weight: 600; color: #6b7280; letter-spacing: 0.3px; }
+        .parent-card:hover { transform: translateY(-2px); transition: 0.2s; }
+    </style>
+</head>
+<body class="min-h-screen antialiased p-4 md:p-6">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-20 right-4 z-50 hidden transition-all duration-300">
+        <div class="bg-white rounded-lg shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success">
+            <i id="toast-icon" class="fas fa-check-circle text-success text-lg"></i>
+            <p id="toast-text" class="text-gray-700 text-sm font-medium">Operation successful</p>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop transition-all">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <i class="fas fa-trash-alt text-danger"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800">Delete Student</h3>
+            </div>
+            <p class="text-gray-600 mb-2">Permanently delete <strong id="deleteStudentName"></strong>?</p>
+            <p class="text-sm text-gray-500 mb-4">This action cannot be undone.</p>
+            <div class="flex justify-end gap-3">
+                <button id="cancelDelete" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                <button id="confirmDelete" class="px-4 py-2 bg-danger text-white rounded-lg hover:bg-red-700 transition">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div id="editModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-auto">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-auto">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h3 class="text-xl font-bold"><i class="fas fa-edit text-primary mr-2"></i> Edit Student</h3>
+                <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <form id="editStudentForm" class="p-5 space-y-4">
+                <input type="hidden" id="editStudentId">
+                <div><label class="block text-sm font-semibold text-gray-700">Full Name</label><input type="text" id="editFullName" class="w-full border border-gray-300 rounded-lg p-2.5" required></div>
+                <div><label class="block text-sm font-semibold text-gray-700">Roll Number</label><input type="text" id="editRollNumber" class="w-full border border-gray-300 rounded-lg p-2.5"></div>
+                <div><label class="block text-sm font-semibold text-gray-700">Phone</label><input type="tel" id="editPhone" class="w-full border border-gray-300 rounded-lg p-2.5"></div>
+                <div><label class="block text-sm font-semibold text-gray-700">Status</label><select id="editStatus" class="w-full border border-gray-300 rounded-lg p-2.5"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded-lg">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-primary text-white rounded-lg hover:bg-blue-700"><i class="fas fa-save mr-1"></i> Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Profile Modal -->
+    <div id="profileModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-auto">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-auto max-h-[85vh] overflow-y-auto">
+            <div class="p-5 border-b sticky top-0 bg-white flex justify-between items-center">
+                <h3 class="text-xl font-bold"><i class="fas fa-id-card text-primary mr-2"></i> Student Profile</h3>
+                <button onclick="closeProfileModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div id="profileContent" class="p-5"></div>
+        </div>
+    </div>
+
+    <!-- Parent Profile Modal -->
+    <div id="parentProfileModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-auto">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-auto">
+            <div class="p-5 border-b sticky top-0 bg-white flex justify-between items-center">
+                <h3 class="text-xl font-bold"><i class="fas fa-users text-primary mr-2"></i> Parent / Guardian Profile</h3>
+                <button onclick="closeParentProfileModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div id="parentProfileContent" class="p-5"></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto">
+        <header class="flex flex-wrap justify-between items-center mb-6 gap-3">
+            <div class="flex items-center gap-3">
+                <a href="admission.html" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition">
+                    <i class="fas fa-arrow-left text-primary"></i>
+                </a>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="bg-primary text-white p-1.5 rounded-lg"><i class="fas fa-users"></i></span> 
+                    Student Management
+                </h1>
+            </div>
+            <div class="bg-white px-4 py-2 rounded-full shadow-sm text-sm font-medium text-gray-700 border border-gray-200">
+                <i class="fas fa-calendar-alt text-primary mr-1"></i> 
+                <span id="current-session-badge">Loading...</span>
+            </div>
+        </header>
+
+        <!-- Filter Bar -->
+        <div class="bg-white rounded-2xl shadow-md p-5 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div><label class="block text-sm font-semibold text-gray-700 mb-1">Select Class</label><select id="classFilter" class="w-full border rounded-lg p-2.5"><option value="">All Classes</option></select></div>
+                <div><label class="block text-sm font-semibold text-gray-700 mb-1">Select Section</label><select id="sectionFilter" class="w-full border rounded-lg p-2.5" disabled><option value="">First select class</option></select></div>
+                <div><label class="block text-sm font-semibold text-gray-700 mb-1">Search</label><input type="text" id="searchInput" class="w-full border rounded-lg p-2.5" placeholder="Name, roll or phone..."></div>
+                <div class="flex items-end"><button id="refreshBtn" class="w-full bg-gray-100 hover:bg-gray-200 py-2.5 rounded-lg font-medium"><i class="fas fa-sync-alt mr-1"></i> Refresh</button></div>
+            </div>
+            <div class="mt-3 text-sm text-gray-500">Total Students: <span id="totalCount" class="font-bold text-primary">0</span></div>
+        </div>
+
+        <!-- Vertical Table Layout (Single Column Scrollable) -->
+        <div class="bg-white rounded-2xl shadow-md overflow-hidden student-table-container">
+            <div class="overflow-y-auto" style="max-height: 70vh;">
+                <table class="w-full">
+                    <thead class="sticky top-0 bg-gray-50 border-b z-10">
+                        <tr class="text-left text-sm font-semibold text-gray-600">
+                            <th class="px-4 py-3 w-12">#</th>
+                            <th class="px-4 py-3">Student Info</th>
+                            <th class="px-4 py-3">Parent / Guardian</th>
+                            <th class="px-4 py-3">Contact Details</th>
+                            <th class="px-4 py-3">Class & Roll</th>
+                            <th class="px-4 py-3 text-center w-24">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody">
+                        <tr><td colspan="6" class="text-center py-10 text-gray-400"><i class="fas fa-spinner fa-spin text-2xl"></i> Loading students...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, collection, query, getDocs, doc, deleteDoc, updateDoc, orderBy, where, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        
+        let allStudents = [], allClasses = [], sectionsByClass = {}, currentSession = "2025-2026", pendingDeleteId = null;
+        let parentCache = {};
+        
+        function showToast(msg, type='success') { 
+            const t = document.getElementById('toast'); 
+            document.getElementById('toast-text').innerText = msg; 
+            document.getElementById('toast-icon').className = type==='success' ? 'fas fa-check-circle text-success text-lg' : 'fas fa-exclamation-circle text-danger text-lg';
+            t.classList.remove('hidden'); t.style.display='flex'; 
+            setTimeout(()=>{ t.classList.add('hidden'); }, 3000); 
+        }
+        window.hideToast = () => document.getElementById('toast').classList.add('hidden');
+        
+        async function loadCurrentSession() {
+            try {
+                const s = await getDoc(doc(db, "config", "activeSession"));
+                if(s.exists()) currentSession = s.data().sessionName || "2025-2026";
+                document.getElementById('current-session-badge').innerHTML = `<i class="fas fa-calendar-alt mr-1"></i>${currentSession}`;
+            } catch(e) {}
+        }
+        
+        async function loadClasses() {
+            const snap = await getDocs(query(collection(db, "classes"), orderBy("order")));
+            allClasses = []; const select = document.getElementById('classFilter');
+            select.innerHTML = '<option value="">All Classes</option>';
+            snap.forEach(d => { allClasses.push({ id: d.id, name: d.data().name }); select.appendChild(new Option(d.data().name, d.id)); });
+        }
+        
+        async function loadSectionsForClass(cid) {
+            if(!cid) return [];
+            const snap = await getDocs(query(collection(db, "sections"), where("classId", "==", cid)));
+            const secs = []; snap.forEach(d => secs.push({ id: d.id, name: d.data().name }));
+            sectionsByClass[cid] = secs; return secs;
+        }
+        
+        async function loadStudents() {
+            const snap = await getDocs(collection(db, "students"));
+            allStudents = []; snap.forEach(d => allStudents.push({ id: d.id, ...d.data() }));
+            return allStudents;
+        }
+        
+        async function getParentData(parentId) {
+            if(!parentId) return null;
+            if(parentCache[parentId]) return parentCache[parentId];
+            try {
+                const p = await getDoc(doc(db, "parents", parentId));
+                if(p.exists()) {
+                    const d = p.data();
+                    const data = { 
+                        id: parentId, father: d.fatherName || 'N/A', mother: d.motherName || 'N/A', guardian: d.guardianName || 'N/A', 
+                        fPhone: d.fatherPhone || 'N/A', mPhone: d.motherPhone || 'N/A', gPhone: d.guardianPhone || 'N/A',
+                        email: d.loginEmail || 'N/A', address: d.address || 'N/A'
+                    };
+                    parentCache[parentId] = data;
+                    return data;
+                }
+            } catch(e) {}
+            return null;
+        }
+        
+        async function getPhotoURL(photoPath) {
+            if(!photoPath) return null;
+            try { return await getDownloadURL(ref(storage, photoPath)); } catch(e) { return null; }
+        }
+        
+        async function updateSectionDropdown(classId) {
+            const secSelect = document.getElementById('sectionFilter');
+            if(!classId) { secSelect.innerHTML = '<option value="">First select class</option>'; secSelect.disabled=true; return; }
+            let secs = sectionsByClass[classId];
+            if(!secs) secs = await loadSectionsForClass(classId);
+            secSelect.disabled=false;
+            secSelect.innerHTML = '<option value="">All Sections</option>';
+            secs.forEach(s => secSelect.appendChild(new Option(s.name, s.name)));
+        }
+        
+        async function filterAndRender() {
+            const classId = document.getElementById('classFilter').value;
+            const section = document.getElementById('sectionFilter').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = [...allStudents];
+            if(classId) filtered = filtered.filter(s => s.classId === classId);
+            if(section) filtered = filtered.filter(s => s.section === section);
+            if(search) filtered = filtered.filter(s => (s.fullName?.toLowerCase().includes(search)) || (s.rollNumber?.toLowerCase().includes(search)) || (s.phone?.includes(search)));
+            await renderTableRows(filtered);
+            document.getElementById('totalCount').innerText = filtered.length;
+        }
+        
+        async function renderTableRows(students) {
+            const tbody = document.getElementById('studentsTableBody');
+            if(!students.length) { tbody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-gray-400"><i class="fas fa-user-graduate text-4xl mb-2 block"></i>No students found</td></tr>`; return; }
+            tbody.innerHTML = '';
+            for(let i=0; i<students.length; i++) {
+                const s = students[i];
+                const parent = await getParentData(s.parentID);
+                let photoHtml = `<div class="w-10 h-10 rounded-full photo-placeholder flex items-center justify-center text-white text-sm font-bold shadow-sm">${(s.fullName?.charAt(0) || 'S')}</div>`;
+                if(s.passportPhotoURL) {
+                    try { const url = await getPhotoURL(s.passportPhotoURL); if(url) photoHtml = `<img src="${url}" class="w-10 h-10 rounded-full object-cover shadow-sm border border-white">`; } catch(e) {}
+                }
+                const row = document.createElement('tr');
+                row.className = 'student-row border-b border-gray-100 hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-sm text-gray-500 font-medium align-top">${i+1}</td>
+                    <td class="px-4 py-3 align-top">
+                        <div class="flex items-center gap-3">
+                            ${photoHtml}
+                            <div>
+                                <div class="font-semibold text-gray-800">${escapeHtml(s.fullName || 'N/A')}</div>
+                                <div class="text-xs text-gray-400 mt-0.5">
+                                    <span class="status-badge px-1.5 py-0.5 rounded-full text-xs ${s.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${s.status === 'active' ? 'Active' : (s.status || 'Active')}</span>
+                                    <span class="ml-1"><i class="fas fa-venus-mars"></i> ${escapeHtml(s.gender || 'N/A')}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 align-top">
+                        <div class="text-sm space-y-1">
+                            <div class="flex items-center gap-2 flex-wrap"><i class="fas fa-father text-gray-400 w-4"></i><span class="text-gray-700">${escapeHtml(parent?.father || 'N/A')}</span></div>
+                            <div class="flex items-center gap-2 flex-wrap"><i class="fas fa-mother text-gray-400 w-4"></i><span class="text-gray-700">${escapeHtml(parent?.mother || 'N/A')}</span></div>
+                            <div class="flex items-center gap-2 flex-wrap"><i class="fas fa-user-check text-primary w-4"></i><strong class="text-primary">${escapeHtml(parent?.guardian || 'N/A')}</strong></div>
+                            <button class="view-parent-btn text-xs text-primary hover:underline mt-1" data-parent="${s.parentID || ''}" data-student="${s.fullName}"><i class="fas fa-eye"></i> View Parent Profile</button>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 align-top">
+                        <div class="text-sm space-y-1">
+                            <div><i class="fas fa-phone-alt text-gray-400 w-4"></i> <span class="text-gray-700">${escapeHtml(s.phone || 'N/A')}</span></div>
+                            <div><i class="fas fa-envelope text-gray-400 w-4"></i> <span class="text-gray-500 text-xs">${escapeHtml(s.email || 'N/A')}</span></div>
+                            <div><i class="fas fa-map-marker-alt text-gray-400 w-4"></i> <span class="text-gray-500 text-xs truncate max-w-[180px] inline-block">${escapeHtml(s.address?.substring(0,40) || 'N/A')}</span></div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 align-top">
+                        <div class="text-sm space-y-1">
+                            <div><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-medium">${escapeHtml(s.className || 'N/A')}</span> - ${escapeHtml(s.section || 'N/A')}</div>
+                            <div><i class="fas fa-hashtag text-gray-400 w-4"></i> Roll: ${escapeHtml(s.rollNumber || 'N/A')}</div>
+                            <div><i class="fas fa-id-card text-gray-400 w-4"></i> Adm: ${escapeHtml(s.admissionNumber || 'N/A')}</div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-center align-top">
+                        <div class="relative inline-block">
+                            <button class="action-dropdown-btn p-2 hover:bg-gray-100 rounded-full transition" data-id="${s.id}"><i class="fas fa-ellipsis-v text-gray-500"></i></button>
+                            <div id="dropdown-${s.id}" class="dropdown-menu hidden absolute right-0 mt-1 w-40 bg-white rounded-xl shadow-xl border z-20 overflow-hidden">
+                                <button class="view-profile-btn w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"><i class="fas fa-user-circle text-primary"></i> View Profile</button>
+                                <button class="edit-student-btn w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"><i class="fas fa-edit text-warning"></i> Edit</button>
+                                <button class="view-marksheet-btn w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"><i class="fas fa-chart-line text-success"></i> View Marksheet</button>
+                                <hr class="my-1">
+                                <button class="delete-student-btn w-full text-left px-3 py-2 text-sm text-danger hover:bg-red-50 flex items-center gap-2"><i class="fas fa-trash-alt"></i> Delete</button>
+                            </div>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            }
+            attachRowEvents();
+        }
+        
+        function attachRowEvents() {
+            document.querySelectorAll('.action-dropdown-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => { e.stopPropagation(); const id = btn.dataset.id; toggleDropdown(id); });
+            });
+            document.querySelectorAll('.view-profile-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => { const id = btn.closest('[id^="dropdown-"]')?.id.split('-')[1]; if(id) openProfile(id); });
+            });
+            document.querySelectorAll('.edit-student-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => { const id = btn.closest('[id^="dropdown-"]')?.id.split('-')[1]; if(id) openEditModal(id); });
+            });
+            document.querySelectorAll('.view-marksheet-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => { const id = btn.closest('[id^="dropdown-"]')?.id.split('-')[1]; if(id) showToast("Marksheet feature coming soon", 'success'); });
+            });
+            document.querySelectorAll('.delete-student-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => { const id = btn.closest('[id^="dropdown-"]')?.id.split('-')[1]; const student = allStudents.find(s=>s.id===id); if(student) openDeleteModal(id, student.fullName); });
+            });
+            document.querySelectorAll('.view-parent-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => { const parentId = btn.dataset.parent; const studentName = btn.dataset.student; if(parentId) openParentProfile(parentId, studentName); else showToast("No parent linked", 'error'); });
+            });
+        }
+        
+        function toggleDropdown(id) {
+            const dropdown = document.getElementById(`dropdown-${id}`);
+            if(!dropdown) return;
+            const isOpen = !dropdown.classList.contains('hidden');
+            document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.add('hidden'));
+            if(!isOpen) dropdown.classList.remove('hidden');
+            setTimeout(() => { document.addEventListener('click', function closeDrop(e) { if(!dropdown.contains(e.target) && !e.target.closest('.action-dropdown-btn')) { dropdown.classList.add('hidden'); document.removeEventListener('click', closeDrop); } }); }, 10);
+        }
+        
+        async function openProfile(studentId) {
+            const s = allStudents.find(st => st.id === studentId);
+            if(!s) return;
+            const parent = await getParentData(s.parentID);
+            let photoHtml = `<div class="w-24 h-24 rounded-full photo-placeholder flex items-center justify-center text-white text-2xl font-bold mx-auto">${(s.fullName?.charAt(0) || 'S')}</div>`;
+            if(s.passportPhotoURL) { try { const url = await getPhotoURL(s.passportPhotoURL); if(url) photoHtml = `<img src="${url}" class="w-24 h-24 rounded-full object-cover mx-auto border-4 border-primary shadow-lg">`; } catch(e) {} }
+            document.getElementById('profileContent').innerHTML = `
+                <div class="text-center mb-4">${photoHtml}<h2 class="text-2xl font-bold mt-3">${escapeHtml(s.fullName)}</h2><p class="text-gray-500">${escapeHtml(s.className)} - ${escapeHtml(s.section)} | Roll: ${escapeHtml(s.rollNumber)}</p></div>
+                <div class="grid md:grid-cols-2 gap-4 text-sm"><div class="bg-gray-50 p-3 rounded-lg"><p class="font-bold text-primary"><i class="fas fa-father"></i> Father</p><p>${escapeHtml(parent?.father || 'N/A')}</p><p class="text-xs text-gray-500">${escapeHtml(parent?.fPhone || 'N/A')}</p></div>
+                <div class="bg-gray-50 p-3 rounded-lg"><p class="font-bold text-primary"><i class="fas fa-mother"></i> Mother</p><p>${escapeHtml(parent?.mother || 'N/A')}</p><p class="text-xs text-gray-500">${escapeHtml(parent?.mPhone || 'N/A')}</p></div>
+                <div class="bg-gray-50 p-3 rounded-lg"><p class="font-bold text-primary"><i class="fas fa-user-shield"></i> Guardian</p><p>${escapeHtml(parent?.guardian || 'N/A')}</p><p class="text-xs text-gray-500">${escapeHtml(parent?.gPhone || 'N/A')}</p></div>
+                <div class="bg-gray-50 p-3 rounded-lg"><p class="font-bold text-primary"><i class="fas fa-phone-alt"></i> Contact</p><p>${escapeHtml(s.phone)}</p><p class="text-xs text-gray-500">${escapeHtml(s.email || 'No email')}</p></div>
+                <div class="col-span-2 bg-gray-50 p-3 rounded-lg"><p class="font-bold text-primary"><i class="fas fa-map-marker-alt"></i> Address</p><p>${escapeHtml(s.address || 'N/A')}</p></div></div>
+                <div class="mt-4 text-right"><button onclick="closeProfileModal()" class="px-4 py-2 bg-gray-200 rounded-lg">Close</button></div>`;
+            document.getElementById('profileModal').classList.remove('hidden');
+        }
+        
+        async function openParentProfile(parentId, studentName) {
+            const parentData = await getParentData(parentId);
+            if(!parentData) { showToast("Parent data not found", 'error'); return; }
+            document.getElementById('parentProfileContent').innerHTML = `
+                <div class="text-center mb-4"><div class="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto"><i class="fas fa-users text-4xl text-primary"></i></div>
+                <h2 class="text-xl font-bold mt-2">${escapeHtml(parentData.guardian)}</h2><p class="text-gray-500 text-sm">Guardian of ${escapeHtml(studentName)}</p></div>
+                <div class="space-y-3 text-sm">
+                    <div class="grid grid-cols-2 gap-3"><div class="bg-gray-50 p-3 rounded-lg"><p class="font-bold text-primary">Father</p><p>${escapeHtml(parentData.father)}</p><p class="text-xs text-gray-500">${escapeHtml(parentData.fPhone)}</p></div>
+                    <div class="bg-gray-50 p-3 rounded-lg"><p class="font-bold text-primary">Mother</p><p>${escapeHtml(parentData.mother)}</p><p class="text-xs text-gray-500">${escapeHtml(parentData.mPhone)}</p></div></div>
+                    <div class="bg-primary/5 p-3 rounded-lg border border-primary/20"><p class="font-bold text-primary"><i class="fas fa-user-shield"></i> Guardian Details</p>
+                    <p>${escapeHtml(parentData.guardian)}</p><p class="text-xs text-gray-600">${escapeHtml(parentData.gPhone)}</p><p class="text-xs text-gray-500 mt-1">Email: ${escapeHtml(parentData.email)}</p></div>
+                </div>
+                <div class="mt-4 text-right"><button onclick="closeParentProfileModal()" class="px-4 py-2 bg-gray-200 rounded-lg">Close</button></div>`;
+            document.getElementById('parentProfileModal').classList.remove('hidden');
+        }
+        
+        window.closeProfileModal = () => document.getElementById('profileModal').classList.add('hidden');
+        window.closeParentProfileModal = () => document.getElementById('parentProfileModal').classList.add('hidden');
+        
+        async function openEditModal(id) {
+            const s = allStudents.find(st=>st.id===id);
+            if(!s) return;
+            document.getElementById('editStudentId').value = s.id;
+            document.getElementById('editFullName').value = s.fullName || '';
+            document.getElementById('editRollNumber').value = s.rollNumber || '';
+            document.getElementById('editPhone').value = s.phone || '';
+            document.getElementById('editStatus').value = s.status || 'active';
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+        window.closeEditModal = () => document.getElementById('editModal').classList.add('hidden');
+        
+        document.getElementById('editStudentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editStudentId').value;
+            const update = { fullName: document.getElementById('editFullName').value, rollNumber: document.getElementById('editRollNumber').value, phone: document.getElementById('editPhone').value, status: document.getElementById('editStatus').value, updatedAt: new Date() };
+            try {
+                await updateDoc(doc(db, "students", id), update);
+                const student = allStudents.find(s=>s.id===id);
+                if(student?.classId) {
+                    const q = query(collection(db, `current_session/${currentSession}/classes/${student.classId}/students`));
+                    const snap = await getDocs(q);
+                    for(const ds of snap.docs) { if(ds.data().phone === student.phone || ds.data().fullName === student.fullName) { await updateDoc(doc(db, `current_session/${currentSession}/classes/${student.classId}/students`, ds.id), update); break; } }
+                }
+                showToast("Student updated!");
+                closeEditModal(); await refreshData();
+            } catch(err) { showToast(err.message, 'error'); }
+        });
+        
+        function openDeleteModal(id, name) { pendingDeleteId = id; document.getElementById('deleteStudentName').innerText = name; document.getElementById('deleteModal').classList.remove('hidden'); }
+        document.getElementById('cancelDelete').onclick = () => { document.getElementById('deleteModal').classList.add('hidden'); pendingDeleteId=null; };
+        document.getElementById('confirmDelete').onclick = async () => {
+            if(pendingDeleteId) {
+                try {
+                    const student = allStudents.find(s=>s.id===pendingDeleteId);
+                    await deleteDoc(doc(db, "students", pendingDeleteId));
+                    if(student?.classId) {
+                        const q = query(collection(db, `current_session/${currentSession}/classes/${student.classId}/students`));
+                        const snap = await getDocs(q);
+                        for(const ds of snap.docs) { if(ds.data().phone === student.phone || ds.data().fullName === student.fullName) { await deleteDoc(doc(db, `current_session/${currentSession}/classes/${student.classId}/students`, ds.id)); break; } }
+                    }
+                    showToast("Deleted!");
+                    document.getElementById('deleteModal').classList.add('hidden');
+                    pendingDeleteId=null; await refreshData();
+                } catch(err) { showToast(err.message, 'error'); }
+            }
+        };
+        
+        async function refreshData() { await loadStudents(); await filterAndRender(); }
+        document.getElementById('classFilter').addEventListener('change', async (e) => { await updateSectionDropdown(e.target.value); filterAndRender(); });
+        document.getElementById('sectionFilter').addEventListener('change', () => filterAndRender());
+        document.getElementById('searchInput').addEventListener('input', () => filterAndRender());
+        document.getElementById('refreshBtn').onclick = async () => { const btn=document.getElementById('refreshBtn'); btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>'; btn.disabled=true; await refreshData(); btn.innerHTML='<i class="fas fa-sync-alt mr-1"></i> Refresh'; btn.disabled=false; showToast("Refreshed"); };
+        [document.getElementById('editModal'), document.getElementById('profileModal'), document.getElementById('parentProfileModal'), document.getElementById('deleteModal')].forEach(m => m.addEventListener('click', (e) => { if(e.target===m) { m.classList.add('hidden'); if(m.id==='deleteModal') pendingDeleteId=null; } }));
+        
+        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+        
+        (async () => { await loadCurrentSession(); await loadClasses(); await loadStudents(); await filterAndRender(); })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabulation Sheet | ONNO ROKOM BIDDYANIKETON</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&display=swap');
+        body { background: #f8fafc; font-family: 'Hind Siliguri', sans-serif; }
+        
+        .tabulation-container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+        th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: center; font-size: 13px; }
+        th { background-color: #f1f5f9; font-weight: 700; color: #1e293b; }
+        .pass-status { color: #059669; font-weight: 800; }
+        .fail-status { color: #dc2626; font-weight: 800; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .tabulation-container { box-shadow: none; padding: 0; }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8 no-print">
+            <h1 class="text-3xl font-bold text-indigo-900">Tabulation Sheet</h1>
+            <p class="text-gray-500">ONNO ROKOM BIDDYANIKETON</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 no-print">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <select id="examSelect" class="border p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"></select>
+                <select id="classSelect" class="border p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">Select Class</option>
+                </select>
+                <select id="sectionSelect" class="border p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">All Section</option>
+                </select>
+                <button id="loadSheetBtn" class="bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition-all">
+                    Load Tabulation Sheet
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Content -->
+        <div id="printArea" class="tabulation-container">
+            <div id="sheetHeader" class="text-center mb-4 hidden">
+                <h2 class="text-xl font-bold uppercase" id="displaySchool">ONNO ROKOM BIDDYANIKETON</h2>
+                <p class="text-sm font-semibold" id="displayMeta"></p>
+            </div>
+            
+            <div id="tableWrapper" class="overflow-x-auto">
+                <table id="tabulationTable">
+                    <thead id="tHead"></thead>
+                    <tbody id="tBody">
+                        <tr><td colspan="100%" class="py-10 text-gray-400">ফিল্টার সিলেক্ট করে লোড বাটনে ক্লিক করুন</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="mt-6 text-right no-print">
+            <button onclick="window.print()" class="bg-gray-800 text-white px-8 py-3 rounded-xl font-bold hover:bg-black transition-all">
+                <i class="fas fa-print mr-2"></i> Print Sheet
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // গ্রেড ক্যালকুলেশন ফাংশন
+        function getGrade(obt, full) {
+            if (!full || full <= 0) return { lg: "-", gp: 0 };
+            const p = (obt / full) * 100;
+            if (p >= 80) return { lg: "A+", gp: 5.00 };
+            if (p >= 70) return { lg: "A", gp: 4.00 };
+            if (p >= 60) return { lg: "A-", gp: 3.50 };
+            if (p >= 50) return { lg: "B", gp: 3.00 };
+            if (p >= 40) return { lg: "C", gp: 2.00 };
+            if (p >= 33) return { lg: "D", gp: 1.00 };
+            return { lg: "F", gp: 0.00 };
+        }
+
+        // ইনিশিয়াল ডাটা লোড
+        async function init() {
+            const exSnap = await getDocs(collection(db, "exams"));
+            const clSnap = await getDocs(query(collection(db, "classes"), orderBy("order")));
+            
+            const exSelect = document.getElementById('examSelect');
+            exSelect.innerHTML = '<option value="">Select Exam</option>';
+            exSnap.forEach(d => exSelect.innerHTML += `<option value="${d.id}">${d.data().name}</option>`);
+            clSnap.forEach(d => document.getElementById('classSelect').innerHTML += `<option value="${d.id}">${d.data().name}</option>`);
+        }
+
+        document.getElementById('classSelect').onchange = async (e) => {
+            const classId = e.target.value;
+            const secSelect = document.getElementById('sectionSelect');
+            if(!classId) return;
+            const secSnap = await getDocs(query(collection(db, "sections"), where("classId", "==", classId)));
+            secSelect.innerHTML = '<option value="">All Section</option>';
+            secSnap.forEach(d => secSelect.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`);
+        };
+
+        document.getElementById('loadSheetBtn').onclick = async () => {
+            const examId = document.getElementById('examSelect').value;
+            const classId = document.getElementById('classSelect').value;
+            const secName = document.getElementById('sectionSelect').value;
+
+            if(!examId || !classId) return alert("অনুগ্রহ করে পরীক্ষা এবং ক্লাস সিলেক্ট করুন");
+
+            document.getElementById('tBody').innerHTML = '<tr><td colspan="100%" class="py-10">প্রসেসিং হচ্ছে...</td></tr>';
+
+            // ডাটা ফেচিং
+            const [setupSnap, marksSnap, subSnap, stuSnap] = await Promise.all([
+                getDocs(collection(db, "mark_setup")),
+                getDocs(query(collection(db, "marks"), where("examId", "==", examId))),
+                getDocs(query(collection(db, "subjects"), where("classId", "==", classId))),
+                getDocs(query(collection(db, "students"), where("classId", "==", classId)))
+            ]);
+
+            const setupMap = {}; setupSnap.forEach(d => setupMap[d.id] = d.data().marks);
+            const subjects = subSnap.docs.map(d => ({id: d.id, name: d.data().name}));
+            const marksByStu = {}; marksSnap.forEach(d => {
+                const data = d.data();
+                if(!marksByStu[data.studentId]) marksByStu[data.studentId] = {};
+                marksByStu[data.studentId][data.subjectId] = data.marks;
+            });
+
+            // হেডার তৈরি
+            let headHTML = `<tr><th rowspan="2">Roll</th><th rowspan="2">Student Name</th>`;
+            subjects.forEach(sub => headHTML += `<th colspan="2">${sub.name}</th>`);
+            headHTML += `<th rowspan="2">Total Marks</th><th rowspan="2">GPA</th><th rowspan="2">Status</th></tr><tr>`;
+            subjects.forEach(() => headHTML += `<th>Obt</th><th>LG</th>`);
+            headHTML += `</tr>`;
+            document.getElementById('tHead').innerHTML = headHTML;
+
+            // বডি তৈরি
+            let bodyHTML = "";
+            const sortedStudents = stuSnap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (a.rollNumber || 0) - (b.rollNumber || 0));
+
+            sortedStudents.forEach(stu => {
+                if(secName && stu.section !== secName) return;
+
+                let totalObtained = 0;
+                let totalGP = 0;
+                let isFailed = false;
+                let rowMarksHTML = "";
+
+                subjects.forEach(sub => {
+                    const m = (marksByStu[stu.id] && marksByStu[stu.id][sub.id]) ? marksByStu[stu.id][sub.id] : {};
+                    const setup = setupMap[`${examId}_${classId}_${stu.section}_${sub.id}`] || {};
+
+                    const full = (setup.written?.full || 0) + (setup.mcq?.full || 0) + (setup.practical?.full || 0);
+                    const obt = (m.written || 0) + (m.mcq || 0) + (m.practical || 0);
+                    const grade = getGrade(obt, full);
+
+                    totalObtained += obt;
+                    totalGP += grade.gp;
+                    if(grade.lg === "F") isFailed = true;
+
+                    rowMarksHTML += `<td>${obt}</td><td class="${grade.lg === 'F' ? 'text-red-500 font-bold' : ''}">${grade.lg}</td>`;
+                });
+
+                const finalGPA = isFailed ? 0.00 : (totalGP / subjects.length);
+                const status = isFailed ? '<span class="fail-status">FAILED</span>' : '<span class="pass-status">PASSED</span>';
+
+                bodyHTML += `<tr>
+                    <td class="font-bold">${stu.rollNumber}</td>
+                    <td class="text-left">${stu.fullName}</td>
+                    ${rowMarksHTML}
+                    <td class="font-bold">${totalObtained}</td>
+                    <td class="font-bold">${finalGPA.toFixed(2)}</td>
+                    <td>${status}</td>
+                </tr>`;
+            });
+
+            document.getElementById('tBody').innerHTML = bodyHTML || '<tr><td colspan="100%" class="py-10">কোনো ডাটা পাওয়া যায়নি</td></tr>';
+            
+            // শো হেডার
+            document.getElementById('sheetHeader').classList.remove('hidden');
+            document.getElementById('displayMeta').innerText = `Exam: ${document.getElementById('examSelect').options[document.getElementById('examSelect').selectedIndex].text} | Class: ${document.getElementById('classSelect').options[document.getElementById('classSelect').selectedIndex].text} | Section: ${secName || 'All'}`;
+        };
+
+        init();
+    </script>
+</body>
+</html>
