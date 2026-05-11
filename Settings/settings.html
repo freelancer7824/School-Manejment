@@ -246,6 +246,11 @@
                         <button class="tab-button py-4 px-6 font-medium text-gray-600" data-tab="contact">
                             <i class="fas fa-address-book mr-2"></i> যোগাযোগ
                         </button>
+                        
+                        <button class="tab-button py-4 px-6 font-medium text-gray-600" onclick="schoolname()">
+                            <i class="fas fa-address-book mr-2"></i> স্কুলের নাম
+                        </button>
+                        
                     </div>
                 </div>
                 
@@ -1452,6 +1457,11 @@
 
         function resetContactForm() {
             document.getElementById('contact-form').reset();
+        }
+        
+        
+        function schoolname(){
+            window.location.href="../Settings/school-name.html"
         }
     </script>
 </body>
