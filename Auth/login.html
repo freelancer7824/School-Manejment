@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONNO ROKOM BIDDYANIKETON - Parent & Teacher Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #008779;
+            --primary-dark: #00695c;
+            --background-color: #26a69a;
+            --card-color: #ffffff;
+            --text-color: #333333;
+            --link-color: #1e88e5;
+            --icon-color: #e57373;
+            --input-border-color: #cccccc;
+            --input-focus-border: var(--primary-color);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            background-image: linear-gradient(135deg, rgba(38, 166, 154, 0.8) 0%, rgba(38, 166, 154, 0.8) 50%, rgba(0, 135, 121, 0.8) 50%, rgba(0, 135, 121, 0.8) 100%);
+            background-size: 200vw 200vh;
+            background-position: bottom right;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.1);
+            color: var(--card-color);
+            font-weight: 500;
+            font-size: 1.1em;
+            letter-spacing: 0.5px;
+        }
+
+        .header-title {
+            text-transform: uppercase;
+        }
+
+        .share-icon {
+            font-size: 1.5em;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--card-color);
+            padding: 40px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+
+        .icon-circle {
+            background: rgba(229, 115, 115, 0.2);
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .icon-people {
+            color: var(--icon-color);
+            font-size: 30px;
+            position: relative;
+            width: 20px;
+            height: 20px;
+        }
+
+        .icon-people::before, .icon-people::after {
+            content: "";
+            position: absolute;
+            background: var(--icon-color);
+            border-radius: 50%;
+        }
+
+        .icon-people::before {
+            width: 10px;
+            height: 10px;
+            top: -2px;
+            left: 0;
+            box-shadow: 10px 0 var(--icon-color);
+        }
+
+        .icon-people::after {
+            width: 18px;
+            height: 8px;
+            border-radius: 8px 8px 0 0;
+            bottom: -8px;
+            left: -4px;
+            box-shadow: 10px 0 var(--icon-color);
+        }
+
+        h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        p {
+            font-size: 0.9em;
+            color: #777;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--input-border-color);
+            border-radius: 4px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--input-focus-border);
+        }
+
+        .options-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .forgot-password {
+            color: var(--link-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .sign-in-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-transform: uppercase;
+        }
+
+        .sign-in-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .arrow-icon {
+            margin-left: 10px;
+            font-size: 1.2em;
+            line-height: 0;
+        }
+
+        .footer {
+            padding: 10px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85em;
+        }
+
+        .footer-link {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .gear-icon {
+            margin-right: 5px;
+            font-size: 1.2em;
+        }
+        
+        .login-message {
+            margin-top: -10px;
+            margin-bottom: 15px;
+            font-size: 0.85em;
+            font-weight: 500;
+            color: red;
+            display: none;
+            padding: 8px;
+            border-radius: 4px;
+            background: #fee;
+        }
+        
+        .login-message.show {
+            display: block;
+        }
+        
+        .login-message.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .login-message.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+        }
+
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+            transition: opacity 0.5s;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        #loading-overlay p {
+            color: var(--primary-color);
+            margin-top: 10px;
+        }
+        
+        .demo-info {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 0.75em;
+            color: #999;
+        }
+        .demo-info span {
+            display: inline-block;
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin: 2px;
+            font-family: monospace;
+        }
+        
+        .role-badge {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .role-badge span {
+            font-size: 0.7em;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: #e0f2f1;
+            color: #00695c;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <p>Checking login status...</p>
+    </div>
+
+    <header class="header">
+        <span class="header-title">ONNO ROKOM BIDDYANIKETON</span>
+        <span class="share-icon">&#x22C7;</span>
+    </header>
+
+    <div class="main-content">
+        <div class="login-card">
+            <div class="icon-circle">
+                <div class="icon-people"></div>
+            </div>
+            <h2>Login to your account</h2>
+            <p>Enter your Phone Number and Password</p>
+            
+            <div class="role-badge">
+                <span><i class="fas fa-user-graduate"></i> Parents</span>
+                <span><i class="fas fa-chalkboard-teacher"></i> Teachers</span>
+                <span><i class="fas fa-user-cog"></i> Admins</span>
+            </div>
+            
+            <div id="loginMessage" class="login-message"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <input type="tel" class="form-control" id="loginId" placeholder="Phone Number (e.g., 017XXXXXXXX)" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" id="password" placeholder="Password" required>
+                </div>
+
+                <div class="options-row">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="remember">
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" class="forgot-password" id="forgotPasswordBtn">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="sign-in-btn">
+                    Sign in
+                    <span class="arrow-icon">&#x2794;</span>
+                </button>
+            </form>
+            
+            <div class="demo-info">
+                <strong>Demo Accounts:</strong><br>
+                <span>Parent: 01700000001 | Pass: 01700000001</span>
+                <span>Teacher: 01711111111 | Pass: 01711111111</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <a href="#" class="footer-link" id="moreLinksBtn">
+            <span class="gear-icon">&#x2699;</span>
+            More Links &darr;
+        </a>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword,
+            onAuthStateChanged,
+            sendPasswordResetEmail
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, collection, query, where, getDocs, doc, getDoc
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Add Font Awesome for icons
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css';
+        document.head.appendChild(link);
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            databaseURL: "https://school-menejment-default-rtdb.firebaseio.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24",
+            measurementId: "G-SQT1N4PVD3"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        const messageBox = document.getElementById('loginMessage');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        let authStateChecked = false;
+
+        function displayMessage(text, type = 'error') {
+            messageBox.innerHTML = text;
+            messageBox.className = `login-message show ${type}`;
+            setTimeout(() => {
+                if (messageBox.className.includes('show')) {
+                    messageBox.classList.remove('show');
+                }
+            }, 5000);
+        }
+
+        function clearMessage() {
+            messageBox.classList.remove('show');
+        }
+
+        async function redirectToPageByRole(userId, delay = 0) {
+            try {
+                const userRef = doc(db, 'users', userId);
+                const docSnap = await getDoc(userRef);
+
+                if (docSnap.exists() && docSnap.data().role) {
+                    const userRole = docSnap.data().role;
+                    let redirectPage = 'dashboard.html';
+                    
+                    if (userRole === 'admin') redirectPage = 'admin.html';
+                    else if (userRole === 'teacher') redirectPage = 'teacher_dashboard.html';
+                    else if (userRole === 'parent') redirectPage = 'parent_dashboard.html';
+                    else if (userRole === 'superadmin') redirectPage = 'superadmin.html';
+                    else redirectPage = 'dashboard.html';
+                    
+                    if (delay > 0) {
+                        displayMessage(`✅ Login successful! Redirecting to ${userRole.toUpperCase()} dashboard...`, 'success');
+                        setTimeout(() => {
+                            window.location.href = redirectPage;
+                        }, delay);
+                    } else {
+                        window.location.href = redirectPage;
+                    }
+                } else {
+                    loadingOverlay.style.opacity = '0';
+                    setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500);
+                    if (delay > 0) {
+                        displayMessage('Login successful, but user role not found!', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching user role:", error);
+                loadingOverlay.style.opacity = '0';
+                setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500);
+                if (delay > 0) {
+                    displayMessage('Login failed: Could not determine user role.', 'error');
+                }
+            }
+        }
+
+        // Check if already logged in
+        onAuthStateChanged(auth, (user) => {
+            if (!authStateChecked) {
+                if (user) {
+                    console.log("User already logged in:", user.uid);
+                    redirectToPageByRole(user.uid, 0);
+                } else {
+                    console.log("User not logged in. Showing login form.");
+                    loadingOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingOverlay.style.display = 'none';
+                    }, 500);
+                }
+                authStateChecked = true;
+            }
+        });
+
+        // Handle login form submission
+        document.getElementById('loginForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            const phoneNumber = document.getElementById('loginId').value.trim();
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('remember').checked;
+
+            if (!phoneNumber || !password) {
+                displayMessage('Please enter both phone number and password', 'error');
+                return;
+            }
+
+            clearMessage();
+            displayMessage('🔍 Verifying credentials...', 'success');
+            
+            let userEmail = null;
+            let userDataFromFirestore = null;
+            
+            try {
+                // Query Firestore to find user by phone number
+                const usersRef = collection(db, 'users');
+                const q = query(usersRef, where("phone", "==", phoneNumber));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    displayMessage('❌ No account found with this phone number.', 'error');
+                    return;
+                }
+                
+                userDataFromFirestore = querySnapshot.docs[0].data();
+                userEmail = userDataFromFirestore.email;
+                const userRole = userDataFromFirestore.role || 'user';
+
+                if (!userEmail) {
+                    displayMessage('User data found, but email is missing! Please contact admin.', 'error');
+                    return;
+                }
+                
+                displayMessage(`🔄 Authenticating as ${userRole.toUpperCase()}...`, 'success');
+
+                // Sign in with Firebase Auth
+                const userCredential = await signInWithEmailAndPassword(auth, userEmail, password);
+                const user = userCredential.user;
+                
+                // Save remember me preference
+                if (rememberMe) {
+                    localStorage.setItem('rememberedPhone', phoneNumber);
+                } else {
+                    localStorage.removeItem('rememberedPhone');
+                }
+                
+                // Redirect to role-based dashboard
+                await redirectToPageByRole(user.uid, 1500);
+
+            } catch (error) {
+                console.error("Login failed:", error.code, error.message);
+                
+                let errorMessage = 'Login failed. Please check your Phone Number and Password.';
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = '❌ Invalid Phone Number or Password. Please try again.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'Internal Error: Invalid email format.';
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMessage = '⚠️ Access temporarily blocked due to too many failed attempts. Try again later.';
+                } else if (error.code === 'auth/invalid-credential') {
+                    errorMessage = '❌ Invalid credentials. Please check your phone number and password.';
+                }
+                
+                displayMessage(errorMessage, 'error');
+            }
+        });
+
+        // Forgot password functionality
+        document.getElementById('forgotPasswordBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const phoneNumber = prompt('Enter your phone number to reset password:');
+            if (!phoneNumber) return;
+            
+            try {
+                const usersRef = collection(db, 'users');
+                const q = query(usersRef, where("phone", "==", phoneNumber));
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    displayMessage('No account found with this phone number.', 'error');
+                    return;
+                }
+                
+                const userData = querySnapshot.docs[0].data();
+                const userEmail = userData.email;
+                const userRole = userData.role || 'user';
+                
+                if (userEmail) {
+                    await sendPasswordResetEmail(auth, userEmail);
+                    displayMessage(`📧 Password reset email sent to ${userEmail} for ${userRole.toUpperCase()} account. Check your inbox.`, 'success');
+                } else {
+                    displayMessage('Email not found for this account.', 'error');
+                }
+            } catch (error) {
+                console.error("Password reset error:", error);
+                displayMessage('Failed to send reset email. Please contact admin.', 'error');
+            }
+        });
+
+        // Load remembered phone number
+        const rememberedPhone = localStorage.getItem('rememberedPhone');
+        if (rememberedPhone) {
+            document.getElementById('loginId').value = rememberedPhone;
+            document.getElementById('remember').checked = true;
+        }
+
+        // More links button
+        document.getElementById('moreLinksBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            displayMessage('📞 Contact admin at support@school.com for assistance.', 'success');
+        });
+    </script>
+</body>
+</html>
