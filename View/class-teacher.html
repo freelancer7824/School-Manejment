@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>শিক্ষক-বিষয় ব্যবস্থাপক | ক্লাস নির্ধারণ</title>
+    <!-- Tailwind + Font Awesome + Google Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#64748b',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                        indigo: '#6366f1'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #f1f5f9; font-family: 'Inter', sans-serif; }
+        .card-hover { transition: all 0.2s ease; }
+        .responsive-table { display: table; width: 100%; }
+        @media (max-width: 768px) {
+            .responsive-table thead { display: none; }
+            .responsive-table tbody tr { 
+                display: block; 
+                margin-bottom: 1rem; 
+                border: 1px solid #e2e8f0; 
+                border-radius: 1rem; 
+                background: white;
+                padding: 0.75rem;
+            }
+            .responsive-table tbody td { 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center;
+                padding: 0.6rem 0.5rem;
+                border-bottom: 1px solid #f1f5f9;
+                text-align: right;
+            }
+            .responsive-table tbody td:last-child { border-bottom: none; }
+            .responsive-table tbody td::before { 
+                content: attr(data-label); 
+                font-weight: 600; 
+                text-align: left;
+                color: #334155;
+                font-size: 0.8rem;
+                flex: 1;
+            }
+            .responsive-table tbody td .content-right { text-align: right; }
+            .action-btns-mobile { justify-content: flex-end; }
+        }
+        .modal-backdrop { backdrop-filter: blur(3px); background-color: rgba(0,0,0,0.5); }
+        .teacher-suggestion { transition: 0.1s; cursor: pointer; }
+        .teacher-suggestion:hover { background: #eef2ff; }
+        .subject-row-mobile { transition: all 0.15s; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+        /* suggestion list active state */
+        .suggestions-highlight {
+            border: 1px solid #3b82f6;
+            box-shadow: 0 2px 8px rgba(59,130,246,0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-3 md:p-6">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 right-4 left-4 md:left-auto z-50 hidden transition-all duration-300 max-w-sm mx-auto md:mx-0">
+        <div class="bg-white rounded-xl shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success">
+            <i id="toast-icon" class="fas fa-check-circle text-success text-lg"></i>
+            <p id="toast-text" class="text-gray-700 text-sm font-medium flex-1">Success</p>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 transition-all">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-auto p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <i class="fas fa-trash-alt text-danger"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800">নিশ্চিত করুন</h3>
+            </div>
+            <p class="text-gray-600 mb-2">আপনি কি <strong id="deleteItemName"></strong> ডিলিট করতে চান?</p>
+            <p class="text-sm text-gray-500 mb-5">এই কাজ পূর্বাবস্থায় ফেরানো যাবে না।</p>
+            <div class="flex justify-end gap-3">
+                <button id="cancelDelete" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">বাতিল</button>
+                <button id="confirmDelete" class="px-4 py-2 bg-danger text-white rounded-lg hover:bg-red-700 transition">মুছুন</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Class Form Modal (Add/Edit) -->
+    <div id="classModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-auto">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h3 class="text-xl font-bold"><i class="fas fa-school text-primary mr-2"></i> <span id="classModalTitle">নতুন ক্লাস যুক্ত করুন</span></h3>
+                <button onclick="closeClassModal()" class="text-gray-500 hover:text-gray-700 text-2xl leading-5">&times;</button>
+            </div>
+            <form id="classForm" class="p-5 space-y-4">
+                <input type="hidden" id="editClassId">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">ক্লাসের নাম <span class="text-red-500">*</span></label>
+                    <input type="text" id="className" class="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-primary/40" placeholder="যেমন: প্রথম শ্রেণি, পঞ্চম শ্রেণি" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">ক্রম (Display Order)</label>
+                    <input type="number" id="classOrder" class="w-full border border-gray-300 rounded-xl p-2.5" placeholder="ছোট সংখ্যা আগে দেখাবে" value="0">
+                </div>
+                <div class="flex justify-end gap-3 pt-3">
+                    <button type="button" onclick="closeClassModal()" class="px-4 py-2 border rounded-xl hover:bg-gray-50 transition">বাতিল</button>
+                    <button type="submit" class="px-5 py-2 bg-primary text-white rounded-xl hover:bg-blue-700 transition">সংরক্ষণ করুন</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Teacher Assignment Modal (সাজেশন লিস্ট ঠিকমতো ফাংশনাল) -->
+    <div id="teacherAssignModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h3 class="text-xl font-bold"><i class="fas fa-user-graduate text-primary mr-2"></i> শিক্ষক নিযুক্ত করুন</h3>
+                <button onclick="closeTeacherModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div class="p-5">
+                <input type="hidden" id="assignSubjectId">
+                <input type="hidden" id="assignClassId">
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">বিষয়: <span id="modalSubjectName" class="text-primary font-bold"></span></label>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">শিক্ষক নির্বাচন করুন / সার্চ করুন</label>
+                    <input type="text" id="teacherSearchInput" class="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-primary focus:border-primary transition" placeholder="শিক্ষকের নাম টাইপ করুন..." autocomplete="off">
+                    <div id="teacherSuggestionsList" class="mt-2 max-h-56 overflow-y-auto border border-gray-200 rounded-xl bg-white shadow-md hidden divide-y divide-gray-100"></div>
+                    <p id="suggestionHelper" class="text-xs text-gray-400 mt-1 hidden">↳ মিলেছে এমন শিক্ষক তালিকা থেকে নির্বাচন করুন</p>
+                </div>
+                <div class="flex justify-end gap-3 mt-4">
+                    <button onclick="closeTeacherModal()" class="px-4 py-2 border rounded-xl hover:bg-gray-50">বাতিল</button>
+                    <button id="saveTeacherAssignmentBtn" class="px-5 py-2 bg-primary text-white rounded-xl hover:bg-blue-700 transition shadow-sm">সংরক্ষণ করুন</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN LAYOUT -->
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="flex flex-wrap justify-between items-center mb-5 gap-3">
+            <div class="flex items-center gap-2">
+                <h1 class="text-xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="bg-primary text-white p-2 rounded-xl"><i class="fas fa-chalkboard-user"></i></span>
+                    <span class="hidden sm:inline">বিষয় ও শিক্ষক নির্ধারণী</span>
+                    <span class="sm:hidden">শিক্ষক-বিষয়</span>
+                </h1>
+                <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full">অ্যাসাইনমেন্ট</span>
+            </div>
+            <button id="addClassBtn" class="bg-primary text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition shadow-sm text-sm md:text-base">
+                <i class="fas fa-plus-circle mr-1"></i> নতুন ক্লাস
+            </button>
+        </div>
+
+        <!-- Class Filter Card -->
+        <div class="bg-white rounded-2xl shadow-sm p-4 md:p-5 mb-6 border border-gray-100">
+            <label class="block text-sm font-semibold text-gray-600 mb-2"><i class="fas fa-filter mr-1"></i> ক্লাস নির্বাচন করুন</label>
+            <select id="classFilterSelect" class="w-full border border-gray-300 rounded-xl p-3 focus:ring-primary focus:border-primary bg-white">
+                <option value="">-- একটি ক্লাস বাছাই করুন --</option>
+            </select>
+            <!-- অতিরিক্ত ডিলিট বাটন (quick delete section নয়) -->
+            <div id="deleteClassButtonContainer" class="mt-3 flex justify-end"></div>
+        </div>
+
+        <!-- Subject & Teacher Assignment Panel -->
+        <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+            <div class="bg-gradient-to-r from-slate-50 to-gray-50 px-4 md:px-6 py-3 md:py-4 border-b">
+                <h2 class="font-semibold text-gray-800 text-base md:text-lg"><i class="fas fa-list-ul text-primary mr-2"></i> বিষয় ও শিক্ষক নিয়োগ</h2>
+                <p class="text-xs text-gray-500 mt-0.5">প্রতিটি বিষয়ে শিক্ষক নিয়োগ দিতে ✎ আইকনে ক্লিক করুন</p>
+            </div>
+            <div id="subjectTeacherList" class="p-3 md:p-5">
+                <div class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-pulse mr-2"></i> দয়া করে একটি ক্লাস নির্বাচন করুন</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, query, orderBy, where, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            databaseURL: "https://school-menejment-default-rtdb.firebaseio.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24",
+            measurementId: "G-SQT1N4PVD3"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let allClasses = [];
+        let currentSelectedClassId = null;
+        let allTeachers = [];
+        let currentSubjectsList = [];
+        let pendingDelete = { type: null, id: null, name: null };
+        
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' : 'fas fa-exclamation-circle text-danger text-lg';
+            toastText.innerText = message;
+            toast.classList.remove('hidden');
+            toast.style.display = 'flex';
+            setTimeout(() => { toast.classList.add('hidden'); setTimeout(() => { toast.style.display = 'none'; }, 200); }, 2800);
+        }
+        window.hideToast = () => { document.getElementById('toast').classList.add('hidden'); };
+        
+        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+        
+        // শিক্ষক ডাটা লোড করা (নমুনা থাকলে কাজ করবে)
+        async function loadTeachers() {
+            try {
+                const teachersSnap = await getDocs(collection(db, "teachers"));
+                if (teachersSnap.empty) {
+                    const sample = ["ড. সারাহ জনসন", "প্রফেসর মাইকেল চেন", "মিস এমিলি ডেভিস", "মি. রবার্ট উইলসন", "মিসেস প্রিয়া শর্মা", "মি. জেমস কার্টার", "মিসেস অলিভিয়া ব্রাউন", "শেখ হাসিনা", "ড. ইউনুস"];
+                    for (let name of sample) await addDoc(collection(db, "teachers"), { name, createdAt: serverTimestamp() });
+                    const newSnap = await getDocs(collection(db, "teachers"));
+                    allTeachers = newSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
+                } else {
+                    allTeachers = teachersSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
+                }
+                // নিশ্চিত করা যে তালিকায় ডুপ্লিকেট নেই
+                allTeachers = allTeachers.filter((v,i,a)=>a.findIndex(t=>t.id===v.id)===i);
+            } catch (error) { console.warn("Teacher load error", error); allTeachers = [{ id: "fallback1", name: "ডেমো শিক্ষক" }]; }
+        }
+        
+        // ক্লাস লোড এবং ফিল্টার
+        async function loadClasses() {
+            try {
+                const q = query(collection(db, "classes"), orderBy("order", "asc"));
+                const snapshot = await getDocs(q);
+                allClasses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderClassFilter();
+                if (currentSelectedClassId && allClasses.some(c => c.id === currentSelectedClassId)) {
+                    await loadSubjectsWithTeachers(currentSelectedClassId);
+                } else if (currentSelectedClassId) {
+                    currentSelectedClassId = null;
+                    document.getElementById("subjectTeacherList").innerHTML = `<div class="text-center text-gray-400 py-8"><i class="fas fa-exclamation-circle"></i> পূর্বে নির্বাচিত ক্লাস মুছে গেছে। নতুন ক্লাস নির্বাচন করুন।</div>`;
+                    const filterSelect = document.getElementById('classFilterSelect');
+                    if(filterSelect) filterSelect.value = "";
+                } 
+                addClassDeleteButton(); // delete button যাতে আপডেট থাকে
+            } catch (err) { console.error(err); }
+        }
+        
+        function renderClassFilter() {
+            const select = document.getElementById('classFilterSelect');
+            select.innerHTML = '<option value="">-- একটি ক্লাস বাছাই করুন --</option>';
+            allClasses.forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls.id;
+                option.textContent = `${cls.name} ${cls.order !== undefined ? `(ক্রম ${cls.order})` : ''}`;
+                if (currentSelectedClassId === cls.id) option.selected = true;
+                select.appendChild(option);
+            });
+        }
+        
+        // বিষয় ও শিক্ষক অ্যাসাইনমেন্ট লোড
+        async function loadSubjectsWithTeachers(classId) {
+            if (!classId) {
+                document.getElementById('subjectTeacherList').innerHTML = `<div class="text-center text-gray-400 py-10"><i class="fas fa-hand-point-left mr-2"></i>বিষয় দেখতে ক্লাস নির্বাচন করুন</div>`;
+                currentSubjectsList = [];
+                return;
+            }
+            try {
+                const subjectsSnap = await getDocs(query(collection(db, "subjects"), where("classId", "==", classId)));
+                const subjects = subjectsSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name, type: doc.data().type || "subject" }));
+                
+                const assignmentSnap = await getDocs(query(collection(db, "teacher_subject"), where("classId", "==", classId)));
+                const assignments = {};
+                assignmentSnap.forEach(docA => {
+                    const data = docA.data();
+                    assignments[data.subjectId] = { teacherId: data.teacherId, teacherName: data.teacherName, assignmentId: docA.id };
+                });
+                
+                const subjectsWithTeacher = subjects.map(sub => ({
+                    ...sub,
+                    teacherId: assignments[sub.id]?.teacherId || null,
+                    teacherName: assignments[sub.id]?.teacherName || null,
+                    assignmentDocId: assignments[sub.id]?.assignmentId || null
+                }));
+                currentSubjectsList = subjectsWithTeacher;
+                renderSubjectTeacherListResponsive(currentSubjectsList, classId);
+            } catch (err) { console.error(err); document.getElementById('subjectTeacherList').innerHTML = `<div class="text-red-400 text-center p-5">বিষয় লোড করতে সমস্যা হয়েছে</div>`; }
+        }
+        
+        function renderSubjectTeacherListResponsive(subjects, classId) {
+            const container = document.getElementById('subjectTeacherList');
+            if (!subjects.length) {
+                container.innerHTML = `<div class="text-center text-gray-400 py-12 bg-gray-50 rounded-xl"><i class="fas fa-folder-open fa-2x mb-2 block"></i> এই ক্লাসের জন্য কোন বিষয় নেই।<br><span class="text-xs">প্রথমে ‘বিষয়’ যোগ করুন (অন্য প্যানেল)</span></div>`;
+                return;
+            }
+            container.innerHTML = `
+                <div class="overflow-x-auto">
+                    <table class="responsive-table w-full">
+                        <thead class="bg-gray-50 text-gray-700 text-sm font-semibold">
+                            <tr><th class="px-4 py-3 text-left">বিষয়ের নাম</th><th class="px-4 py-3 text-left">নিযুক্ত শিক্ষক</th><th class="px-4 py-3 text-center w-24">কর্ম</th></tr>
+                        </thead>
+                        <tbody id="subjectTableBodyResp"></tbody>
+                    </table>
+                </div>
+            `;
+            const tbody = document.getElementById('subjectTableBodyResp');
+            subjects.forEach(sub => {
+                const teacherDisplay = sub.teacherName ? 
+                    `<span class="inline-flex items-center gap-1 bg-green-50 text-green-700 px-2 py-1 rounded-full text-xs md:text-sm"><i class="fas fa-user-check"></i> ${escapeHtml(sub.teacherName)}</span>` : 
+                    `<span class="text-amber-600 text-xs md:text-sm"><i class="fas fa-user-slash"></i> নিয়োগ করা হয়নি</span>`;
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-100 hover:bg-slate-50 transition';
+                
+                const subjectCell = document.createElement('td');
+                subjectCell.setAttribute('data-label', 'বিষয়ের নাম');
+                subjectCell.className = 'px-3 py-3 md:px-4 font-medium text-gray-800';
+                subjectCell.innerHTML = `<span class="break-words">${escapeHtml(sub.name)}</span>`;
+                
+                const teacherCell = document.createElement('td');
+                teacherCell.setAttribute('data-label', 'নিযুক্ত শিক্ষক');
+                teacherCell.className = 'px-3 py-3 md:px-4';
+                teacherCell.innerHTML = teacherDisplay;
+                
+                const actionCell = document.createElement('td');
+                actionCell.setAttribute('data-label', 'কর্ম');
+                actionCell.className = 'px-3 py-3 md:px-4 text-center';
+                actionCell.innerHTML = `
+                    <button class="edit-teacher-btn bg-indigo-50 text-indigo-700 hover:bg-indigo-100 p-2 rounded-xl transition text-sm md:text-base inline-flex items-center gap-1 shadow-sm" 
+                        data-subject-id="${sub.id}" 
+                        data-subject-name="${escapeHtml(sub.name)}" 
+                        data-class-id="${classId}" 
+                        data-teacher-id="${sub.teacherId || ''}" 
+                        data-teacher-name="${sub.teacherName || ''}">
+                        <i class="fas fa-edit"></i> <span class="hidden sm:inline">সম্পাদনা</span>
+                    </button>
+                `;
+                row.appendChild(subjectCell);
+                row.appendChild(teacherCell);
+                row.appendChild(actionCell);
+                tbody.appendChild(row);
+            });
+            
+            document.querySelectorAll('.edit-teacher-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const subjectId = btn.dataset.subjectId;
+                    const subjectName = btn.dataset.subjectName;
+                    const classIdVal = btn.dataset.classId;
+                    const currentTeacherId = btn.dataset.teacherId || '';
+                    const currentTeacherName = btn.dataset.teacherName || '';
+                    openTeacherAssignmentModal(subjectId, subjectName, classIdVal, currentTeacherId, currentTeacherName);
+                });
+            });
+        }
+        
+        // শিক্ষক অ্যাসাইনমেন্ট মডাল কোর (সাজেশন লিস্ট মসৃণভাবে কাজ করবে)
+        let currentAssignSubject = { subjectId: null, subjectName: null, classId: null, existingTeacherId: null, existingAssignmentId: null, selectedTeacherId: null, selectedTeacherName: null };
+        
+        async function openTeacherAssignmentModal(subjectId, subjectName, classId, teacherId, teacherName) {
+            let assignmentDocId = null;
+            if (teacherId) {
+                const assignSnap = await getDocs(query(collection(db, "teacher_subject"), where("subjectId", "==", subjectId), where("classId", "==", classId)));
+                assignSnap.forEach(docA => { assignmentDocId = docA.id; });
+            }
+            currentAssignSubject = {
+                subjectId, subjectName, classId,
+                existingTeacherId: teacherId || null,
+                existingAssignmentId: assignmentDocId,
+                selectedTeacherId: teacherId || null,
+                selectedTeacherName: teacherName || null
+            };
+            document.getElementById('modalSubjectName').innerText = subjectName;
+            document.getElementById('assignSubjectId').value = subjectId;
+            document.getElementById('assignClassId').value = classId;
+            document.getElementById('teacherSearchInput').value = teacherName || '';
+            document.getElementById('teacherSuggestionsList').classList.add('hidden');
+            document.getElementById('suggestionHelper')?.classList.add('hidden');
+            document.getElementById('teacherAssignModal').classList.remove('hidden');
+            await updateTeacherSuggestions(teacherName || '');
+        }
+        
+        async function updateTeacherSuggestions(queryText) {
+            const suggestionsDiv = document.getElementById('teacherSuggestionsList');
+            const helperSpan = document.getElementById('suggestionHelper');
+            if (!allTeachers.length) await loadTeachers();
+            let filtered = allTeachers.filter(t => t.name.toLowerCase().includes(queryText.toLowerCase()));
+            if (filtered.length === 0) {
+                suggestionsDiv.classList.add('hidden');
+                if(helperSpan) helperSpan.classList.add('hidden');
+                return;
+            }
+            suggestionsDiv.classList.remove('hidden');
+            if(helperSpan) helperSpan.classList.remove('hidden');
+            suggestionsDiv.innerHTML = '';
+            filtered.forEach(teacher => {
+                const item = document.createElement('div');
+                item.className = 'teacher-suggestion px-4 py-2.5 hover:bg-indigo-50 flex justify-between items-center border-b last:border-0 transition';
+                item.innerHTML = `<span><i class="fas fa-chalkboard-user text-gray-500 mr-3"></i><span class="font-medium">${escapeHtml(teacher.name)}</span></span><span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">নির্বাচন</span>`;
+                item.addEventListener('click', () => {
+                    document.getElementById('teacherSearchInput').value = teacher.name;
+                    suggestionsDiv.classList.add('hidden');
+                    if(helperSpan) helperSpan.classList.add('hidden');
+                    currentAssignSubject.selectedTeacherId = teacher.id;
+                    currentAssignSubject.selectedTeacherName = teacher.name;
+                    // সাজেশন সিলেক্টের ফিডব্যাক
+                    showToast(`"${teacher.name}" নির্বাচিত হয়েছে`, 'success');
+                });
+                suggestionsDiv.appendChild(item);
+            });
+        }
+        
+        document.getElementById('teacherSearchInput').addEventListener('input', (e) => {
+            const val = e.target.value;
+            updateTeacherSuggestions(val);
+            if (val === "") {
+                currentAssignSubject.selectedTeacherId = null;
+                currentAssignSubject.selectedTeacherName = null;
+            } else {
+                // ম্যানুয়ালি টাইপ করলে আইডি রিসেট, তবে যদি পুরোপুরি মিলে যায় সাজেশন থেকে সেট হয়
+                const exactMatch = allTeachers.find(t => t.name.toLowerCase() === val.toLowerCase());
+                if (exactMatch) {
+                    currentAssignSubject.selectedTeacherId = exactMatch.id;
+                    currentAssignSubject.selectedTeacherName = exactMatch.name;
+                } else {
+                    currentAssignSubject.selectedTeacherId = null;
+                    currentAssignSubject.selectedTeacherName = null;
+                }
+            }
+        });
+        
+        async function saveTeacherAssignment() {
+            const subjectId = currentAssignSubject.subjectId;
+            const classId = currentAssignSubject.classId;
+            let teacherId = currentAssignSubject.selectedTeacherId;
+            let teacherName = document.getElementById('teacherSearchInput').value.trim();
+            
+            // শেষ মুহুর্তে exact match চেক
+            if (!teacherId && teacherName) {
+                const match = allTeachers.find(t => t.name.toLowerCase() === teacherName.toLowerCase());
+                if (match) { teacherId = match.id; teacherName = match.name; }
+                else { showToast("দয়া করে সাজেশন তালিকা থেকে একজন শিক্ষক নির্বাচন করুন", "error"); return; }
+            }
+            if (!teacherId) { showToast("শিক্ষক নির্বাচন বাধ্যতামূলক। সাজেশন থেকে ক্লিক করে নির্বাচন করুন।", "error"); return; }
+            
+            try {
+                const existingQuery = await getDocs(query(collection(db, "teacher_subject"), where("subjectId", "==", subjectId), where("classId", "==", classId)));
+                const batch = writeBatch(db);
+                if (!existingQuery.empty) {
+                    const docRef = existingQuery.docs[0].ref;
+                    batch.update(docRef, { teacherId, teacherName, updatedAt: serverTimestamp() });
+                } else {
+                    const newRef = doc(collection(db, "teacher_subject"));
+                    batch.set(newRef, { subjectId, classId, teacherId, teacherName, createdAt: serverTimestamp() });
+                }
+                await batch.commit();
+                showToast(`"${currentAssignSubject.subjectName}" বিষয়ে ${teacherName} নিযুক্ত হলেন`);
+                closeTeacherModal();
+                await loadSubjectsWithTeachers(classId);
+            } catch (err) { showToast("ত্রুটি: " + err.message, "error"); }
+        }
+        
+        function closeTeacherModal() {
+            document.getElementById('teacherAssignModal').classList.add('hidden');
+            document.getElementById('teacherSearchInput').value = '';
+            document.getElementById('teacherSuggestionsList').classList.add('hidden');
+            const helper = document.getElementById('suggestionHelper');
+            if(helper) helper.classList.add('hidden');
+            currentAssignSubject = {};
+        }
+        window.closeTeacherModal = closeTeacherModal;
+        
+        // ক্লাস ফিল্টার ইভেন্ট
+        document.getElementById('classFilterSelect').addEventListener('change', async (e) => {
+            const classId = e.target.value;
+            if (!classId) {
+                currentSelectedClassId = null;
+                document.getElementById('subjectTeacherList').innerHTML = `<div class="text-center text-gray-400 py-10"><i class="fas fa-hand-point-left mr-2"></i>বিষয় ও শিক্ষক দেখতে ক্লাস নির্বাচন করুন</div>`;
+                return;
+            }
+            currentSelectedClassId = classId;
+            await loadSubjectsWithTeachers(classId);
+        });
+        
+        // ক্লাস ডিলিট বাটন (কুইক ডিলিট সেকশন এড়িয়ে একটি মাত্র বাটন)
+        function addClassDeleteButton() {
+            const container = document.getElementById('deleteClassButtonContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            if (currentSelectedClassId && allClasses.some(c => c.id === currentSelectedClassId)) {
+                const clsName = allClasses.find(c => c.id === currentSelectedClassId)?.name || '';
+                const delBtn = document.createElement('button');
+                delBtn.id = "inlineClassDelBtn";
+                delBtn.className = "text-xs text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full transition shadow-sm";
+                delBtn.innerHTML = `<i class="fas fa-trash-alt mr-1"></i> নির্বাচিত ক্লাস "${escapeHtml(clsName)}" মুছুন`;
+                delBtn.addEventListener('click', () => {
+                    if (!currentSelectedClassId) { showToast("ক্লাস নির্বাচন করা হয়নি", "error"); return; }
+                    const cls = allClasses.find(c => c.id === currentSelectedClassId);
+                    if (cls) showDeleteConfirm('class', cls.id, cls.name);
+                });
+                container.appendChild(delBtn);
+            } else {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'text-xs text-gray-400 text-right';
+                placeholder.innerText = 'ক্লাস নির্বাচন করলে ডিলিট অপশন দেখাবে';
+                container.appendChild(placeholder);
+            }
+        }
+        
+        function showDeleteConfirm(type, id, name) {
+            pendingDelete = { type, id, name };
+            document.getElementById('deleteItemName').innerText = name;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+        document.getElementById('cancelDelete').onclick = () => { document.getElementById('deleteModal').classList.add('hidden'); pendingDelete = null; };
+        document.getElementById('confirmDelete').onclick = async () => {
+            if (pendingDelete && pendingDelete.type === 'class') {
+                const cid = pendingDelete.id;
+                const subjectsSnap = await getDocs(query(collection(db, "subjects"), where("classId", "==", cid)));
+                const teacherSubSnap = await getDocs(query(collection(db, "teacher_subject"), where("classId", "==", cid)));
+                const batch = writeBatch(db);
+                subjectsSnap.forEach(d => batch.delete(d.ref));
+                teacherSubSnap.forEach(d => batch.delete(d.ref));
+                batch.delete(doc(db, "classes", cid));
+                await batch.commit();
+                showToast(`"${pendingDelete.name}" ক্লাস মুছে ফেলা হয়েছে`);
+                if (currentSelectedClassId === cid) { currentSelectedClassId = null; document.getElementById('classFilterSelect').value = ""; document.getElementById('subjectTeacherList').innerHTML = `<div class="text-center text-gray-400 py-8">ক্লাস ডিলিট হয়েছে। নতুন ক্লাস নির্বাচন করুন।</div>`; }
+                await loadClasses();
+            }
+            document.getElementById('deleteModal').classList.add('hidden');
+            pendingDelete = null;
+        };
+        
+        // ক্লাস মডাল ইভেন্ট
+        const classModal = document.getElementById('classModal');
+        window.closeClassModal = () => { classModal.classList.add('hidden'); document.getElementById('classForm').reset(); document.getElementById('editClassId').value = ''; };
+        document.getElementById('addClassBtn').onclick = () => {
+            document.getElementById('classModalTitle').innerText = 'নতুন ক্লাস যুক্ত করুন';
+            document.getElementById('editClassId').value = '';
+            document.getElementById('classForm').reset();
+            classModal.classList.remove('hidden');
+        };
+        document.getElementById('classForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editClassId').value;
+            const name = document.getElementById('className').value.trim();
+            const order = document.getElementById('classOrder').value;
+            if (!name) return showToast('ক্লাসের নাম প্রয়োজন', 'error');
+            if (id) { await updateDoc(doc(db, "classes", id), { name, order: parseInt(order)||0, updatedAt: serverTimestamp() }); showToast(`ক্লাস আপডেট করা হয়েছে`); }
+            else { await addDoc(collection(db, "classes"), { name, order: parseInt(order)||0, createdAt: serverTimestamp() }); showToast(`"${name}" ক্লাস তৈরি হয়েছে`); }
+            closeClassModal();
+            await loadClasses();
+        });
+        
+        document.getElementById('saveTeacherAssignmentBtn').addEventListener('click', saveTeacherAssignment);
+        window.addEventListener('click', (e) => { if(e.target === document.getElementById('teacherAssignModal')) closeTeacherModal(); if(e.target === classModal) closeClassModal(); });
+        
+        (async function init() {
+            await loadTeachers();
+            await loadClasses();
+            // নির্বাচিত ক্লাস না থাকলে কিছু দেখাবে
+            if(!currentSelectedClassId) document.getElementById('subjectTeacherList').innerHTML = `<div class="text-center text-gray-400 py-8"><i class="fas fa-info-circle mr-2"></i>বাম পাশের ড্রপডাউন থেকে ক্লাস বেছে নিন</div>`;
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Class Management | Create & Manage Classes, Sections, Subjects</title>
+    <!-- Tailwind + Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#6b7280',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                        indigo: '#6366f1'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #f1f5f9; }
+        .card-hover { transition: all 0.2s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        .modal-backdrop { backdrop-filter: blur(2px); background-color: rgba(0,0,0,0.4); }
+        .tab-active { border-bottom: 2px solid #3b82f6; color: #3b82f6; }
+        .subject-tag { transition: all 0.15s; }
+        .subject-tag:hover { transform: scale(1.02); }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased p-4 md:p-6">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-20 right-4 z-50 hidden transition-all duration-300">
+        <div class="bg-white rounded-lg shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success">
+            <i id="toast-icon" class="fas fa-check-circle text-success text-lg"></i>
+            <p id="toast-text" class="text-gray-700 text-sm font-medium">Operation successful</p>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop transition-all">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <i class="fas fa-trash-alt text-danger"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800">Confirm Delete</h3>
+            </div>
+            <p class="text-gray-600 mb-2">Are you sure you want to delete <strong id="deleteItemName"></strong>?</p>
+            <p class="text-sm text-gray-500 mb-4">This action cannot be undone. All associated sections and subjects will also be removed.</p>
+            <div class="flex justify-end gap-3">
+                <button id="cancelDelete" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                <button id="confirmDelete" class="px-4 py-2 bg-danger text-white rounded-lg hover:bg-red-700 transition">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Class Form Modal (Add/Edit) -->
+    <div id="classModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-auto">
+        <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-auto">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h3 class="text-xl font-bold"><i class="fas fa-school text-primary mr-2"></i> <span id="classModalTitle">Add New Class</span></h3>
+                <button onclick="closeClassModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <form id="classForm" class="p-5 space-y-4">
+                <input type="hidden" id="editClassId">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Class Name <span class="text-red-500">*</span></label>
+                    <input type="text" id="className" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary/40" placeholder="e.g., Class 1, Grade 5, Nursery" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Display Order</label>
+                    <input type="number" id="classOrder" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="1, 2, 3... (lower number first)" value="0">
+                </div>
+                <div class="flex justify-end gap-3 pt-3">
+                    <button type="button" onclick="closeClassModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition">Save Class</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Section Modal -->
+    <div id="sectionModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-auto">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h3 class="text-xl font-bold"><i class="fas fa-layer-group text-primary mr-2"></i> Manage Sections</h3>
+                <button onclick="closeSectionModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div class="p-5">
+                <input type="hidden" id="sectionClassId">
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="newSectionName" class="flex-1 border border-gray-300 rounded-lg p-2.5" placeholder="Section name (e.g., A, B, Morning)">
+                    <button id="addSectionBtn" class="px-4 py-2 bg-success text-white rounded-lg hover:bg-green-700 transition"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="sectionsList" class="space-y-2 max-h-64 overflow-y-auto">
+                    <p class="text-gray-400 text-center py-4">Loading sections...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subject Modal -->
+    <div id="subjectModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-auto">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-auto">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h3 class="text-xl font-bold"><i class="fas fa-book-open text-primary mr-2"></i> Manage Subjects</h3>
+                <button onclick="closeSubjectModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div class="p-5">
+                <input type="hidden" id="subjectClassId">
+                <div class="grid md:grid-cols-2 gap-4 mb-5">
+                    <div>
+                        <label class="text-sm font-semibold">Subject Name</label>
+                        <input type="text" id="subjectName" class="w-full border border-gray-300 rounded-lg p-2 mt-1" placeholder="Mathematics, English, etc.">
+                    </div>
+                    <div>
+                        <label class="text-sm font-semibold">Subject Type</label>
+                        <select id="subjectType" class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+                            <option value="mandatory">Mandatory</option>
+                            <option value="additional">Additional (Elective)</option>
+                            <option value="optional">Optional (Fourth Subject)</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="addSubjectBtn" class="w-full py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition mb-5"><i class="fas fa-plus-circle mr-2"></i> Add Subject</button>
+                
+                <div class="border-t pt-4">
+                    <h4 class="font-semibold mb-3">Subjects List</h4>
+                    <div id="subjectsList" class="space-y-2 max-h-64 overflow-y-auto">
+                        <p class="text-gray-400 text-center py-4">Loading subjects...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-wrap justify-between items-center mb-6 gap-3">
+            <div class="flex items-center gap-3">
+                <a href="dashboard.html" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition">
+                    <i class="fas fa-arrow-left text-primary"></i>
+                </a>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="bg-primary text-white p-1.5 rounded-lg"><i class="fas fa-chalkboard"></i></span> 
+                    Class Management
+                </h1>
+            </div>
+            <button id="addClassBtn" class="bg-primary text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition shadow-sm font-medium">
+                <i class="fas fa-plus-circle mr-2"></i> Add New Class
+            </button>
+        </header>
+
+        <!-- Classes Grid -->
+        <div id="classesGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="col-span-full text-center py-10 text-gray-400">
+                <i class="fas fa-spinner fa-spin text-2xl"></i> Loading classes...
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, query, orderBy, where, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+  apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+  authDomain: "school-menejment.firebaseapp.com",
+  databaseURL: "https://school-menejment-default-rtdb.firebaseio.com",
+  projectId: "school-menejment",
+  storageBucket: "school-menejment.firebasestorage.app",
+  messagingSenderId: "348342436525",
+  appId: "1:348342436525:web:c339fe6216c4516aa3bc24",
+  measurementId: "G-SQT1N4PVD3"
+};
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let allClasses = [];
+        let pendingDelete = { type: null, id: null, name: null };
+        
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' : 'fas fa-exclamation-circle text-danger text-lg';
+            toastText.innerText = message;
+            toast.classList.remove('hidden');
+            toast.style.display = 'flex';
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                setTimeout(() => { toast.style.display = 'none'; }, 300);
+            }, 3000);
+        }
+        
+        window.hideToast = () => {
+            const toast = document.getElementById('toast');
+            toast.classList.add('hidden');
+        };
+        
+        // Load all classes
+        async function loadClasses() {
+            try {
+                const q = query(collection(db, "classes"), orderBy("order", "asc"));
+                const snapshot = await getDocs(q);
+                allClasses = [];
+                snapshot.forEach(doc => {
+                    allClasses.push({ id: doc.id, ...doc.data() });
+                });
+                renderClasses();
+            } catch (error) {
+                console.error("Error loading classes:", error);
+                document.getElementById('classesGrid').innerHTML = `<div class="col-span-full text-center py-10 text-red-500"><i class="fas fa-exclamation-triangle"></i> Failed to load classes</div>`;
+            }
+        }
+        
+        // Render classes grid
+        async function renderClasses() {
+            const grid = document.getElementById('classesGrid');
+            if (allClasses.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 bg-white rounded-2xl shadow-sm">
+                    <i class="fas fa-school text-5xl text-gray-300 mb-3"></i>
+                    <p class="text-gray-400">No classes found. Click "Add New Class" to get started.</p>
+                </div>`;
+                return;
+            }
+            
+            grid.innerHTML = '';
+            for (const cls of allClasses) {
+                // Fetch section count and subject count for each class
+                const sectionsSnap = await getDocs(query(collection(db, "sections"), where("classId", "==", cls.id)));
+                const subjectsSnap = await getDocs(query(collection(db, "subjects"), where("classId", "==", cls.id)));
+                const sectionCount = sectionsSnap.size;
+                const subjectCount = subjectsSnap.size;
+                
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-2xl shadow-md overflow-hidden card-hover';
+                card.innerHTML = `
+                    <div class="p-5 border-b border-gray-100 flex justify-between items-start">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">${escapeHtml(cls.name || 'Unnamed')}</h3>
+                            <p class="text-xs text-gray-400 mt-1">Order: ${cls.order || 0}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="edit-class-btn text-primary hover:bg-blue-50 p-2 rounded-lg transition" data-id="${cls.id}" data-name="${escapeHtml(cls.name)}" data-order="${cls.order || 0}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="delete-class-btn text-danger hover:bg-red-50 p-2 rounded-lg transition" data-id="${cls.id}" data-name="${escapeHtml(cls.name)}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-600"><i class="fas fa-layer-group mr-1 text-primary"></i> Sections</span>
+                            <span class="font-semibold">${sectionCount}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-600"><i class="fas fa-book mr-1 text-primary"></i> Subjects</span>
+                            <span class="font-semibold">${subjectCount}</span>
+                        </div>
+                        <div class="flex gap-2 pt-2">
+                            <button class="manage-sections-btn flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition" data-id="${cls.id}" data-name="${escapeHtml(cls.name)}">
+                                <i class="fas fa-layer-group mr-1"></i> Sections
+                            </button>
+                            <button class="manage-subjects-btn flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition" data-id="${cls.id}" data-name="${escapeHtml(cls.name)}">
+                                <i class="fas fa-book-open mr-1"></i> Subjects
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            }
+            
+            // Attach event listeners
+            document.querySelectorAll('.edit-class-btn').forEach(btn => {
+                btn.addEventListener('click', () => editClass(btn.dataset.id, btn.dataset.name, btn.dataset.order));
+            });
+            document.querySelectorAll('.delete-class-btn').forEach(btn => {
+                btn.addEventListener('click', () => showDeleteConfirm('class', btn.dataset.id, btn.dataset.name));
+            });
+            document.querySelectorAll('.manage-sections-btn').forEach(btn => {
+                btn.addEventListener('click', () => openSectionModal(btn.dataset.id, btn.dataset.name));
+            });
+            document.querySelectorAll('.manage-subjects-btn').forEach(btn => {
+                btn.addEventListener('click', () => openSubjectModal(btn.dataset.id, btn.dataset.name));
+            });
+        }
+        
+        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+        
+        // Class CRUD
+        async function addClass(name, order) {
+            try {
+                await addDoc(collection(db, "classes"), {
+                    name: name,
+                    order: parseInt(order) || 0,
+                    createdAt: serverTimestamp()
+                });
+                showToast(`Class "${name}" added successfully!`);
+                await loadClasses();
+            } catch (error) {
+                showToast(`Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function updateClass(id, name, order) {
+            try {
+                await updateDoc(doc(db, "classes", id), {
+                    name: name,
+                    order: parseInt(order) || 0,
+                    updatedAt: serverTimestamp()
+                });
+                showToast(`Class updated successfully!`);
+                await loadClasses();
+            } catch (error) {
+                showToast(`Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function deleteClass(id) {
+            try {
+                // Delete all sections under this class
+                const sectionsSnap = await getDocs(query(collection(db, "sections"), where("classId", "==", id)));
+                const batch = writeBatch(db);
+                sectionsSnap.forEach(docSnap => batch.delete(docSnap.ref));
+                // Delete all subjects under this class
+                const subjectsSnap = await getDocs(query(collection(db, "subjects"), where("classId", "==", id)));
+                subjectsSnap.forEach(docSnap => batch.delete(docSnap.ref));
+                // Delete class itself
+                batch.delete(doc(db, "classes", id));
+                await batch.commit();
+                showToast(`Class and all associated data deleted successfully!`);
+                await loadClasses();
+            } catch (error) {
+                showToast(`Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Section Management
+        async function loadSections(classId) {
+            const sectionsSnap = await getDocs(query(collection(db, "sections"), where("classId", "==", classId)));
+            const sections = [];
+            sectionsSnap.forEach(doc => sections.push({ id: doc.id, name: doc.data().name }));
+            return sections;
+        }
+        
+        async function addSection(classId, sectionName) {
+            try {
+                await addDoc(collection(db, "sections"), {
+                    classId: classId,
+                    name: sectionName,
+                    createdAt: serverTimestamp()
+                });
+                showToast(`Section "${sectionName}" added!`);
+                return true;
+            } catch (error) {
+                showToast(`Error: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function deleteSection(sectionId) {
+            try {
+                await deleteDoc(doc(db, "sections", sectionId));
+                showToast(`Section deleted!`);
+                return true;
+            } catch (error) {
+                showToast(`Error: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        // Subject Management
+        async function loadSubjects(classId) {
+            const subjectsSnap = await getDocs(query(collection(db, "subjects"), where("classId", "==", classId)));
+            const subjects = [];
+            subjectsSnap.forEach(doc => subjects.push({ id: doc.id, name: doc.data().name, type: doc.data().type }));
+            return subjects;
+        }
+        
+        async function addSubject(classId, name, type) {
+            try {
+                await addDoc(collection(db, "subjects"), {
+                    classId: classId,
+                    name: name,
+                    type: type,
+                    createdAt: serverTimestamp()
+                });
+                showToast(`Subject "${name}" added!`);
+                return true;
+            } catch (error) {
+                showToast(`Error: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function deleteSubject(subjectId) {
+            try {
+                await deleteDoc(doc(db, "subjects", subjectId));
+                showToast(`Subject deleted!`);
+                return true;
+            } catch (error) {
+                showToast(`Error: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        // UI Modal Handlers
+        const classModal = document.getElementById('classModal');
+        function closeClassModal() { classModal.classList.add('hidden'); document.getElementById('classForm').reset(); document.getElementById('editClassId').value = ''; }
+        window.closeClassModal = closeClassModal;
+        
+        function editClass(id, name, order) {
+            document.getElementById('classModalTitle').innerText = 'Edit Class';
+            document.getElementById('editClassId').value = id;
+            document.getElementById('className').value = name;
+            document.getElementById('classOrder').value = order;
+            classModal.classList.remove('hidden');
+        }
+        
+        document.getElementById('addClassBtn').onclick = () => {
+            document.getElementById('classModalTitle').innerText = 'Add New Class';
+            document.getElementById('editClassId').value = '';
+            document.getElementById('classForm').reset();
+            classModal.classList.remove('hidden');
+        };
+        
+        document.getElementById('classForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editClassId').value;
+            const name = document.getElementById('className').value.trim();
+            const order = document.getElementById('classOrder').value;
+            if (!name) { showToast('Class name required', 'error'); return; }
+            if (id) await updateClass(id, name, order);
+            else await addClass(name, order);
+            closeClassModal();
+        });
+        
+        // Section Modal
+        let currentSectionClassId = null;
+        async function openSectionModal(classId, className) {
+            currentSectionClassId = classId;
+            document.getElementById('sectionClassId').value = classId;
+            document.getElementById('sectionModal').classList.remove('hidden');
+            await refreshSectionsList(classId);
+        }
+        window.openSectionModal = openSectionModal;
+        
+        async function refreshSectionsList(classId) {
+            const sections = await loadSections(classId);
+            const container = document.getElementById('sectionsList');
+            if (sections.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-4">No sections yet. Add one above.</p>';
+                return;
+            }
+            container.innerHTML = '';
+            sections.forEach(section => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-3 bg-gray-50 rounded-lg';
+                div.innerHTML = `
+                    <span><i class="fas fa-layer-group text-primary mr-2"></i> ${escapeHtml(section.name)}</span>
+                    <button class="delete-section-btn text-danger hover:bg-red-100 p-1 rounded" data-id="${section.id}" data-name="${escapeHtml(section.name)}">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+            document.querySelectorAll('.delete-section-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const sectionId = btn.dataset.id;
+                    const sectionName = btn.dataset.name;
+                    if (confirm(`Delete section "${sectionName}"?`)) {
+                        await deleteSection(sectionId);
+                        await refreshSectionsList(classId);
+                    }
+                });
+            });
+        }
+        
+        document.getElementById('addSectionBtn').onclick = async () => {
+            const newName = document.getElementById('newSectionName').value.trim();
+            if (!newName) { showToast('Enter section name', 'error'); return; }
+            await addSection(currentSectionClassId, newName);
+            document.getElementById('newSectionName').value = '';
+            await refreshSectionsList(currentSectionClassId);
+        };
+        
+        function closeSectionModal() { document.getElementById('sectionModal').classList.add('hidden'); currentSectionClassId = null; }
+        window.closeSectionModal = closeSectionModal;
+        
+        // Subject Modal
+        let currentSubjectClassId = null;
+        async function openSubjectModal(classId, className) {
+            currentSubjectClassId = classId;
+            document.getElementById('subjectClassId').value = classId;
+            document.getElementById('subjectModal').classList.remove('hidden');
+            await refreshSubjectsList(classId);
+        }
+        window.openSubjectModal = openSubjectModal;
+        
+        async function refreshSubjectsList(classId) {
+            const subjects = await loadSubjects(classId);
+            const container = document.getElementById('subjectsList');
+            if (subjects.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-4">No subjects added yet.</p>';
+                return;
+            }
+            container.innerHTML = '';
+            subjects.forEach(sub => {
+                const typeIcon = sub.type === 'mandatory' ? 'fa-check-circle text-success' : (sub.type === 'additional' ? 'fa-plus-circle text-primary' : 'fa-star text-warning');
+                const typeText = sub.type === 'mandatory' ? 'Mandatory' : (sub.type === 'additional' ? 'Additional' : 'Optional');
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-3 bg-gray-50 rounded-lg';
+                div.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <i class="fas ${typeIcon}"></i>
+                        <span class="font-medium">${escapeHtml(sub.name)}</span>
+                        <span class="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded">${typeText}</span>
+                    </div>
+                    <button class="delete-subject-btn text-danger hover:bg-red-100 p-1 rounded" data-id="${sub.id}" data-name="${escapeHtml(sub.name)}">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+            document.querySelectorAll('.delete-subject-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const subjectId = btn.dataset.id;
+                    const subjectName = btn.dataset.name;
+                    if (confirm(`Delete subject "${subjectName}"?`)) {
+                        await deleteSubject(subjectId);
+                        await refreshSubjectsList(classId);
+                    }
+                });
+            });
+        }
+        
+        document.getElementById('addSubjectBtn').onclick = async () => {
+            const name = document.getElementById('subjectName').value.trim();
+            const type = document.getElementById('subjectType').value;
+            if (!name) { showToast('Enter subject name', 'error'); return; }
+            await addSubject(currentSubjectClassId, name, type);
+            document.getElementById('subjectName').value = '';
+            await refreshSubjectsList(currentSubjectClassId);
+        };
+        
+        function closeSubjectModal() { document.getElementById('subjectModal').classList.add('hidden'); currentSubjectClassId = null; }
+        window.closeSubjectModal = closeSubjectModal;
+        
+        // Delete confirmation for class
+        function showDeleteConfirm(type, id, name) {
+            pendingDelete = { type, id, name };
+            document.getElementById('deleteItemName').innerText = name;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+        
+        document.getElementById('cancelDelete').onclick = () => {
+            document.getElementById('deleteModal').classList.add('hidden');
+            pendingDelete = null;
+        };
+        
+        document.getElementById('confirmDelete').onclick = async () => {
+            if (pendingDelete && pendingDelete.type === 'class') {
+                await deleteClass(pendingDelete.id);
+            }
+            document.getElementById('deleteModal').classList.add('hidden');
+            pendingDelete = null;
+        };
+        
+        // Close modals on outside click
+        [classModal, document.getElementById('sectionModal'), document.getElementById('subjectModal'), document.getElementById('deleteModal')].forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                    if (modal.id === 'sectionModal') currentSectionClassId = null;
+                    if (modal.id === 'subjectModal') currentSubjectClassId = null;
+                }
+            });
+        });
+        
+        // Initialize
+        await loadClasses();
+    </script>
+</body>
+</html>

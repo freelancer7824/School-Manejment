@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>পূর্ণাঙ্গ ব্যবহারকারী ব্যবস্থাপনা | অ্যাডমিন ও শিক্ষক তৈরি, সম্পাদনা ও মুছুন</title>
+    <!-- Tailwind + Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#6b7280',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                        indigo: '#6366f1'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #f1f5f9; font-family: 'Inter', system-ui, sans-serif; }
+        .form-card { transition: all 0.2s ease; }
+        .border-error { border-color: #ef4444 !important; background-color: #fef2f2; }
+        .modal-backdrop { backdrop-filter: blur(2px); background-color: rgba(0,0,0,0.4); }
+        .user-row { transition: all 0.2s ease; }
+        .user-row:hover { background-color: #f8fafc; }
+        .toast-slide { animation: slideInRight 0.25s ease-out; }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="min-h-screen antialiased p-4 md:p-6">
+
+    <!-- Toast Message -->
+    <div id="toast" class="fixed top-20 right-4 z-50 hidden transition-all duration-300">
+        <div class="bg-white rounded-lg shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success toast-slide">
+            <i id="toast-icon" class="fas fa-check-circle text-success text-lg"></i>
+            <p id="toast-text" class="text-gray-700 text-sm font-medium">সফল হয়েছে</p>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop transition-all">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <i class="fas fa-trash-alt text-danger"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800">ব্যবহারকারী মুছুন</h3>
+            </div>
+            <p class="text-gray-600 mb-2">আপনি কি <strong id="deleteUserName"></strong> কে স্থায়ীভাবে মুছতে চান?</p>
+            <p class="text-sm text-gray-500 mb-4">এই কাজ পূর্বাবস্থায় ফেরানো যাবে না।</p>
+            <div class="flex justify-end gap-3">
+                <button id="cancelDelete" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">বাতিল</button>
+                <button id="confirmDelete" class="px-4 py-2 bg-danger text-white rounded-lg hover:bg-red-700 transition">মুছুন</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-auto">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-auto">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h3 class="text-xl font-bold"><i class="fas fa-edit text-primary mr-2"></i> তথ্য সম্পাদনা করুন</h3>
+                <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <form id="editUserForm" class="p-5 space-y-4">
+                <input type="hidden" id="editUserId">
+                <input type="hidden" id="editUserRole">
+                <div class="grid grid-cols-1 gap-4">
+                    <div><label class="block text-sm font-semibold text-gray-700">পূর্ণ নাম *</label><input type="text" id="editFullName" class="w-full border border-gray-300 rounded-lg p-2.5" required></div>
+                    <div><label class="block text-sm font-semibold text-gray-700">মোবাইল নম্বর *</label><input type="tel" id="editPhone" class="w-full border border-gray-300 rounded-lg p-2.5" required></div>
+                    <div><label class="block text-sm font-semibold text-gray-700">ইমেইল</label><input type="email" id="editEmail" class="w-full border border-gray-300 rounded-lg p-2.5"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700">লিঙ্গ</label><select id="editGender" class="w-full border border-gray-300 rounded-lg p-2.5"><option value="">নির্বাচন করুন</option><option value="Male">পুরুষ</option><option value="Female">মহিলা</option><option value="Other">অন্যান্য</option></select></div>
+                    <div><label class="block text-sm font-semibold text-gray-700">ঠিকানা</label><input type="text" id="editAddress" class="w-full border border-gray-300 rounded-lg p-2.5"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700">স্ট্যাটাস</label><select id="editStatus" class="w-full border border-gray-300 rounded-lg p-2.5"><option value="active">সক্রিয়</option><option value="inactive">নিষ্ক্রিয়</option></select></div>
+                </div>
+                <div class="flex justify-end gap-3 pt-3 border-t">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition">বাতিল</button>
+                    <button type="submit" class="px-5 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition"><i class="fas fa-save mr-1"></i> হালনাগাদ করুন</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-wrap justify-between items-center mb-6 gap-3">
+            <div class="flex items-center gap-3">
+                <a href="#" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition">
+                    <i class="fas fa-arrow-left text-primary"></i>
+                </a>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="bg-primary text-white p-1.5 rounded-lg"><i class="fas fa-user-plus"></i></span> 
+                    ব্যবহারকারী ব্যবস্থাপনা
+                </h1>
+            </div>
+            <div class="bg-white px-4 py-2 rounded-full shadow-sm text-sm font-medium text-gray-700 border border-gray-200">
+                <i class="fas fa-calendar-alt text-primary mr-1"></i> 
+                <span id="current-session-badge">২০২৫-২০২৬</span>
+            </div>
+        </header>
+
+        <!-- Main Form Card -->
+        <div class="bg-white rounded-2xl shadow-md overflow-hidden mb-8">
+            <div class="p-6 md:p-8">
+                <!-- Role Selection Tabs -->
+                <div class="flex gap-3 mb-8 border-b pb-3">
+                    <button type="button" id="roleAdminBtn" class="role-tab px-6 py-2 rounded-lg font-semibold transition bg-primary text-white">
+                        <i class="fas fa-user-cog mr-2"></i> অ্যাডমিন
+                    </button>
+                    <button type="button" id="roleTeacherBtn" class="role-tab px-6 py-2 rounded-lg font-semibold transition bg-gray-200 text-gray-600 hover:bg-gray-300">
+                        <i class="fas fa-chalkboard-teacher mr-2"></i> শিক্ষক
+                    </button>
+                </div>
+
+                <form id="userForm" class="space-y-6">
+                    <input type="hidden" id="selectedRole" value="admin">
+                    
+                    <!-- Basic Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">
+                                <i class="fas fa-user text-primary mr-1"></i> পূর্ণ নাম <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="fullName" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary/40" placeholder="পূর্ণ নাম লিখুন" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">
+                                <i class="fas fa-phone-alt text-primary mr-1"></i> মোবাইল নম্বর <span class="text-red-500">*</span>
+                            </label>
+                            <input type="tel" id="phone" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="01XXXXXXXXX" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">
+                                <i class="fas fa-key text-primary mr-1"></i> পাসওয়ার্ড <span class="text-red-500">*</span>
+                            </label>
+                            <input type="password" id="password" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="কমপক্ষে ৬ অক্ষর" required>
+                            <p class="text-xs text-gray-400 mt-1">ন্যূনতম ৬ অক্ষর</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">
+                                <i class="fas fa-envelope text-primary mr-1"></i> ইমেইল
+                            </label>
+                            <input type="email" id="email" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="example@school.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">
+                                <i class="fas fa-venus-mars text-primary mr-1"></i> লিঙ্গ
+                            </label>
+                            <select id="gender" class="w-full border border-gray-300 rounded-lg p-2.5">
+                                <option value="">নির্বাচন</option>
+                                <option value="Male">পুরুষ</option>
+                                <option value="Female">মহিলা</option>
+                                <option value="Other">অন্যান্য</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">
+                                <i class="fas fa-calendar-alt text-primary mr-1"></i> জন্ম তারিখ
+                            </label>
+                            <input type="date" id="dob" class="w-full border border-gray-300 rounded-lg p-2.5">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">
+                                <i class="fas fa-map-marker-alt text-primary mr-1"></i> ঠিকানা
+                            </label>
+                            <input type="text" id="address" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="বিস্তারিত ঠিকানা">
+                        </div>
+                    </div>
+
+                    <!-- Teacher Specific Fields -->
+                    <div id="teacherFields" class="hidden border-t pt-5 mt-2">
+                        <h3 class="font-bold text-gray-800 mb-4"><i class="fas fa-chalkboard text-primary mr-2"></i> শিক্ষক সংক্রান্ত তথ্য</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">শিক্ষক আইডি</label><input type="text" id="employeeId" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="TCH-001"></div>
+                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">বিভাগ</label><input type="text" id="department" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="বিজ্ঞান, গণিত..."></div>
+                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">শিক্ষাগত যোগ্যতা</label><input type="text" id="qualification" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="এম.এসসি, বি.এড"></div>
+                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">যোগদানের তারিখ</label><input type="date" id="joiningDate" class="w-full border border-gray-300 rounded-lg p-2.5"></div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Specific Fields -->
+                    <div id="adminFields" class="border-t pt-5 mt-2">
+                        <h3 class="font-bold text-gray-800 mb-4"><i class="fas fa-user-shield text-primary mr-2"></i> অ্যাডমিন তথ্য</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">অ্যাডমিন টাইপ</label><select id="adminType" class="w-full border border-gray-300 rounded-lg p-2.5"><option value="admin">অ্যাডমিন</option><option value="superadmin">সুপার অ্যাডমিন</option></select></div>
+                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">অ্যাক্সেস লেভেল</label><select id="accessLevel" class="w-full border border-gray-300 rounded-lg p-2.5"><option value="full">সম্পূর্ণ অ্যাক্সেস</option><option value="limited">সীমিত অ্যাক্সেস</option><option value="readonly">শুধুমাত্র দেখার অনুমতি</option></select></div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-4 border-t">
+                        <button type="submit" id="submitBtn" class="px-6 py-2.5 bg-success text-white rounded-xl hover:bg-green-700 transition font-medium">
+                            <i class="fas fa-save mr-2"></i> একাউন্ট তৈরি করুন
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Users List Table (প্রশাসক ও শিক্ষক একসাথে) -->
+        <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+            <div class="p-5 border-b bg-gray-50 flex justify-between items-center flex-wrap gap-2">
+                <h3 class="font-bold text-gray-800"><i class="fas fa-users text-primary mr-2"></i> সকল ব্যবহারকারী (অ্যাডমিন ও শিক্ষক)</h3>
+                <div class="text-xs text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm"><i class="fas fa-sync-alt mr-1"></i> রিয়েল টাইম তালিকা</div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-100">
+                        <tr class="text-left text-sm font-semibold text-gray-600">
+                            <th class="px-5 py-3 w-12">#</th>
+                            <th class="px-5 py-3">নাম</th>
+                            <th class="px-5 py-3">মোবাইল</th>
+                            <th class="px-5 py-3">ইমেইল</th>
+                            <th class="px-5 py-3">ভূমিকা</th>
+                            <th class="px-5 py-3">স্ট্যাটাস</th>
+                            <th class="px-5 py-3 text-center w-28">অ্যাকশন</th>
+                         </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr><td colspan="7" class="text-center py-10 text-gray-400"><i class="fas fa-spinner fa-spin text-2xl"></i> ডাটা লোড হচ্ছে...</td></tr>
+                    </tbody>
+                 </table>
+            </div>
+        </div>
+        
+        <!-- সহায়ক তথ্য: শিক্ষক সিঙ্ক নোট -->
+        <div class="mt-4 text-xs text-gray-400 text-center border-t pt-4">✅ যে কোনো শিক্ষক তৈরি হলে স্বয়ংক্রিয়ভাবে টিচার তালিকায় যুক্ত হবে এবং অন্যত্র সার্চে পাওয়া যাবে।</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, updatePassword, deleteUser, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, getDocs, doc, setDoc, updateDoc, deleteDoc, where, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            databaseURL: "https://school-menejment-default-rtdb.firebaseio.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24",
+            measurementId: "G-SQT1N4PVD3"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        let allUsers = [];
+        let currentRole = 'admin';
+        let pendingDeleteId = null;
+        let pendingDeleteAuthId = null;
+        
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' : 'fas fa-exclamation-circle text-danger text-lg';
+            toastText.innerText = message;
+            toast.classList.remove('hidden');
+            toast.style.display = 'flex';
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                setTimeout(() => { toast.style.display = 'none'; }, 300);
+            }, 4000);
+        }
+        
+        window.hideToast = () => document.getElementById('toast').classList.add('hidden');
+        
+        function generateEmailFromPhone(phone, role) {
+            const cleanPhone = phone.replace(/[^0-9]/g, '');
+            const lastDigits = cleanPhone.slice(-10);
+            return `${role}_${lastDigits}@schoolapp.com`;
+        }
+        
+        // শিক্ষক তৈরি হলে ALWAYS teachers কালেকশনেও সেভ করবো - যাতে অন্যত্র (subject assign) সার্চে পাওয়া যায়।
+        async function syncTeacherToTeachersCollection(teacherData, uid) {
+            try {
+                // teacherData = { name, phone, email, employeeId, department, qualification, joiningDate, uid, role }
+                const teacherRef = doc(db, "teachers", uid);
+                await setDoc(teacherRef, {
+                    name: teacherData.name,
+                    phone: teacherData.phone,
+                    email: teacherData.email || "",
+                    employeeId: teacherData.employeeId || "",
+                    department: teacherData.department || "",
+                    qualification: teacherData.qualification || "",
+                    joiningDate: teacherData.joiningDate || "",
+                    uid: uid,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+                console.log("✅ শিক্ষক সিঙ্ক done in teachers collection:", teacherData.name);
+            } catch (err) {
+                console.warn("teachers collection sync error:", err);
+            }
+        }
+        
+        // অ্যাডমিন/শিক্ষক তৈরি ফাংশন
+        document.getElementById('userForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fullName = document.getElementById('fullName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value.trim();
+            const gender = document.getElementById('gender').value;
+            const dob = document.getElementById('dob').value;
+            const address = document.getElementById('address').value;
+            const role = currentRole;
+            
+            if (!fullName) { showToast('পূর্ণ নাম লিখুন', 'error'); return; }
+            if (!phone) { showToast('মোবাইল নম্বর লিখুন', 'error'); return; }
+            if (!password || password.length < 6) { showToast('পাসওয়ার্ড ৬ অক্ষরের হতে হবে', 'error'); return; }
+            
+            const phoneRegex = /^01[3-9]\d{8}$/;
+            if (!phoneRegex.test(phone)) { showToast('সঠিক বাংলাদেশী মোবাইল নম্বর দিন', 'error'); return; }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> তৈরি হচ্ছে...';
+            
+            try {
+                const userEmail = email || generateEmailFromPhone(phone, role);
+                const userCredential = await createUserWithEmailAndPassword(auth, userEmail, password);
+                const authUid = userCredential.user.uid;
+                
+                const userData = {
+                    uid: authUid, name: fullName, email: userEmail, phone: phone, role: role,
+                    gender: gender || null, dateOfBirth: dob || null, address: address || null,
+                    status: 'active', createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+                };
+                
+                if (role === 'teacher') {
+                    const employeeId = document.getElementById('employeeId').value || `TCH-${phone.slice(-4)}`;
+                    const department = document.getElementById('department').value || '';
+                    const qualification = document.getElementById('qualification').value || '';
+                    const joiningDate = document.getElementById('joiningDate').value || new Date().toISOString().split('T')[0];
+                    userData.employeeId = employeeId;
+                    userData.department = department;
+                    userData.qualification = qualification;
+                    userData.joiningDate = joiningDate;
+                    
+                    await setDoc(doc(db, 'users', authUid), userData);
+                    
+                    // 🔥 শিক্ষক কালেকশনে সিঙ্ক করা হচ্ছে - যাতে subject assign এ সার্চ রেজাল্ট আসে
+                    await syncTeacherToTeachersCollection({
+                        name: fullName,
+                        phone: phone,
+                        email: userEmail,
+                        employeeId: employeeId,
+                        department: department,
+                        qualification: qualification,
+                        joiningDate: joiningDate,
+                        uid: authUid,
+                        role: 'teacher'
+                    }, authUid);
+                    
+                    showToast(`🎉 শিক্ষক তৈরি! ইমেইল: ${userEmail} | পাস: ${password}`, 'success');
+                    
+                } else if (role === 'admin') {
+                    const adminType = document.getElementById('adminType').value;
+                    userData.adminType = adminType;
+                    userData.accessLevel = document.getElementById('accessLevel').value;
+                    if (adminType === 'superadmin') userData.role = 'superadmin';
+                    await setDoc(doc(db, 'users', authUid), userData);
+                    showToast(`✅ অ্যাডমিন তৈরি! ইমেইল: ${userEmail} | পাস: ${password}`, 'success');
+                }
+                
+                document.getElementById('userForm').reset();
+                document.getElementById('adminType').value = 'admin';
+                document.getElementById('accessLevel').value = 'full';
+                await loadAllUsers();
+                
+            } catch (error) {
+                console.error(error);
+                let errorMsg = error.code === 'auth/email-already-in-use' ? 'এই ইমেইল/ফোন আগে ব্যবহার হয়েছে' : error.message;
+                showToast(errorMsg, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i> একাউন্ট তৈরি করুন';
+            }
+        });
+        
+        // সকল ব্যবহারকারী + শিক্ষক collection sync (double check)
+        async function loadAllUsers() {
+            try {
+                const usersSnapshot = await getDocs(query(collection(db, 'users'), orderBy('createdAt', 'desc')));
+                allUsers = [];
+                usersSnapshot.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
+                renderUsersTable();
+                // পাশাপাশি শিক্ষক লিস্ট সিঙ্ক নিশ্চিতকরণ: teachers collection এ অভাব থাকলে যোগ করি
+                await ensureAllTeachersInCollection();
+            } catch (error) {
+                console.error('Error loading users:', error);
+                document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="7" class="text-center py-10 text-red-400">লোড করতে ব্যর্থ হয়েছে</td></tr>';
+            }
+        }
+        
+        // Background sync: যাতে পূর্বের তৈরি শিক্ষকরা teachers collection এ থাকে
+        async function ensureAllTeachersInCollection() {
+            const teachersFromUsers = allUsers.filter(u => u.role === 'teacher' || u.role === 'superadmin' && u.role === 'teacher');
+            for (const teacher of teachersFromUsers) {
+                const teacherDocRef = doc(db, "teachers", teacher.id);
+                const snap = await getDoc(teacherDocRef);
+                if (!snap.exists()) {
+                    await syncTeacherToTeachersCollection({
+                        name: teacher.name,
+                        phone: teacher.phone,
+                        email: teacher.email,
+                        employeeId: teacher.employeeId || `TCH-${teacher.phone?.slice(-4)}`,
+                        department: teacher.department || '',
+                        qualification: teacher.qualification || '',
+                        joiningDate: teacher.joiningDate || '',
+                        uid: teacher.id,
+                        role: 'teacher'
+                    }, teacher.id);
+                    console.log("মিসিং টিচার পুনরুদ্ধার:", teacher.name);
+                }
+            }
+        }
+        
+        function renderUsersTable() {
+            const tbody = document.getElementById('usersTableBody');
+            if (allUsers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-gray-400">কোন ব্যবহারকারী নেই</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            allUsers.forEach((user, index) => {
+                if (user.role === 'parent') return;
+                const roleIcon = user.role === 'admin' ? 'fa-user-cog' : (user.role === 'superadmin' ? 'fa-user-shield' : 'fa-chalkboard-teacher');
+                const roleColor = user.role === 'admin' ? 'bg-blue-100 text-blue-700' : (user.role === 'superadmin' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700');
+                const statusColor = user.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600';
+                const roleDisplay = user.role === 'teacher' ? 'শিক্ষক' : (user.role === 'superadmin' ? 'সুপার অ্যাডমিন' : 'অ্যাডমিন');
+                
+                const row = document.createElement('tr');
+                row.className = 'user-row border-b border-gray-100 hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-5 py-3 text-sm text-gray-500">${index + 1}</td>
+                    <td class="px-5 py-3"><div class="font-semibold text-gray-800">${escapeHtml(user.name || 'N/A')}</div></td>
+                    <td class="px-5 py-3 text-sm">${escapeHtml(user.phone || 'N/A')}</td>
+                    <td class="px-5 py-3 text-sm text-gray-500">${escapeHtml(user.email || 'N/A')}</td>
+                    <td class="px-5 py-3"><span class="text-xs px-2 py-1 rounded-full ${roleColor}"><i class="fas ${roleIcon} mr-1"></i> ${roleDisplay}</span></td>
+                    <td class="px-5 py-3"><span class="text-xs px-2 py-1 rounded-full ${statusColor}">${user.status === 'active' ? 'সক্রিয়' : 'নিষ্ক্রিয়'}</span></td>
+                    <td class="px-5 py-3 text-center"><div class="flex gap-2 justify-center"><button class="edit-user-btn bg-primary/10 text-primary hover:bg-primary hover:text-white p-2 rounded-lg transition" data-id="${user.id}" data-uid="${user.uid}" data-role="${user.role}"><i class="fas fa-edit"></i></button><button class="delete-user-btn bg-red-100 text-danger hover:bg-danger hover:text-white p-2 rounded-lg transition" data-id="${user.id}" data-uid="${user.uid}" data-name="${escapeHtml(user.name)}"><i class="fas fa-trash-alt"></i></button></div></td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            document.querySelectorAll('.edit-user-btn').forEach(btn => btn.addEventListener('click', () => openEditModal(btn.dataset.id, btn.dataset.uid, btn.dataset.role)));
+            document.querySelectorAll('.delete-user-btn').forEach(btn => btn.addEventListener('click', () => openDeleteModal(btn.dataset.id, btn.dataset.uid, btn.dataset.name)));
+        }
+        
+        async function openEditModal(userId, authUid, role) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+            document.getElementById('editUserId').value = userId;
+            document.getElementById('editUserRole').value = role;
+            document.getElementById('editFullName').value = user.name || '';
+            document.getElementById('editPhone').value = user.phone || '';
+            document.getElementById('editEmail').value = user.email || '';
+            document.getElementById('editGender').value = user.gender || '';
+            document.getElementById('editAddress').value = user.address || '';
+            document.getElementById('editStatus').value = user.status || 'active';
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+        
+        window.closeEditModal = () => document.getElementById('editModal').classList.add('hidden');
+        
+        document.getElementById('editUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userId = document.getElementById('editUserId').value;
+            const updateData = {
+                name: document.getElementById('editFullName').value,
+                phone: document.getElementById('editPhone').value,
+                email: document.getElementById('editEmail').value,
+                gender: document.getElementById('editGender').value,
+                address: document.getElementById('editAddress').value,
+                status: document.getElementById('editStatus').value,
+                updatedAt: serverTimestamp()
+            };
+            try {
+                await updateDoc(doc(db, 'users', userId), updateData);
+                // শিক্ষক কালেকশনও আপডেট করি যদি শিক্ষক হয়
+                const userRole = document.getElementById('editUserRole').value;
+                if (userRole === 'teacher') {
+                    await setDoc(doc(db, 'teachers', userId), {
+                        name: updateData.name,
+                        phone: updateData.phone,
+                        email: updateData.email,
+                        updatedAt: serverTimestamp()
+                    }, { merge: true });
+                }
+                showToast('তথ্য হালনাগাদ হয়েছে!');
+                closeEditModal();
+                await loadAllUsers();
+            } catch (error) {
+                showToast('ত্রুটি: ' + error.message, 'error');
+            }
+        });
+        
+        function openDeleteModal(userId, authUid, userName) {
+            pendingDeleteId = userId;
+            pendingDeleteAuthId = authUid;
+            document.getElementById('deleteUserName').innerText = userName;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+        
+        document.getElementById('cancelDelete').onclick = () => {
+            document.getElementById('deleteModal').classList.add('hidden');
+            pendingDeleteId = null;
+            pendingDeleteAuthId = null;
+        };
+        
+        document.getElementById('confirmDelete').onclick = async () => {
+            if (pendingDeleteId) {
+                try {
+                    // ডিলিট: teachers collection থেকেও মুছুন
+                    await deleteDoc(doc(db, 'users', pendingDeleteId));
+                    await deleteDoc(doc(db, 'teachers', pendingDeleteId)).catch(()=>{});
+                    showToast('ব্যবহারকারী মুছে ফেলা হয়েছে');
+                    document.getElementById('deleteModal').classList.add('hidden');
+                    await loadAllUsers();
+                } catch (error) {
+                    showToast('মুছতে সমস্যা: ' + error.message, 'error');
+                } finally {
+                    pendingDeleteId = null;
+                    pendingDeleteAuthId = null;
+                }
+            }
+        };
+        
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+        
+        // Role Tab switching
+        document.getElementById('roleAdminBtn').addEventListener('click', () => {
+            currentRole = 'admin';
+            document.getElementById('selectedRole').value = 'admin';
+            document.getElementById('roleAdminBtn').className = 'role-tab px-6 py-2 rounded-lg font-semibold transition bg-primary text-white';
+            document.getElementById('roleTeacherBtn').className = 'role-tab px-6 py-2 rounded-lg font-semibold transition bg-gray-200 text-gray-600 hover:bg-gray-300';
+            document.getElementById('teacherFields').classList.add('hidden');
+            document.getElementById('adminFields').classList.remove('hidden');
+        });
+        
+        document.getElementById('roleTeacherBtn').addEventListener('click', () => {
+            currentRole = 'teacher';
+            document.getElementById('selectedRole').value = 'teacher';
+            document.getElementById('roleTeacherBtn').className = 'role-tab px-6 py-2 rounded-lg font-semibold transition bg-primary text-white';
+            document.getElementById('roleAdminBtn').className = 'role-tab px-6 py-2 rounded-lg font-semibold transition bg-gray-200 text-gray-600 hover:bg-gray-300';
+            document.getElementById('teacherFields').classList.remove('hidden');
+            document.getElementById('adminFields').classList.add('hidden');
+        });
+        
+        async function loadCurrentSession() {
+            try {
+                const sessionDoc = await getDoc(doc(db, "config", "activeSession"));
+                if (sessionDoc.exists()) document.getElementById('current-session-badge').innerHTML = `<i class="fas fa-calendar-alt mr-1"></i>${sessionDoc.data().sessionName || "২০২৫-২০২৬"}`;
+            } catch(e) {}
+        }
+        
+        document.getElementById('editModal').addEventListener('click', (e) => { if (e.target === document.getElementById('editModal')) closeEditModal(); });
+        document.getElementById('deleteModal').addEventListener('click', (e) => { if (e.target === document.getElementById('deleteModal')) { document.getElementById('deleteModal').classList.add('hidden'); pendingDeleteId = null; } });
+        
+        loadCurrentSession();
+        await loadAllUsers();
+    </script>
+</body>
+</html>

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Parents Management | View, Edit, Delete & Linked Students</title>
+    <!-- Tailwind + Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#6b7280',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #f0f2f5; font-family: 'Inter', system-ui, sans-serif; }
+        .parent-row { transition: all 0.2s ease; }
+        .parent-row:hover { background-color: #f8fafc; transform: translateX(2px); }
+        .modal-backdrop { backdrop-filter: blur(3px); background-color: rgba(0,0,0,0.5); }
+        .dropdown-menu { transition: all 0.15s; }
+        .student-link { transition: all 0.2s; }
+        .student-link:hover { background-color: #dbeafe; transform: scale(1.02); }
+    </style>
+</head>
+<body class="min-h-screen antialiased p-4 md:p-6">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-20 right-4 z-50 hidden transition-all duration-300">
+        <div class="bg-white rounded-lg shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success">
+            <i id="toast-icon" class="fas fa-check-circle text-success text-lg"></i>
+            <p id="toast-text" class="text-gray-700 text-sm font-medium">Operation successful</p>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop transition-all">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <i class="fas fa-trash-alt text-danger"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800">Delete Parent</h3>
+            </div>
+            <p class="text-gray-600 mb-2">Permanently delete <strong id="deleteParentName"></strong>?</p>
+            <p class="text-sm text-gray-500 mb-4">This will also unlink all associated students.</p>
+            <div class="flex justify-end gap-3">
+                <button id="cancelDelete" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                <button id="confirmDelete" class="px-4 py-2 bg-danger text-white rounded-lg hover:bg-red-700 transition">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Parent Modal -->
+    <div id="editModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-auto">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-auto">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h3 class="text-xl font-bold"><i class="fas fa-edit text-primary mr-2"></i> Edit Parent</h3>
+                <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <form id="editParentForm" class="p-5 space-y-4">
+                <input type="hidden" id="editParentId">
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-sm font-semibold text-gray-700">Father Name</label><input type="text" id="editFatherName" class="w-full border rounded-lg p-2.5"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700">Father Phone</label><input type="tel" id="editFatherPhone" class="w-full border rounded-lg p-2.5"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700">Mother Name</label><input type="text" id="editMotherName" class="w-full border rounded-lg p-2.5"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700">Mother Phone</label><input type="tel" id="editMotherPhone" class="w-full border rounded-lg p-2.5"></div>
+                </div>
+                <div><label class="block text-sm font-semibold text-gray-700">Guardian Name *</label><input type="text" id="editGuardianName" class="w-full border rounded-lg p-2.5" required></div>
+                <div><label class="block text-sm font-semibold text-gray-700">Guardian Phone *</label><input type="tel" id="editGuardianPhone" class="w-full border rounded-lg p-2.5" required></div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded-lg">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-primary text-white rounded-lg hover:bg-blue-700"><i class="fas fa-save mr-1"></i> Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Students Modal (Linked Students) -->
+    <div id="studentsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-auto">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-auto max-h-[80vh] overflow-y-auto">
+            <div class="p-5 border-b sticky top-0 bg-white flex justify-between items-center">
+                <h3 class="text-xl font-bold"><i class="fas fa-user-graduate text-primary mr-2"></i> Linked Students</h3>
+                <button onclick="closeStudentsModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div id="studentsListContent" class="p-5"></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto">
+        <header class="flex flex-wrap justify-between items-center mb-6 gap-3">
+            <div class="flex items-center gap-3">
+                <a href="admission.html" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition">
+                    <i class="fas fa-arrow-left text-primary"></i>
+                </a>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="bg-primary text-white p-1.5 rounded-lg"><i class="fas fa-users"></i></span> 
+                    Parents Management
+                </h1>
+            </div>
+            <div class="bg-white px-4 py-2 rounded-full shadow-sm text-sm font-medium text-gray-700 border border-gray-200">
+                <i class="fas fa-calendar-alt text-primary mr-1"></i> 
+                <span id="current-session-badge">Loading...</span>
+            </div>
+        </header>
+
+        <!-- Filter Bar -->
+        <div class="bg-white rounded-2xl shadow-md p-5 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div><label class="block text-sm font-semibold text-gray-700 mb-1">Select Class</label><select id="classFilter" class="w-full border rounded-lg p-2.5"><option value="">All Classes</option></select></div>
+                <div><label class="block text-sm font-semibold text-gray-700 mb-1">Select Section</label><select id="sectionFilter" class="w-full border rounded-lg p-2.5" disabled><option value="">First select class</option></select></div>
+                <div><label class="block text-sm font-semibold text-gray-700 mb-1">Search</label><input type="text" id="searchInput" class="w-full border rounded-lg p-2.5" placeholder="Guardian name, phone..."></div>
+                <div class="flex items-end"><button id="refreshBtn" class="w-full bg-gray-100 hover:bg-gray-200 py-2.5 rounded-lg font-medium"><i class="fas fa-sync-alt mr-1"></i> Refresh</button></div>
+            </div>
+            <div class="mt-3 text-sm text-gray-500">Total Parents: <span id="totalCount" class="font-bold text-primary">0</span></div>
+        </div>
+
+        <!-- Vertical Table Layout -->
+        <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+            <div class="overflow-y-auto" style="max-height: 70vh;">
+                <table class="w-full">
+                    <thead class="sticky top-0 bg-gray-50 border-b z-10">
+                        <tr class="text-left text-sm font-semibold text-gray-600">
+                            <th class="px-4 py-3 w-12">#</th>
+                            <th class="px-4 py-3">Guardian Info</th>
+                            <th class="px-4 py-3">Father / Mother</th>
+                            <th class="px-4 py-3">Contact Details</th>
+                            <th class="px-4 py-3">Linked Students</th>
+                            <th class="px-4 py-3 text-center w-24">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="parentsTableBody">
+                        <tr><td colspan="6" class="text-center py-10 text-gray-400"><i class="fas fa-spinner fa-spin text-2xl"></i> Loading parents...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, collection, query, getDocs, doc, deleteDoc, updateDoc, orderBy, where, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let allParents = [], allStudents = [], allClasses = [], sectionsByClass = {}, currentSession = "2025-2026";
+        let pendingDeleteId = null;
+        
+        function showToast(msg, type='success') { 
+            const t = document.getElementById('toast'); 
+            document.getElementById('toast-text').innerText = msg; 
+            document.getElementById('toast-icon').className = type==='success' ? 'fas fa-check-circle text-success text-lg' : 'fas fa-exclamation-circle text-danger text-lg';
+            t.classList.remove('hidden'); t.style.display='flex'; 
+            setTimeout(()=>{ t.classList.add('hidden'); }, 3000); 
+        }
+        window.hideToast = () => document.getElementById('toast').classList.add('hidden');
+        
+        async function loadCurrentSession() {
+            try {
+                const s = await getDoc(doc(db, "config", "activeSession"));
+                if(s.exists()) currentSession = s.data().sessionName || "2025-2026";
+                document.getElementById('current-session-badge').innerHTML = `<i class="fas fa-calendar-alt mr-1"></i>${currentSession}`;
+            } catch(e) {}
+        }
+        
+        async function loadClasses() {
+            const snap = await getDocs(query(collection(db, "classes"), orderBy("order")));
+            allClasses = []; const select = document.getElementById('classFilter');
+            select.innerHTML = '<option value="">All Classes</option>';
+            snap.forEach(d => { allClasses.push({ id: d.id, name: d.data().name }); select.appendChild(new Option(d.data().name, d.id)); });
+        }
+        
+        async function loadSectionsForClass(cid) {
+            if(!cid) return [];
+            const snap = await getDocs(query(collection(db, "sections"), where("classId", "==", cid)));
+            const secs = []; snap.forEach(d => secs.push({ id: d.id, name: d.data().name }));
+            sectionsByClass[cid] = secs; return secs;
+        }
+        
+        async function loadParents() {
+            const snap = await getDocs(collection(db, "parents"));
+            allParents = []; snap.forEach(d => allParents.push({ id: d.id, ...d.data() }));
+            return allParents;
+        }
+        
+        async function loadStudents() {
+            const snap = await getDocs(collection(db, "students"));
+            allStudents = []; snap.forEach(d => allStudents.push({ id: d.id, ...d.data() }));
+            return allStudents;
+        }
+        
+        // Get students linked to a parent
+        function getLinkedStudents(parentId) {
+            return allStudents.filter(s => s.parentID === parentId);
+        }
+        
+        async function updateSectionDropdown(classId) {
+            const secSelect = document.getElementById('sectionFilter');
+            if(!classId) { secSelect.innerHTML = '<option value="">First select class</option>'; secSelect.disabled=true; return; }
+            let secs = sectionsByClass[classId];
+            if(!secs) secs = await loadSectionsForClass(classId);
+            secSelect.disabled=false;
+            secSelect.innerHTML = '<option value="">All Sections</option>';
+            secs.forEach(s => secSelect.appendChild(new Option(s.name, s.name)));
+        }
+        
+        async function filterAndRender() {
+            const classId = document.getElementById('classFilter').value;
+            const section = document.getElementById('sectionFilter').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = [...allParents];
+            
+            if(classId || section) {
+                // Filter parents based on their linked students' class/section
+                let filteredStudentIds = [...allStudents];
+                if(classId) filteredStudentIds = filteredStudentIds.filter(s => s.classId === classId);
+                if(section) filteredStudentIds = filteredStudentIds.filter(s => s.section === section);
+                const parentIdsWithStudents = new Set(filteredStudentIds.map(s => s.parentID).filter(id => id));
+                filtered = filtered.filter(p => parentIdsWithStudents.has(p.id));
+            }
+            
+            if(search) {
+                filtered = filtered.filter(p => 
+                    (p.guardianName?.toLowerCase().includes(search)) ||
+                    (p.guardianPhone?.toLowerCase().includes(search)) ||
+                    (p.fatherName?.toLowerCase().includes(search)) ||
+                    (p.motherName?.toLowerCase().includes(search))
+                );
+            }
+            
+            await renderTableRows(filtered);
+            document.getElementById('totalCount').innerText = filtered.length;
+        }
+        
+        async function renderTableRows(parents) {
+            const tbody = document.getElementById('parentsTableBody');
+            if(!parents.length) { tbody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-gray-400"><i class="fas fa-user-friends text-4xl mb-2 block"></i>No parents found</td></tr>`; return; }
+            tbody.innerHTML = '';
+            for(let i=0; i<parents.length; i++) {
+                const p = parents[i];
+                const linkedStudents = getLinkedStudents(p.id);
+                const studentsHtml = linkedStudents.length > 0 ? 
+                    `<div class="space-y-1">${linkedStudents.slice(0,2).map(s => `<div class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded inline-block mr-1 mb-1">${escapeHtml(s.fullName)} (${escapeHtml(s.className)}-${escapeHtml(s.section)})</div>`).join('')}${linkedStudents.length > 2 ? `<div class="text-xs text-gray-400">+${linkedStudents.length-2} more</div>` : ''}</div>` :
+                    '<span class="text-xs text-gray-400">No students linked</span>';
+                
+                const row = document.createElement('tr');
+                row.className = 'parent-row border-b border-gray-100 hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-sm text-gray-500 font-medium align-top">${i+1}</td>
+                    <td class="px-4 py-3 align-top">
+                        <div>
+                            <div class="font-semibold text-gray-800">${escapeHtml(p.guardianName || 'N/A')}</div>
+                            <div class="text-xs text-gray-400 mt-0.5"><i class="fas fa-user-shield"></i> Primary Guardian</div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 align-top">
+                        <div class="text-sm space-y-1">
+                            <div><i class="fas fa-father text-gray-400 w-4"></i> ${escapeHtml(p.fatherName || 'N/A')}</div>
+                            <div><i class="fas fa-mother text-gray-400 w-4"></i> ${escapeHtml(p.motherName || 'N/A')}</div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 align-top">
+                        <div class="text-sm space-y-1">
+                            <div><i class="fas fa-phone-alt text-gray-400 w-4"></i> ${escapeHtml(p.guardianPhone || 'N/A')}</div>
+                            <div><i class="fas fa-envelope text-gray-400 w-4"></i> <span class="text-xs">${escapeHtml(p.loginEmail || 'N/A')}</span></div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 align-top">
+                        <button class="view-students-btn text-primary text-sm hover:underline flex items-center gap-1" data-parent="${p.id}" data-name="${escapeHtml(p.guardianName)}">
+                            <i class="fas fa-user-graduate"></i> ${linkedStudents.length} Student(s)
+                        </button>
+                        <div class="mt-1">${studentsHtml}</div>
+                    </td>
+                    <td class="px-4 py-3 text-center align-top">
+                        <div class="relative inline-block">
+                            <button class="action-dropdown-btn p-2 hover:bg-gray-100 rounded-full transition" data-id="${p.id}"><i class="fas fa-ellipsis-v text-gray-500"></i></button>
+                            <div id="dropdown-${p.id}" class="dropdown-menu hidden absolute right-0 mt-1 w-36 bg-white rounded-xl shadow-xl border z-20 overflow-hidden">
+                                <button class="edit-parent-btn w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"><i class="fas fa-edit text-warning"></i> Edit</button>
+                                <hr class="my-1">
+                                <button class="delete-parent-btn w-full text-left px-3 py-2 text-sm text-danger hover:bg-red-50 flex items-center gap-2"><i class="fas fa-trash-alt"></i> Delete</button>
+                            </div>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            }
+            attachRowEvents();
+        }
+        
+        function attachRowEvents() {
+            document.querySelectorAll('.action-dropdown-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => { e.stopPropagation(); const id = btn.dataset.id; toggleDropdown(id); });
+            });
+            document.querySelectorAll('.edit-parent-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => { const id = btn.closest('[id^="dropdown-"]')?.id.split('-')[1]; if(id) openEditModal(id); });
+            });
+            document.querySelectorAll('.delete-parent-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => { const id = btn.closest('[id^="dropdown-"]')?.id.split('-')[1]; const parent = allParents.find(p=>p.id===id); if(parent) openDeleteModal(id, parent.guardianName); });
+            });
+            document.querySelectorAll('.view-students-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => { const parentId = btn.dataset.parent; const parentName = btn.dataset.name; openStudentsModal(parentId, parentName); });
+            });
+        }
+        
+        function toggleDropdown(id) {
+            const dropdown = document.getElementById(`dropdown-${id}`);
+            if(!dropdown) return;
+            const isOpen = !dropdown.classList.contains('hidden');
+            document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.add('hidden'));
+            if(!isOpen) dropdown.classList.remove('hidden');
+            setTimeout(() => { document.addEventListener('click', function closeDrop(e) { if(!dropdown.contains(e.target) && !e.target.closest('.action-dropdown-btn')) { dropdown.classList.add('hidden'); document.removeEventListener('click', closeDrop); } }); }, 10);
+        }
+        
+        async function openEditModal(parentId) {
+            const p = allParents.find(par => par.id === parentId);
+            if(!p) return;
+            document.getElementById('editParentId').value = p.id;
+            document.getElementById('editFatherName').value = p.fatherName || '';
+            document.getElementById('editFatherPhone').value = p.fatherPhone || '';
+            document.getElementById('editMotherName').value = p.motherName || '';
+            document.getElementById('editMotherPhone').value = p.motherPhone || '';
+            document.getElementById('editGuardianName').value = p.guardianName || '';
+            document.getElementById('editGuardianPhone').value = p.guardianPhone || '';
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+        
+        window.closeEditModal = () => document.getElementById('editModal').classList.add('hidden');
+        
+        document.getElementById('editParentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editParentId').value;
+            const updateData = {
+                fatherName: document.getElementById('editFatherName').value,
+                fatherPhone: document.getElementById('editFatherPhone').value,
+                motherName: document.getElementById('editMotherName').value,
+                motherPhone: document.getElementById('editMotherPhone').value,
+                guardianName: document.getElementById('editGuardianName').value,
+                guardianPhone: document.getElementById('editGuardianPhone').value,
+                updatedAt: new Date()
+            };
+            try {
+                await updateDoc(doc(db, "parents", id), updateData);
+                // Also update the parent name in students collection
+                const linkedStudents = getLinkedStudents(id);
+                for(const student of linkedStudents) {
+                    await updateDoc(doc(db, "students", student.id), { parentName: updateData.guardianName, parentPhone: updateData.guardianPhone });
+                }
+                showToast("Parent updated successfully!");
+                closeEditModal();
+                await refreshData();
+            } catch(err) { showToast(err.message, 'error'); }
+        });
+        
+        async function openStudentsModal(parentId, parentName) {
+            const linkedStudents = getLinkedStudents(parentId);
+            const container = document.getElementById('studentsListContent');
+            if(linkedStudents.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-gray-400"><i class="fas fa-user-graduate text-4xl mb-2 block"></i>No students linked to ${escapeHtml(parentName)}</div>`;
+            } else {
+                container.innerHTML = `<p class="text-sm text-gray-600 mb-3">${linkedStudents.length} student(s) linked to <strong>${escapeHtml(parentName)}</strong></p>
+                    <div class="space-y-2">${linkedStudents.map(s => `
+                        <div class="student-link bg-gray-50 p-3 rounded-lg flex justify-between items-center">
+                            <div><div class="font-semibold">${escapeHtml(s.fullName)}</div><div class="text-xs text-gray-500">${escapeHtml(s.className)} - ${escapeHtml(s.section)} | Roll: ${escapeHtml(s.rollNumber)}</div></div>
+                            <a href="student-management.html?student=${s.id}" class="text-primary text-sm hover:underline"><i class="fas fa-external-link-alt"></i> View</a>
+                        </div>`).join('')}</div>`;
+            }
+            document.getElementById('studentsModal').classList.remove('hidden');
+        }
+        
+        window.closeStudentsModal = () => document.getElementById('studentsModal').classList.add('hidden');
+        
+        function openDeleteModal(id, name) { pendingDeleteId = id; document.getElementById('deleteParentName').innerText = name; document.getElementById('deleteModal').classList.remove('hidden'); }
+        
+        document.getElementById('cancelDelete').onclick = () => { document.getElementById('deleteModal').classList.add('hidden'); pendingDeleteId=null; };
+        document.getElementById('confirmDelete').onclick = async () => {
+            if(pendingDeleteId) {
+                try {
+                    // First, unlink students (set parentID to null)
+                    const linkedStudents = getLinkedStudents(pendingDeleteId);
+                    for(const student of linkedStudents) {
+                        await updateDoc(doc(db, "students", student.id), { parentID: null, parentName: null, parentPhone: null });
+                    }
+                    // Delete parent from auth? (optional - skip for now)
+                    await deleteDoc(doc(db, "parents", pendingDeleteId));
+                    showToast("Parent deleted and students unlinked!");
+                    document.getElementById('deleteModal').classList.add('hidden');
+                    pendingDeleteId = null;
+                    await refreshData();
+                } catch(err) { showToast(err.message, 'error'); }
+            }
+        };
+        
+        async function refreshData() { 
+            await loadParents(); 
+            await loadStudents();
+            await filterAndRender(); 
+        }
+        
+        document.getElementById('classFilter').addEventListener('change', async (e) => { await updateSectionDropdown(e.target.value); filterAndRender(); });
+        document.getElementById('sectionFilter').addEventListener('change', () => filterAndRender());
+        document.getElementById('searchInput').addEventListener('input', () => filterAndRender());
+        document.getElementById('refreshBtn').onclick = async () => { 
+            const btn=document.getElementById('refreshBtn'); 
+            btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>'; 
+            btn.disabled=true; 
+            await refreshData(); 
+            btn.innerHTML='<i class="fas fa-sync-alt mr-1"></i> Refresh'; 
+            btn.disabled=false; 
+            showToast("Refreshed"); 
+        };
+        
+        [document.getElementById('editModal'), document.getElementById('studentsModal'), document.getElementById('deleteModal')].forEach(m => m.addEventListener('click', (e) => { if(e.target===m) { m.classList.add('hidden'); if(m.id==='deleteModal') pendingDeleteId=null; } }));
+        
+        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+        
+        (async () => { 
+            await loadCurrentSession(); 
+            await loadClasses(); 
+            await loadParents(); 
+            await loadStudents();
+            await filterAndRender(); 
+        })();
+    </script>
+</body>
+</html>
