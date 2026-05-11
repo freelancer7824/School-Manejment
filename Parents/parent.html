@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>অভিভাবক ড্যাশবোর্ড</title> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* ফন্ট এবং বেসিক রিসেট */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&display=swap');
+
+        :root {
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 60px; /* নতুন: কল্যাপসড অবস্থায় সাইডবারের প্রস্থ */
+            --header-height: 60px;
+            --sidebar-bg: #2c3e50;
+            --header-bg: #2c3e50; 
+            --header-text: #ecf0f1; 
+            --main-bg: #f0f2f5;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', 'Noto Sans Bengali', sans-serif;
+        }
+
+        body {
+            background-color: var(--main-bg);
+            color: #333;
+            line-height: 1.6;
+            overflow: hidden; 
+        }
+
+        .dashboard-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* --- সাইডবার স্টাইল --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            color: #ecf0f1;
+            padding-top: 0;
+            transition: transform 0.3s ease, width 0.3s ease;
+            position: fixed;
+            height: 100%;
+            z-index: 1000;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        /* নতুন: কল্যাপসড (হাইড) অবস্থায় */
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width); /* শুধুমাত্র আইকনের জন্য ছোট হবে */
+        }
+        
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #3e5163;
+            position: relative; 
+            transition: opacity 0.3s ease;
+        }
+        /* কল্যাপসড অবস্থায় হেডার ইনফো হাইড */
+        .sidebar.collapsed .sidebar-header {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        .sidebar.collapsed .sidebar-header .user-info,
+        .sidebar.collapsed .sidebar-header img {
+             display: none;
+             
+        }
+
+        .sidebar.collapsed .nav-hide-icon {
+            transform: rotate(180deg); /* অ্যারো উল্টে যাবে */
+            left: 50%;
+            transform: translateX(-50%);
+            right: auto;
+            top: 20px;
+        }
+
+        .nav-hide-icon {
+            position: absolute;
+            right: 15px;
+            top: 18px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #ecf0f1;
+            display: none; 
+            transition: transform 0.3s ease, left 0.3s ease;
+        }
+
+        .sidebar-menu a.menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #ecf0f1;
+            font-size: 14px;
+            transition: background-color 0.2s, padding 0.3s ease;
+            cursor: pointer;
+        }
+        
+        /* নতুন: কল্যাপসড অবস্থায় মেনু আইটেম */
+        .sidebar.collapsed .sidebar-menu a.menu-item {
+            justify-content: center;
+            padding: 12px 0; /* প্যাডিং কমানো */
+        }
+        
+        /* নতুন: মেনু টাইটেল হাইড */
+        .menu-item span {
+            margin-left: 15px;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+        }
+        .sidebar.collapsed .menu-item span {
+            opacity: 0;
+            width: 0;
+            margin-left: 0;
+        }
+
+        /* ড্রপডাউন/সাব-মেনু স্টাইল */
+        .dropdown-toggle .arrow {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+        }
+        .sidebar.collapsed .dropdown-toggle .arrow {
+            display: none; /* কল্যাপসড অবস্থায় ড্রপডাউন অ্যারো হাইড */
+        }
+
+        .dropdown-content {
+            list-style: none;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background-color: #233140;
+        }
+
+        /* কল্যাপসড অবস্থায় সাব-মেনু সম্পূর্ণ হাইড, কারণ মিনি-সাইডবারে এটি সম্ভব না */
+        .sidebar.collapsed .dropdown-content {
+            display: none;
+        }
+
+        .dropdown-content.open {
+            max-height: 500px; 
+            transition: max-height 0.5s ease-in;
+        }
+        .dropdown-content li a {
+            display: block;
+            padding: 8px 15px 8px 50px;
+            color: #bdc3c7;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+
+        /* --- প্রধান কন্টেন্ট এরিয়া --- */
+        .main-content {
+            flex-grow: 1;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s ease, width 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            width: calc(100% - var(--sidebar-width)); 
+        }
+
+        /* নতুন: কল্যাপসড অবস্থায় মার্জিন ও প্রস্থ অ্যাডজাস্ট */
+        .main-content.collapsed-margin {
+            margin-left: var(--sidebar-collapsed-width);
+            width: calc(100% - var(--sidebar-collapsed-width));
+        }
+
+        /* ছোট স্ক্রিনের জন্য ফুল-উইডথ */
+        .main-content.full-width {
+            margin-left: 0;
+            width: 100%;
+        }
+        
+        /* হেডার (টপ নেভিগেশন বার - প্রফেশনাল ডিজাইন) */
+        .header {
+            background-color: var(--header-bg); 
+            color: var(--header-text); 
+            padding: 0 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: var(--header-height);
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px; 
+        }
+
+        .header-left h3 {
+            font-size: 16px; 
+            color: var(--header-text); 
+            margin: 0;
+            white-space: nowrap; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 70vw; 
+        }
+
+        .menu-toggle {
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--header-text); 
+        }
+
+        /* ... (header-right এবং user-dropdown-menu আগের মতো) ... */
+        .header-right {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .session-info {
+            font-size: 14px;
+            margin-right: 20px;
+            white-space: nowrap;
+        }
+
+        .user-avatar-group {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            padding: 5px;
+        }
+
+        .user-avatar-group:hover {
+             background-color: rgba(255, 255, 255, 0.1); 
+             border-radius: 4px;
+        }
+
+        .user-avatar-group .user-icon {
+            font-size: 24px;
+            margin-left: 5px;
+            color: var(--header-text); 
+        }
+
+        .user-dropdown-menu {
+            position: absolute;
+            top: var(--header-height);
+            right: 0;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            min-width: 150px;
+            display: none;
+            list-style: none;
+            padding: 5px 0;
+            border-radius: 4px;
+        }
+
+        .user-dropdown-menu.show {
+            display: block;
+        }
+
+        .user-dropdown-menu a {
+            display: block;
+            padding: 10px 15px;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .user-dropdown-menu a:hover {
+            background-color: var(--main-bg);
+            color: #2c3e50;
+        }
+
+        /* --- আই-ফ্রেম কনটেন্ট এরিয়া --- */
+        .dashboard-body {
+            padding: 0; 
+            flex-grow: 1;
+            display: flex;
+            overflow: hidden; 
+        }
+
+        .content-container {
+            width: 100%;
+            height: 100%; 
+            background-color: #fff;
+            overflow: hidden;
+            display: flex;
+        }
+
+        #main-iframe {
+            width: 100%;
+            height: 100vh; 
+            border: none;
+            background-color: var(--main-bg); 
+        }
+        
+        /* --- রেসপন্সিভ ডিজাইন --- */
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 250px; 
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            .main-content.collapsed-margin {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .session-info {
+                display: none;
+            }
+            
+            .nav-hide-icon {
+                display: none !important; 
+            }
+
+            .overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 990; 
+                display: none;
+            }
+
+            .overlay.active {
+                display: block;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .nav-hide-icon {
+                display: block; 
+            }
+        }
+        .circular-container {
+            width: 70px;
+            height: 45px;
+            padding:2px;
+            margin-right: 10px;/* Creates a square container */
+            border-radius: 50%;
+            overflow: hidden; /* Hides parts of the image that extend outside the circle */
+        }
+
+        .circular-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures the image covers the container without stretching, cropping if necessary */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="sidebar" id="sidebar">
+        <i class="fas fa-arrow-left nav-hide-icon" id="navHideIcon" onclick="toggleSidebar()"></i>
+
+        <div class="sidebar-header">
+            <div class="circular-container">
+                <img src="../Img/profile.jpg" alt="Description">
+            </div>
+            <div class="user-info">
+                <strong id="dynamicSchoolName">ONNO ROKOM BIDDYANIKETON</strong>
+                <small>অভিভাবক (Parent)</small> </div>
+        </div>
+        <nav class="sidebar-menu">
+            <a href="#" class="menu-item active" data-link="../Parent/parent-dashboard.html"><i class="fas fa-th-large"></i> <span>ড্যাশবোর্ড</span></a>
+            
+            <a href="#" class="menu-item" data-link="parent/my_children.html"><i class="fas fa-child"></i> <span>আমার সন্তান</span></a>
+
+            <a href="#" class="menu-item" data-link="attendance/attendance_report.html"><i class="fas fa-calendar-alt"></i> <span>হাজিরা রিপোর্ট</span></a>
+
+            <div class="dropdown">
+                <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
+                    <i class="fas fa-book-open"></i> <span>একাডেমিক তথ্য</span> <i class="fas fa-angle-right arrow"></i>
+                </a>
+                <ul class="dropdown-content">
+                    <li><a href="#" data-link="academics/view_routines.html">ক্লাস রুটিন</a></li>
+                    <li><a href="#" data-link="academics/view_subjects.html">বিষয় তালিকা</a></li>
+                </ul>
+            </div>
+            
+            <div class="dropdown">
+                <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
+                    <i class="fas fa-trophy"></i> <span>পরীক্ষা ও ফলাফল</span> <i class="fas fa-angle-right arrow"></i>
+                </a>
+                <ul class="dropdown-content">
+                    <li><a href="#" data-link="exams/exam_schedule.html">পরীক্ষার সময়সূচী</a></li>
+                    <li><a href="#" data-link="exams/view_results.html">ফলাফল দেখুন</a></li>
+                </ul>
+            </div>
+
+            <a href="#" class="menu-item" data-link="communicate.html"><i class="fas fa-comments"></i> <span>যোগাযোগ</span></a>
+            
+            <a href="#" class="menu-item" data-link="fees/payment_status.html"><i class="fas fa-wallet"></i> <span>ফি/পেমেন্ট</span></a>
+            
+
+            <a href="#" class="menu-item" data-link="account.html"><i class="fas fa-user-circle"></i> <span>আমার একাউন্ট</span></a>
+            
+            </nav>
+    </div>
+
+    <div class="main-content" id="mainContent">
+        <header class="header">
+            <div class="header-left">
+                <i class="fas fa-bars menu-toggle" onclick="toggleSidebar()"></i>
+                <h3 id="display_school_name">ONNO ROKOM BIDDYANIKETON - অভিভাবক ড্যাশবোর্ড</h3> </div>
+            <div class="header-right">
+                <span class="session-info">Current Session: 2025-2026</span>
+                
+                <div class="user-avatar-group" onclick="toggleUserDropdown(this)">
+                    <i class="fas fa-user-circle user-icon"></i>
+                    <i class="fas fa-caret-down user-icon" style="font-size: 18px; margin-left: 0;"></i>
+                </div>
+
+                <ul class="user-dropdown-menu" id="userDropdown">
+                    <li><a href="#" data-link="profile.html"><i class="fas fa-user-edit"></i> প্রোফাইল</a></li>
+                    <li><a href="#" data-link="settings.html"><i class="fas fa-cog"></i> সেটিংস</a></li>
+                    <li><a href="logout.html"><i class="fas fa-sign-out-alt"></i> লগ আউট</a></li> 
+                </ul>
+            </div>
+        </header>
+
+        <div class="dashboard-body">
+            <div class="content-container">
+                <iframe id="main-iframe" src="parent-dashboard.html" frameborder="0"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const overlay = document.querySelector('.overlay');
+        const userDropdown = document.getElementById('userDropdown');
+
+        function toggleSidebar() {
+            if (window.innerWidth <= 768) {
+                // মোবাইল: সম্পূর্ণ হাইড/শো
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('active');
+            } else {
+                // ডেস্কটপ: কল্যাপস (মিনি-সাইডবার) / এক্সপ্যান্ড
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('collapsed-margin');
+            }
+        }
+        
+        function toggleUserDropdown(element) {
+            userDropdown.classList.toggle('show');
+        }
+
+        document.addEventListener('click', function(event) {
+            const isClickInside = userDropdown.contains(event.target) || event.target.closest('.user-avatar-group');
+            if (!isClickInside && userDropdown.classList.contains('show')) {
+                userDropdown.classList.remove('show');
+            }
+        });
+
+        // ড্রপডাউন টগল ফাংশন
+        function toggleDropdown(element) {
+            const dropdownContent = element.nextElementSibling;
+            
+            // যদি সাইডবার কল্যাপসড থাকে, তাহলে ড্রপডাউন কাজ করবে না
+            if (sidebar.classList.contains('collapsed') && window.innerWidth > 768) {
+                return; 
+            }
+
+            if (dropdownContent.style.maxHeight) {
+                dropdownContent.style.maxHeight = null;
+                element.classList.remove('open');
+            } else {
+                document.querySelectorAll('.dropdown-content.open').forEach(content => {
+                    content.style.maxHeight = null;
+                    content.previousElementSibling.classList.remove('open');
+                });
+                
+                dropdownContent.style.maxHeight = dropdownContent.scrollHeight + "px";
+                element.classList.add('open');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const links = document.querySelectorAll('.sidebar-menu a[data-link]');
+            const iframe = document.getElementById('main-iframe');
+
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    const url = this.getAttribute('data-link');
+
+                    document.querySelectorAll('.sidebar-menu a.menu-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+
+                    this.classList.add('active');
+                    iframe.src = url;
+
+                    if (window.innerWidth <= 768) {
+                        toggleSidebar();
+                    }
+                });
+            });
+        });
+    </script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<script>
+    // আপনার ফায়ারবেস কনফিগ
+    const firebaseConfig = {
+        apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+        authDomain: "school-menejment.firebaseapp.com",
+        projectId: "school-menejment",
+        storageBucket: "school-menejment.firebasestorage.app",
+        messagingSenderId: "348342436525",
+        appId: "1:348342436525:web:41fc72cb02f824baa3bc24"
+    };
+    
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+    
+    // স্কুলের নাম দেখানোর লজিক
+    db.collection("settings").doc("school_info")
+        .onSnapshot((doc) => {
+            const schoolNameSpan = document.getElementById("display_school_name");
+            if (doc.exists && doc.data().school_name) {
+                schoolNameSpan.innerText = doc.data().school_name;
+            } else {
+                schoolNameSpan.innerText = "O ROKOM BIDDYANIKETON";
+            }
+        });
+    
+    
+    // Firestore থেকে রিয়েল-টাইম নাম আনা
+    db.collection("settings").doc("school_info")
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                const newName = doc.data().school_name;
+                
+                // যেখানে যেখানে নাম দেখাতে চান, সেই ID গুলো এখানে দিন
+                const schoolDisplayName = document.getElementById("dynamicSchoolName");
+                if (schoolDisplayName) {
+                    schoolDisplayName.innerText = newName;
+                }
+                
+                // যদি আপনার ড্যাশবোর্ডের হেডারেও দেখাতে চান (আগের ID টি)
+                const headerName = document.getElementById("display_school_name");
+                if (headerName) {
+                    headerName.innerText = newName;
+                }
+            }
+        });
+</script>
+</body>
+</html>
