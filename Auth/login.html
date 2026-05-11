@@ -434,9 +434,9 @@
                     const userRole = docSnap.data().role;
                     let redirectPage = 'dashboard.html';
                     
-                    if (userRole === 'admin') redirectPage = 'admin.html';
-                    else if (userRole === 'teacher') redirectPage = 'teacher_dashboard.html';
-                    else if (userRole === 'parent') redirectPage = 'parent_dashboard.html';
+                    if (userRole === 'admin') redirectPage = '../Admin/admin.html';
+                    else if (userRole === 'teacher') redirectPage = '../Teacher/teacher.html';
+                    else if (userRole === 'parent') redirectPage = '../Parents/parent.html';
                     else if (userRole === 'superadmin') redirectPage = 'superadmin.html';
                     else redirectPage = 'dashboard.html';
                     
