@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>System Settings | Manage Current Session</title>
+    <!-- Tailwind + Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#6b7280',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #f1f5f9; }
+        .settings-card { transition: all 0.2s ease; }
+        .session-badge { transition: all 0.2s; }
+        .save-animation { animation: pulse-green 0.5s ease; }
+        @keyframes pulse-green {
+            0% { background-color: #10b981; transform: scale(1); }
+            100% { background-color: #3b82f6; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased p-4 md:p-6">
+
+    <!-- Global Toast Message -->
+    <div id="toast-message" class="fixed top-20 right-4 z-50 hidden transition-all duration-300 transform translate-x-0">
+        <div class="bg-white rounded-lg shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success">
+            <i id="toast-icon" class="fas fa-check-circle text-success text-lg"></i>
+            <p id="toast-text" class="text-gray-700 text-sm font-medium">Operation successful</p>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-wrap justify-between items-center mb-6 gap-3">
+            <div class="flex items-center gap-3">
+                <a href="admission.html" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition">
+                    <i class="fas fa-arrow-left text-primary"></i>
+                </a>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="bg-primary text-white p-1.5 rounded-lg"><i class="fas fa-sliders-h"></i></span> 
+                    System Settings
+                </h1>
+            </div>
+            <div class="bg-white px-4 py-2 rounded-full shadow-sm text-sm font-medium text-gray-700 border border-gray-200">
+                <i class="fas fa-user-shield text-primary mr-1"></i> Admin Panel
+            </div>
+        </header>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Main Settings Card -->
+            <div class="md:col-span-2">
+                <div class="settings-card bg-white rounded-2xl shadow-md overflow-hidden">
+                    <div class="p-6 border-b border-gray-100">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                            <i class="fas fa-calendar-alt text-primary"></i> 
+                            Current Academic Session
+                        </h2>
+                        <p class="text-gray-500 text-sm mt-1">Manage the active session for student admissions, fee collection, and academic records.</p>
+                    </div>
+                    
+                    <div class="p-6 space-y-6">
+                        <!-- Current Session Display -->
+                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100">
+                            <div class="flex items-center justify-between flex-wrap gap-3">
+                                <div>
+                                    <p class="text-xs font-semibold text-primary uppercase tracking-wide">Active Session</p>
+                                    <div class="flex items-center gap-3 mt-1">
+                                        <span id="active-session-display" class="text-2xl md:text-3xl font-bold text-gray-800">2025-2026</span>
+                                        <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full"><i class="fas fa-check-circle mr-1"></i> Active</span>
+                                    </div>
+                                    <p class="text-gray-500 text-sm mt-2">All admissions, fees, and reports will use this session.</p>
+                                </div>
+                                <div class="text-right">
+                                    <i class="fas fa-school text-4xl text-primary/20"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Update Session Form -->
+                        <div class="border-t pt-5">
+                            <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                <i class="fas fa-edit text-warning"></i> Update Session
+                            </h3>
+                            <form id="updateSessionForm" class="space-y-4">
+                                <div class="grid md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-1">
+                                            <i class="fas fa-calendar-plus text-primary mr-1"></i> New Session Year
+                                        </label>
+                                        <select id="sessionYear" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary/40">
+                                            <option value="">Select Year Range</option>
+                                            <option value="2024-2025">2024-2025</option>
+                                            <option value="2025-2026">2025-2026</option>
+                                            <option value="2026-2027">2026-2027</option>
+                                            <option value="2027-2028">2027-2028</option>
+                                            <option value="2028-2029">2028-2029</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-1">
+                                            <i class="fas fa-tag text-primary mr-1"></i> Session Name (Optional)
+                                        </label>
+                                        <input type="text" id="customSessionName" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="e.g., Summer 2025-2026">
+                                        <p class="text-xs text-gray-400 mt-1">Leave empty to use year range as session name</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                                    <div class="flex gap-3">
+                                        <i class="fas fa-exclamation-triangle text-amber-600 text-xl"></i>
+                                        <div>
+                                            <p class="text-sm font-medium text-amber-800">⚠️ Important Notice</p>
+                                            <p class="text-xs text-amber-700 mt-1">Changing the current session will affect all new admissions & fee structures. Previous session data remains intact.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-3 pt-2">
+                                    <button type="submit" id="saveSessionBtn" class="px-6 py-2.5 bg-primary text-white rounded-xl hover:bg-blue-700 transition shadow-sm font-medium">
+                                        <i class="fas fa-save mr-2"></i> Update Current Session
+                                    </button>
+                                    <button type="button" id="refreshBtn" class="px-6 py-2.5 border border-gray-300 rounded-xl hover:bg-gray-50 transition font-medium text-gray-700">
+                                        <i class="fas fa-sync-alt mr-2"></i> Refresh
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Session Info Card -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden mt-6">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                            <i class="fas fa-info-circle text-primary"></i> Session Information
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-4 text-sm">
+                            <div class="flex items-start gap-2">
+                                <i class="fas fa-database text-gray-400 mt-0.5"></i>
+                                <div>
+                                    <p class="font-medium text-gray-700">Student Records Path</p>
+                                    <p class="text-gray-500 text-xs">current_session/{session}/classes/{classId}/students</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <i class="fas fa-users text-gray-400 mt-0.5"></i>
+                                <div>
+                                    <p class="font-medium text-gray-700">Parent Records Path</p>
+                                    <p class="text-gray-500 text-xs">current_session/{session}/classes/{classId}/parents</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <i class="fas fa-chart-line text-gray-400 mt-0.5"></i>
+                                <div>
+                                    <p class="font-medium text-gray-700">Reports Scope</p>
+                                    <p class="text-gray-500 text-xs">All reports filtered by active session</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <i class="fas fa-shield-alt text-gray-400 mt-0.5"></i>
+                                <div>
+                                    <p class="font-medium text-gray-700">Data Isolation</p>
+                                    <p class="text-gray-500 text-xs">Sessions are completely isolated for accurate history</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar - Quick Actions & Stats -->
+            <div class="space-y-5">
+                <!-- Session Stats Card -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+                    <div class="p-5 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-800 flex items-center gap-2">
+                            <i class="fas fa-chart-simple text-primary"></i> Session Stats
+                        </h3>
+                    </div>
+                    <div class="p-5 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 text-sm"><i class="fas fa-calendar-week mr-1"></i> Current Session:</span>
+                            <span id="stat-session" class="font-bold text-primary">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 text-sm"><i class="fas fa-user-graduate mr-1"></i> Total Students:</span>
+                            <span id="stat-students" class="font-semibold text-gray-800">Loading...</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 text-sm"><i class="fas fa-chalkboard mr-1"></i> Active Classes:</span>
+                            <span id="stat-classes" class="font-semibold text-gray-800">--</span>
+                        </div>
+                        <div class="pt-3 border-t">
+                            <button id="viewReportsBtn" class="w-full py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition">
+                                <i class="fas fa-chart-line mr-1"></i> View Session Reports
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Setup Guide -->
+                <div class="bg-gradient-to-br from-primary/5 to-indigo-50 rounded-2xl p-5 border border-primary/10">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fas fa-rocket text-primary"></i>
+                        <h4 class="font-semibold text-gray-800">Quick Guide</h4>
+                    </div>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li class="flex gap-2"><i class="fas fa-check-circle text-green-500 text-xs mt-1"></i> <span>Session determines academic year for admissions</span></li>
+                        <li class="flex gap-2"><i class="fas fa-check-circle text-green-500 text-xs mt-1"></i> <span>All new students saved under current session path</span></li>
+                        <li class="flex gap-2"><i class="fas fa-check-circle text-green-500 text-xs mt-1"></i> <span>Previous session data remains accessible</span></li>
+                        <li class="flex gap-2"><i class="fas fa-check-circle text-green-500 text-xs mt-1"></i> <span>Fee structures can be session-specific</span></li>
+                    </ul>
+                    <div class="mt-4 pt-3 border-t border-primary/20">
+                        <a href="admission.html" class="text-primary text-sm font-medium hover:underline flex items-center gap-1">
+                            <i class="fas fa-arrow-right"></i> Go to Admission Page
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop bg-black/50 transition-all">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 transform transition-all scale-95 p-5">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-amber-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800">Confirm Session Change</h3>
+            </div>
+            <p class="text-gray-600 mb-4">Are you sure you want to change the current academic session to <strong id="confirmSessionName"></strong>?</p>
+            <p class="text-sm text-gray-500 bg-gray-50 p-2 rounded mb-4">This will affect all new admissions. Old session data remains unchanged.</p>
+            <div class="flex justify-end gap-3">
+                <button id="cancelConfirm" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                <button id="proceedConfirm" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition">Proceed & Update</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+  apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+  authDomain: "school-menejment.firebaseapp.com",
+  databaseURL: "https://school-menejment-default-rtdb.firebaseio.com",
+  projectId: "school-menejment",
+  storageBucket: "school-menejment.firebasestorage.app",
+  messagingSenderId: "348342436525",
+  appId: "1:348342436525:web:c339fe6216c4516aa3bc24",
+  measurementId: "G-SQT1N4PVD3"
+};
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let currentSessionData = { sessionName: "2025-2026" };
+        
+        // Toast functions
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast-message');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+            
+            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' : 'fas fa-exclamation-circle text-danger text-lg';
+            toastText.innerText = message;
+            toast.classList.remove('hidden');
+            toast.style.display = 'flex';
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                setTimeout(() => { toast.style.display = 'none'; }, 300);
+            }, 3000);
+        }
+        
+        window.hideToast = () => {
+            const toast = document.getElementById('toast-message');
+            toast.classList.add('hidden');
+            setTimeout(() => { toast.style.display = 'none'; }, 300);
+        };
+        
+        // Load current session from Firebase
+        async function loadCurrentSession() {
+            try {
+                const sessionDoc = await getDoc(doc(db, "config", "activeSession"));
+                if (sessionDoc.exists()) {
+                    currentSessionData = sessionDoc.data();
+                    const sessionName = currentSessionData.sessionName || "2025-2026";
+                    document.getElementById('active-session-display').innerText = sessionName;
+                    document.getElementById('stat-session').innerText = sessionName;
+                    // Set select value if matches predefined
+                    const select = document.getElementById('sessionYear');
+                    if (select.querySelector(`option[value="${sessionName}"]`)) {
+                        select.value = sessionName;
+                    } else {
+                        select.value = "";
+                        document.getElementById('customSessionName').value = sessionName;
+                    }
+                } else {
+                    // Create default session
+                    await setDoc(doc(db, "config", "activeSession"), { 
+                        sessionName: "2025-2026", 
+                        updatedAt: serverTimestamp(),
+                        updatedBy: "system"
+                    });
+                    currentSessionData = { sessionName: "2025-2026" };
+                    document.getElementById('active-session-display').innerText = "2025-2026";
+                    document.getElementById('stat-session').innerText = "2025-2026";
+                    document.getElementById('sessionYear').value = "2025-2026";
+                }
+                // Load stats after session is known
+                await loadSessionStats();
+            } catch (error) {
+                console.error("Error loading session:", error);
+                showToast("Failed to load current session", 'error');
+            }
+        }
+        
+        // Load statistics for current session
+        async function loadSessionStats() {
+            try {
+                const sessionName = currentSessionData.sessionName || "2025-2026";
+                // Get all classes
+                const classesSnap = await getDocs(collection(db, "classes"));
+                const totalClasses = classesSnap.size;
+                document.getElementById('stat-classes').innerText = totalClasses;
+                
+                // Count students across all classes in current session
+                let totalStudents = 0;
+                for (const classDoc of classesSnap.docs) {
+                    const classId = classDoc.id;
+                    const studentsRef = collection(db, `current_session/${sessionName}/classes/${classId}/students`);
+                    const studentsSnap = await getDocs(studentsRef);
+                    totalStudents += studentsSnap.size;
+                }
+                document.getElementById('stat-students').innerHTML = totalStudents;
+            } catch (error) {
+                console.error("Error loading stats:", error);
+                document.getElementById('stat-students').innerHTML = 'Error';
+                document.getElementById('stat-classes').innerHTML = '--';
+            }
+        }
+        
+        // Update session in Firebase
+        async function updateSession(newSessionName) {
+            try {
+                const sessionRef = doc(db, "config", "activeSession");
+                await setDoc(sessionRef, {
+                    sessionName: newSessionName,
+                    updatedAt: serverTimestamp(),
+                    updatedBy: "admin",
+                    previousSession: currentSessionData.sessionName || null
+                }, { merge: true });
+                
+                currentSessionData.sessionName = newSessionName;
+                document.getElementById('active-session-display').innerText = newSessionName;
+                document.getElementById('stat-session').innerText = newSessionName;
+                
+                showToast(`Session updated to ${newSessionName} successfully!`, 'success');
+                await loadSessionStats(); // Refresh stats
+                return true;
+            } catch (error) {
+                console.error("Update error:", error);
+                showToast(`Failed to update session: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        // Handle form submission with confirmation
+        let pendingSession = null;
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmSessionSpan = document.getElementById('confirmSessionName');
+        
+        function showConfirmModal(sessionValue) {
+            pendingSession = sessionValue;
+            confirmSessionSpan.innerText = sessionValue;
+            confirmModal.classList.remove('hidden');
+        }
+        
+        document.getElementById('cancelConfirm').onclick = () => {
+            confirmModal.classList.add('hidden');
+            pendingSession = null;
+        };
+        
+        document.getElementById('proceedConfirm').onclick = async () => {
+            if (pendingSession) {
+                confirmModal.classList.add('hidden');
+                const saveBtn = document.getElementById('saveSessionBtn');
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Updating...';
+                await updateSession(pendingSession);
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Update Current Session';
+                pendingSession = null;
+                // Clear custom input if session matches preset
+                const select = document.getElementById('sessionYear');
+                if (select.value === currentSessionData.sessionName) {
+                    document.getElementById('customSessionName').value = '';
+                }
+            }
+        };
+        
+        // Form submit
+        document.getElementById('updateSessionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const sessionSelect = document.getElementById('sessionYear').value;
+            const customName = document.getElementById('customSessionName').value.trim();
+            
+            let finalSessionName = "";
+            if (customName) {
+                finalSessionName = customName;
+            } else if (sessionSelect) {
+                finalSessionName = sessionSelect;
+            } else {
+                showToast("Please select a session year or enter custom session name", 'error');
+                return;
+            }
+            
+            if (finalSessionName === currentSessionData.sessionName) {
+                showToast("This is already the current active session", 'error');
+                return;
+            }
+            
+            // Show confirmation modal
+            showConfirmModal(finalSessionName);
+        });
+        
+        // Refresh button
+        document.getElementById('refreshBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('refreshBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Refreshing...';
+            btn.disabled = true;
+            await loadCurrentSession();
+            btn.innerHTML = '<i class="fas fa-sync-alt mr-2"></i> Refresh';
+            btn.disabled = false;
+            showToast("Session data refreshed", 'success');
+        });
+        
+        // View Reports button (demo action)
+        document.getElementById('viewReportsBtn').addEventListener('click', () => {
+            const session = currentSessionData.sessionName || "2025-2026";
+            showToast(`Reports for session ${session} - Feature coming soon`, 'success');
+        });
+        
+        // Initialize page
+        (async () => {
+            await loadCurrentSession();
+        })();
+        
+        // Close modal on outside click
+        confirmModal.addEventListener('click', (e) => {
+            if (e.target === confirmModal) {
+                confirmModal.classList.add('hidden');
+                pendingSession = null;
+            }
+        });
+        
+        // Auto-update custom session name when select changes
+        document.getElementById('sessionYear').addEventListener('change', (e) => {
+            if (e.target.value) {
+                // If a preset is selected, optionally clear custom field
+                if (document.getElementById('customSessionName').value === '') {
+                    // Do nothing
+                }
+            }
+        });
+    </script>
+</body>
+</html>

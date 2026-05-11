@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>My Account | Profile Settings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e6f0ff 100%);
+            font-family: 'Inter', sans-serif;
+            padding: 30px 20px;
+            min-height: 100vh;
+        }
+        .account-container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        /* Profile Header Card */
+        .profile-header {
+            background: white;
+            border-radius: 2rem;
+            padding: 2rem;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            z-index: 0;
+        }
+        .avatar-wrapper {
+            position: relative;
+            z-index: 1;
+            display: inline-block;
+        }
+        .avatar-circle {
+            width: 110px;
+            height: 110px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            border: 4px solid white;
+        }
+        .avatar-circle i {
+            font-size: 60px;
+            color: #3b82f6;
+        }
+        .profile-name {
+            margin-top: 1rem;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .profile-role {
+            color: #64748b;
+            font-size: 0.9rem;
+            background: #f1f5f9;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 30px;
+            margin-top: 8px;
+        }
+        /* Cards */
+        .info-card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            padding: 1.8rem;
+            margin-bottom: 1.8rem;
+            transition: transform 0.2s;
+        }
+        .info-card:hover {
+            transform: translateY(-2px);
+        }
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #0f172a;
+            border-left: 5px solid #3b82f6;
+            padding-left: 15px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .info-row {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 12px 0;
+            border-bottom: 1px solid #eef2ff;
+        }
+        .info-label {
+            width: 140px;
+            font-weight: 600;
+            color: #475569;
+        }
+        .info-value {
+            flex: 1;
+            color: #1e293b;
+            word-break: break-word;
+        }
+        .edit-btn {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #3b82f6;
+        }
+        .edit-btn:hover {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #334155;
+            font-size: 0.85rem;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        .save-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .save-btn:hover {
+            background: #2563eb;
+            transform: scale(0.98);
+        }
+        .cancel-btn {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 10px 24px;
+            border-radius: 40px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        .edit-section {
+            background: #fefce8;
+            border-radius: 1rem;
+            padding: 1.2rem;
+            margin-top: 1rem;
+            border-left: 4px solid #f59e0b;
+        }
+        .toast-message {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: #1e293b;
+            color: white;
+            padding: 12px 22px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 700px) {
+            .two-col { grid-template-columns: 1fr; }
+            .info-label { width: 100%; margin-bottom: 5px; }
+            .info-row { flex-direction: column; }
+        }
+        .loading-spinner {
+            text-align: center;
+            padding: 50px;
+            color: #3b82f6;
+        }
+    </style>
+</head>
+<body>
+
+<div class="account-container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="avatar-wrapper">
+            <div class="avatar-circle">
+                <i class="fas fa-user-shield"></i>
+            </div>
+        </div>
+        <div class="profile-name" id="displayFullName">Admin User</div>
+        <div class="profile-role" id="displayRole">Super Admin</div>
+        <p style="margin-top: 12px; color: #475569; font-size: 0.85rem;" id="displayEmail">admin@example.com</p>
+    </div>
+
+    <div class="two-col">
+        <!-- Left Column: Personal Information -->
+        <div class="info-card">
+            <div class="card-title">
+                <i class="fas fa-user-circle text-primary"></i> Personal Information
+            </div>
+            <div id="personalInfoView">
+                <div class="info-row"><div class="info-label">Full Name</div><div class="info-value" id="viewName">---</div><button class="edit-btn" onclick="enableEditMode('name')"><i class="fas fa-pen"></i> Edit</button></div>
+                <div class="info-row"><div class="info-label">Email Address</div><div class="info-value" id="viewEmail">---</div><button class="edit-btn" onclick="enableEditMode('email')"><i class="fas fa-pen"></i> Edit</button></div>
+                <div class="info-row"><div class="info-label">Phone Number</div><div class="info-value" id="viewPhone">---</div><button class="edit-btn" onclick="enableEditMode('phone')"><i class="fas fa-pen"></i> Edit</button></div>
+                <div class="info-row"><div class="info-label">Date of Birth</div><div class="info-value" id="viewDob">---</div><button class="edit-btn" onclick="enableEditMode('dob')"><i class="fas fa-pen"></i> Edit</button></div>
+                <div class="info-row"><div class="info-label">Gender</div><div class="info-value" id="viewGender">---</div><button class="edit-btn" onclick="enableEditMode('gender')"><i class="fas fa-pen"></i> Edit</button></div>
+            </div>
+            <div id="personalInfoEdit" style="display: none;">
+                <div class="edit-section">
+                    <h4 style="margin-bottom: 15px;"><i class="fas fa-edit"></i> Update Information</h4>
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="editName" placeholder="Full Name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="editEmail" placeholder="Email">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="editPhone" placeholder="Phone Number">
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" id="editDob">
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select id="editGender">
+                            <option value="">Select</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <button class="save-btn" onclick="savePersonalInfo()"><i class="fas fa-save"></i> Save Changes</button>
+                    <button class="cancel-btn" onclick="cancelEditMode()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Account & Security + Additional -->
+        <div>
+            <div class="info-card">
+                <div class="card-title">
+                    <i class="fas fa-lock"></i> Security & Account
+                </div>
+                <div class="info-row"><div class="info-label">User ID / UID</div><div class="info-value" id="userIdDisplay">---</div></div>
+                <div class="info-row"><div class="info-label">Account Created</div><div class="info-value" id="createdAtDisplay">---</div></div>
+                <div class="info-row"><div class="info-label">Last Updated</div><div class="info-value" id="updatedAtDisplay">---</div></div>
+                <div class="info-row"><div class="info-label">Change Password</div><div class="info-value"><button class="edit-btn" onclick="openPasswordModal()"><i class="fas fa-key"></i> Update Password</button></div></div>
+            </div>
+
+            <div class="info-card">
+                <div class="card-title">
+                    <i class="fas fa-building"></i> Institution Details
+                </div>
+                <div class="info-row"><div class="info-label">School/Org Name</div><div class="info-value" id="schoolNameDisplay">---</div></div>
+                <div class="info-row"><div class="info-label">Role Permission</div><div class="info-value" id="roleDisplay">Super Admin</div></div>
+                <div class="info-row"><div class="info-label">Current Session</div><div class="info-value" id="sessionDisplay">2025-2026</div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Password Change Modal (Simple) -->
+<div id="passwordModal" style="display: none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); z-index: 1100; align-items: center; justify-content: center;">
+    <div style="background: white; max-width: 450px; margin: auto; border-radius: 1.5rem; padding: 1.8rem; animation: fadeIn 0.2s;">
+        <h3 style="margin-bottom: 20px;"><i class="fas fa-lock"></i> Change Password</h3>
+        <div class="form-group">
+            <label>Current Password</label>
+            <input type="password" id="currentPassword" class="w-full p-2 border rounded-xl">
+        </div>
+        <div class="form-group">
+            <label>New Password</label>
+            <input type="password" id="newPassword" class="w-full p-2 border rounded-xl">
+        </div>
+        <div class="form-group">
+            <label>Confirm New Password</label>
+            <input type="password" id="confirmPassword" class="w-full p-2 border rounded-xl">
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button class="cancel-btn" onclick="closePasswordModal()">Cancel</button>
+            <button class="save-btn" onclick="updatePassword()">Update Password</button>
+        </div>
+    </div>
+</div>
+
+<div id="toastMsg" class="toast-message"></div>
+
+<script>
+    // ----------------------------- FIREBASE CONFIG ---------------------------------
+    const firebaseConfig = {
+        apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+        authDomain: "school-menejment.firebaseapp.com",
+        projectId: "school-menejment",
+        storageBucket: "school-menejment.firebasestorage.app",
+        messagingSenderId: "348342436525",
+        appId: "1:348342436525:web:41fc72cb02f824baa3bc24",
+        measurementId: "G-GS91N1J5SH"
+    };
+    
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    
+    let currentUserDocId = null;    // admin/staff doc id
+    let currentAuthUser = null;
+    let isEditMode = false;
+
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toastMsg');
+        toast.style.backgroundColor = type === 'success' ? '#10b981' : '#ef4444';
+        toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i> ${message}`;
+        toast.style.opacity = '1';
+        setTimeout(() => {
+            toast.style.opacity = '0';
+        }, 3000);
+    }
+
+    // Load Admin/User Profile from Firestore (users collection or admin collection)
+    async function loadUserProfile() {
+        try {
+            // Wait for auth state
+            await new Promise(resolve => auth.onAuthStateChanged(user => { currentAuthUser = user; resolve(); }));
+            
+            if (!currentAuthUser) {
+                // If not logged in, try fallback: use localStorage or demo data for preview
+                showToast("No logged-in user. Loading demo data.", "info");
+                loadDemoData();
+                return;
+            }
+            
+            // Query users collection where uid matches
+            const usersRef = db.collection("users");
+            const q = usersRef.where("uid", "==", currentAuthUser.uid);
+            const querySnap = await q.get();
+            
+            if (!querySnap.empty) {
+                const docSnap = querySnap.docs[0];
+                currentUserDocId = docSnap.id;
+                const data = docSnap.data();
+                updateUIWithData(data);
+                // Store in localStorage for backup
+                localStorage.setItem('accountData', JSON.stringify(data));
+            } else {
+                // try to fetch from 'admins' collection or fallback
+                const adminSnap = await db.collection("admins").where("uid", "==", currentAuthUser.uid).get();
+                if (!adminSnap.empty) {
+                    const adminData = adminSnap.docs[0].data();
+                    currentUserDocId = adminSnap.docs[0].id;
+                    updateUIWithData(adminData);
+                } else {
+                    loadDemoData();
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            showToast("Error loading profile", "error");
+            loadDemoData();
+        }
+    }
+    
+    function loadDemoData() {
+        // Fallback data if firebase auth not ready or collections empty
+        const fallback = {
+            fullName: "Admin Rahman",
+            email: "admin@school.com",
+            phone: "+880 1234 567890",
+            dob: "1985-06-15",
+            gender: "Male",
+            role: "Super Admin",
+            schoolName: "Ideal School & College",
+            createdAt: "2024-01-10",
+            updatedAt: "2025-03-20"
+        };
+        updateUIWithData(fallback);
+        showToast("Demo profile loaded (Sign in to sync)", "info");
+    }
+    
+    function updateUIWithData(data) {
+        document.getElementById('displayFullName').innerText = data.fullName || data.name || "Admin User";
+        document.getElementById('displayEmail').innerText = data.email || currentAuthUser?.email || "admin@example.com";
+        document.getElementById('viewName').innerText = data.fullName || data.name || "---";
+        document.getElementById('viewEmail').innerText = data.email || currentAuthUser?.email || "---";
+        document.getElementById('viewPhone').innerText = data.phone || data.mobile || "Not provided";
+        document.getElementById('viewDob').innerText = data.dob || "Not set";
+        document.getElementById('viewGender').innerText = data.gender || "Not specified";
+        document.getElementById('userIdDisplay').innerText = currentUserDocId || currentAuthUser?.uid || "UID not found";
+        document.getElementById('createdAtDisplay').innerText = data.createdAt || data.created || "Jan 2024";
+        document.getElementById('updatedAtDisplay').innerText = data.updatedAt || data.lastUpdated || "Just now";
+        document.getElementById('schoolNameDisplay').innerText = data.schoolName || data.institution || "School Management";
+        document.getElementById('roleDisplay').innerText = data.role || "Super Admin";
+        document.getElementById('sessionDisplay').innerText = data.currentSession || "2025-2026";
+        
+        // fill edit fields with current values
+        document.getElementById('editName').value = data.fullName || data.name || "";
+        document.getElementById('editEmail').value = data.email || "";
+        document.getElementById('editPhone').value = data.phone || "";
+        document.getElementById('editDob').value = data.dob || "";
+        document.getElementById('editGender').value = data.gender || "";
+        
+        // store current data for later
+        window.currentProfileData = data;
+    }
+    
+    function enableEditMode(field = 'all') {
+        isEditMode = true;
+        document.getElementById('personalInfoView').style.display = 'none';
+        document.getElementById('personalInfoEdit').style.display = 'block';
+    }
+    
+    function cancelEditMode() {
+        isEditMode = false;
+        document.getElementById('personalInfoEdit').style.display = 'none';
+        document.getElementById('personalInfoView').style.display = 'block';
+        // Reset fields
+        if(window.currentProfileData){
+            document.getElementById('editName').value = window.currentProfileData.fullName || "";
+            document.getElementById('editEmail').value = window.currentProfileData.email || "";
+            document.getElementById('editPhone').value = window.currentProfileData.phone || "";
+            document.getElementById('editDob').value = window.currentProfileData.dob || "";
+            document.getElementById('editGender').value = window.currentProfileData.gender || "";
+        }
+    }
+    
+    async function savePersonalInfo() {
+        const updatedName = document.getElementById('editName').value.trim();
+        const updatedEmail = document.getElementById('editEmail').value.trim();
+        const updatedPhone = document.getElementById('editPhone').value.trim();
+        const updatedDob = document.getElementById('editDob').value;
+        const updatedGender = document.getElementById('editGender').value;
+        
+        if (!updatedName) {
+            showToast("Name cannot be empty", "error");
+            return;
+        }
+        
+        const updatePayload = {
+            fullName: updatedName,
+            name: updatedName,
+            email: updatedEmail,
+            phone: updatedPhone,
+            dob: updatedDob,
+            gender: updatedGender,
+            updatedAt: new Date().toISOString()
+        };
+        
+        try {
+            if (currentUserDocId) {
+                // update firestore in 'users' collection
+                await db.collection("users").doc(currentUserDocId).update(updatePayload);
+                showToast("Profile updated successfully!");
+                await loadUserProfile(); // reload
+            } else if (currentAuthUser) {
+                // try to update auth user email if changed? but Firestore document first
+                await db.collection("users").add({...updatePayload, uid: currentAuthUser.uid, createdAt: new Date().toISOString()});
+                showToast("Profile created & updated");
+                await loadUserProfile();
+            } else {
+                // demo mode: just update UI locally
+                const localData = {...window.currentProfileData, ...updatePayload};
+                updateUIWithData(localData);
+                showToast("Demo mode: changes saved locally");
+            }
+            cancelEditMode();
+        } catch (err) {
+            console.error(err);
+            showToast("Failed to save: " + err.message, "error");
+        }
+    }
+    
+    // Password Change Modal
+    function openPasswordModal() {
+        document.getElementById('passwordModal').style.display = 'flex';
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+    }
+    window.openPasswordModal = openPasswordModal;
+    
+    function closePasswordModal() {
+        document.getElementById('passwordModal').style.display = 'none';
+    }
+    window.closePasswordModal = closePasswordModal;
+    
+    async function updatePassword() {
+        const currentPass = document.getElementById('currentPassword').value;
+        const newPass = document.getElementById('newPassword').value;
+        const confirmPass = document.getElementById('confirmPassword').value;
+        
+        if (!currentAuthUser) {
+            showToast("No authenticated user. Please login first.", "error");
+            closePasswordModal();
+            return;
+        }
+        if (newPass !== confirmPass) {
+            showToast("New passwords do not match", "error");
+            return;
+        }
+        if (newPass.length < 6) {
+            showToast("Password must be at least 6 characters", "error");
+            return;
+        }
+        
+        // Re-authenticate user
+        const credential = firebase.auth.EmailAuthProvider.credential(currentAuthUser.email, currentPass);
+        try {
+            await currentAuthUser.reauthenticateWithCredential(credential);
+            await currentAuthUser.updatePassword(newPass);
+            showToast("Password updated successfully!");
+            closePasswordModal();
+        } catch (err) {
+            console.error(err);
+            if (err.code === 'auth/wrong-password') showToast("Current password is incorrect", "error");
+            else showToast("Error: " + err.message, "error");
+        }
+    }
+    window.updatePassword = updatePassword;
+    
+    // Also allow to change email if needed (on email field we can apply re-auth)
+    // additional security
+    function handleLogout() { 
+        auth.signOut().then(() => { window.location.href = "login.html"; }).catch(()=>{});
+    }
+    
+    // Load school info from settings (for institution name)
+    async function loadSchoolInfo() {
+        try {
+            const schoolDoc = await db.collection("settings").doc("school_info").get();
+            if (schoolDoc.exists) {
+                const schoolData = schoolDoc.data();
+                const schoolName = schoolData.name || schoolData.school_name || "Progressive School";
+                document.getElementById('schoolNameDisplay').innerText = schoolName;
+            }
+        } catch(e) { console.warn(e);}
+    }
+    
+    // Initialize: wait for auth
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            await loadUserProfile();
+            await loadSchoolInfo();
+        } else {
+            // For demo/login page integrated, but we show demo preview
+            loadDemoData();
+            loadSchoolInfo().catch(()=>{});
+            showToast("Guest mode (Login to save changes)", "info");
+        }
+    });
+    
+    // set initial load
+    setTimeout(() => {
+        if(!currentAuthUser) loadDemoData();
+    }, 500);
+    
+    // Additional CSS for password modal
+    const style = document.createElement('style');
+    style.textContent = `
+        .text-primary { color: #3b82f6; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+        .toast-message i { margin-right: 8px; }
+    `;
+    document.head.appendChild(style);
+    
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('passwordModal');
+        if (event.target === modal) closePasswordModal();
+    };
+</script>
+</body>
+</html>

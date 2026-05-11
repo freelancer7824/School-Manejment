@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Update Info</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .admin-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #333; margin-bottom: 20px; }
+        label { display: block; margin: 10px 0 5px; color: #666; }
+        input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #0056b3; }
+        #status { text-align: center; margin-top: 15px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="admin-card">
+    <h2>Update Settings</h2>
+    
+    <label>School Name:</label>
+    <input type="text" id="schoolNameInput" placeholder="Enter School Name">
+
+    <label>Contact Address:</label>
+    <input type="text" id="addressInput" placeholder="Enter Address">
+
+    <button onclick="updateData()">Update Changes</button>
+    
+    <p id="status"></p>
+</div>
+
+<script>
+    // আপনার ফায়ারবেস কনফিগ
+    const firebaseConfig = {
+        apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+        authDomain: "school-menejment.firebaseapp.com",
+        projectId: "school-menejment",
+        storageBucket: "school-menejment.firebasestorage.app",
+        messagingSenderId: "348342436525",
+        appId: "1:348342436525:web:41fc72cb02f824baa3bc24",
+        measurementId: "G-GS91N1J5SH"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // বর্তমান ডাটা আগে থেকেই ইনপুট ফিল্ডে দেখানোর জন্য
+    db.collection("settings").doc("school_info").get().then((doc) => {
+        if (doc.exists) {
+            document.getElementById('schoolNameInput').value = doc.data().school_name || '';
+            document.getElementById('addressInput').value = doc.data().address || '';
+        }
+    });
+
+    // ডাটা আপডেট করার ফাংশন
+    function updateData() {
+        const newName = document.getElementById('schoolNameInput').value;
+        const newAddress = document.getElementById('addressInput').value;
+        const status = document.getElementById('status');
+
+        status.innerText = "Updating...";
+        status.style.color = "blue";
+
+        db.collection("settings").doc("school_info").set({
+            school_name: newName,
+            address: newAddress
+        }, { merge: true })
+        .then(() => {
+            status.innerText = "Successfully Updated!";
+            status.style.color = "green";
+        })
+        .catch((error) => {
+            status.innerText = "Error: " + error.message;
+            status.style.color = "red";
+        });
+    }
+</script>
+
+</body>
+</html>
