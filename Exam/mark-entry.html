@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>Mark Entry - Teachers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri&display=swap');
+        body { background: #f1f5f9; font-family: 'Hind Siliguri', sans-serif; }
+    </style>
+</head>
+<body class="p-5">
+    <div class="max-w-6xl mx-auto">
+        <!-- Filters Card -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm mb-6 flex flex-wrap gap-4">
+            <select id="exSel" class="border p-2 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"></select>
+            <select id="clSel" class="border p-2 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"></select>
+            <select id="secSel" class="border p-2 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"><option value="">Section</option></select>
+            <select id="subSel" class="border p-2 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"><option value="">Subject</option></select>
+            <button id="loadBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-all">Load Students</button>
+        </div>
+
+        <!-- Marks Table Card -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-indigo-50 border-b border-indigo-100">
+                    <tr id="tHead">
+                        <th class="p-4 font-bold text-indigo-900">Roll</th>
+                        <th class="p-4 font-bold text-indigo-900">Name</th>
+                    </tr>
+                </thead>
+                <tbody id="tBody" class="divide-y divide-gray-100">
+                    <!-- Students will load here -->
+                </tbody>
+            </table>
+        </div>
+        
+        <button id="saveAll" class="mt-6 w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg hidden transition-all">
+            Update All Marks
+        </button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, getDocs, collection, query, where, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk", authDomain: "school-menejment.firebaseapp.com", projectId: "school-menejment", storageBucket: "school-menejment.firebasestorage.app", messagingSenderId: "348342436525", appId: "1:348342436525:web:c339fe6216c4516aa3bc24" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Load Initial Exams and Classes
+        async function loadInit() {
+            const exS = await getDocs(collection(db, "exams"));
+            const clS = await getDocs(collection(db, "classes"));
+            fillSel('exSel', exS, "Select Exam"); 
+            fillSel('clSel', clS, "Select Class");
+        }
+
+        function fillSel(id, s, label) { 
+            const el = document.getElementById(id); 
+            el.innerHTML = `<option value="">${label}</option>`;
+            s.forEach(d => el.innerHTML += `<option value="${d.id}">${d.data().name}</option>`);
+        }
+
+        // Dependent dropdowns (Subject and Section)
+        document.getElementById('clSel').onchange = async () => {
+            const cid = document.getElementById('clSel').value;
+            if(!cid) return;
+            const subS = await getDocs(query(collection(db, "subjects"), where("classId", "==", cid)));
+            fillSel('subSel', subS, "Select Subject");
+            const secS = await getDocs(query(collection(db, "sections"), where("classId", "==", cid)));
+            const secEl = document.getElementById('secSel'); 
+            secEl.innerHTML = '<option value="All">All Sections</option>';
+            secS.forEach(d => secEl.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`);
+        };
+
+        document.getElementById('loadBtn').onclick = async () => {
+            const ex = document.getElementById('exSel').value;
+            const cl = document.getElementById('clSel').value;
+            const sub = document.getElementById('subSel').value;
+            const sec = document.getElementById('secSel').value;
+
+            if(!ex || !cl || !sub || !sec) return alert("সবগুলো ফিল্ড সিলেক্ট করুন!");
+
+            // 1. Get Setup and Show Full Marks in Header
+            const setupId = `${ex}_${cl}_${sec}_${sub}`;
+            const setupSnap = await getDoc(doc(db, "mark_setup", setupId));
+            if(!setupSnap.exists()) return alert("এই সাবজেক্টের মার্ক সেটআপ করা হয়নি!");
+
+            const config = setupSnap.data().marks;
+            const activeFields = [];
+            let h = '<th class="p-4 font-bold text-indigo-900">Roll</th><th class="p-4 font-bold text-indigo-900">Name</th>';
+            
+            // Header with Full Marks calculation
+            if(config.written?.enabled) { 
+                activeFields.push({id: 'written', max: config.written.full}); 
+                h += `<th class="p-4 text-center font-bold text-indigo-900">Written (${config.written.full})</th>`; 
+            }
+            if(config.mcq?.enabled) { 
+                activeFields.push({id: 'mcq', max: config.mcq.full}); 
+                h += `<th class="p-4 text-center font-bold text-indigo-900">MCQ (${config.mcq.full})</th>`; 
+            }
+            if(config.practical?.enabled) { 
+                activeFields.push({id: 'practical', max: config.practical.full}); 
+                h += `<th class="p-4 text-center font-bold text-indigo-900">Practical (${config.practical.full})</th>`; 
+            }
+            h += '<th class="p-4 text-center font-bold text-indigo-900">Total</th>';
+            document.getElementById('tHead').innerHTML = h;
+
+            // 2. Load Students & Existing Marks
+            const q = sec === "All" ? query(collection(db, "students"), where("classId", "==", cl)) : query(collection(db, "students"), where("classId", "==", cl), where("section", "==", sec));
+            const [stuS, markS] = await Promise.all([
+                getDocs(q),
+                getDocs(query(collection(db, "marks"), where("examId", "==", ex), where("subjectId", "==", sub)))
+            ]);
+
+            const mData = {}; 
+            markS.forEach(d => mData[d.data().studentId] = d.data().marks);
+
+            const tbody = document.getElementById('tBody'); 
+            tbody.innerHTML = "";
+
+            if(stuS.empty) {
+                tbody.innerHTML = '<tr><td colspan="10" class="p-10 text-center text-gray-400">কোনো স্টুডেন্ট পাওয়া যায়নি।</td></tr>';
+                return;
+            }
+
+            stuS.forEach(d => {
+                const stu = d.data(); 
+                const sid = d.id; 
+                const sm = mData[sid] || {};
+                let row = `<tr data-sid="${sid}" class="hover:bg-gray-50 border-b"><td class="p-4 font-bold text-gray-700">${stu.rollNumber}</td><td class="p-4 text-gray-700">${stu.fullName}</td>`;
+                
+                activeFields.forEach(f => {
+                    row += `<td class="p-4 text-center">
+                        <input type="number" 
+                        class="mark-input w-20 border border-gray-300 p-1 rounded text-center focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none" 
+                        data-type="${f.id}" 
+                        data-max="${f.max}" 
+                        value="${sm[f.id] || ""}">
+                    </td>`;
+                });
+                row += `<td class="p-4 text-center font-bold text-indigo-600 total-cell">0</td></tr>`;
+                tbody.innerHTML += row;
+            });
+
+            document.getElementById('saveAll').classList.remove('hidden');
+            attachCalc();
+        };
+
+        // Live Total Calculation and Validation
+        function attachCalc() {
+            document.querySelectorAll('.mark-input').forEach(i => {
+                i.oninput = function() {
+                    const max = parseFloat(this.dataset.max);
+                    const val = parseFloat(this.value);
+                    
+                    // Validation: Red border if mark exceeds full mark
+                    if(val > max) {
+                        this.classList.add('border-red-500', 'text-red-600');
+                    } else {
+                        this.classList.remove('border-red-500', 'text-red-600');
+                    }
+
+                    const tr = this.closest('tr'); 
+                    let t = 0;
+                    tr.querySelectorAll('.mark-input').forEach(mi => t += parseFloat(mi.value) || 0);
+                    tr.querySelector('.total-cell').innerText = t;
+                };
+                // Trigger calculation for already entered marks
+                i.oninput();
+            });
+        }
+
+        // Save Data to Firebase
+        document.getElementById('saveAll').onclick = async function() {
+            this.disabled = true;
+            this.innerText = "Saving...";
+            
+            const batch = writeBatch(db);
+            const ex = document.getElementById('exSel').value;
+            const sub = document.getElementById('subSel').value;
+
+            document.querySelectorAll('#tBody tr[data-sid]').forEach(tr => {
+                const sid = tr.dataset.sid; 
+                const marks = {};
+                tr.querySelectorAll('.mark-input').forEach(i => marks[i.dataset.type] = parseFloat(i.value) || 0);
+                
+                // Unique Document ID: Session_Exam_Subject_StudentID
+                const mId = `2026_${ex}_${sub}_${sid}`;
+                batch.set(doc(db, "marks", mId), { 
+                    studentId: sid, 
+                    examId: ex, 
+                    subjectId: sub, 
+                    marks, 
+                    updatedAt: serverTimestamp() 
+                }, {merge: true});
+            });
+
+            try {
+                await batch.commit(); 
+                alert("সব মার্ক সফলভাবে আপডেট হয়েছে!");
+            } catch (e) {
+                console.error(e);
+                alert("সেভ করার সময় সমস্যা হয়েছে!");
+            }
+            
+            this.disabled = false;
+            this.innerText = "Update All Marks";
+        };
+
+        loadInit();
+    </script>
+</body>
+</html>

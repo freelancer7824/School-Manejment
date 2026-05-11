@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark Setup - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
+        body { background: #f8fafc; font-family: 'Hind Siliguri', sans-serif; }
+        .setup-card { transition: all 0.3s ease; border: 2px solid #e2e8f0; }
+        .card-active { border-color: #4f46e5; background: #f5f3ff; }
+    </style>
+</head>
+<body class="p-5">
+    <div class="max-w-5xl mx-auto">
+        <div class="bg-indigo-600 p-6 rounded-2xl text-white mb-6 shadow-lg">
+            <h1 class="text-2xl font-bold">Mark Distribution Setup</h1>
+            <p class="opacity-80">পরীক্ষার সাবজেক্ট অনুযায়ী মার্ক কনফিগার করুন</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <select id="examSelect" class="border p-3 rounded-xl outline-none focus:border-indigo-500"></select>
+            <select id="classSelect" class="border p-3 rounded-xl outline-none focus:border-indigo-500"></select>
+            <select id="sectionSelect" class="border p-3 rounded-xl outline-none focus:border-indigo-500">
+                <option value="All">All Sections</option>
+            </select>
+            <select id="subjectSelect" class="border p-3 rounded-xl outline-none focus:border-indigo-500">
+                <option value="">Select Subject</option>
+            </select>
+        </div>
+
+        <!-- Setup Form -->
+        <div id="setupForm" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Written -->
+                <div id="card-written" class="setup-card p-6 rounded-2xl bg-white">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="font-bold">Written</span>
+                        <input type="checkbox" id="writtenEnable" class="w-5 h-5 accent-indigo-600" data-target="written">
+                    </div>
+                    <div id="input-written" class="hidden space-y-3">
+                        <input type="number" id="writtenFull" placeholder="Full Mark" class="w-full border p-2 rounded-lg">
+                        <input type="number" id="writtenPass" placeholder="Pass Mark" class="w-full border p-2 rounded-lg">
+                    </div>
+                </div>
+
+                <!-- MCQ -->
+                <div id="card-mcq" class="setup-card p-6 rounded-2xl bg-white">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="font-bold">MCQ</span>
+                        <input type="checkbox" id="mcqEnable" class="w-5 h-5 accent-indigo-600" data-target="mcq">
+                    </div>
+                    <div id="input-mcq" class="hidden space-y-3">
+                        <input type="number" id="mcqFull" placeholder="Full Mark" class="w-full border p-2 rounded-lg">
+                        <input type="number" id="mcqPass" placeholder="Pass Mark" class="w-full border p-2 rounded-lg">
+                    </div>
+                </div>
+
+                <!-- Practical -->
+                <div id="card-prac" class="setup-card p-6 rounded-2xl bg-white">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="font-bold">Practical</span>
+                        <input type="checkbox" id="pracEnable" class="w-5 h-5 accent-indigo-600" data-target="prac">
+                    </div>
+                    <div id="input-prac" class="hidden space-y-3">
+                        <input type="number" id="pracFull" placeholder="Full Mark" class="w-full border p-2 rounded-lg">
+                        <input type="number" id="pracPass" placeholder="Pass Mark" class="w-full border p-2 rounded-lg">
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button id="saveBtn" class="bg-indigo-600 text-white px-10 py-3 rounded-xl font-bold shadow-lg hover:bg-indigo-700 transition-all">Save Config</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, getDocs, collection, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk", authDomain: "school-menejment.firebaseapp.com", projectId: "school-menejment", storageBucket: "school-menejment.firebasestorage.app", messagingSenderId: "348342436525", appId: "1:348342436525:web:c339fe6216c4516aa3bc24" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const sels = {
+            exam: document.getElementById('examSelect'),
+            class: document.getElementById('classSelect'),
+            section: document.getElementById('sectionSelect'),
+            subject: document.getElementById('subjectSelect'),
+            form: document.getElementById('setupForm')
+        };
+
+        async function loadOptions() {
+            const exSnap = await getDocs(collection(db, "exams"));
+            const clSnap = await getDocs(collection(db, "classes"));
+            render(sels.exam, exSnap, "Exam");
+            render(sels.class, clSnap, "Class");
+        }
+
+        function render(el, snap, label) {
+            el.innerHTML = `<option value="">Select ${label}</option>`;
+            snap.forEach(d => el.innerHTML += `<option value="${d.id}">${d.data().name}</option>`);
+        }
+
+        sels.class.onchange = async () => {
+            const cid = sels.class.value;
+            if(!cid) return;
+            const subSnap = await getDocs(query(collection(db, "subjects"), where("classId", "==", cid)));
+            render(sels.subject, subSnap, "Subject");
+            const secSnap = await getDocs(query(collection(db, "sections"), where("classId", "==", cid)));
+            sels.section.innerHTML = '<option value="All">All Sections</option>';
+            secSnap.forEach(d => sels.section.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`);
+        };
+
+        // --- FETCH EXISTING DATA ---
+        async function checkData() {
+            if(sels.exam.value && sels.class.value && sels.subject.value) {
+                sels.form.classList.remove('hidden');
+                const id = `${sels.exam.value}_${sels.class.value}_${sels.section.value}_${sels.subject.value}`;
+                const snap = await getDoc(doc(db, "mark_setup", id));
+                
+                if(snap.exists()) {
+                    const d = snap.data().marks;
+                    fill('written', d.written);
+                    fill('mcq', d.mcq);
+                    fill('prac', d.practical);
+                } else {
+                    ['written', 'mcq', 'prac'].forEach(p => fill(p, {enabled: false}));
+                }
+            }
+        }
+
+        function fill(p, data) {
+            const cb = document.getElementById(`${p}Enable`);
+            cb.checked = data.enabled;
+            document.getElementById(`${p}Full`).value = data.full || "";
+            document.getElementById(`${p}Pass`).value = data.pass || "";
+            document.getElementById(`input-${p}`).classList.toggle('hidden', !data.enabled);
+            document.getElementById(`card-${p}`).classList.toggle('card-active', data.enabled);
+        }
+
+        document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.onchange = (e) => fill(e.target.dataset.target, {enabled: e.target.checked, full: document.getElementById(`${e.target.dataset.target}Full`).value, pass: document.getElementById(`${e.target.dataset.target}Pass`).value});
+        });
+
+        [sels.exam, sels.subject, sels.section].forEach(s => s.onchange = checkData);
+
+        document.getElementById('saveBtn').onclick = async () => {
+            const id = `${sels.exam.value}_${sels.class.value}_${sels.section.value}_${sels.subject.value}`;
+            const getV = (p) => ({ 
+                enabled: document.getElementById(`${p}Enable`).checked, 
+                full: parseInt(document.getElementById(`${p}Full`).value) || 0, 
+                pass: parseInt(document.getElementById(`${p}Pass`).value) || 0 
+            });
+
+            await setDoc(doc(db, "mark_setup", id), {
+                examId: sels.exam.value, classId: sels.class.value, subjectId: sels.subject.value, section: sels.section.value,
+                marks: { written: getV('written'), mcq: getV('mcq'), practical: getV('prac') },
+                updatedAt: serverTimestamp()
+            });
+            alert("Setup Saved!");
+        };
+
+        loadOptions();
+    </script>
+</body>
+</html>

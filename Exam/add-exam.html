@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam List - Responsive Setup</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --bg: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        /* Responsive Input Group */
+        .input-group {
+            display: flex;
+            flex-wrap: wrap; /* ছোট স্ক্রিনে নিচে নামার জন্য */
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #f1f3f5;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .input-group input {
+            flex: 1; /* বড় স্ক্রিনে সমান জায়গা নিবে */
+            min-width: 200px; /* মোবাইলে ভেঙে যাওয়ার জন্য মিনিমাম উইডথ */
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .input-group button {
+            flex: 0 0 auto;
+            width: 100%; /* মোবাইলে বাটন ফুল উইডথ হবে */
+            padding: 12px 25px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* টেবিল রেসপন্সিভ করার ট্রিক */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto; /* মোবাইলে টেবিল ডানে-বামে সরানো যাবে */
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px; /* টেবিল যেন খুব বেশি চ্যাপ্টা না হয় */
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* মিডিয়া কুয়েরি বড় স্ক্রিনের জন্য */
+        @media (min-width: 600px) {
+            .input-group button {
+                width: auto; /* বড় স্ক্রিনে বাটন স্বাভাবিক সাইজ */
+            }
+            h2 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2><i class="fas fa-edit"></i> Exam Management</h2>
+
+    <div class="input-group">
+        <input type="text" id="examName" placeholder="পরক্ষার নাম লিখুন...">
+        <input type="number" id="orderNumber" placeholder="সিরিয়াল নম্বর (যেমন: ১, ২)">
+        <button onclick="addExam()"><i class="fas fa-plus"></i> Add Exam</button>
+    </div>
+
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>Exam Name</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="examTableBody">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Firebase Config (আগেরটাই ব্যবহার করুন)
+    const firebaseConfig = {
+        apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+        authDomain: "school-menejment.firebaseapp.com",
+        projectId: "school-menejment",
+        storageBucket: "school-menejment.firebasestorage.app",
+        messagingSenderId: "348342436525",
+        appId: "1:348342436525:web:41fc72cb02f824baa3bc24"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    async function addExam() {
+        const name = document.getElementById('examName').value;
+        const order = document.getElementById('orderNumber').value;
+
+        if (!name || !order) {
+            alert("সবগুলো ঘর পূরণ করুন");
+            return;
+        }
+
+        await db.collection("exams").add({
+            name: name,
+            order: parseInt(order)
+        });
+        
+        document.getElementById('examName').value = "";
+        document.getElementById('orderNumber').value = "";
+    }
+
+    db.collection("exams").orderBy("order", "asc").onSnapshot((snapshot) => {
+        const tableBody = document.getElementById('examTableBody');
+        tableBody.innerHTML = "";
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            tableBody.innerHTML += `
+                <tr>
+                    <td>${data.order}</td>
+                    <td>${data.name}</td>
+                    <td><button class="delete-btn" onclick="deleteExam('${doc.id}')"><i class="fas fa-trash"></i></button></td>
+                </tr>
+            `;
+        });
+    });
+
+    async function deleteExam(id) {
+        if(confirm("মুছে ফেলতে চান?")) {
+            await db.collection("exams").doc(id).delete();
+        }
+    }
+</script>
+
+</body>
+</html>
