@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Role-Based User Analytics</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script type="module">
+        // Import all required Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getFirestore, collection, query, onSnapshot, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            databaseURL: "https://school-menejment-default-rtdb.firebaseio.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24",
+            measurementId: "G-SQT1N4PVD3"
+        };
+        
+        // Initialize App and Services
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Dashboard metrics configuration
+        const dashboardMetrics = {
+            admin: { id: 'totalAdmin', icon: 'fa-user-cog', color: '#e74c3c', label: 'Total Admins' },
+            teacher: { id: 'totalTeacher', icon: 'fa-chalkboard-teacher', color: '#2ecc71', label: 'Total Teachers' },
+            student: { id: 'totalStudent', icon: 'fa-user-graduate', color: '#3498db', label: 'Total Students' },
+            parent: { id: 'totalParent', icon: 'fa-hands-helping', color: '#9b59b6', label: 'Total Parents' },
+            superadmin: { id: 'totalSuperAdmin', icon: 'fa-user-shield', color: '#f1c40f', label: 'Total Super Admins' }, 
+            totalUsers: { id: 'totalUsers', icon: 'fa-users', color: '#e67e22', label: 'Total Users' }
+        };
+
+        /**
+         * Load current session from Firestore and display in navbar
+         */
+        async function loadCurrentSession() {
+            try {
+                const sessionDoc = await getDoc(doc(db, "config", "activeSession"));
+                let sessionName = "2025-2026";
+                if (sessionDoc.exists()) {
+                    sessionName = sessionDoc.data().sessionName || "2025-2026";
+                }
+                const sessionElement = document.getElementById('currentSessionDisplay');
+                if (sessionElement) {
+                    sessionElement.innerHTML = `<i class="fas fa-calendar-alt"></i> ${sessionName}`;
+                }
+            } catch (error) {
+                console.error("Error loading current session:", error);
+                const sessionElement = document.getElementById('currentSessionDisplay');
+                if (sessionElement) {
+                    sessionElement.innerHTML = `<i class="fas fa-calendar-alt"></i> 2025-2026`;
+                }
+            }
+        }
+
+        /**
+         * Load student count from students collection
+         */
+        async function loadStudentCount() {
+            try {
+                const studentsCollection = collection(db, "students");
+                const studentsSnapshot = await getDocs(studentsCollection);
+                const studentCount = studentsSnapshot.size;
+                const studentElement = document.getElementById('totalStudent');
+                if (studentElement) {
+                    studentElement.textContent = studentCount;
+                }
+                return studentCount;
+            } catch (error) {
+                console.error("Error loading student count:", error);
+                const studentElement = document.getElementById('totalStudent');
+                if (studentElement) {
+                    studentElement.textContent = "0";
+                }
+                return 0;
+            }
+        }
+
+        /**
+         * Load parent count from parents collection (not from users)
+         * This ensures parent count shows actual parent documents, even if user account is deleted
+         */
+        async function loadParentCount() {
+            try {
+                const parentsCollection = collection(db, "parents");
+                const parentsSnapshot = await getDocs(parentsCollection);
+                const parentCount = parentsSnapshot.size;
+                const parentElement = document.getElementById('totalParent');
+                if (parentElement) {
+                    parentElement.textContent = parentCount;
+                }
+                return parentCount;
+            } catch (error) {
+                console.error("Error loading parent count:", error);
+                const parentElement = document.getElementById('totalParent');
+                if (parentElement) {
+                    parentElement.textContent = "0";
+                }
+                return 0;
+            }
+        }
+
+        /**
+         * Load role-based user counts from Firestore (admins, teachers, superadmins)
+         * Parent count is handled separately from parents collection
+         */
+        function loadUserCounts() {
+            const usersCollection = collection(db, "users");
+            const q = query(usersCollection);
+
+            // Real-time listener for user counts (admins, teachers, superadmins only)
+            // Parents are NOT counted from users collection anymore to avoid mismatch
+            onSnapshot(q, (snapshot) => {
+                const counts = {
+                    admin: 0,
+                    teacher: 0,
+                    superadmin: 0,
+                    totalUsers: 0
+                };
+
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const role = data.role ? data.role.toLowerCase() : null;
+                    
+                    if (role === 'admin') counts.admin++;
+                    else if (role === 'teacher') counts.teacher++;
+                    else if (role === 'superadmin') counts.superadmin++;
+                    // Parent role is NOT counted from users - we use parents collection instead
+                    
+                    counts.totalUsers++;
+                });
+
+                // Update admin, teacher, superadmin cards
+                const adminElement = document.getElementById('totalAdmin');
+                if (adminElement) adminElement.textContent = counts.admin;
+                
+                const teacherElement = document.getElementById('totalTeacher');
+                if (teacherElement) teacherElement.textContent = counts.teacher;
+                
+                const superAdminElement = document.getElementById('totalSuperAdmin');
+                if (superAdminElement) superAdminElement.textContent = counts.superadmin;
+                
+                // Load parent count from parents collection separately
+                loadParentCount().then(parentCount => {
+                    // Update total users: users (admins+teachers+superadmins+parents from users? no)
+                    // Better: users from users collection + parents from parents collection
+                    // But to avoid double counting, we calculate totalUsers = admin+teacher+superadmin+parentCount
+                    const totalUsersValue = counts.admin + counts.teacher + counts.superadmin + parentCount;
+                    const totalUsersElement = document.getElementById('totalUsers');
+                    if (totalUsersElement) {
+                        totalUsersElement.textContent = totalUsersValue;
+                    }
+                });
+                
+                // Load student count separately from students collection
+                loadStudentCount().then(studentCount => {
+                    // Student card already updated, no need to modify total users with students
+                    // Total Users only includes admin+teacher+superadmin+parents (not students)
+                });
+                
+                // Hide loading overlay after initial load
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay && loadingOverlay.style.display !== 'none') {
+                    loadingOverlay.style.opacity = '0';
+                    setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500);
+                }
+            }, (error) => {
+                console.error("Error loading user counts:", error);
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay) {
+                    loadingOverlay.innerHTML = `<p style="color:red;">Error fetching data: ${error.message}</p>`;
+                }
+            });
+        }
+        
+        /**
+         * Create dashboard cards dynamically
+         */
+        function createDashboardCards() {
+            const grid = document.getElementById('infoCardsGrid');
+            if (!grid) return;
+
+            grid.innerHTML = ''; 
+
+            let cardIndex = 1;
+            for (const key in dashboardMetrics) {
+                const metric = dashboardMetrics[key];
+                
+                const card = document.createElement('div');
+                card.classList.add('info-card', `card-${cardIndex++}`);
+                card.style.backgroundColor = metric.color;
+                
+                card.innerHTML = `
+                    <div class="card-details">
+                        <div class="count" id="${metric.id}">0</div>
+                        <div class="label">${metric.label}</div>
+                    </div>
+                    <i class="fas ${metric.icon} card-icon"></i>
+                `;
+                
+                grid.appendChild(card);
+            }
+        }
+
+        // Initialize app on window load
+        window.onload = () => {
+            createDashboardCards();
+            loadCurrentSession();
+            loadUserCounts();
+        };
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            min-height: 100vh;
+        }
+        
+        /* ---------- NAVBAR STYLES ---------- */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+        
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .nav-left i {
+            font-size: 28px;
+            color: #3498db;
+        }
+        
+        .nav-left .dashboard-text {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2c3e50;
+            letter-spacing: -0.3px;
+        }
+        
+        .nav-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .session-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.3px;
+        }
+        
+        .session-badge i {
+            font-size: 14px;
+        }
+        
+        /* ---------- MAIN CONTENT ---------- */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        /* Dashboard Cards Grid */
+        .info-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 10px;
+        }
+        
+        .info-card {
+            color: white;
+            padding: 25px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 140px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Card colors */
+        .card-1 { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .card-2 { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .card-3 { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .card-4 { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        .card-5 { background: linear-gradient(135deg, #f1c40f, #f39c12); }
+        .card-6 { background: linear-gradient(135deg, #e67e22, #d35400); }
+        
+        .card-icon {
+            font-size: 56px;
+            opacity: 0.85;
+        }
+        
+        .card-details .count {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+        
+        .card-details .label {
+            font-size: 14px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+        }
+        
+        /* Loading Overlay */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.96);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+            transition: opacity 0.5s;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #loading-overlay p {
+            font-size: 1rem;
+            color: #3498db;
+            font-weight: 500;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0 20px;
+            }
+            
+            .nav-left .dashboard-text {
+                font-size: 18px;
+            }
+            
+            .nav-left i {
+                font-size: 22px;
+            }
+            
+            .session-badge {
+                padding: 6px 14px;
+                font-size: 12px;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .info-cards-grid {
+                gap: 18px;
+            }
+            
+            .info-card {
+                padding: 20px;
+                min-height: 120px;
+            }
+            
+            .card-details .count {
+                font-size: 36px;
+            }
+            
+            .card-icon {
+                font-size: 44px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .info-cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-container {
+                height: 60px;
+            }
+            
+            .session-badge span {
+                display: none;
+            }
+            
+            .session-badge i {
+                margin: 0;
+            }
+            
+            .session-badge {
+                padding: 8px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <p>Loading dashboard data...</p>
+    </div>
+
+    <!-- Navigation Bar - Only Dashboard text on left, Current Session on right -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <i class="fas fa-chart-pie"></i>
+                <span class="dashboard-text">Dashboard</span>
+            </div>
+            <div class="nav-right">
+                <div class="session-badge" id="currentSessionDisplay">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Loading...</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard Content -->
+    <div class="main-content">
+        <div class="info-cards-grid" id="infoCardsGrid"></div>
+    </div>
+</body>
+</html>
