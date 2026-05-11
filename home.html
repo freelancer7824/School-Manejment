@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONNO ROKOM BIDDYANIKETON - স্বাগতম</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    
+    <style>
+        /* কাস্টম CSS ভেরিয়েবল এবং স্টাইল */
+        :root {
+            --primary-color: #008779;
+            --primary-dark: #00695c;
+            --secondary-accent: #ffc107;
+            --background-color: #f0f4f8;
+            --sidebar-bg: #1f2937;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+        }
+
+        .primary-bg { background-color: var(--primary-color); }
+        .primary-text { color: var(--primary-color); }
+        .primary-hover:hover { background-color: var(--primary-dark); }
+        .accent-bg { background-color: var(--secondary-accent); }
+        .accent-text { color: var(--secondary-accent); }
+        
+        .hero-slide {
+            background-size: cover;
+            background-position: center;
+            height: 400px; /* মোবাইল */
+        }
+        @media (min-width: 768px) {
+            .hero-slide {
+                height: 500px; /* ডেস্কটপ */
+            }
+        }
+
+        /* নোটিশের জন্য স্ক্রলিং ইফেক্ট */
+        .marquee {
+            white-space: nowrap;
+            overflow: hidden;
+            box-sizing: border-box;
+            animation: marquee 25s linear infinite;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        /* লোডিং স্পিনার */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* ডায়নামিক কন্টেন্ট সেকশন */
+        .dynamic-content {
+            transition: all 0.3s ease;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .notice-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .notice-item:hover {
+            background-color: #f9fafb;
+            transform: translateX(5px);
+        }
+
+        .gallery-image {
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-image:hover {
+            transform: scale(1.05);
+        }
+
+        .principal-section {
+            position: relative;
+        }
+
+        .principal-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 300px;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <header class="primary-bg text-white shadow-lg sticky top-0 z-50">
+        <div class="bg-black bg-opacity-10 py-2 text-xs hidden md:block">
+            <div class="container mx-auto px-4 flex justify-end space-x-6">
+                <span class="flex items-center"><i class="fas fa-phone mr-2 accent-text"></i> <span id="top-phone">+880 1712-345678</span></span>
+                <span class="flex items-center"><i class="fas fa-envelope mr-2 accent-text"></i> <span id="top-email">info@onnorokom.edu</span></span>
+            </div>
+        </div>
+        
+        <nav class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-graduation-cap text-3xl accent-text"></i>
+                <a href="home.html" class="text-xl font-black">ONNO ROKOM BIDDYANIKETON</a>
+            </div>
+
+            <ul class="hidden md:flex space-x-6 text-sm font-semibold">
+                <li><a href="home.html" class="py-2 border-b-2 border-yellow-500">হোম</a></li>
+                <li><a href="#" class="py-2 hover:border-b-2 hover:border-yellow-500">আমাদের সম্পর্কে</a></li>
+                <li><a href="#" class="py-2 hover:border-b-2 hover:border-yellow-500">একাডেমিক</a></li>
+                <li><a href="all-notice.html" class="py-2 hover:border-b-2 hover:border-yellow-500">নোটিশ</a></li>
+                <li><a href="#" class="py-2 hover:border-b-2 hover:border-yellow-500">গ্যালারি</a></li>
+                <li><a href="#" class="py-2 hover:border-b-2 hover:border-yellow-500">যোগাযোগ</a></li>
+                <li>
+                    <a href="Auth/login.html" class="accent-bg text-black px-4 py-2 rounded-lg ml-2 hover:bg-yellow-600 transition">
+                        লগইন
+                    </a>
+                </li>
+            </ul>
+
+            <button id="mobile-menu-button" class="md:hidden text-2xl">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+
+        <div id="mobile-menu" class="hidden md:hidden absolute w-full bg-white text-gray-800 shadow-xl">
+            <ul class="flex flex-col p-4 text-base">
+                <li><a href="home.html" class="block py-2 border-l-4 border-yellow-500 px-4 bg-gray-100">হোম</a></li>
+                <li><a href="#" class="block py-2 hover:bg-gray-100 px-4">আমাদের সম্পর্কে</a></li>
+                <li><a href="#" class="block py-2 hover:bg-gray-100 px-4">একাডেমিক</a></li>
+                <li><a href="all-notice.html" class="block py-2 hover:bg-gray-100 px-4">নোটিশ</a></li>
+                <li><a href="#" class="block py-2 hover:bg-gray-100 px-4">গ্যালারি</a></li>
+                <li><a href="#" class="block py-2 hover:bg-gray-100 px-4">যোগাযোগ</a></li>
+                <li><a href="Auth/login.html" class="block mt-2 text-center primary-bg text-white py-2 rounded-lg primary-hover">লগইন</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <div class="primary-bg text-white py-2 shadow-inner">
+        <div class="container mx-auto px-4 flex items-center overflow-hidden">
+            <strong class="accent-bg text-black text-xs md:text-sm px-3 py-1 rounded-full flex-shrink-0 mr-4">নোটিশ:</strong>
+            <div id="marquee-content" class="marquee text-sm">
+                <!-- Firebase থেকে ডেটা লোড হবে -->
+                আগামী ১০ই নভেম্বর থেকে শুরু হচ্ছে বার্ষিক পরীক্ষা। সকল শিক্ষার্থীকে সময়মতো উপস্থিত থাকার নির্দেশ দেওয়া হলো।
+                <span class="mx-6 text-yellow-300">• • •</span>
+                নতুন শিক্ষাবর্ষের ভর্তির আবেদন শুরু হবে ১লা ডিসেম্বর থেকে। বিস্তারিত তথ্য ওয়েবসাইটে পাওয়া যাবে।
+            </div>
+        </div>
+    </div>
+    
+    <main class="flex-1">
+        
+        <section class="hero-section relative overflow-hidden mb-12">
+            <div id="hero-slide" class="hero-slide relative flex items-center" style="background-image: url('https://res.cloudinary.com/demo/image/upload/v1600000000/school_building_main.jpg');">
+                  
+                <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+                <div class="container mx-auto px-4 relative z-10 text-white max-w-3xl">
+                    <h2 id="hero-title" class="text-3xl md:text-5xl font-extrabold mb-4 accent-text">শিক্ষা যেখানে আনন্দময়</h2>
+                    <p id="hero-description" class="text-lg md:text-xl mb-6 font-light">আমাদের প্রতিষ্ঠানে আপনার সন্তানের ভবিষ্যতের জন্য শ্রেষ্ঠ পরিবেশ নিশ্চিত করুন।</p>
+                    <a href="#" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-full transition shadow-lg">ভর্তির আবেদন</a>
+                </div>
+            </div>
+        </section>
+
+        <div class="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+
+            <div class="lg:col-span-2 space-y-10">
+                <section class="bg-white p-6 md:p-8 rounded-xl shadow-xl border-t-4 border-yellow-500">
+                    <h3 class="text-3xl font-bold mb-4 primary-text" id="welcome-title">আমাদের বিদ্যানিকেতনে স্বাগতম</h3>
+                    <div class="flex flex-col md:flex-row gap-6 items-start">
+                        <div class="principal-section">
+                            <img id="principal-image" src="https://res.cloudinary.com/demo/image/upload/v1600000000/principal.jpg" alt="প্রধান শিক্ষকের ছবি" class="w-full md:w-64 h-auto rounded-lg shadow-md flex-shrink-0" />
+                            <div class="principal-info hidden md:block">
+                                <h4 id="principal-name" class="text-lg font-bold">ড. মোঃ আব্দুল করিম</h4>
+                                <p id="principal-designation" class="text-sm">প্রধান শিক্ষক</p>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <p id="welcome-message" class="text-gray-600 leading-relaxed">
+                                অন্যরকম বিদ্যানিকেতন-এ আমরা শুধু পাঠ্যপুস্তক-ভিত্তিক শিক্ষাদান নয়, বরং শিক্ষার্থীদের ভেতরের সুপ্ত সম্ভাবনাকে বিকশিত করার উপর জোর দেই। আমাদের লক্ষ্য একটি মানবিক, বিজ্ঞানমনস্ক এবং সৃজনশীল প্রজন্ম তৈরি করা। 
+                                <br><br>
+                                অত্যাধুনিক সুবিধা, অভিজ্ঞ শিক্ষক এবং একটি বন্ধুত্বপূর্ণ পরিবেশ আপনার সন্তানের শিক্ষাজীবনের জন্য আদর্শ ভিত্তি তৈরি করবে।
+                            </p>
+                            <div class="md:hidden mt-4 bg-gray-100 p-4 rounded-lg">
+                                <h4 id="mobile-principal-name" class="text-lg font-bold primary-text">ড. মোঃ আব্দুল করিম</h4>
+                                <p id="mobile-principal-designation" class="text-sm text-gray-600">প্রধান শিক্ষক</p>
+                            </div>
+                            <a href="#" class="mt-4 inline-block font-semibold primary-text hover:underline">প্রধান শিক্ষকের বার্তা পড়ুন <i class="fas fa-arrow-right ml-2 text-sm"></i></a>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 text-center rounded-xl shadow-md border-b-4 border-primary-color">
+                        <i class="fas fa-users text-3xl primary-text mb-2"></i>
+                        <p id="student-count" class="text-2xl font-bold primary-text">২,৫০০+</p>
+                        <p class="text-sm text-gray-500">শিক্ষার্থী</p>
+                    </div>
+                    <div class="bg-white p-4 text-center rounded-xl shadow-md border-b-4 border-primary-color">
+                        <i class="fas fa-chalkboard-teacher text-3xl primary-text mb-2"></i>
+                        <p id="teacher-count" class="text-2xl font-bold primary-text">১০০+</p>
+                        <p class="text-sm text-gray-500">অভিজ্ঞ শিক্ষক</p>
+                    </div>
+                    <div class="bg-white p-4 text-center rounded-xl shadow-md border-b-4 border-primary-color">
+                        <i class="fas fa-award text-3xl primary-text mb-2"></i>
+                        <p id="club-count" class="text-2xl font-bold primary-text">২৫+</p>
+                        <p class="text-sm text-gray-500">ক্লাব ও কার্যক্রম</p>
+                    </div>
+                    <div class="bg-white p-4 text-center rounded-xl shadow-md border-b-4 border-primary-color">
+                        <i class="fas fa-star text-3xl primary-text mb-2"></i>
+                        <p id="pass-rate" class="text-2xl font-bold primary-text">৯৯%</p>
+                        <p class="text-sm text-gray-500">পাশের হার</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 class="text-3xl font-bold mb-6 text-gray-700 border-b pb-2">আমাদের শিক্ষণ প্রোগ্রাম</h3>
+                    <div id="programs-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Firebase থেকে প্রোগ্রাম ডেটা লোড হবে -->
+                        <div class="loader"></div>
+                    </div>
+                    <div class="text-center mt-8">
+                         <a href="#" class="primary-bg primary-hover text-white font-semibold py-3 px-8 rounded-lg transition shadow-md">বিস্তারিত প্রোগ্রাম জানুন</a>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="lg:col-span-1 space-y-8">
+                <div class="bg-white p-6 rounded-xl shadow-xl border-l-4 border-primary-color">
+                    <h3 class="text-2xl font-bold mb-4 primary-text flex items-center"><i class="fas fa-bullhorn mr-3"></i> গুরুত্বপূর্ণ নোটিশ</h3>
+                    <ul id="notices-list" class="space-y-4">
+                        <!-- Firebase থেকে নোটিশ ডেটা লোড হবে -->
+                        <div class="loader"></div>
+                    </ul>
+                    <a href="all-notice.html" class="mt-4 inline-block font-semibold primary-text hover:underline text-sm">সকল নোটিশ দেখুন</a>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-xl border-l-4 border-yellow-500">
+                    <h3 class="text-2xl font-bold mb-4 accent-text flex items-center"><i class="fas fa-map-marker-alt mr-3"></i> আমাদের সাথে যোগাযোগ</h3>
+                    <div class="space-y-3 text-gray-700">
+                        <p class="flex items-center"><i class="fas fa-phone-alt primary-text mr-3"></i> <span id="contact-phone">+880 1712-345678</span></p>
+                        <p class="flex items-center"><i class="fas fa-envelope primary-text mr-3"></i> <span id="contact-email">info@onnorokom.edu</span></p>
+                        <p class="flex items-center"><i class="fas fa-location-dot primary-text mr-3"></i> <span id="contact-address">বাড়ি #৭, রোড #৯, ধানমন্ডি, ঢাকা-১২০৫</span></p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-xl border-l-4 border-red-500">
+                    <h3 class="text-2xl font-bold mb-4 text-red-600 flex items-center"><i class="fas fa-images mr-3"></i> গ্যালারি</h3>
+                    <div id="gallery-container" class="grid grid-cols-3 gap-2">
+                        <!-- Firebase থেকে গ্যালারি ইমেজ লোড হবে -->
+                        <div class="loader"></div>
+                    </div>
+                </div>
+
+            </aside>
+        </div>
+
+    </main>
+    
+    <footer class="primary-bg text-white mt-12 pt-10 pb-6">
+        <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8 border-b border-gray-700 pb-8 mb-6">
+            
+            <div>
+                <h4 class="text-xl font-bold mb-4 accent-text">অন্যরকম বিদ্যানিকেতন</h4>
+                <p class="text-sm text-gray-300">একটি সৃজনশীল ও আধুনিক শিক্ষাপ্রতিষ্ঠান, যা শিক্ষার্থীদের ভবিষ্যতের জন্য প্রস্তুত করে।</p>
+            </div>
+
+            <div>
+                <h4 class="text-lg font-semibold mb-4 text-white">গুরুত্বপূর্ণ লিঙ্ক</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-yellow-400 text-gray-300">শিক্ষক পরিচিতি</a></li>
+                    <li><a href="#" class="hover:text-yellow-400 text-gray-300">একাডেমিক ক্যালেন্ডার</a></li>
+                    <li><a href="#" class="hover:text-yellow-400 text-gray-300">ভর্তি তথ্য</a></li>
+                    <li><a href="#" class="hover:text-yellow-400 text-gray-300">ফিস এবং পেমেন্ট</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="text-lg font-semibold mb-4 text-white">কুইক গ্যালারি</h4>
+                <div id="footer-gallery" class="grid grid-cols-3 gap-2">
+                    <!-- Firebase থেকে গ্যালারি ইমেজ লোড হবে -->
+                    <div class="loader"></div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-lg font-semibold mb-4 text-white">সোশ্যাল মিডিয়া</h4>
+                <div class="flex space-x-3 text-2xl">
+                    <a href="#" class="hover:text-yellow-400 transition"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="hover:text-yellow-400 transition"><i class="fab fa-youtube"></i></a>
+                    <a href="#" class="hover:text-yellow-400 transition"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="hover:text-yellow-400 transition"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="container mx-auto px-4 text-center text-sm text-gray-400 pt-4">
+            &copy; ২০২৫ ONNO ROKOM BIDDYANIKETON. সর্বস্বত্ব সংরক্ষিত।
+        </div>
+    </footer>
+
+    <script>
+        // Firebase কনফিগারেশন
+        const firebaseConfig = {
+  apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+  authDomain: "school-menejment.firebaseapp.com",
+  projectId: "school-menejment",
+  storageBucket: "school-menejment.firebasestorage.app",
+  messagingSenderId: "348342436525",
+  appId: "1:348342436525:web:41fc72cb02f824baa3bc24",
+  measurementId: "G-GS91N1J5SH"
+};
+
+        // Firebase ইনিশিয়ালাইজেশন
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // মোবাইল মেনু টগল
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+
+        // Firebase থেকে ডেটা লোড করার ফাংশন
+        function loadFirebaseData() {
+            // হিরো সেকশন ডেটা লোড
+            database.ref('hero').once('value').then((snapshot) => {
+                const heroData = snapshot.val();
+                if (heroData) {
+                    document.getElementById('hero-slide').style.backgroundImage = `url('${heroData.backgroundImage}')`;
+                    document.getElementById('hero-title').textContent = heroData.title;
+                    document.getElementById('hero-description').textContent = heroData.description;
+                }
+            });
+
+            // প্রধান শিক্ষক ডেটা লোড
+            database.ref('principal').once('value').then((snapshot) => {
+                const principalData = snapshot.val();
+                if (principalData) {
+                    // প্রধান শিক্ষকের ছবি
+                    if (principalData.image) {
+                        document.getElementById('principal-image').src = principalData.image;
+                    }
+                    
+                    // প্রধান শিক্ষকের নাম
+                    if (principalData.name) {
+                        document.getElementById('principal-name').textContent = principalData.name;
+                        document.getElementById('mobile-principal-name').textContent = principalData.name;
+                    }
+                    
+                    // প্রধান শিক্ষকের পদবী
+                    if (principalData.designation) {
+                        document.getElementById('principal-designation').textContent = principalData.designation;
+                        document.getElementById('mobile-principal-designation').textContent = principalData.designation;
+                    }
+                    
+                    // প্রধান শিক্ষকের বার্তা
+                    if (principalData.message) {
+                        document.getElementById('welcome-message').textContent = principalData.message;
+                    }
+                    
+                    // স্বাগতম টাইটেল
+                    if (principalData.welcomeTitle) {
+                        document.getElementById('welcome-title').textContent = principalData.welcomeTitle;
+                    }
+                    
+                    // Show principal info on image hover
+                    const principalImage = document.getElementById('principal-image');
+                    const principalInfo = document.querySelector('.principal-info');
+                    
+                    principalImage.addEventListener('mouseenter', function() {
+                        principalInfo.classList.remove('hidden');
+                    });
+                    
+                    principalImage.addEventListener('mouseleave', function() {
+                        principalInfo.classList.add('hidden');
+                    });
+                } else {
+                    // যদি Firebase-এ কোন ডেটা না থাকে, ডিফল্ট ডেটা ব্যবহার করুন
+                    console.log('Firebase-এ প্রধান শিক্ষকের কোন ডেটা পাওয়া যায়নি, ডিফল্ট ডেটা ব্যবহার করা হচ্ছে');
+                }
+            });
+
+            // টপ বার যোগাযোগ তথ্য লোড
+            database.ref('contact').once('value').then((snapshot) => {
+                const contactData = snapshot.val();
+                if (contactData) {
+                    document.getElementById('top-phone').textContent = contactData.phone;
+                    document.getElementById('top-email').textContent = contactData.email;
+                    document.getElementById('contact-phone').textContent = contactData.phone;
+                    document.getElementById('contact-email').textContent = contactData.email;
+                    document.getElementById('contact-address').textContent = contactData.address;
+                }
+            });
+
+            // স্কুল পরিসংখ্যান ডেটা লোড
+            database.ref('statistics').once('value').then((snapshot) => {
+                const statsData = snapshot.val();
+                if (statsData) {
+                    document.getElementById('student-count').textContent = statsData.students;
+                    document.getElementById('teacher-count').textContent = statsData.teachers;
+                    document.getElementById('club-count').textContent = statsData.clubs;
+                    document.getElementById('pass-rate').textContent = statsData.passRate;
+                }
+            });
+
+            // প্রোগ্রাম ডেটা লোড
+            database.ref('programs').once('value').then((snapshot) => {
+                const programsData = snapshot.val();
+                const programsContainer = document.getElementById('programs-container');
+                
+                if (programsData) {
+                    programsContainer.innerHTML = '';
+                    
+                    Object.keys(programsData).forEach(key => {
+                        const program = programsData[key];
+                        const programElement = document.createElement('div');
+                        programElement.className = 'bg-white p-5 rounded-xl shadow-lg hover:shadow-xl transition duration-300 fade-in';
+                        programElement.innerHTML = `
+                            <i class="${program.icon} text-4xl accent-text mb-3"></i>
+                            <h4 class="text-xl font-semibold mb-2 primary-text">${program.title}</h4>
+                            <p class="text-sm text-gray-600">${program.description}</p>
+                        `;
+                        programsContainer.appendChild(programElement);
+                    });
+                }
+            });
+
+            // নোটিশ ডেটা লোড (শেষের ১০টি)
+            database.ref('notices').orderByKey().limitToLast(10).once('value').then((snapshot) => {
+                const noticesData = snapshot.val();
+                const noticesList = document.getElementById('notices-list');
+                
+                if (noticesData) {
+                    noticesList.innerHTML = '';
+                    
+                    // Firebase থেকে পাওয়া ডেটাকে অ্যারে তে রূপান্তর এবং রিভার্স করা
+                    const noticesArray = Object.entries(noticesData).map(([key, value]) => ({
+                        id: key,
+                        ...value
+                    })).reverse();
+                    
+                    noticesArray.forEach(notice => {
+                        const noticeElement = document.createElement('li');
+                        noticeElement.className = 'border-b pb-2 fade-in notice-item';
+                        noticeElement.setAttribute('data-notice-id', notice.id);
+                        noticeElement.innerHTML = `
+                            <a class="font-medium hover:text-yellow-700 block">${notice.title}</a>
+                            <p class="text-xs text-gray-500 flex justify-between">
+                                <span><i class="far fa-calendar-alt mr-1"></i> ${notice.date}</span>
+                                ${notice.isNew ? '<span class="text-red-500 font-bold">নতুন</span>' : ''}
+                            </p>
+                        `;
+                        noticesList.appendChild(noticeElement);
+                        
+                        // নোটিশ ক্লিক ইভেন্ট যোগ
+                        noticeElement.addEventListener('click', function() {
+                            const noticeId = this.getAttribute('data-notice-id');
+                            window.location.href = `notice-view.html?id=${noticeId}`;
+                        });
+                    });
+                } else {
+                    noticesList.innerHTML = '<li class="text-gray-500 text-center py-4">কোন নোটিশ পাওয়া যায়নি</li>';
+                }
+            });
+
+            // গ্যালারি ইমেজ ডেটা লোড
+            database.ref('gallery').once('value').then((snapshot) => {
+                const galleryData = snapshot.val();
+                const galleryContainer = document.getElementById('gallery-container');
+                const footerGallery = document.getElementById('footer-gallery');
+                
+                if (galleryData) {
+                    // Main Gallery Container
+                    galleryContainer.innerHTML = '';
+                    
+                    // Firebase থেকে পাওয়া ডেটাকে অ্যারে তে রূপান্তর
+                    const galleryArray = Object.entries(galleryData).map(([key, value]) => ({
+                        id: key,
+                        ...value
+                    }));
+                    
+                    // প্রথম ৬টি ইমেজ শো করানো
+                    galleryArray.slice(0, 6).forEach((image, index) => {
+                        const imgElement = document.createElement('img');
+                        imgElement.src = image.url;
+                        imgElement.alt = `Gallery Image ${index + 1}`;
+                        imgElement.className = 'w-full h-20 object-cover rounded fade-in cursor-pointer gallery-image';
+                        galleryContainer.appendChild(imgElement);
+                    });
+
+                    // Footer Gallery Container
+                    footerGallery.innerHTML = '';
+                    
+                    // প্রথম ৬টি ইমেজ শো করানো (Footer-এর জন্য)
+                    galleryArray.slice(0, 6).forEach((image, index) => {
+                        const imgElement = document.createElement('img');
+                        imgElement.src = image.url;
+                        imgElement.alt = `Gallery Image ${index + 1}`;
+                        imgElement.className = 'w-full h-auto object-cover rounded fade-in cursor-pointer gallery-image';
+                        footerGallery.appendChild(imgElement);
+                    });
+                } else {
+                    // যদি Firebase-এ কোন গ্যালারি ডেটা না থাকে, তাহলে ডিফল্ট ইমেজ শো করানো
+                    const defaultImages = [
+                        'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event1.jpg',
+                        'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event2.jpg',
+                        'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event3.jpg',
+                        'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event4.jpg',
+                        'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event5.jpg',
+                        'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event6.jpg'
+                    ];
+                    
+                    // Main Gallery Container
+                    galleryContainer.innerHTML = '';
+                    defaultImages.forEach((imageUrl, index) => {
+                        const imgElement = document.createElement('img');
+                        imgElement.src = imageUrl;
+                        imgElement.alt = `Gallery Image ${index + 1}`;
+                        imgElement.className = 'w-full h-20 object-cover rounded fade-in cursor-pointer gallery-image';
+                        galleryContainer.appendChild(imgElement);
+                    });
+
+                    // Footer Gallery Container
+                    footerGallery.innerHTML = '';
+                    defaultImages.slice(0, 6).forEach((imageUrl, index) => {
+                        const imgElement = document.createElement('img');
+                        imgElement.src = imageUrl;
+                        imgElement.alt = `Gallery Image ${index + 1}`;
+                        imgElement.className = 'w-full h-auto object-cover rounded fade-in cursor-pointer gallery-image';
+                        footerGallery.appendChild(imgElement);
+                    });
+                }
+            });
+
+            // স্ক্রলিং নোটিশ লোড
+            database.ref('marquee').once('value').then((snapshot) => {
+                const marqueeData = snapshot.val();
+                if (marqueeData) {
+                    document.getElementById('marquee-content').textContent = marqueeData.text;
+                }
+            });
+        }
+
+        // Cloudinary থেকে ইমেজ লোড করার ফাংশন
+        function loadCloudinaryImages() {
+            // প্রধান শিক্ষকের ছবি লোড (ডিফল্ট হিসেবে)
+            document.getElementById('principal-image').src = 'https://res.cloudinary.com/demo/image/upload/v1600000000/principal.jpg';
+        }
+
+        // পেজ লোড হলে ডেটা লোড করুন
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFirebaseData();
+            loadCloudinaryImages();
+        });
+    </script>
+</body>
+</html>
