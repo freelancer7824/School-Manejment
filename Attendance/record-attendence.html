@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Attendance Reports | View Student Attendance Records</title>
+    <!-- Tailwind + Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                        indigo: '#6366f1'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #f1f5f9; font-family: 'Inter', sans-serif; }
+        .status-badge { transition: all 0.15s; }
+        .filter-panel { animation: fadeSlide 0.3s ease-out; }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            .no-print { display: none; }
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-20 right-4 left-4 md:left-auto z-50 hidden transition-all duration-300 max-w-sm shadow-2xl">
+        <div class="bg-white rounded-xl shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success">
+            <i id="toast-icon" class="fas fa-check-circle text-success text-lg"></i>
+            <p id="toast-text" class="text-gray-700 text-sm font-medium flex-1">Success</p>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
+            <div class="flex items-center gap-3">
+                <a href="dashboard.html" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition no-print">
+                    <i class="fas fa-arrow-left text-primary"></i>
+                </a>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="bg-primary text-white p-1.5 rounded-xl"><i class="fas fa-chart-line"></i></span>
+                    Attendance Reports
+                </h1>
+            </div>
+            <div class="flex gap-2 no-print">
+                <button id="printBtn" class="bg-white px-4 py-2 rounded-xl shadow-sm hover:bg-gray-50 transition text-gray-700">
+                    <i class="fas fa-print mr-1"></i> Print
+                </button>
+                <button id="exportBtn" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl shadow-sm hover:bg-indigo-100 transition">
+                    <i class="fas fa-download mr-1"></i> Export
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Panel -->
+        <div class="bg-white rounded-2xl shadow-md p-5 mb-6 filter-panel no-print">
+            <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Class</label>
+                    <select id="classSelect" class="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-primary/30">
+                        <option value="">All Classes</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Section</label>
+                    <select id="sectionSelect" class="w-full border border-gray-300 rounded-xl p-2.5" disabled>
+                        <option value="">All Sections</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Student</label>
+                    <select id="studentSelect" class="w-full border border-gray-300 rounded-xl p-2.5" disabled>
+                        <option value="">All Students</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">From Date</label>
+                    <input type="date" id="fromDate" class="w-full border border-gray-300 rounded-xl p-2.5">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">To Date</label>
+                    <input type="date" id="toDate" class="w-full border border-gray-300 rounded-xl p-2.5">
+                </div>
+                <div>
+                    <button id="filterBtn" class="w-full bg-primary text-white py-2.5 rounded-xl hover:bg-blue-700 transition font-medium">
+                        <i class="fas fa-search mr-1"></i> View Records
+                    </button>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-4 pt-2 border-t border-gray-100">
+                <label class="inline-flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="radio" name="reportType" value="summary" checked class="text-primary"> Summary Report
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="radio" name="reportType" value="detailed" class="text-primary"> Detailed Report
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="radio" name="reportType" value="student" class="text-primary"> Single Student Report
+                </label>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6" id="statsContainer">
+            <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-primary">
+                <p class="text-gray-500 text-xs uppercase">Total Records</p>
+                <p id="totalRecords" class="text-2xl font-bold text-slate-800">0</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-success">
+                <p class="text-gray-500 text-xs uppercase">Present</p>
+                <p id="totalPresent" class="text-2xl font-bold text-success">0</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-danger">
+                <p class="text-gray-500 text-xs uppercase">Absent</p>
+                <p id="totalAbsent" class="text-2xl font-bold text-danger">0</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-warning">
+                <p class="text-gray-500 text-xs uppercase">Late</p>
+                <p id="totalLate" class="text-2xl font-bold text-warning">0</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-indigo">
+                <p class="text-gray-500 text-xs uppercase">Attendance %</p>
+                <p id="attPercent" class="text-2xl font-bold text-indigo-600">0%</p>
+            </div>
+        </div>
+
+        <!-- Records Table -->
+        <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+            <div class="bg-gradient-to-r from-primary/5 to-indigo-50 px-5 py-4 border-b">
+                <h2 class="font-bold text-gray-800"><i class="fas fa-calendar-alt text-primary mr-2"></i>Attendance Records</h2>
+                <p class="text-xs text-gray-500 mt-0.5" id="recordInfo">Select filters and click View Records</p>
+            </div>
+            <div class="overflow-x-auto" style="max-height: 60vh; overflow-y: auto;">
+                <table class="w-full" id="recordsTable">
+                    <thead class="sticky top-0 bg-gray-50 z-10 border-b">
+                        <tr class="text-left text-sm font-semibold text-gray-600">
+                            <th class="px-4 py-3">#</th>
+                            <th class="px-4 py-3">Date</th>
+                            <th class="px-4 py-3">Student Name</th>
+                            <th class="px-4 py-3">Class - Section</th>
+                            <th class="px-4 py-3">Roll No</th>
+                            <th class="px-4 py-3 text-center">Status</th>
+                            <th class="px-4 py-3">Remark</th>
+                         </tr>
+                    </thead>
+                    <tbody id="recordsTableBody">
+                        <tr><td colspan="7" class="text-center py-12 text-gray-400"><i class="fas fa-calendar-search text-3xl mb-2 block"></i>Select filters and click "View Records"</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where, doc, getDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let allClasses = [];
+        let sectionsCache = {};
+        let studentsCache = [];
+        let currentRecords = [];
+        let isLoading = false;
+        
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' : 'fas fa-exclamation-circle text-danger text-lg';
+            toastText.innerText = msg;
+            toast.classList.remove('hidden');
+            toast.style.display = 'flex';
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                setTimeout(() => { toast.style.display = 'none'; }, 300);
+            }, 2800);
+        }
+        window.hideToast = () => document.getElementById('toast').classList.add('hidden');
+        
+        function escapeHtml(str) { 
+            if(!str) return ''; 
+            return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); 
+        }
+        
+        // Load classes
+        async function loadClasses() {
+            try {
+                const snap = await getDocs(collection(db, "classes"));
+                allClasses = [];
+                const select = document.getElementById('classSelect');
+                select.innerHTML = '<option value="">All Classes</option>';
+                snap.forEach(docSnap => {
+                    const cls = { id: docSnap.id, name: docSnap.data().name };
+                    allClasses.push(cls);
+                    select.appendChild(new Option(cls.name, cls.id));
+                });
+            } catch (err) { 
+                console.error(err);
+                showToast("Error loading classes", "error");
+            }
+        }
+        
+        // Load sections for class
+        async function loadSections(classId) {
+            if (!classId) return [];
+            if (sectionsCache[classId]) return sectionsCache[classId];
+            try {
+                const snap = await getDocs(query(collection(db, "sections"), where("classId", "==", classId)));
+                const sections = [];
+                snap.forEach(docSnap => sections.push(docSnap.data().name));
+                sectionsCache[classId] = sections;
+                return sections;
+            } catch (err) { 
+                console.error(err);
+                return []; 
+            }
+        }
+        
+        async function updateSectionDropdown(classId) {
+            const sectionSelect = document.getElementById('sectionSelect');
+            if (!classId) {
+                sectionSelect.innerHTML = '<option value="">All Sections</option>';
+                sectionSelect.disabled = false;
+                return;
+            }
+            const sections = await loadSections(classId);
+            sectionSelect.disabled = false;
+            sectionSelect.innerHTML = '<option value="">All Sections</option>';
+            sections.forEach(sec => {
+                sectionSelect.appendChild(new Option(sec, sec));
+            });
+        }
+        
+        // Load all students
+        async function loadAllStudents() {
+            try {
+                const snap = await getDocs(collection(db, "students"));
+                studentsCache = [];
+                snap.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const classObj = allClasses.find(c => c.id === data.classId);
+                    studentsCache.push({
+                        id: docSnap.id,
+                        name: data.fullName || data.name || "Unknown",
+                        classId: data.classId,
+                        section: data.section,
+                        roll: data.rollNumber || data.roll || "N/A",
+                        className: classObj?.name || ""
+                    });
+                });
+                return studentsCache;
+            } catch (err) { 
+                console.error(err);
+                return []; 
+            }
+        }
+        
+        async function updateStudentDropdown(classId, section) {
+            const studentSelect = document.getElementById('studentSelect');
+            let filtered = studentsCache;
+            if (classId) filtered = filtered.filter(s => s.classId === classId);
+            if (section) filtered = filtered.filter(s => s.section === section);
+            
+            studentSelect.disabled = false;
+            studentSelect.innerHTML = '<option value="">All Students</option>';
+            filtered.forEach(s => {
+                studentSelect.appendChild(new Option(`${s.name} (${s.roll})`, s.id));
+            });
+        }
+        
+        // Fetch attendance records - Simple and error-free approach
+        async function fetchAttendanceRecords() {
+            if (isLoading) return;
+            
+            const classId = document.getElementById('classSelect').value;
+            const section = document.getElementById('sectionSelect').value;
+            const studentId = document.getElementById('studentSelect').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const reportType = document.querySelector('input[name="reportType"]:checked').value;
+            
+            // Show loading
+            isLoading = true;
+            const tbody = document.getElementById('recordsTableBody');
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12"><div class="loading-spinner mx-auto"></div><p class="text-gray-400 mt-2">Loading records...</p></td></tr>`;
+            
+            try {
+                // Get all attendance records - simplest approach, no complex queries
+                const attendanceRef = collection(db, "attendance");
+                const snapshot = await getDocs(attendanceRef);
+                let allRecords = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Apply filters client-side
+                let filtered = allRecords;
+                
+                // Filter by class
+                if (classId && reportType !== 'student') {
+                    filtered = filtered.filter(r => r.classId === classId);
+                }
+                
+                // Filter by section
+                if (section && reportType !== 'student') {
+                    filtered = filtered.filter(r => r.section === section);
+                }
+                
+                // Filter by student
+                if (studentId && reportType === 'student') {
+                    filtered = filtered.filter(r => r.studentId === studentId);
+                }
+                
+                // Filter by date range
+                if (fromDate) {
+                    filtered = filtered.filter(r => r.date >= fromDate);
+                }
+                if (toDate) {
+                    filtered = filtered.filter(r => r.date <= toDate);
+                }
+                
+                // Sort by date descending
+                filtered.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+                
+                currentRecords = filtered;
+                renderRecords(filtered, reportType);
+                updateStatistics(filtered);
+                
+                if (filtered.length === 0) {
+                    showToast("No records found for the selected filters", "info");
+                } else {
+                    showToast(`Found ${filtered.length} record(s)`, "success");
+                }
+            } catch (err) {
+                console.error("Error fetching attendance:", err);
+                showToast("Error loading records: " + err.message, "error");
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12 text-red-500"><i class="fas fa-exclamation-triangle text-3xl mb-2 block"></i>Error loading records. Please try again.</td></tr>`;
+            } finally {
+                isLoading = false;
+            }
+        }
+        
+        function renderRecords(records, reportType) {
+            const tbody = document.getElementById('recordsTableBody');
+            const recordInfo = document.getElementById('recordInfo');
+            
+            if (records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12 text-gray-400"><i class="fas fa-database text-3xl mb-2 block"></i>No attendance records found</td></tr>`;
+                recordInfo.innerText = `No records found`;
+                return;
+            }
+            
+            recordInfo.innerText = `Showing ${records.length} attendance record(s)`;
+            
+            if (reportType === 'summary') {
+                // Group by student for summary
+                const studentSummary = {};
+                records.forEach(rec => {
+                    const key = rec.studentId;
+                    if (!studentSummary[key]) {
+                        studentSummary[key] = {
+                            studentName: rec.studentName || "Unknown",
+                            roll: rec.roll || "N/A",
+                            className: rec.className || "N/A",
+                            section: rec.section || "N/A",
+                            present: 0,
+                            absent: 0,
+                            late: 0,
+                            total: 0
+                        };
+                    }
+                    if (rec.status === 'present') studentSummary[key].present++;
+                    else if (rec.status === 'late') studentSummary[key].late++;
+                    else studentSummary[key].absent++;
+                    studentSummary[key].total++;
+                });
+                
+                let html = '';
+                let idx = 1;
+                for (const [stuId, summary] of Object.entries(studentSummary)) {
+                    const presentPercent = summary.total > 0 ? ((summary.present / summary.total) * 100).toFixed(1) : 0;
+                    html += `
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="px-4 py-3 text-sm">${idx++}</td>
+                            <td class="px-4 py-3 text-sm font-medium">${escapeHtml(summary.studentName)}</td>
+                            <td class="px-4 py-3 text-sm">${escapeHtml(summary.className)} - ${escapeHtml(summary.section)}</td>
+                            <td class="px-4 py-3 text-sm">${escapeHtml(summary.roll)}</td>
+                            <td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded-full text-xs bg-success/20 text-success font-medium">P: ${summary.present}</span></td>
+                            <td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded-full text-xs bg-danger/20 text-danger font-medium">A: ${summary.absent}</span></td>
+                            <td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded-full text-xs bg-warning/20 text-warning font-medium">L: ${summary.late}</span></td>
+                            <td class="px-4 py-3 text-center"><span class="font-bold text-primary">${presentPercent}%</span></td>
+                        </tr>
+                    `;
+                }
+                tbody.innerHTML = html;
+            } else {
+                // Detailed report or student report
+                let html = '';
+                records.forEach((rec, idx) => {
+                    const statusColor = rec.status === 'present' ? 'bg-success/20 text-success' : (rec.status === 'late' ? 'bg-warning/20 text-warning' : 'bg-danger/20 text-danger');
+                    const statusIcon = rec.status === 'present' ? 'fa-check-circle' : (rec.status === 'late' ? 'fa-clock' : 'fa-times-circle');
+                    const statusText = rec.status === 'present' ? 'Present' : (rec.status === 'late' ? 'Late' : 'Absent');
+                    html += `
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="px-4 py-3 text-sm">${idx + 1}</td>
+                            <td class="px-4 py-3 text-sm whitespace-nowrap">${escapeHtml(rec.date || 'N/A')}</td>
+                            <td class="px-4 py-3 text-sm font-medium">${escapeHtml(rec.studentName || 'Unknown')}</td>
+                            <td class="px-4 py-3 text-sm">${escapeHtml(rec.className || rec.classId || 'N/A')} - ${escapeHtml(rec.section || 'N/A')}</td>
+                            <td class="px-4 py-3 text-sm">${escapeHtml(rec.roll || 'N/A')}</td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="status-badge inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${statusColor}">
+                                    <i class="fas ${statusIcon}"></i> ${statusText}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">${escapeHtml(rec.remark || '—')}</td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            }
+        }
+        
+        function updateStatistics(records) {
+            const total = records.length;
+            let present = 0, absent = 0, late = 0;
+            records.forEach(rec => {
+                if (rec.status === 'present') present++;
+                else if (rec.status === 'late') late++;
+                else absent++;
+            });
+            document.getElementById('totalRecords').innerText = total;
+            document.getElementById('totalPresent').innerText = present;
+            document.getElementById('totalAbsent').innerText = absent;
+            document.getElementById('totalLate').innerText = late;
+            const percent = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
+            document.getElementById('attPercent').innerText = `${percent}%`;
+        }
+        
+        function printReport() { 
+            window.print(); 
+        }
+        
+        function exportToCSV() {
+            const reportType = document.querySelector('input[name="reportType"]:checked').value;
+            if (currentRecords.length === 0) {
+                showToast("No records to export", "error");
+                return;
+            }
+            
+            let csvRows = [];
+            if (reportType === 'summary') {
+                csvRows.push(['Student Name', 'Class', 'Section', 'Roll No', 'Present', 'Absent', 'Late', 'Attendance %']);
+                const studentSummary = {};
+                currentRecords.forEach(rec => {
+                    const key = rec.studentId;
+                    if (!studentSummary[key]) {
+                        studentSummary[key] = {
+                            studentName: rec.studentName || "Unknown",
+                            roll: rec.roll || "N/A",
+                            className: rec.className || "N/A",
+                            section: rec.section || "N/A",
+                            present: 0, absent: 0, late: 0, total: 0
+                        };
+                    }
+                    if (rec.status === 'present') studentSummary[key].present++;
+                    else if (rec.status === 'late') studentSummary[key].late++;
+                    else studentSummary[key].absent++;
+                    studentSummary[key].total++;
+                });
+                for (const summary of Object.values(studentSummary)) {
+                    const percent = summary.total > 0 ? ((summary.present / summary.total) * 100).toFixed(1) : 0;
+                    csvRows.push([summary.studentName, summary.className, summary.section, summary.roll, summary.present, summary.absent, summary.late, percent + '%']);
+                }
+            } else {
+                csvRows.push(['Date', 'Student Name', 'Class', 'Section', 'Roll No', 'Status', 'Remark']);
+                currentRecords.forEach(rec => {
+                    csvRows.push([rec.date || '', rec.studentName || '', rec.className || '', rec.section || '', rec.roll || '', rec.status || '', rec.remark || '']);
+                });
+            }
+            
+            const csvContent = csvRows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute('download', `attendance_report_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast("Export complete", "success");
+        }
+        
+        // Event listeners
+        document.getElementById('classSelect').addEventListener('change', async (e) => {
+            await updateSectionDropdown(e.target.value);
+            const classId = e.target.value;
+            const section = document.getElementById('sectionSelect').value;
+            await updateStudentDropdown(classId, section);
+        });
+        
+        document.getElementById('sectionSelect').addEventListener('change', async () => {
+            const classId = document.getElementById('classSelect').value;
+            const section = document.getElementById('sectionSelect').value;
+            await updateStudentDropdown(classId, section);
+        });
+        
+        document.getElementById('filterBtn').addEventListener('click', fetchAttendanceRecords);
+        document.getElementById('printBtn').addEventListener('click', printReport);
+        document.getElementById('exportBtn').addEventListener('click', exportToCSV);
+        
+        // Set default dates (last 30 days)
+        const today = new Date();
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+        document.getElementById('fromDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+        document.getElementById('toDate').value = today.toISOString().split('T')[0];
+        
+        // Initialize
+        await loadClasses();
+        await loadAllStudents();
+        await updateStudentDropdown('', '');
+        document.getElementById('studentSelect').disabled = false;
+        
+        // Auto load records for last 30 days
+        await fetchAttendanceRecords();
+    </script>
+</body>
+</html>
