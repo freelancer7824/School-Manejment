@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Subjects | School Management</title>
+    <!-- Tailwind CSS & Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header Section -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-book-reader text-blue-600"></i>
+                    আমার নির্ধারিত বিষয়সমূহ
+                </h1>
+                <p class="text-slate-500 text-sm mt-1">লগইন করা টিচারের ক্লাস এবং সাবজেক্ট তালিকা</p>
+            </div>
+            <a href="dashboard.html" class="inline-flex items-center justify-center bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition shadow-sm">
+                <i class="fas fa-arrow-left mr-2 text-xs"></i> ড্যাশবোর্ড ফিরে যান
+            </a>
+        </div>
+
+        <!-- Subjects Table Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">#</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">ক্লাসের নাম</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">বিষয়ের নাম</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subjectListContainer" class="divide-y divide-slate-100">
+                        <!-- ডাটা এখানে জাভাস্ক্রিপ্ট এর মাধ্যমে আসবে -->
+                        <tr>
+                            <td colspan="3" class="px-6 py-12 text-center">
+                                <div class="flex flex-col items-center">
+                                    <i class="fas fa-circle-notch fa-spin text-blue-500 text-2xl mb-2"></i>
+                                    <span class="text-slate-400 text-sm font-medium">ডাটা লোড হচ্ছে, দয়া করে অপেক্ষা করুন...</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer Info -->
+        <div id="statsFooter" class="mt-4 px-2 flex justify-between text-xs text-slate-400">
+            <span>Server Status: Online</span>
+            <span id="updateTime"></span>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+        // Your Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24"
+        };
+
+        // Initialize
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // লগইন চেক করা
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loadTeacherData(user.uid);
+            } else {
+                window.location.href = "login.html"; // লগইন না থাকলে পাঠিয়ে দেওয়া
+            }
+        });
+
+        async function loadTeacherData(uid) {
+            const container = document.getElementById('subjectListContainer');
+            
+            try {
+                // ১. ক্লাস এবং সাবজেক্ট কালেকশন থেকে সব নাম সংগ্রহ করা (Mapping)
+                const classSnap = await getDocs(collection(db, "classes"));
+                const subjectSnap = await getDocs(collection(db, "subjects"));
+
+                let classMap = {};
+                let subjectMap = {};
+
+                classSnap.forEach(doc => {
+                    // যদি আপনার ডাটাবেসে ফিল্ডের নাম 'name' বা 'className' হয়
+                    const d = doc.data();
+                    classMap[doc.id] = d.name || d.className || d.class_name || "Unknown Class";
+                });
+
+                subjectSnap.forEach(doc => {
+                    // যদি আপনার ডাটাবেসে ফিল্ডের নাম 'name' বা 'subjectName' হয়
+                    const d = doc.data();
+                    subjectMap[doc.id] = d.name || d.subjectName || d.subject_name || "Unknown Subject";
+                });
+
+                // ২. টিচারের সাবজেক্ট অ্যাসাইনমেন্ট কুয়েরি করা
+                const q = query(collection(db, "teacher_subject"), where("teacherId", "==", uid));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    container.innerHTML = `
+                        <tr>
+                            <td colspan="3" class="px-6 py-12 text-center text-slate-400 italic text-sm">
+                                আপনার জন্য এখনো কোনো বিষয় বরাদ্দ করা হয়নি।
+                            </td>
+                        </tr>`;
+                    return;
+                }
+
+                let html = "";
+                let index = 1;
+
+                // ৩. আইডি থেকে নাম পরিবর্তন করে টেবিলে বসানো
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    
+                    // ম্যাপ থেকে নাম খোঁজা, না পেলে আইডি দেখানো
+                    const className = classMap[data.classId] || `ID: ${data.classId}`;
+                    const subjectName = subjectMap[data.subjectId] || `ID: ${data.subjectId}`;
+
+                    html += `
+                        <tr class="hover:bg-blue-50/30 transition-colors">
+                            <td class="px-6 py-4 text-sm font-medium text-slate-400">${index++}</td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 rounded-full bg-blue-500 mr-3"></div>
+                                    <span class="text-sm font-semibold text-slate-700">${className}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-600">
+                                <span class="bg-slate-100 px-3 py-1 rounded-md border border-slate-200">
+                                    <i class="fas fa-book text-xs mr-2 text-slate-400"></i>${subjectName}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                container.innerHTML = html;
+                document.getElementById('updateTime').innerText = "Last update: " + new Date().toLocaleTimeString();
+
+            } catch (error) {
+                console.error("Firestore Error:", error);
+                container.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="px-6 py-12 text-center text-red-400 text-sm">
+                            <i class="fas fa-exclamation-triangle mb-2"></i><br>
+                            ডাটা লোড করতে সমস্যা হয়েছে। দয়া করে পেজটি রিফ্রেশ দিন।
+                        </td>
+                    </tr>`;
+            }
+        }
+    </script>
+</body>
+</html>

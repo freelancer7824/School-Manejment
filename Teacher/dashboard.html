@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ড্যাশবোর্ড কন্টেন্ট</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #f0f2f5; }
+        .stat-card { transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-5px); }
+    </style>
+</head>
+<body class="p-4 md:p-6">
+
+    <!-- স্বাগতম সেকশন -->
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">আসসালামু আলাইকুম, <span class="text-indigo-600">শিক্ষক মহোদয়</span>!</h2>
+        <p class="text-gray-500">আপনার আজকের দিনের কার্যক্রম এখানে এক নজরে দেখুন।</p>
+    </div>
+
+    <!-- স্ট্যাটাস কার্ডস -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- মোট শিক্ষার্থী -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-blue-500 stat-card">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm text-gray-500 font-semibold uppercase">মোট শিক্ষার্থী</p>
+                    <h3 class="text-3xl font-bold text-gray-800 mt-1" id="totalStudents">৪৫০</h3>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-full text-blue-500 text-2xl">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- আজকের উপস্থিতি -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500 stat-card">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm text-gray-500 font-semibold uppercase">আজকের উপস্থিতি</p>
+                    <h3 class="text-3xl font-bold text-gray-800 mt-1" id="presentToday">৯২%</h3>
+                </div>
+                <div class="bg-emerald-100 p-3 rounded-full text-emerald-500 text-2xl">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- মোট বিষয় -->
+        <div onclick="mySubject()" class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-purple-500 stat-card">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm text-gray-500 font-semibold uppercase">আমার বিষয়</p>
+                   <h3 id="mySubjectCount" class="text-3xl font-bold text-gray-800 mt-1">০০</h3>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-full text-purple-500 text-2xl">
+                    <i class="fas fa-book-open"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- নোটিশ -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-amber-500 stat-card">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm text-gray-500 font-semibold uppercase">নতুন নোটিশ</p>
+                    <h3 class="text-3xl font-bold text-gray-800 mt-1">০৩</h3>
+                </div>
+                <div class="bg-amber-100 p-3 rounded-full text-amber-500 text-2xl">
+                    <i class="fas fa-bell"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- আজকের ক্লাস রুটিন -->
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800"><i class="fas fa-clock mr-2 text-indigo-500"></i>আজকের ক্লাস রুটিন</h3>
+                <button class="text-sm text-indigo-600 font-bold hover:underline">সব দেখুন</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                        <tr>
+                            <th class="px-4 py-3">সময়</th>
+                            <th class="px-4 py-3">শ্রেণী ও সেকশন</th>
+                            <th class="px-4 py-3">বিষয়</th>
+                            <th class="px-4 py-3">রুম</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 text-sm">০৯:০০ AM</td>
+                            <td class="px-4 py-3 text-sm font-bold">দশম (A)</td>
+                            <td class="px-4 py-3 text-sm">গণিত</td>
+                            <td class="px-4 py-3 text-sm">১০১</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 text-sm">১০:৩০ AM</td>
+                            <td class="px-4 py-3 text-sm font-bold">নবম (B)</td>
+                            <td class="px-4 py-3 text-sm">পদার্থবিজ্ঞান</td>
+                            <td class="px-4 py-3 text-sm">২০৩</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- শর্টকাট একশন ও নোটিশ বোর্ড -->
+        <div class="space-y-6">
+            <!-- শর্টকাট -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">কুইক একশন</h3>
+                <div class="grid grid-cols-2 gap-3 text-center">
+                    <button class="p-3 bg-indigo-50 text-indigo-700 rounded-xl hover:bg-indigo-100 font-bold transition-all">
+                        <i class="fas fa-plus-circle block mb-1"></i> মার্কস এন্ট্রি
+                    </button>
+                    <button class="p-3 bg-emerald-50 text-emerald-700 rounded-xl hover:bg-emerald-100 font-bold transition-all">
+                        <i class="fas fa-user-check block mb-1"></i> হাজিরা
+                    </button>
+                </div>
+            </div>
+
+            <!-- নোটিশ বোর্ড -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 text-center border-b pb-2">নোটিশ বোর্ড</h3>
+                <ul class="space-y-4">
+                    <li class="flex gap-3">
+                        <div class="min-w-[50px] text-center bg-gray-100 p-2 rounded-lg">
+                            <span class="block text-xs font-bold text-red-500">MAY</span>
+                            <span class="text-lg font-black">১০</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-800 leading-tight">অর্ধ-বার্ষিক পরীক্ষার প্রস্তুতি সভা</p>
+                            <span class="text-xs text-gray-500">সময়: ১২:৩০ PM</span>
+                        </div>
+                    </li>
+                    <li class="flex gap-3">
+                        <div class="min-w-[50px] text-center bg-gray-100 p-2 rounded-lg">
+                            <span class="block text-xs font-bold text-red-500">MAY</span>
+                            <span class="text-lg font-black">১৫</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-800 leading-tight">স্কুল পিকনিক নোটিশ</p>
+                            <span class="text-xs text-gray-500">সবার উপস্থিতি কাম্য</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase সংযোগ (ঐচ্ছিক) -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+    
+    const firebaseConfig = {
+        apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+        authDomain: "school-menejment.firebaseapp.com",
+        projectId: "school-menejment",
+        storageBucket: "school-menejment.firebasestorage.app",
+        messagingSenderId: "348342436525",
+        appId: "1:348342436525:web:c339fe6216c4516aa3bc24"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            console.log("Teacher Logged In:", user.uid);
+            fetchDashboardData(user.uid);
+        } else {
+            window.location.href = "login.html";
+        }
+    });
+    
+    async function fetchDashboardData(loggedInUid) {
+        try {
+            // ১. মোট শিক্ষার্থীর সংখ্যা (সবাই দেখতে পাবে)
+            const studentSnapshot = await getDocs(collection(db, "students"));
+            const totalStudentsElement = document.getElementById('totalStudents');
+            if (totalStudentsElement) {
+                totalStudentsElement.innerText = studentSnapshot.size.toString().padStart(2, '0');
+            }
+            
+            // ২. লগইন করা টিচারের সাবজেক্ট কাউন্ট বের করা
+            // এখানে আমরা 'teacher_subject' কালেকশন চেক করছি কারণ আপনার আগের কোডে এটাই ছিল
+            const subjectQuery = query(
+                collection(db, "teacher_subject"),
+                where("teacherId", "==", loggedInUid)
+            );
+            
+            const subjectSnapshot = await getDocs(subjectQuery);
+            const mySubjectCountElement = document.getElementById('mySubjectCount');
+            
+            if (mySubjectCountElement) {
+                // যদি ডাটাবেসে লগইন করা UID দিয়ে কোনো ডাটা না থাকে, তবে ০ দেখাবে।
+                // নিশ্চিত করুন ডাটাবেসে teacherId ফিল্ডে 'user.uid' আছে, নাম নয়।
+                mySubjectCountElement.innerText = subjectSnapshot.size.toString().padStart(2, '0');
+            }
+            
+            // ৩. এক্সট্রা: মোট টিচার এবং অ্যাসাইনমেন্ট সংখ্যা আপডেট (যদি UI তে থাকে)
+            const allTeachersSnap = await getDocs(collection(db, "teachers"));
+            if (document.getElementById('totalTeacherCount')) {
+                document.getElementById('totalTeacherCount').innerText = allTeachersSnap.size;
+            }
+            
+        } catch (e) {
+            console.error("Error loading dashboard data:", e);
+            // এরর হলে UI তে ০ দেখাবে
+            if (document.getElementById('mySubjectCount')) document.getElementById('mySubjectCount').innerText = "00";
+        }
+    }
+    
+    
+    
+</script>
+
+<script>function mySubject(){
+window.location.href="my_subject.html"
+}</script>
+
+</body>
+</html>
