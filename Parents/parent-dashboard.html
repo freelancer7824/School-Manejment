@@ -46,20 +46,44 @@
             background: white;
         }
         
+        /* Fullscreen Modal Styles */
+        .fullscreen-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .fullscreen-modal .modal-header {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .fullscreen-modal .modal-content {
+            padding: 20px;
+            background: #f8fafc;
+            min-height: calc(100% - 70px);
+        }
+        
         @media print {
             body { background: white; margin: 0; padding: 0; }
             .no-print { display: none !important; }
             .marksheet-card { margin: 0; box-shadow: none; border: none; width: 100%; page-break-after: always; }
             .attendance-print-card { page-break-after: always; }
+            .fullscreen-modal .modal-header { display: none; }
+            .fullscreen-modal .modal-content { padding: 0; background: white; }
         }
         
-        .modal-container {
-            max-width: 210mm;
-            margin: 0 auto;
-            background: white;
-            position: relative;
-        }
-        .attendance-chart { transition: all 0.3s; }
         .status-badge { transition: all 0.15s; }
     </style>
 </head>
@@ -121,36 +145,28 @@
     </div>
 </div>
 
-<!-- Marksheet Modal -->
-<div id="marksheetModal" class="hidden fixed inset-0 z-50 overflow-auto bg-black/60 backdrop-blur-sm no-print">
-    <div class="min-h-screen py-8 px-4 flex items-start justify-center">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-[210mm] relative">
-            <div class="sticky top-0 bg-white rounded-t-2xl p-4 border-b flex justify-between items-center no-print z-10">
-                <h3 class="text-xl font-bold"><i class="fas fa-file-alt text-blue-600 mr-2"></i>Student Marksheet</h3>
-                <div class="flex gap-2">
-                    <button onclick="printCurrentMarksheet()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"><i class="fas fa-print mr-2"></i>Print</button>
-                    <button onclick="closeMarksheetModal()" class="bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300">Close</button>
-                </div>
-            </div>
-            <div id="marksheetContent" class="overflow-auto bg-white" style="max-height: 80vh;"></div>
+<!-- FULLSCREEN MARKSHEET MODAL -->
+<div id="marksheetModal" class="fullscreen-modal hidden" style="display: none;">
+    <div class="modal-header no-print">
+        <h3 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-file-alt text-blue-600"></i> Student Marksheet</h3>
+        <div class="flex gap-3">
+            <button onclick="printCurrentMarksheet()" class="bg-emerald-600 text-white px-5 py-2 rounded-lg hover:bg-emerald-700 transition flex items-center gap-2"><i class="fas fa-print"></i> Print</button>
+            <button onclick="closeMarksheetModal()" class="bg-gray-200 px-5 py-2 rounded-lg hover:bg-gray-300 transition">Close</button>
         </div>
     </div>
+    <div id="marksheetContent" class="modal-content" style="background: #f1f5f9;"></div>
 </div>
 
-<!-- Attendance Modal -->
-<div id="attendanceModal" class="hidden fixed inset-0 z-50 overflow-auto bg-black/60 backdrop-blur-sm no-print">
-    <div class="min-h-screen py-8 px-4 flex items-start justify-center">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl relative">
-            <div class="sticky top-0 bg-white rounded-t-2xl p-4 border-b flex justify-between items-center no-print z-10">
-                <h3 class="text-xl font-bold"><i class="fas fa-calendar-check text-blue-600 mr-2"></i>Attendance Report</h3>
-                <div class="flex gap-2">
-                    <button onclick="printCurrentAttendance()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"><i class="fas fa-print mr-2"></i>Print</button>
-                    <button onclick="closeAttendanceModal()" class="bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300">Close</button>
-                </div>
-            </div>
-            <div id="attendanceContent" class="p-6 overflow-auto bg-white" style="max-height: 80vh;"></div>
+<!-- FULLSCREEN ATTENDANCE MODAL -->
+<div id="attendanceModal" class="fullscreen-modal hidden" style="display: none;">
+    <div class="modal-header no-print">
+        <h3 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-calendar-check text-indigo-600"></i> Attendance Report</h3>
+        <div class="flex gap-3">
+            <button onclick="printCurrentAttendance()" class="bg-emerald-600 text-white px-5 py-2 rounded-lg hover:bg-emerald-700 transition flex items-center gap-2"><i class="fas fa-print"></i> Print</button>
+            <button onclick="closeAttendanceModal()" class="bg-gray-200 px-5 py-2 rounded-lg hover:bg-gray-300 transition">Close</button>
         </div>
     </div>
+    <div id="attendanceContent" class="modal-content" style="background: #f8fafc;"></div>
 </div>
 
 <script type="importmap">
@@ -279,17 +295,19 @@
         return str.replace(/[&<>]/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[m])); 
     }
 
-    // ==================== MARKSHEET FUNCTION ====================
+    // ==================== MARKSHEET FUNCTION (with STATUS DRAFT CHECK) ====================
     window.viewMarksheet = async (studentId, studentName, className, section, rollNumber, admissionNumber) => {
         const modal = document.getElementById('marksheetModal');
         const contentDiv = document.getElementById('marksheetContent');
         modal.classList.remove('hidden');
-        contentDiv.innerHTML = '<div class="text-center py-20"><i class="fas fa-spinner fa-pulse text-3xl text-blue-500"></i><p class="mt-2">Loading marksheet...</p></div>';
+        modal.style.display = 'block';
+        contentDiv.innerHTML = '<div class="flex justify-center items-center py-32"><i class="fas fa-spinner fa-pulse text-4xl text-blue-500"></i><p class="mt-4 text-gray-600">Loading marksheet...</p></div>';
         
         try {
             const student = allStudents.find(s => s.id === studentId);
             const classId = student?.classId || "";
             
+            // Fetch all required data
             const [examsSnap, marksSnap, subjectsSnap, setupSnap, sessSnap] = await Promise.all([
                 getDocs(collection(db, "exams")),
                 getDocs(collection(db, "marks")),
@@ -299,8 +317,25 @@
             ]);
             
             const activeSession = sessSnap.exists() ? sessSnap.data().sessionName : "2026-27";
+            
+            // Process exams with STATUS CHECK: Only include those with status !== "draft"
             const exams = [];
-            examsSnap.forEach(d => exams.push({ id: d.id, name: d.data().name }));
+            examsSnap.forEach(d => {
+                const examData = d.data();
+                // ✅ CRITICAL UPDATE: Check exam status, skip if draft
+                // condition added as per requirement: if (examData.status === "draft") continue;
+                if (examData.status === "draft") {
+                    console.log(`Skipping draft exam: ${examData.name}`);
+                    return; // skip draft exams
+                }
+                exams.push({ id: d.id, name: examData.name, status: examData.status });
+            });
+            
+            // If no published exams found
+            if (exams.length === 0) {
+                contentDiv.innerHTML = '<div class="text-center py-20 text-amber-600 bg-white rounded-xl shadow max-w-2xl mx-auto mt-10 p-8"><i class="fas fa-info-circle text-4xl mb-3"></i><p class="text-lg">No published marksheet available at this moment.</p><p class="text-sm text-gray-500 mt-2">Exams are either not created or in draft mode.</p></div>';
+                return;
+            }
             
             const marksByExam = {};
             marksSnap.forEach(d => {
@@ -319,12 +354,16 @@
             
             let allMarksheetsHTML = '';
             
+            // Sort exams by name or any logic (preserve order)
             for (const exam of exams) {
                 const examMarks = marksByExam[exam.id] || [];
                 let totalObtained = 0, totalFullMarks = 0, totalGP = 0, isFailed = false, rows = "", subjectCount = 0;
                 const studentSection = section || student?.section || "";
                 
-                Object.keys(subjects).forEach((subId, index) => {
+                // Create sorted subject entries
+                const subjectEntries = Object.entries(subjects);
+                for (let idx = 0; idx < subjectEntries.length; idx++) {
+                    const [subId, subName] = subjectEntries[idx];
                     const m = examMarks.find(x => x.subjectId === subId) || { marks: {} };
                     const setupId = `${exam.id}_${classId}_${studentSection}_${subId}`;
                     const setup = setupMap[setupId] || {};
@@ -339,14 +378,31 @@
                     if (rowFull > 0) subjectCount++;
                     totalObtained += rowTotal; totalFullMarks += rowFull; totalGP += grade.gp;
                     if (grade.lg === "F") isFailed = true;
-                    rows += `<tr><td class="px-1 py-1">${String(index + 1).padStart(2, '0')}</td><td class="text-left font-bold uppercase px-2 py-1">${subjects[subId]}</td><td class="px-1 py-1">${wF || '-'}</td><td class="px-1 py-1">${wF ? wO : '-'}</td><td class="px-1 py-1">${mF || '-'}</td><td class="px-1 py-1">${mF ? mO : '-'}</td><td class="px-1 py-1">${pF || '-'}</td><td class="px-1 py-1">${pF ? pO : '-'}</td><td class="font-bold bg-gray-50 px-1 py-1">${rowFull || '-'}</td><td class="font-bold bg-gray-50 px-1 py-1">${rowTotal}</td><td class="font-black px-1 py-1">${grade.lg}</td><td class="px-1 py-1">${grade.gp.toFixed(2)}</td><td class="px-1 py-1">-</td><td class="px-1 py-1">-</td></tr>`;
-                });
+                    rows += `<tr>
+                        <td class="px-1 py-1 text-center">${String(idx + 1).padStart(2, '0')}</td>
+                        <td class="text-left font-bold uppercase px-2 py-1">${subName}</td>
+                        <td class="px-1 py-1 text-center">${wF || '-'}</td>
+                        <td class="px-1 py-1 text-center">${wF ? wO : '-'}</td>
+                        <td class="px-1 py-1 text-center">${mF || '-'}</td>
+                        <td class="px-1 py-1 text-center">${mF ? mO : '-'}</td>
+                        <td class="px-1 py-1 text-center">${pF || '-'}</td>
+                        <td class="px-1 py-1 text-center">${pF ? pO : '-'}</td>
+                        <td class="font-bold bg-gray-50 px-1 py-1 text-center">${rowFull || '-'}</td>
+                        <td class="font-bold bg-gray-50 px-1 py-1 text-center">${rowTotal}</td>
+                        <td class="font-black px-1 py-1 text-center">${grade.lg}</td>
+                        <td class="px-1 py-1 text-center">${grade.gp.toFixed(2)}</td>
+                        <td class="px-1 py-1 text-center">-</td>
+                        <td class="px-1 py-1 text-center">-</td>
+                    </tr>`;
+                }
                 
                 const finalGPA = isFailed ? 0.00 : (subjectCount > 0 ? totalGP / subjectCount : 0);
                 const finalGrade = calculateGrade(totalObtained, totalFullMarks);
+                const resultText = isFailed ? 'FAILED' : (finalGPA >= 1 ? 'PASSED' : 'PASSED');
+                const resultColor = isFailed ? 'text-red-600' : 'text-emerald-700';
                 
                 allMarksheetsHTML += `
-                <div class="marksheet-card" style="page-break-after: always;">
+                <div class="marksheet-card" style="page-break-after: always; margin-bottom: 30px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);">
                     <div class="content-wrap">
                         <div class="flex justify-between items-center border-b-2 border-black pb-2">
                             <div class="w-20"></div>
@@ -366,10 +422,23 @@
                             <div class="border-b border-gray-300 pb-1">SESSION: <span class="font-normal ml-1">${activeSession}</span></div>
                         </div>
                         <table class="mt-4">
-                            <thead class="bg-gray-100"><tr><th rowspan="2">SL</th><th rowspan="2" class="w-44">SUBJECT NAME</th><th colspan="2">WRITTEN</th><th colspan="2">MCQ</th><th colspan="2">PRAC.</th><th colspan="2">TOTAL</th><th rowspan="2">LG</th><th rowspan="2">GP</th><th rowspan="2">HI</th><th rowspan="2">POS</th></tr>
-                            <tr class="text-[9px]"><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th></tr></thead>
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th rowspan="2">SL</th><th rowspan="2" class="w-44">SUBJECT NAME</th>
+                                    <th colspan="2">WRITTEN</th><th colspan="2">MCQ</th><th colspan="2">PRAC.</th>
+                                    <th colspan="2">TOTAL</th><th rowspan="2">LG</th><th rowspan="2">GP</th><th rowspan="2">HI</th><th rowspan="2">POS</th>
+                                </tr>
+                                <tr class="text-[9px]"><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th></tr>
+                            </thead>
                             <tbody>${rows}</tbody>
-                            <tfoot class="bg-gray-50 font-bold"><tr><td colspan="2" class="text-left py-2 px-2 uppercase">Total: ${totalObtained} / ${totalFullMarks}</td><td colspan="4">GPA: ${finalGPA.toFixed(2)}</td><td colspan="4">LETTER GRADE: ${isFailed ? 'F' : finalGrade.lg}</td><td colspan="4">RESULT: <span class="${isFailed ? 'text-red-600' : 'text-emerald-700'}">${isFailed ? 'FAILED' : 'PASSED'}</span></td></tr></tfoot>
+                            <tfoot class="bg-gray-50 font-bold">
+                                <tr>
+                                    <td colspan="2" class="text-left py-2 px-2 uppercase">Total: ${totalObtained} / ${totalFullMarks}</td>
+                                    <td colspan="4">GPA: ${finalGPA.toFixed(2)}</td>
+                                    <td colspan="4">LETTER GRADE: ${isFailed ? 'F' : finalGrade.lg}</td>
+                                    <td colspan="4">RESULT: <span class="${resultColor}">${resultText}</span></td>
+                                </tr>
+                            </tfoot>
                         </table>
                         <div class="grid grid-cols-2 gap-4 mt-4">
                             <div><table class="grade-table w-full border"><tr class="bg-gray-100 font-bold uppercase"><th colspan="2">Personal Traits</th></tr><tr><td class="text-left p-1">Attendance & Punctuality</td><td class="p-1 text-center">★★★★☆</td></tr><tr><td class="text-left p-1">Behavior & Cooperation</td><td class="p-1 text-center">★★★★☆</td></tr></table></div>
@@ -380,9 +449,10 @@
                     </div>
                 </div>`;
             }
-            contentDiv.innerHTML = allMarksheetsHTML || '<div class="text-center py-20 text-gray-500">No marksheet available</div>';
+            contentDiv.innerHTML = allMarksheetsHTML || '<div class="text-center py-20 text-gray-500">No marksheet available for published exams.</div>';
         } catch (err) {
-            contentDiv.innerHTML = `<div class="text-center py-20 text-red-500">Error: ${err.message}</div>`;
+            console.error(err);
+            contentDiv.innerHTML = `<div class="text-center py-20 text-red-500 bg-white rounded-xl shadow max-w-2xl mx-auto mt-10 p-6">Error: ${err.message}</div>`;
         }
     };
 
@@ -391,7 +461,8 @@
         const modal = document.getElementById('attendanceModal');
         const contentDiv = document.getElementById('attendanceContent');
         modal.classList.remove('hidden');
-        contentDiv.innerHTML = '<div class="text-center py-20"><i class="fas fa-spinner fa-pulse text-3xl text-blue-500"></i><p class="mt-2">Loading attendance records...</p></div>';
+        modal.style.display = 'block';
+        contentDiv.innerHTML = '<div class="flex justify-center items-center py-32"><i class="fas fa-spinner fa-pulse text-4xl text-indigo-500"></i><p class="mt-4 text-gray-600">Loading attendance records...</p></div>';
         
         try {
             const attendanceRef = collection(db, "attendance");
@@ -413,11 +484,11 @@
             records.forEach((rec, idx) => {
                 const statusClass = rec.status === 'present' ? 'bg-green-100 text-green-700' : (rec.status === 'late' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700');
                 const statusIcon = rec.status === 'present' ? 'fa-check-circle' : (rec.status === 'late' ? 'fa-clock' : 'fa-times-circle');
-                tableRows += `<tr class="border-b"><td class="p-3">${idx + 1}</td><td class="p-3 whitespace-nowrap">${rec.date || '-'}</td><td class="p-3"><span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${statusClass}"><i class="fas ${statusIcon}"></i> ${rec.status === 'present' ? 'Present' : (rec.status === 'late' ? 'Late' : 'Absent')}</span></td><td class="p-3">${rec.remark || '—'}</td></tr>`;
+                tableRows += `<tr class="border-b hover:bg-gray-50"><td class="p-3">${idx + 1}</td><td class="p-3 whitespace-nowrap">${rec.date || '-'}</td><td class="p-3"><span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${statusClass}"><i class="fas ${statusIcon}"></i> ${rec.status === 'present' ? 'Present' : (rec.status === 'late' ? 'Late' : 'Absent')}</span></td><td class="p-3">${rec.remark || '—'}</td></tr>`;
             });
             
             contentDiv.innerHTML = `
-            <div class="attendance-print-card">
+            <div class="attendance-print-card max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6">
                 <div class="text-center border-b pb-4 mb-4">
                     <h2 class="text-2xl font-bold text-indigo-900">ONNO ROKOM BIDDYANIKETON</h2>
                     <p class="text-sm">PORANPUR, KAZIPUR, SIRAJGANJ</p>
@@ -436,7 +507,7 @@
                     <div class="bg-indigo-50 p-4 rounded-xl text-center border-l-4 border-indigo-500"><p class="text-gray-600 text-sm">Attendance %</p><p class="text-3xl font-bold text-indigo-600">${percent}%</p></div>
                 </div>
                 <div><h3 class="font-bold text-gray-800 mb-3"><i class="fas fa-list-alt text-indigo-500 mr-2"></i>Detailed Attendance Records</h3>
-                <div class="overflow-x-auto"><table class="w-full border"><thead class="bg-gray-100"><tr><th class="p-3 text-left">#</th><th class="p-3 text-left">Date</th><th class="p-3 text-left">Status</th><th class="p-3 text-left">Remark</th></tr></thead><tbody>${tableRows || '<tr><td colspan="4" class="text-center p-8 text-gray-400">No attendance records found</td></tr>'}</tbody></table></div></div>
+                <div class="overflow-x-auto"><table class="w-full border rounded-lg"><thead class="bg-gray-100"><tr><th class="p-3 text-left">#</th><th class="p-3 text-left">Date</th><th class="p-3 text-left">Status</th><th class="p-3 text-left">Remark</th></tr></thead><tbody>${tableRows || '<tr><td colspan="4" class="text-center p-8 text-gray-400">No attendance records found</td></tr>'}</tbody></table></div></div>
                 <div class="mt-8 pt-4 border-t flex justify-between text-xs text-gray-500"><div>Generated on: ${new Date().toLocaleDateString()}</div><div>© ONNO ROKOM BIDDYANIKETON</div></div>
             </div>`;
         } catch (err) {
@@ -465,12 +536,16 @@
     };
 
     window.closeMarksheetModal = () => {
-        document.getElementById('marksheetModal').classList.add('hidden');
+        const modal = document.getElementById('marksheetModal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
         document.getElementById('marksheetContent').innerHTML = '';
     };
     
     window.closeAttendanceModal = () => {
-        document.getElementById('attendanceModal').classList.add('hidden');
+        const modal = document.getElementById('attendanceModal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
         document.getElementById('attendanceContent').innerHTML = '';
     };
 
