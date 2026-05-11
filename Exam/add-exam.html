@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exam List - Responsive Setup</title>
+    <title>Exam Control - Edit & Status</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -11,6 +11,9 @@
         :root {
             --primary: #2c3e50;
             --accent: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
             --bg: #f8f9fa;
         }
 
@@ -22,7 +25,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: auto;
             background: #fff;
             padding: 20px;
@@ -30,17 +33,11 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        h2 {
-            text-align: center;
-            color: var(--primary);
-            font-size: 22px;
-            margin-bottom: 20px;
-        }
+        h2 { text-align: center; color: var(--primary); margin-bottom: 20px; }
 
-        /* Responsive Input Group */
         .input-group {
             display: flex;
-            flex-wrap: wrap; /* ছোট স্ক্রিনে নিচে নামার জন্য */
+            flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 20px;
             background: #f1f3f5;
@@ -49,78 +46,73 @@
         }
 
         .input-group input {
-            flex: 1; /* বড় স্ক্রিনে সমান জায়গা নিবে */
-            min-width: 200px; /* মোবাইলে ভেঙে যাওয়ার জন্য মিনিমাম উইডথ */
+            flex: 1;
+            min-width: 180px;
             padding: 12px;
             border: 1px solid #ddd;
             border-radius: 5px;
         }
 
-        .input-group button {
-            flex: 0 0 auto;
-            width: 100%; /* মোবাইলে বাটন ফুল উইডথ হবে */
-            padding: 12px 25px;
-            background: var(--accent);
-            color: white;
+        .btn {
+            padding: 10px 15px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
-        }
-
-        /* টেবিল রেসপন্সিভ করার ট্রিক */
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto; /* মোবাইলে টেবিল ডানে-বামে সরানো যাবে */
-            -webkit-overflow-scrolling: touch;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 500px; /* টেবিল যেন খুব বেশি চ্যাপ্টা না হয় */
-        }
-
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        th {
-            background-color: var(--primary);
             color: white;
+            transition: 0.2s;
         }
 
-        .delete-btn {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 8px 12px;
+        .btn-add { background: var(--accent); width: 100%; }
+        .btn-update { background: #8e44ad; display: none; width: 100%; }
+        
+        .status-badge {
+            padding: 4px 8px;
             border-radius: 4px;
-            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
         }
+        .status-draft { background: #eee; color: #666; border: 1px solid #ccc; }
+        .status-published { background: var(--success); color: #fff; }
 
-        /* মিডিয়া কুয়েরি বড় স্ক্রিনের জন্য */
-        @media (min-width: 600px) {
-            .input-group button {
-                width: auto; /* বড় স্ক্রিনে বাটন স্বাভাবিক সাইজ */
-            }
-            h2 {
-                font-size: 28px;
-            }
+        .btn-action { font-size: 12px; padding: 6px 10px; margin-right: 2px; margin-bottom: 2px; }
+        .btn-edit { background: #2980b9; }
+        .btn-publish { background: var(--success); }
+        .btn-draft { background: var(--warning); }
+        .btn-delete { background: var(--danger); }
+
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background-color: var(--primary); color: white; }
+
+        @media (min-width: 600px) { 
+            .btn-add, .btn-update { width: auto; } 
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2><i class="fas fa-edit"></i> Exam Management</h2>
+    <h2><i class="fas fa-edit"></i> Exam Management Control</h2>
 
+    <!-- Input Section -->
     <div class="input-group">
-        <input type="text" id="examName" placeholder="পরক্ষার নাম লিখুন...">
-        <input type="number" id="orderNumber" placeholder="সিরিয়াল নম্বর (যেমন: ১, ২)">
-        <button onclick="addExam()"><i class="fas fa-plus"></i> Add Exam</button>
+        <input type="hidden" id="editDocId"> <!-- লুকানো ফিল্ড ID রাখার জন্য -->
+        <input type="text" id="examName" placeholder="পরীক্ষার নাম...">
+        <input type="number" id="orderNumber" placeholder="সিরিয়াল">
+        
+        <button id="addBtn" class="btn btn-add" onclick="addExam()">
+            <i class="fas fa-plus"></i> Add Exam
+        </button>
+        
+        <button id="updateBtn" class="btn btn-update" onclick="submitUpdate()">
+            <i class="fas fa-save"></i> Update Changes
+        </button>
+        
+        <button id="cancelBtn" class="btn btn-delete" style="display:none;" onclick="resetForm()">
+            Cancel
+        </button>
     </div>
 
     <div class="table-responsive">
@@ -129,17 +121,16 @@
                 <tr>
                     <th>Order</th>
                     <th>Exam Name</th>
-                    <th>Action</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
-            <tbody id="examTableBody">
-                </tbody>
+            <tbody id="examTableBody"></tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // Firebase Config (আগেরটাই ব্যবহার করুন)
     const firebaseConfig = {
         apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
         authDomain: "school-menejment.firebaseapp.com",
@@ -149,43 +140,103 @@
         appId: "1:348342436525:web:41fc72cb02f824baa3bc24"
     };
 
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
+    // ১. ডাটা যোগ করা
     async function addExam() {
         const name = document.getElementById('examName').value;
         const order = document.getElementById('orderNumber').value;
-
-        if (!name || !order) {
-            alert("সবগুলো ঘর পূরণ করুন");
-            return;
-        }
+        if (!name || !order) { alert("সবগুলো ঘর পূরণ করুন"); return; }
 
         await db.collection("exams").add({
             name: name,
-            order: parseInt(order)
+            order: parseInt(order),
+            status: "draft"
         });
-        
-        document.getElementById('examName').value = "";
-        document.getElementById('orderNumber').value = "";
+        resetForm();
     }
 
+    // ২. রিয়েল টাইম ডাটা শো
     db.collection("exams").orderBy("order", "asc").onSnapshot((snapshot) => {
         const tableBody = document.getElementById('examTableBody');
         tableBody.innerHTML = "";
+        
         snapshot.forEach((doc) => {
             const data = doc.data();
+            const id = doc.id;
+            const currentStatus = data.status || "draft"; 
+            const statusClass = currentStatus === 'published' ? 'status-published' : 'status-draft';
+            
             tableBody.innerHTML += `
                 <tr>
                     <td>${data.order}</td>
-                    <td>${data.name}</td>
-                    <td><button class="delete-btn" onclick="deleteExam('${doc.id}')"><i class="fas fa-trash"></i></button></td>
+                    <td><strong>${data.name}</strong></td>
+                    <td><span class="status-badge ${statusClass}">${currentStatus}</span></td>
+                    <td>
+                        <button class="btn btn-action btn-edit" onclick="editExam('${id}', '${data.name}', ${data.order})">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+
+                        ${currentStatus === 'draft' ? 
+                            `<button class="btn btn-action btn-publish" onclick="toggleStatus('${id}', 'published')"><i class="fas fa-check"></i> Publish</button>` : 
+                            `<button class="btn btn-action btn-draft" onclick="toggleStatus('${id}', 'draft')"><i class="fas fa-undo"></i> Draft</button>`
+                        }
+
+                        <button class="btn btn-action btn-delete" onclick="deleteExam('${id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
                 </tr>
             `;
         });
     });
+
+    // ৩. এডিট মোড অন করা
+    function editExam(id, name, order) {
+        document.getElementById('editDocId').value = id;
+        document.getElementById('examName').value = name;
+        document.getElementById('orderNumber').value = order;
+
+        // বাটন পরিবর্তন
+        document.getElementById('addBtn').style.display = 'none';
+        document.getElementById('updateBtn').style.display = 'inline-block';
+        document.getElementById('cancelBtn').style.display = 'inline-block';
+        
+        window.scrollTo(0, 0); // পেজ স্ক্রল করে উপরে নিয়ে যাবে
+    }
+
+    // ৪. আপডেট সাবমিট করা
+    async function submitUpdate() {
+        const id = document.getElementById('editDocId').value;
+        const name = document.getElementById('examName').value;
+        const order = document.getElementById('orderNumber').value;
+
+        if (!id || !name || !order) return;
+
+        await db.collection("exams").doc(id).update({
+            name: name,
+            order: parseInt(order)
+        });
+
+        alert("তথ্য আপডেট হয়েছে!");
+        resetForm();
+    }
+
+    // ৫. ফর্ম রিসেট করা
+    function resetForm() {
+        document.getElementById('editDocId').value = "";
+        document.getElementById('examName').value = "";
+        document.getElementById('orderNumber').value = "";
+        document.getElementById('addBtn').style.display = 'inline-block';
+        document.getElementById('updateBtn').style.display = 'none';
+        document.getElementById('cancelBtn').style.display = 'none';
+    }
+
+    // ৬. স্ট্যাটাস ও ডিলিট
+    async function toggleStatus(id, newStatus) {
+        await db.collection("exams").doc(id).update({ status: newStatus });
+    }
 
     async function deleteExam(id) {
         if(confirm("মুছে ফেলতে চান?")) {
