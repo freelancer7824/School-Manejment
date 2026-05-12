@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Attendance | Mark Student Attendance</title>
-    <!-- Tailwind + Font Awesome -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
@@ -36,7 +35,6 @@
 </head>
 <body class="min-h-screen p-4 md:p-6">
 
-    <!-- Toast Notification -->
     <div id="toast" class="fixed top-20 right-4 left-4 md:left-auto z-50 hidden transition-all duration-300 max-w-sm shadow-2xl">
         <div class="bg-white rounded-xl shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success">
             <i id="toast-icon" class="fas fa-check-circle text-success text-lg"></i>
@@ -45,9 +43,7 @@
         </div>
     </div>
 
-    <!-- Main Container -->
     <div class="max-w-6xl mx-auto">
-        <!-- Header -->
         <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
             <div class="flex items-center gap-3">
                 <a href="dashboard.html" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition">
@@ -64,7 +60,6 @@
             </div>
         </div>
 
-        <!-- Filter Panel -->
         <div class="bg-white rounded-2xl shadow-md p-5 mb-6">
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                 <div>
@@ -100,7 +95,6 @@
             </div>
         </div>
 
-        <!-- Summary Cards -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="summaryCards">
             <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-primary">
                 <p class="text-gray-500 text-xs uppercase">Total Students</p>
@@ -120,7 +114,6 @@
             </div>
         </div>
 
-        <!-- Attendance Table -->
         <div class="bg-white rounded-2xl shadow-md overflow-hidden">
             <div class="bg-gradient-to-r from-primary/5 to-indigo-50 px-5 py-4 border-b flex justify-between items-center flex-wrap gap-2">
                 <div>
@@ -145,7 +138,7 @@
                             <th class="px-4 py-3">Roll No</th>
                             <th class="px-4 py-3 text-center">Attendance Status</th>
                             <th class="px-4 py-3">Remark</th>
-                         </tr>
+                        </tr>
                     </thead>
                     <tbody id="attendanceTableBody">
                         <tr><td colspan="5" class="text-center py-12 text-gray-400"><i class="fas fa-hand-pointer text-3xl mb-2 block"></i>Select class, section & date, then click Load</td></tr>
@@ -158,7 +151,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getFirestore, collection, query, getDocs, doc, setDoc, where, orderBy, getDoc, writeBatch, Timestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-        
+
         const firebaseConfig = {
             apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
             authDomain: "school-menejment.firebaseapp.com",
@@ -167,24 +160,26 @@
             messagingSenderId: "348342436525",
             appId: "1:348342436525:web:c339fe6216c4516aa3bc24"
         };
-        
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        
-        // Global state
+
         let allClasses = [];
         let sectionsCache = {};
         let currentStudents = [];
-        let attendanceRecords = {};     // studentId -> { status, remark }
+        let attendanceRecords = {};
         let currentClassId = null;
         let currentSection = null;
         let currentDate = null;
-        
+        let currentSessionName = "2025-2026";
+
         function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');
             const toastText = document.getElementById('toast-text');
             const toastIcon = document.getElementById('toast-icon');
-            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' : 'fas fa-exclamation-circle text-danger text-lg';
+            toastIcon.className = type === 'success'
+                ? 'fas fa-check-circle text-success text-lg'
+                : 'fas fa-exclamation-circle text-danger text-lg';
             toastText.innerText = msg;
             toast.classList.remove('hidden');
             toast.style.display = 'flex';
@@ -194,26 +189,40 @@
             }, 2800);
         }
         window.hideToast = () => document.getElementById('toast').classList.add('hidden');
-        
-        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
-        
-        // Load classes
+
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m]));
+        }
+
+        async function loadSession() {
+            try {
+                const s = await getDoc(doc(db, "config", "activeSession"));
+                if (s.exists()) currentSessionName = s.data().sessionName || currentSessionName;
+                document.getElementById('session_badge').innerHTML = `<i class="fas fa-calendar-alt mr-1"></i> Session: ${currentSessionName}`;
+            } catch(e) {
+                document.getElementById('session_badge').innerHTML = `<i class="fas fa-calendar-alt mr-1"></i> Session: ${currentSessionName}`;
+            }
+        }
+
         async function loadClasses() {
             try {
                 const q = query(collection(db, "classes"), orderBy("order", "asc"));
                 const snap = await getDocs(q);
-                allClasses = [];
                 const select = document.getElementById('classSelect');
                 select.innerHTML = '<option value="">-- Select Class --</option>';
+                allClasses = [];
                 snap.forEach(docSnap => {
                     const cls = { id: docSnap.id, name: docSnap.data().name };
                     allClasses.push(cls);
                     select.appendChild(new Option(cls.name, cls.id));
                 });
-            } catch (err) { console.error(err); showToast("Error loading classes", "error"); }
+            } catch (err) {
+                console.error(err);
+                showToast("Error loading classes", "error");
+            }
         }
-        
-        // Load sections for a class
+
         async function loadSections(classId) {
             if (!classId) return [];
             if (sectionsCache[classId]) return sectionsCache[classId];
@@ -223,9 +232,12 @@
                 snap.forEach(docSnap => sections.push({ id: docSnap.id, name: docSnap.data().name }));
                 sectionsCache[classId] = sections;
                 return sections;
-            } catch (err) { return []; }
+            } catch (err) {
+                console.error(err);
+                return [];
+            }
         }
-        
+
         async function updateSectionDropdown(classId) {
             const sectionSelect = document.getElementById('sectionSelect');
             if (!classId) {
@@ -236,15 +248,16 @@
             const sections = await loadSections(classId);
             sectionSelect.disabled = false;
             sectionSelect.innerHTML = '<option value="">-- Select Section --</option>';
-            sections.forEach(sec => {
-                sectionSelect.appendChild(new Option(sec.name, sec.name));
-            });
+            sections.forEach(sec => sectionSelect.appendChild(new Option(sec.name, sec.name)));
         }
-        
-        // Load active students by class and section
+
         async function loadStudentsByClassSection(classId, sectionName) {
             try {
-                const q = query(collection(db, "students"), where("classId", "==", classId), where("section", "==", sectionName), where("status", "==", "active"));
+                const q = query(
+                    collection(db, `current_session/${currentSessionName}/classes/${classId}/students`),
+                    where("section", "==", sectionName),
+                    where("status", "==", "active")
+                );
                 const snap = await getDocs(q);
                 const students = [];
                 const classObj = allClasses.find(c => c.id === classId);
@@ -259,22 +272,22 @@
                         className: classObj?.name || "Class"
                     });
                 });
-                students.sort((a, b) => {
-                    const r1 = parseInt(a.roll) || 0;
-                    const r2 = parseInt(b.roll) || 0;
-                    return r1 - r2;
-                });
+                students.sort((a, b) => (parseInt(a.roll) || 0) - (parseInt(b.roll) || 0));
                 return students;
             } catch (err) {
                 console.error(err);
                 return [];
             }
         }
-        
-        // Load existing attendance for date, class, section
+
         async function loadExistingAttendance(dateStr, classId, section) {
             try {
-                const q = query(collection(db, "attendance"), where("date", "==", dateStr), where("classId", "==", classId), where("section", "==", section));
+                const q = query(
+                    collection(db, "attendance"),
+                    where("date", "==", dateStr),
+                    where("classId", "==", classId),
+                    where("section", "==", section)
+                );
                 const snap = await getDocs(q);
                 const records = {};
                 snap.forEach(docSnap => {
@@ -291,95 +304,7 @@
                 return {};
             }
         }
-        
-        // Render attendance table
-        function renderAttendanceTable(students, records, statusFilter = 'all') {
-            const tbody = document.getElementById('attendanceTableBody');
-            if (!students.length) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-gray-400"><i class="fas fa-user-graduate text-4xl mb-2 block"></i>No students found</td></tr>`;
-                updateSummary(students, records);
-                return;
-            }
-            
-            let filtered = [...students];
-            if (statusFilter !== 'all') {
-                filtered = students.filter(s => {
-                    const rec = records[s.id];
-                    const status = rec?.status || 'absent';
-                    return status === statusFilter;
-                });
-            }
-            
-            let html = '';
-            filtered.forEach((student, idx) => {
-                const rec = records[student.id];
-                const currentStatus = rec?.status || 'absent';
-                const currentRemark = rec?.remark || '';
-                
-                const statusColors = {
-                    present: 'bg-success/20 text-success border-success',
-                    absent: 'bg-danger/20 text-danger border-danger',
-                    late: 'bg-warning/20 text-warning border-warning'
-                };
-                
-                html += `
-                    <tr class="student-row border-b border-gray-100 hover:bg-yellow-50/40 transition">
-                        <td class="px-4 py-3 text-sm text-gray-500 font-medium">${idx + 1}</td>
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">${escapeHtml(student.name.charAt(0))}</div>
-                                <span class="font-medium text-gray-800">${escapeHtml(student.name)}</span>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3 text-sm text-gray-600">${escapeHtml(student.roll)}</td>
-                        <td class="px-4 py-3">
-                            <div class="flex flex-wrap gap-2 justify-center">
-                                <button class="status-btn px-3 py-1.5 rounded-full text-xs font-medium border ${currentStatus === 'present' ? statusColors.present + ' active shadow-sm' : 'bg-gray-100 text-gray-600 border-gray-200'}" data-student="${student.id}" data-status="present">
-                                    <i class="fas fa-check-circle mr-1"></i> Present
-                                </button>
-                                <button class="status-btn px-3 py-1.5 rounded-full text-xs font-medium border ${currentStatus === 'absent' ? statusColors.absent + ' active shadow-sm' : 'bg-gray-100 text-gray-600 border-gray-200'}" data-student="${student.id}" data-status="absent">
-                                    <i class="fas fa-times-circle mr-1"></i> Absent
-                                </button>
-                                <button class="status-btn px-3 py-1.5 rounded-full text-xs font-medium border ${currentStatus === 'late' ? statusColors.late + ' active shadow-sm' : 'bg-gray-100 text-gray-600 border-gray-200'}" data-student="${student.id}" data-status="late">
-                                    <i class="fas fa-clock mr-1"></i> Late
-                                </button>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <input type="text" class="remark-input w-full text-xs border border-gray-200 rounded-lg p-1.5 focus:ring-1 focus:ring-primary" placeholder="Optional remark" data-student="${student.id}" value="${escapeHtml(currentRemark)}">
-                        </td>
-                    </tr>
-                `;
-            });
-            
-            tbody.innerHTML = html;
-            
-            // Attach status button events
-            document.querySelectorAll('.status-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const studentId = btn.dataset.student;
-                    const newStatus = btn.dataset.status;
-                    if (!attendanceRecords[studentId]) attendanceRecords[studentId] = { status: 'absent', remark: '' };
-                    attendanceRecords[studentId].status = newStatus;
-                    const remarkInput = document.querySelector(`.remark-input[data-student="${studentId}"]`);
-                    if (remarkInput) attendanceRecords[studentId].remark = remarkInput.value;
-                    const filter = document.getElementById('statusFilter').value;
-                    renderAttendanceTable(students, attendanceRecords, filter);
-                });
-            });
-            
-            // Attach remark change events
-            document.querySelectorAll('.remark-input').forEach(input => {
-                input.addEventListener('change', (e) => {
-                    const studentId = input.dataset.student;
-                    if (!attendanceRecords[studentId]) attendanceRecords[studentId] = { status: 'absent', remark: '' };
-                    attendanceRecords[studentId].remark = input.value;
-                });
-            });
-            
-            updateSummary(students, records);
-        }
-        
+
         function updateSummary(students, records) {
             const total = students.length;
             let present = 0, absent = 0, late = 0;
@@ -394,8 +319,80 @@
             document.getElementById('absentCount').innerText = absent;
             document.getElementById('lateCount').innerText = late;
         }
-        
-        // Save attendance to Firestore
+
+        function renderAttendanceTable(students, records, statusFilter = 'all') {
+            const tbody = document.getElementById('attendanceTableBody');
+            if (!students.length) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-gray-400"><i class="fas fa-user-graduate text-4xl mb-2 block"></i>No students found</td></tr>`;
+                updateSummary(students, records);
+                return;
+            }
+
+            let filtered = [...students];
+            if (statusFilter !== 'all') {
+                filtered = students.filter(s => (records[s.id]?.status || 'absent') === statusFilter);
+            }
+
+            let html = '';
+            filtered.forEach((student, idx) => {
+                const rec = records[student.id];
+                const currentStatus = rec?.status || 'absent';
+                const currentRemark = rec?.remark || '';
+                const statusColors = {
+                    present: 'bg-success/20 text-success border-success',
+                    absent: 'bg-danger/20 text-danger border-danger',
+                    late: 'bg-warning/20 text-warning border-warning'
+                };
+
+                html += `
+                    <tr class="student-row border-b border-gray-100 hover:bg-yellow-50/40 transition">
+                        <td class="px-4 py-3 text-sm text-gray-500 font-medium">${idx + 1}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">${escapeHtml((student.name || 'U').charAt(0))}</div>
+                                <span class="font-medium text-gray-800">${escapeHtml(student.name)}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-600">${escapeHtml(student.roll)}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex flex-wrap gap-2 justify-center">
+                                <button class="status-btn px-3 py-1.5 rounded-full text-xs font-medium border ${currentStatus === 'present' ? statusColors.present + ' active shadow-sm' : 'bg-gray-100 text-gray-600 border-gray-200'}" data-student="${student.id}" data-status="present"><i class="fas fa-check-circle mr-1"></i> Present</button>
+                                <button class="status-btn px-3 py-1.5 rounded-full text-xs font-medium border ${currentStatus === 'absent' ? statusColors.absent + ' active shadow-sm' : 'bg-gray-100 text-gray-600 border-gray-200'}" data-student="${student.id}" data-status="absent"><i class="fas fa-times-circle mr-1"></i> Absent</button>
+                                <button class="status-btn px-3 py-1.5 rounded-full text-xs font-medium border ${currentStatus === 'late' ? statusColors.late + ' active shadow-sm' : 'bg-gray-100 text-gray-600 border-gray-200'}" data-student="${student.id}" data-status="late"><i class="fas fa-clock mr-1"></i> Late</button>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <input type="text" class="remark-input w-full text-xs border border-gray-200 rounded-lg p-1.5 focus:ring-1 focus:ring-primary" placeholder="Optional remark" data-student="${student.id}" value="${escapeHtml(currentRemark)}">
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+
+            document.querySelectorAll('.status-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const studentId = btn.dataset.student;
+                    const newStatus = btn.dataset.status;
+                    if (!attendanceRecords[studentId]) attendanceRecords[studentId] = { status: 'absent', remark: '' };
+                    attendanceRecords[studentId].status = newStatus;
+                    const remarkInput = document.querySelector(`.remark-input[data-student="${studentId}"]`);
+                    if (remarkInput) attendanceRecords[studentId].remark = remarkInput.value;
+                    renderAttendanceTable(students, attendanceRecords, document.getElementById('statusFilter').value);
+                });
+            });
+
+            document.querySelectorAll('.remark-input').forEach(input => {
+                input.addEventListener('change', () => {
+                    const studentId = input.dataset.student;
+                    if (!attendanceRecords[studentId]) attendanceRecords[studentId] = { status: 'absent', remark: '' };
+                    attendanceRecords[studentId].remark = input.value;
+                });
+            });
+
+            updateSummary(students, records);
+        }
+
         async function saveAttendance() {
             if (!currentClassId || !currentSection || !currentDate) {
                 showToast("Please select class, section and date first", "error");
@@ -405,18 +402,18 @@
                 showToast("No students to save", "error");
                 return;
             }
-            
+
             try {
                 const batch = writeBatch(db);
                 const attendanceCol = collection(db, "attendance");
-                
+
                 for (const student of currentStudents) {
                     const record = attendanceRecords[student.id];
                     if (!record) continue;
-                    
+
                     const docId = `${currentDate}_${student.id}`;
                     const docRef = doc(attendanceCol, docId);
-                    const data = {
+                    batch.set(docRef, {
                         studentId: student.id,
                         studentName: student.name,
                         roll: student.roll,
@@ -427,9 +424,9 @@
                         status: record.status,
                         remark: record.remark || '',
                         updatedAt: Timestamp.now()
-                    };
-                    batch.set(docRef, data, { merge: true });
+                    }, { merge: true });
                 }
+
                 await batch.commit();
                 showToast(`Attendance saved (${currentStudents.length} students) for ${currentDate}`, "success");
             } catch (err) {
@@ -437,60 +434,53 @@
                 showToast("Error: " + err.message, "error");
             }
         }
-        
-        // Mark all present
+
         function markAllPresent() {
             if (currentStudents.length === 0) return;
             currentStudents.forEach(s => {
                 if (!attendanceRecords[s.id]) attendanceRecords[s.id] = { status: 'absent', remark: '' };
                 attendanceRecords[s.id].status = 'present';
             });
-            const filter = document.getElementById('statusFilter').value;
-            renderAttendanceTable(currentStudents, attendanceRecords, filter);
+            renderAttendanceTable(currentStudents, attendanceRecords, document.getElementById('statusFilter').value);
             showToast("All students marked as Present", "success");
         }
-        
-        // Main load function
+
         async function loadAttendanceData() {
             const classId = document.getElementById('classSelect').value;
             const section = document.getElementById('sectionSelect').value;
             const date = document.getElementById('attendanceDate').value;
-            
+
             if (!classId || !section || !date) {
                 showToast("Please select Class, Section and Date", "error");
                 return;
             }
-            
+
             currentClassId = classId;
             currentSection = section;
             currentDate = date;
-            
+
             const tbody = document.getElementById('attendanceTableBody');
             tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12"><i class="fas fa-spinner fa-pulse text-primary text-2xl"></i><br>Loading...</td></tr>`;
-            
+
             try {
                 const students = await loadStudentsByClassSection(classId, section);
                 currentStudents = students;
                 const existing = await loadExistingAttendance(date, classId, section);
-                
+
                 attendanceRecords = {};
                 students.forEach(s => {
-                    if (existing[s.id]) {
-                        attendanceRecords[s.id] = { status: existing[s.id].status, remark: existing[s.id].remark || '' };
-                    } else {
-                        attendanceRecords[s.id] = { status: 'absent', remark: '' };
-                    }
+                    attendanceRecords[s.id] = existing[s.id]
+                        ? { status: existing[s.id].status, remark: existing[s.id].remark || '' }
+                        : { status: 'absent', remark: '' };
                 });
-                
-                const filter = document.getElementById('statusFilter').value;
-                renderAttendanceTable(students, attendanceRecords, filter);
+
+                renderAttendanceTable(students, attendanceRecords, document.getElementById('statusFilter').value);
             } catch (err) {
                 console.error(err);
                 tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-red-500">Error loading data</td></tr>`;
             }
         }
-        
-        // Event listeners
+
         document.getElementById('classSelect').addEventListener('change', async (e) => {
             await updateSectionDropdown(e.target.value);
             document.getElementById('sectionSelect').value = '';
@@ -499,7 +489,7 @@
             attendanceRecords = {};
             updateSummary([], {});
         });
-        
+
         document.getElementById('loadStudentsBtn').addEventListener('click', loadAttendanceData);
         document.getElementById('saveAttendanceBtn').addEventListener('click', saveAttendance);
         document.getElementById('markAllPresent').addEventListener('click', markAllPresent);
@@ -508,22 +498,10 @@
                 renderAttendanceTable(currentStudents, attendanceRecords, document.getElementById('statusFilter').value);
             }
         });
-        
-        // Set default date to today
+
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('attendanceDate').value = today;
-        
-        // Load session info
-        async function loadSession() {
-            try {
-                const s = await getDoc(doc(db, "config", "activeSession"));
-                if (s.exists()) {
-                    document.getElementById('session_badge').innerHTML = `<i class="fas fa-calendar-alt mr-1"></i> Session: ${s.data().sessionName || "2025-2026"}`;
-                }
-            } catch(e) {}
-        }
-        
-        // Initialize
+
         await loadClasses();
         await loadSession();
     </script>
