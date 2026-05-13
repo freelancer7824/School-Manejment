@@ -3,44 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>Advanced Marksheet Generator | ONNO ROKOM BIDDYANIKETON</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Hind+Siliguri:wght@400;700&display=swap');
         body { background: #f1f5f9; font-family: 'Roboto', 'Hind Siliguri', sans-serif; }
-        
-        .marksheet-card {
-            width: 210mm;
-            min-height: 297mm;
-            padding: 12mm;
-            margin: 20px auto;
-            background: white;
-            position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            color: #000;
-        }
-
-        .watermark {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0.04;
-            width: 450px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
+        .marksheet-card { width: 210mm; min-height: 297mm; padding: 12mm; margin: 20px auto; background: white; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.1); color: #000; }
+        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.04; width: 450px; pointer-events: none; z-index: 0; }
         .content-wrap { position: relative; z-index: 1; }
-
         table { width: 100%; border-collapse: collapse; margin-top: 5px; }
         th, td { border: 1px solid #000; padding: 4px 2px; text-align: center; font-size: 11px; }
         .text-left { text-align: left; padding-left: 6px; }
-        
         .grade-table td { font-size: 10px; padding: 2px; }
-
         @media print {
             .no-print { display: none !important; }
             body { background: white; margin: 0; padding: 0; }
@@ -50,40 +25,59 @@
 </head>
 <body>
 
-    <div class="max-w-6xl mx-auto no-print mt-6 mb-6 bg-white p-6 rounded-2xl shadow-md border border-indigo-100">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <select id="examSelect" class="border-2 p-2.5 rounded-xl font-bold bg-gray-50 outline-none focus:border-indigo-500 transition-all"></select>
-            <select id="classSelect" class="border-2 p-2.5 rounded-xl font-bold bg-gray-50 outline-none focus:border-indigo-500 transition-all">
+    <div class="max-w-7xl mx-auto no-print mt-6 mb-6 bg-white p-6 rounded-2xl shadow-md border border-indigo-100">
+        <div class="flex justify-between items-center mb-6 flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+                <span class="bg-indigo-600 text-white p-3 rounded-xl"><i class="fas fa-file-invoice-dollar text-xl"></i></span>
+                <h1 class="text-2xl font-bold text-gray-800">Marksheet Generator</h1>
+            </div>
+            <div class="bg-indigo-50 px-4 py-2 rounded-full text-sm font-medium text-indigo-800">
+                <i class="fas fa-calendar-alt mr-1"></i><span id="sessionBadge">2025-2026</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            <select id="sessionView" class="border-2 p-3 rounded-xl font-bold bg-gray-50 outline-none focus:border-indigo-500 transition-all">
+                <option value="current">Current Session</option>
+                <option value="next">Next Session</option>
+            </select>
+            <select id="examSelect" class="border-2 p-3 rounded-xl font-bold bg-gray-50 outline-none focus:border-indigo-500 transition-all">
+                <option value="">Select Exam</option>
+            </select>
+            <select id="classSelect" class="border-2 p-3 rounded-xl font-bold bg-gray-50 outline-none focus:border-indigo-500 transition-all">
                 <option value="">Select Class</option>
             </select>
-            <select id="sectionSelect" class="border-2 p-2.5 rounded-xl font-bold bg-gray-50 outline-none focus:border-indigo-500 transition-all">
+            <select id="sectionSelect" class="border-2 p-3 rounded-xl font-bold bg-gray-50 outline-none focus:border-indigo-500 transition-all">
                 <option value="">সব সেকশন</option>
             </select>
-            <button id="generateBtn" class="bg-indigo-600 text-white font-bold py-2.5 rounded-xl hover:bg-indigo-700 shadow-lg transition-all active:scale-95">
-                Generate Marksheets
+            <button id="generateBtn" class="bg-indigo-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-indigo-700 shadow-lg transition-all active:scale-95 flex items-center gap-2">
+                <i class="fas fa-magic"></i> Generate Marksheets
             </button>
         </div>
-        <div class="mt-4 flex flex-wrap justify-between items-center border-t pt-4 gap-4">
-            <div class="relative">
-                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-                <input type="text" id="searchInput" placeholder="Search Roll or Name..." class="border-2 pl-10 p-2 rounded-xl w-64 outline-none focus:border-indigo-500">
+
+        <div class="mt-6 flex flex-wrap justify-between items-center border-t pt-6 gap-4">
+            <div class="relative flex-1 max-w-md">
+                <i class="fas fa-search absolute left-4 top-4 text-gray-400"></i>
+                <input type="text" id="searchInput" placeholder="Search Roll or Name..." class="border-2 pl-12 p-3 rounded-xl w-full outline-none focus:border-indigo-500 bg-gray-50">
             </div>
-            <button onclick="window.print()" class="bg-emerald-600 text-white px-8 py-2.5 rounded-xl font-bold hover:bg-emerald-700 shadow-md">
-                <i class="fas fa-print mr-2"></i> Print All Marksheets
-            </button>
+            <div class="flex gap-3">
+                <button id="refreshBtn" class="bg-gray-100 hover:bg-gray-200 px-6 py-3 rounded-xl text-gray-700 flex items-center gap-2">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button onclick="window.print()" class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 shadow-md flex items-center gap-2">
+                    <i class="fas fa-print"></i> Print All
+                </button>
+            </div>
         </div>
     </div>
 
     <div id="allMarksheets"></div>
 
     <script type="module">
-    
-    
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { 
-    getFirestore, doc, getDoc, collection, getDocs, query, where, orderBy, 
-    onSnapshot // <--- Eta add korun
-} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import {
+            getFirestore, doc, getDoc, collection, getDocs, query, where, orderBy, onSnapshot
+        } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
@@ -97,19 +91,24 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        let currentSchoolName = "ONNO ROKOM BIDDYANIKETON";
+        let currentSchoolAddress = "PORANPUR, KAZIPUR, SIRAJGANJ";
+        let currentSession = "2025-2026", nextSession = "2026-2027";
+        let allClasses = [], sectionsCache = {}, classOptionsMap = {};
 
+        function showToast(msg, type = "success") {
+            console.log(`${type.toUpperCase()}: ${msg}`);
+        }
 
-// Realtime Name Fetcher Logic
-let currentSchoolName = "ONNO ROKOM BIDDYANIKETON"; // Default variable
-onSnapshot(doc(db, "settings", "school_info"), (docSnap) => {
-    if (docSnap.exists() && docSnap.data().school_name) {
-        currentSchoolName = docSnap.data().school_name;
-        
-        // Header-e display korar jonno (Jodi header-e id="topName" thake)
-        const topHeader = document.getElementById('topSchoolName');
-        if (topHeader) topHeader.innerText = currentSchoolName;
-    }
-});
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return "";
+            return String(str).replace(/[&<>"]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[m]));
+        }
+
+        function safeNum(v) {
+            const n = parseFloat(v);
+            return Number.isFinite(n) ? n : 0;
+        }
 
         function calculateGrade(obt, full) {
             if (!full || full <= 0) return { lg: "-", gp: 0 };
@@ -123,65 +122,212 @@ onSnapshot(doc(db, "settings", "school_info"), (docSnap) => {
             return { lg: "F", gp: 0.00 };
         }
 
-        async function loadFilters() {
-            const exSnap = await getDocs(collection(db, "exams"));
-            const clSnap = await getDocs(query(collection(db, "classes"), orderBy("order")));
-            const exSelect = document.getElementById('examSelect');
-            exSelect.innerHTML = '<option value="">Select Exam</option>';
-            exSnap.forEach(d => exSelect.innerHTML += `<option value="${d.id}">${d.data().name}</option>`);
-            clSnap.forEach(d => document.getElementById('classSelect').innerHTML += `<option value="${d.id}">${d.data().name}</option>`);
+        async function loadSessions() {
+            try {
+                const sdoc = await getDoc(doc(db, "config", "activeSession"));
+                if (sdoc.exists()) {
+                    currentSession = sdoc.data().sessionName || currentSession;
+                    const parts = currentSession.split('-');
+                    nextSession = parts.length === 2 ? `${parseInt(parts[0]) + 1}-${parseInt(parts[1]) + 1}` : "2026-2027";
+                }
+            } catch (e) {}
+            document.getElementById('sessionBadge').innerText = currentSession;
         }
 
-        document.getElementById('classSelect').onchange = async (e) => {
-            const classId = e.target.value;
-            const secSelect = document.getElementById('sectionSelect');
-            if(!classId) return;
-            const secSnap = await getDocs(query(collection(db, "sections"), where("classId", "==", classId)));
-            secSelect.innerHTML = '<option value="">সব সেকশন</option>';
-            secSnap.forEach(d => secSelect.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`);
-        };
+        async function loadClasses() {
+            const snap = await getDocs(query(collection(db, "classes"), orderBy("order")));
+            allClasses = snap.docs.map(d => ({ id: d.id, name: d.data().name }));
+            classOptionsMap = Object.fromEntries(allClasses.map(c => [c.id, c.name]));
+            
+            const clSelect = document.getElementById('classSelect');
+            clSelect.innerHTML = '<option value="">Select Class</option>';
+            allClasses.forEach(c => clSelect.appendChild(new Option(c.name, c.id)));
+        }
 
-        document.getElementById('generateBtn').onclick = async () => {
-            const examId = document.getElementById('examSelect').value;
-            const classId = document.getElementById('classSelect').value;
-            const filterSectionName = document.getElementById('sectionSelect').value;
+        async function getSections(classId) {
+            if (!classId) return [];
+            if (sectionsCache[classId]) return sectionsCache[classId];
+            
+            const snap = await getDocs(query(collection(db, "sections"), where("classId", "==", classId)));
+            const secs = snap.docs.map(d => ({ id: d.id, name: d.data().name }));
+            sectionsCache[classId] = secs;
+            return secs;
+        }
 
-            if(!examId || !classId) return alert("Please select Exam and Class");
+        // 🔥 ONLY session data - NO root data at all
+        async function loadSessionStudentsOnly(sessionVal, filterClassId, filterSectionName) {
+            const studentsList = [];
+            
+            let targetSession = currentSession;
+            if (sessionVal === 'next') targetSession = nextSession;
 
-            const container = document.getElementById('allMarksheets');
-            container.innerHTML = "<div class='text-center mt-20'><p class='animate-pulse font-bold text-indigo-600'>ডেটা প্রসেসিং হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...</p></div>";
+            console.log(`🔍 Loading ONLY session data: Session=${targetSession}, Class=${filterClassId}, Section=${filterSectionName}`);
 
-            const [setupSnap, marksSnap, subSnap, stuSnap, sessSnap] = await Promise.all([
+            try {
+                // If class filter is selected, only query that specific class
+                if (filterClassId) {
+                    const studRef = collection(db, `current_session/${targetSession}/classes/${filterClassId}/students`);
+                    const studSnap = await getDocs(studRef);
+                    
+                    for (const docSnap of studSnap.docs) {
+                        const data = docSnap.data();
+                        const studentSection = data.section || "";
+                        
+                        // Apply section filter
+                        if (filterSectionName && studentSection !== filterSectionName) continue;
+                        
+                        // Skip promoted students in current session view
+                        if (sessionVal === 'current' && data.promotedToNextSession === true) continue;
+                        
+                        studentsList.push({
+                            id: docSnap.id,
+                            ...data,
+                            classId: filterClassId,
+                            className: classOptionsMap[filterClassId] || data.className || '',
+                            section: studentSection,
+                            _session: targetSession,
+                            _sessionPath: `current_session/${targetSession}/classes/${filterClassId}/students`
+                        });
+                    }
+                } else {
+                    // If no class filter, loop through all classes
+                    const classesSnap = await getDocs(collection(db, "classes"));
+                    for (const classDoc of classesSnap.docs) {
+                        const classId = classDoc.id;
+                        const studRef = collection(db, `current_session/${targetSession}/classes/${classId}/students`);
+                        const studSnap = await getDocs(studRef);
+                        
+                        for (const docSnap of studSnap.docs) {
+                            const data = docSnap.data();
+                            const studentSection = data.section || "";
+                            
+                            // Apply section filter
+                            if (filterSectionName && studentSection !== filterSectionName) continue;
+                            
+                            // Skip promoted students in current session view
+                            if (sessionVal === 'current' && data.promotedToNextSession === true) continue;
+                            
+                            studentsList.push({
+                                id: docSnap.id,
+                                ...data,
+                                classId: classId,
+                                className: classOptionsMap[classId] || data.className || classDoc.data().name,
+                                section: studentSection,
+                                _session: targetSession,
+                                _sessionPath: `current_session/${targetSession}/classes/${classId}/students`
+                            });
+                        }
+                    }
+                }
+                
+                // Sort by roll number
+                studentsList.sort((a, b) => {
+                    const ar = safeNum(a.rollNumber || a.roll);
+                    const br = safeNum(b.rollNumber || b.roll);
+                    return ar - br;
+                });
+                
+            } catch (e) {
+                console.error('Error loading session data:', e);
+            }
+
+            console.log(`✅ Found ${studentsList.length} students from session data only`);
+            return studentsList;
+        }
+
+        async function loadSetupMaps(examId, classId) {
+            const [setupSnap, marksSnap, subSnap] = await Promise.all([
                 getDocs(collection(db, "mark_setup")),
                 getDocs(query(collection(db, "marks"), where("examId", "==", examId))),
-                getDocs(query(collection(db, "subjects"), where("classId", "==", classId))),
-                getDocs(query(collection(db, "students"), where("classId", "==", classId))),
-                getDoc(doc(db, "config", "activeSession"))
+                getDocs(query(collection(db, "subjects"), where("classId", "==", classId)))
             ]);
 
-            const activeSession = sessSnap.exists() ? sessSnap.data().sessionName : "2026-27";
-            const examName = document.getElementById('examSelect').options[document.getElementById('examSelect').selectedIndex].text;
-            const className = document.getElementById('classSelect').options[document.getElementById('classSelect').selectedIndex].text;
-
             const setupMap = {};
-            setupSnap.forEach(d => setupMap[d.id] = d.data().marks);
+            setupSnap.forEach(d => {
+                const data = d.data();
+                setupMap[d.id] = data.marks || data;
+            });
 
             const subjects = {};
-            subSnap.forEach(d => subjects[d.id] = d.data().name);
+            subSnap.forEach(d => subjects[d.id] = d.data().name || d.id);
 
             const marksByStu = {};
             marksSnap.forEach(d => {
                 const data = d.data();
-                if(!marksByStu[data.studentId]) marksByStu[data.studentId] = [];
+                if (!marksByStu[data.studentId]) marksByStu[data.studentId] = [];
                 marksByStu[data.studentId].push(data);
             });
 
+            return { setupMap, subjects, marksByStu };
+        }
+
+        // Event Listeners
+        document.getElementById("sessionView").addEventListener("change", () => {
+            sectionsCache = {};
+            document.getElementById('sectionSelect').innerHTML = '<option value="">সব সেকশন</option>';
+        });
+
+        document.getElementById("classSelect").addEventListener("change", async (e) => {
+            const secSelect = document.getElementById("sectionSelect");
+            const classId = e.target.value;
+            secSelect.innerHTML = '<option value="">সব সেকশন</option>';
+            secSelect.disabled = !classId;
+            
+            if (classId) {
+                const sections = await getSections(classId);
+                sections.forEach(sec => {
+                    secSelect.appendChild(new Option(sec.name, sec.name));
+                });
+            }
+        });
+
+        document.getElementById("generateBtn").onclick = async () => {
+            const sessionVal = document.getElementById("sessionView").value;
+            const examId = document.getElementById("examSelect").value;
+            const filterClassId = document.getElementById("classSelect").value;
+            const filterSectionName = document.getElementById("sectionSelect").value;
+
+            if (!examId || !filterClassId) {
+                alert("Please select Exam and Class");
+                return;
+            }
+
+            const container = document.getElementById("allMarksheets");
+            container.innerHTML = `
+                <div class='text-center mt-20 p-12 bg-gray-50 rounded-2xl'>
+                    <i class='fas fa-spinner fa-spin text-4xl text-indigo-600 mb-4'></i>
+                    <p class='font-bold text-xl text-indigo-600'>ডেটা প্রসেসিং হচ্ছে... (${filterClassId})</p>
+                </div>
+            `;
+
+            try {
+                const examName = document.querySelector('#examSelect option:checked').textContent;
+                const { setupMap, subjects, marksByStu } = await loadSetupMaps(examId, filterClassId);
+                // 🔥 ONLY load session students - NO root data
+                const students = await loadSessionStudentsOnly(sessionVal, filterClassId, filterSectionName);
+
+                generateMarksheetsHTML(students, examName, setupMap, subjects, marksByStu, sessionVal);
+                
+                if (students.length === 0) {
+                    container.innerHTML = `
+                        <div class='text-center mt-20 p-12 bg-yellow-50 border-2 border-yellow-200 rounded-2xl'>
+                            <i class='fas fa-info-circle text-4xl text-yellow-600 mb-4'></i>
+                            <p class='font-bold text-xl text-yellow-800 mb-2'>কোনো ছাত্র/ছাত্রী পাওয়া যায়নি</p>
+                            <p class='text-yellow-700'>${classOptionsMap[filterClassId] || filterClassId} ক্লাসে এই সেকশনে কোনো ছাত্র নেই বা সব প্রমোট হয়েছে</p>
+                            <p class='text-yellow-600 text-sm mt-2'>⚠️ শুধুমাত্র Session Data দেখানো হচ্ছে (Root Data বাদ দেওয়া হয়েছে)</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = "<p class='text-center mt-20 text-red-600'>Error loading data. Please try again.</p>";
+                console.error(error);
+            }
+        };
+
+        function generateMarksheetsHTML(students, examName, setupMap, subjects, marksByStu, sessionVal) {
             let finalHTML = "";
-            const sortedStudents = stuSnap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (a.rollNumber || 0) - (b.rollNumber || 0));
 
-            sortedStudents.forEach(stu => {
-                if(filterSectionName && stu.section !== filterSectionName) return;
-
+            students.forEach(stu => {
                 const myMarks = marksByStu[stu.id] || [];
                 let totalObtained = 0;
                 let totalFullMarks = 0;
@@ -189,35 +335,33 @@ onSnapshot(doc(db, "settings", "school_info"), (docSnap) => {
                 let isFailed = false;
                 let rows = "";
 
-                // সাবজেক্ট লিস্ট অনুযায়ী মার্ক সাজানো
                 Object.keys(subjects).forEach((subId, index) => {
                     const m = myMarks.find(x => x.subjectId === subId) || { marks: {} };
-                    
-                    // মার্ক সেটআপ আইডি ফরম্যাট: ExamID_ClassID_SectionName_SubjectID
-                    const setupId = `${examId}_${classId}_${stu.section}_${subId}`;
+
+                    const setupId = `${examName}_${stu.classId}_${stu.section || ''}_${subId}`;
                     const setup = setupMap[setupId] || {};
 
-                    const wF = setup.written?.enabled ? parseFloat(setup.written.full || 0) : 0;
-                    const mF = setup.mcq?.enabled ? parseFloat(setup.mcq.full || 0) : 0;
-                    const pF = setup.practical?.enabled ? parseFloat(setup.practical.full || 0) : 0;
+                    const wF = setup.written?.enabled ? safeNum(setup.written.full) : 0;
+                    const mF = setup.mcq?.enabled ? safeNum(setup.mcq.full) : 0;
+                    const pF = setup.practical?.enabled ? safeNum(setup.practical.full) : 0;
 
-                    const wO = m.marks?.written || 0;
-                    const mO = m.marks?.mcq || 0;
-                    const pO = m.marks?.practical || 0;
+                    const wO = safeNum(m.marks?.written);
+                    const mO = safeNum(m.marks?.mcq);
+                    const pO = safeNum(m.marks?.practical);
 
-                    const rowTotal = parseFloat(wO) + parseFloat(mO) + parseFloat(pO);
+                    const rowTotal = wO + mO + pO;
                     const rowFull = wF + mF + pF;
                     const grade = calculateGrade(rowTotal, rowFull);
 
                     totalObtained += rowTotal;
                     totalFullMarks += rowFull;
                     totalGP += grade.gp;
-                    if(grade.lg === "F") isFailed = true;
+                    if (grade.lg === "F") isFailed = true;
 
                     rows += `
                         <tr>
                             <td>${String(index + 1).padStart(2, '0')}</td>
-                            <td class="text-left font-bold uppercase">${subjects[subId]}</td>
+                            <td class="text-left font-bold uppercase">${escapeHtml(subjects[subId])}</td>
                             <td>${wF || '-'}</td><td>${wF ? wO : '-'}</td>
                             <td>${mF || '-'}</td><td>${mF ? mO : '-'}</td>
                             <td>${pF || '-'}</td><td>${pF ? pO : '-'}</td>
@@ -229,31 +373,32 @@ onSnapshot(doc(db, "settings", "school_info"), (docSnap) => {
                         </tr>`;
                 });
 
-                const finalGPA = isFailed ? 0.00 : (totalGP / (Object.keys(subjects).length || 1));
+                const subjectCount = Object.keys(subjects).length || 1;
+                const finalGPA = isFailed ? 0.00 : (totalGP / subjectCount);
+                const finalGrade = isFailed ? "F" : calculateGrade(totalObtained, totalFullMarks).lg;
+                const displaySession = sessionVal === 'next' ? nextSession : currentSession;
 
                 finalHTML += `
-                <div class="marksheet-card page-break" data-name="${(stu.fullName || '').toLowerCase()}" data-roll="${stu.rollNumber || ''}">
+                <div class="marksheet-card page-break" data-name="${(stu.fullName || '').toLowerCase()}" data-roll="${stu.rollNumber || stu.roll || ''}" data-class="${stu.classId}">
                     <img src="https://i.ibb.co/v4mK6vW/logo.png" class="watermark">
                     <div class="content-wrap">
                         <div class="flex justify-between items-center border-b-2 border-black pb-2">
                             <img src="https://i.ibb.co/v4mK6vW/logo.png" class="w-20">
                             <div class="text-center">
-<h1 class="text-2xl font-black text-indigo-900 leading-none uppercase">
-    ${currentSchoolName}
-</h1>
-                                <p class="text-[10px] font-bold tracking-widest mt-1 uppercase">PORANPUR, KAZIPUR, SIRAJGANJ</p>
-                                <div class="mt-2 bg-black text-white px-4 py-1 text-[12px] font-bold uppercase rounded-full">Academic Transcript: ${examName}</div>
+                                <h1 class="text-2xl font-black text-indigo-900 leading-none uppercase">${escapeHtml(currentSchoolName)}</h1>
+                                <p class="text-[10px] font-bold tracking-widest mt-1 uppercase">${escapeHtml(currentSchoolAddress)}</p>
+                                <div class="mt-2 bg-black text-white px-4 py-1 text-[12px] font-bold uppercase rounded-full">Academic Transcript: ${escapeHtml(examName)}</div>
                             </div>
                             <div class="w-24 h-28 border-2 border-black flex items-center justify-center text-[10px] italic text-gray-400">PASSPORT PHOTO</div>
                         </div>
 
                         <div class="grid grid-cols-3 gap-2 mt-4 text-[11px] font-bold uppercase">
-                            <div class="border-b border-gray-300 pb-1">STUDENT NAME: <span class="font-normal ml-1">${stu.fullName || '-'}</span></div>
-                            <div class="border-b border-gray-300 pb-1">CLASS: <span class="font-normal ml-1">${className}</span></div>
-                            <div class="border-b border-gray-300 pb-1">ROLL NO: <span class="font-normal ml-1">${stu.rollNumber || '-'}</span></div>
-                            <div class="border-b border-gray-300 pb-1">SECTION: <span class="font-normal ml-1">${stu.section || 'N/A'}</span></div>
-                            <div class="border-b border-gray-300 pb-1">STUDENT ID: <span class="font-normal ml-1">${stu.admissionNo || stu.studentId || '-'}</span></div>
-                            <div class="border-b border-gray-300 pb-1">SESSION: <span class="font-normal ml-1">${activeSession}</span></div>
+                            <div class="border-b border-gray-300 pb-1">STUDENT NAME: <span class="font-normal ml-1">${escapeHtml(stu.fullName || '-')}</span></div>
+                            <div class="border-b border-gray-300 pb-1">CLASS: <span class="font-normal ml-1">${escapeHtml(stu.className || '-')}</span></div>
+                            <div class="border-b border-gray-300 pb-1">ROLL NO: <span class="font-normal ml-1">${escapeHtml(stu.rollNumber || stu.roll || '-')}</span></div>
+                            <div class="border-b border-gray-300 pb-1">SECTION: <span class="font-normal ml-1">${escapeHtml(stu.section || 'N/A')}</span></div>
+                            <div class="border-b border-gray-300 pb-1">STUDENT ID: <span class="font-normal ml-1">${escapeHtml(stu.admissionNo || stu.studentId || '-')}</span></div>
+                            <div class="border-b border-gray-300 pb-1">SESSION: <span class="font-normal ml-1">${escapeHtml(displaySession)}</span></div>
                         </div>
 
                         <table class="mt-4">
@@ -272,7 +417,7 @@ onSnapshot(doc(db, "settings", "school_info"), (docSnap) => {
                                 <tr>
                                     <td colspan="2" class="text-left py-2 px-2 uppercase">Total: ${totalObtained} / ${totalFullMarks}</td>
                                     <td colspan="4">GPA: ${finalGPA.toFixed(2)}</td>
-                                    <td colspan="4">LETTER GRADE: ${isFailed ? 'F' : calculateGrade(totalObtained, totalFullMarks).lg}</td>
+                                    <td colspan="4">LETTER GRADE: ${finalGrade}</td>
                                     <td colspan="4">RESULT: <span class="${isFailed ? 'text-red-600' : 'text-emerald-700'}">${isFailed ? 'FAILED' : 'PASSED'}</span></td>
                                 </tr>
                             </tfoot>
@@ -315,23 +460,47 @@ onSnapshot(doc(db, "settings", "school_info"), (docSnap) => {
                     </div>
                 </div>`;
             });
-            container.innerHTML = finalHTML || "<p class='text-center mt-20'>No Data Found</p>";
-        };
 
-        // Live Search Logic
-        document.getElementById('searchInput').oninput = (e) => {
+            document.getElementById("allMarksheets").innerHTML = finalHTML || "<p class='text-center mt-20'>No Data Found</p>";
+        }
+
+        document.getElementById("searchInput").oninput = (e) => {
             const val = e.target.value.toLowerCase();
-            document.querySelectorAll('.marksheet-card').forEach(card => {
+            document.querySelectorAll(".marksheet-card").forEach(card => {
                 const name = card.dataset.name || "";
                 const roll = card.dataset.roll || "";
                 card.style.display = (name.includes(val) || roll.includes(val)) ? "block" : "none";
             });
         };
 
-        loadFilters();
+        document.getElementById("refreshBtn").onclick = async () => {
+            sectionsCache = {};
+            await loadSessions();
+            await loadClasses();
+            showToast("Filters refreshed successfully!");
+        };
+
+        // Initialize
+        async function init() {
+            await loadSessions();
+            await loadClasses();
+            const exSnap = await getDocs(collection(db, "exams"));
+            const exSelect = document.getElementById("examSelect");
+            exSelect.innerHTML = '<option value="">Select Exam</option>';
+            exSnap.forEach(d => {
+                exSelect.innerHTML += `<option value="${d.id}">${escapeHtml(d.data().name || d.id)}</option>`;
+            });
+        }
+
+        onSnapshot(doc(db, "settings", "school_info"), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                currentSchoolName = data.school_name || currentSchoolName;
+                currentSchoolAddress = data.contact_address || currentSchoolAddress;
+            }
+        });
+
+        init();
     </script>
-    
-    
-    
 </body>
 </html>
