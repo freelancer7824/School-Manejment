@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Smart Promotion | Parent Connection Fixed</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        success: '#10b981',
+                        danger: '#ef4444',
+                        warning: '#f59e0b'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #f1f5f9; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+        .transition-smooth { transition: all 0.2s ease; }
+        .modal-blur { backdrop-filter: blur(4px); background-color: rgba(0,0,0,0.5); }
+        .latest-badge { background: linear-gradient(45deg, #10b981, #059669); color: white; font-size: 10px; padding: 2px 6px; border-radius: 9999px; margin-left: 6px; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
+
+    <div id="toastMsg" class="fixed top-24 right-5 z-50 hidden transition-all duration-300">
+        <div class="bg-white rounded-xl shadow-xl px-5 py-3 flex items-center gap-3 border-l-4 border-success min-w-[260px]">
+            <i id="toastIcon" class="fas fa-check-circle text-success text-lg"></i>
+            <span id="toastText" class="text-gray-700 text-sm font-medium">Success</span>
+            <button onclick="hideToast()" class="ml-2 text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
+    <div id="promoModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-blur p-4 overflow-auto">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div class="p-5 border-b sticky top-0 bg-white flex justify-between items-center rounded-t-2xl">
+                <h3 class="text-xl font-bold"><i class="fas fa-user-plus text-primary mr-2"></i>Confirm Promotion</h3>
+                <button onclick="closePromotionModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-5 flex-1 overflow-y-auto">
+                <div class="bg-blue-50 p-4 rounded-xl mb-5 flex flex-wrap gap-3 justify-between items-center">
+                    <div><span class="font-semibold">From:</span> <span id="confirmFromClass" class="text-primary font-bold"></span> - <span id="confirmFromSection"></span></div>
+                    <i class="fas fa-arrow-right text-gray-500"></i>
+                    <div><span class="font-semibold">To (Next Session):</span> <span id="confirmToClass" class="text-green-700 font-bold"></span> - <span id="confirmToSection"></span></div>
+                </div>
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="font-bold text-gray-700"><i class="fas fa-list-ul mr-2"></i>Students to promote (<span id="selectedCountLabel">0</span>)</h4>
+                    <button id="modalSelectAllBtn" class="text-sm text-primary hover:underline"><i class="fas fa-check-double"></i> Select All</button>
+                </div>
+                <div class="border rounded-xl overflow-hidden max-h-56 overflow-y-auto bg-gray-50">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-100 sticky top-0">
+                            <tr class="text-left text-gray-600">
+                                <th class="px-3 py-2 w-8"><input type="checkbox" id="promoSelectAllCheck"></th>
+                                <th class="px-3 py-2">Roll</th>
+                                <th class="px-3 py-2">Student Name</th>
+                                <th class="px-3 py-2">Current Class</th>
+                                <th class="px-3 py-2">Parent Linked</th>
+                                <th class="px-3 py-2">Status</th>
+                             </tr>
+                        </thead>
+                        <tbody id="promoStudentsList"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="p-5 border-t flex justify-end gap-3 bg-gray-50 rounded-b-2xl">
+                <button onclick="closePromotionModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-100">Cancel</button>
+                <button id="confirmPromoteBtn" class="px-6 py-2 bg-success text-white rounded-lg hover:bg-green-700 flex items-center gap-2"><i class="fas fa-arrow-up"></i> Promote Selected</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto">
+        <div class="flex items-center gap-3 mb-5">
+            <div class="bg-primary/10 p-2 rounded-full">
+                <i class="fas fa-graduation-cap text-primary text-xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800">Student Promotion Engine</h1>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+            <div class="p-6 md:p-8">
+                <div class="mb-7 flex flex-wrap justify-between items-center border-b pb-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <div class="h-7 w-1.5 bg-primary rounded-full"></div>
+                            <h2 class="text-xl font-bold">Move students from <span id="currentSessionDisplay" class="text-primary bg-primary/10 px-2 py-0.5 rounded-md">2025-2026</span> to <span id="nextSessionDisplay" class="text-success bg-green-100 px-2 py-0.5 rounded-md">2026-2027</span></h2>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1 ml-2">✅ Parent connection preserved during promotion</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-7">
+                    <div class="space-y-4">
+                        <label class="block font-semibold text-gray-700"><i class="fas fa-chalkboard-user text-primary mr-2"></i>From Class</label>
+                        <select id="fromClass" class="w-full border border-gray-300 rounded-xl p-3 bg-white focus:ring-2 focus:ring-primary">
+                            <option value="">-- Select Class --</option>
+                        </select>
+                        <select id="fromSection" class="w-full border border-gray-300 rounded-xl p-3 bg-gray-50 disabled:opacity-60" disabled>
+                            <option value="">Select class first</option>
+                        </select>
+                    </div>
+                    <div class="space-y-4">
+                        <label class="block font-semibold text-gray-700"><i class="fas fa-forward text-green-600 mr-2"></i>Promote To Class (Next Session)</label>
+                        <select id="toClass" class="w-full border border-gray-300 rounded-xl p-3 bg-white focus:ring-2 focus:ring-primary">
+                            <option value="">-- Select Target Class --</option>
+                        </select>
+                        <select id="toSection" class="w-full border border-gray-300 rounded-xl p-3 bg-gray-50 disabled:opacity-60" disabled>
+                            <option value="">Select target class first</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center mt-8 gap-4 flex-wrap">
+                    <div class="text-sm text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
+                        <i class="fas fa-info-circle text-primary"></i> Parent connection will be preserved automatically
+                    </div>
+                    <button id="fetchStudentsBtn" class="bg-primary hover:bg-blue-700 text-white font-medium py-2.5 px-8 rounded-xl flex items-center gap-2 shadow transition">
+                        <i class="fas fa-users"></i> Fetch & Preview Students
+                    </button>
+                </div>
+
+                <div class="mt-9 border-t pt-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-bold text-gray-800"><i class="fas fa-user-check text-success mr-2"></i>Eligible for Promotion</h3>
+                        <span class="text-xs bg-gray-200 rounded-full px-2.5 py-1 font-mono" id="eligibleCountBadge">0 students</span>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-gray-200">
+                        <table class="min-w-full text-sm">
+                            <thead class="bg-gray-50">
+                                <tr class="text-gray-600">
+                                    <th class="px-4 py-2 text-left">Roll No</th>
+                                    <th class="px-4 py-2 text-left">Student Name</th>
+                                    <th class="px-4 py-2 text-left">Father Name</th>
+                                    <th class="px-4 py-2 text-left">Parent Linked</th>
+                                    <th class="px-4 py-2 text-left">Status</th>
+                                 </tr>
+                            </thead>
+                            <tbody id="eligibleTableBody">
+                                <tr><td colspan="5" class="text-center py-8 text-gray-400"><i class="fas fa-search mr-1"></i> Select class/section and click Fetch</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="actionButtonContainer" class="mt-5 text-right"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, collection, query, getDocs, doc, updateDoc, getDoc, where, writeBatch, setDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentSession = "2025-2026";
+        let nextSession = "2026-2027";
+        let allClasses = [];
+        let sectionsCache = {};
+        let eligibleStudents = [];
+        let selectedPromoIds = new Set();
+        let parentDataCache = {};
+
+        const fromClassSelect = document.getElementById('fromClass');
+        const fromSectionSelect = document.getElementById('fromSection');
+        const toClassSelect = document.getElementById('toClass');
+        const toSectionSelect = document.getElementById('toSection');
+        const fetchBtn = document.getElementById('fetchStudentsBtn');
+        const eligibleTbody = document.getElementById('eligibleTableBody');
+        const eligibleCountSpan = document.getElementById('eligibleCountBadge');
+        const actionContainer = document.getElementById('actionButtonContainer');
+        const currentSessionSpan = document.getElementById('currentSessionDisplay');
+        const nextSessionSpan = document.getElementById('nextSessionDisplay');
+
+        function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+
+        function showAlert(msg, type = 'success') {
+            const toastDiv = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastText = document.getElementById('toastText');
+            toastText.innerText = msg;
+
+            const border = toastDiv.querySelector('.border-l-4');
+            border.classList.remove('border-success', 'border-danger', 'border-warning');
+
+            if (type === 'error') {
+                toastIcon.className = 'fas fa-exclamation-triangle text-danger text-lg';
+                border.classList.add('border-danger');
+            } else if (type === 'warning') {
+                toastIcon.className = 'fas fa-exclamation-circle text-warning text-lg';
+                border.classList.add('border-warning');
+            } else {
+                toastIcon.className = 'fas fa-check-circle text-success text-lg';
+                border.classList.add('border-success');
+            }
+
+            toastDiv.classList.remove('hidden');
+            toastDiv.style.display = 'flex';
+            setTimeout(() => { toastDiv.classList.add('hidden'); }, 3800);
+        }
+        window.hideToast = () => document.getElementById('toastMsg').classList.add('hidden');
+
+        async function loadSession() {
+            try {
+                const sessionRef = doc(db, "config", "activeSession");
+                const snap = await getDoc(sessionRef);
+                if (snap.exists()) {
+                    currentSession = snap.data().sessionName || "2025-2026";
+                    const parts = currentSession.split('-');
+                    if (parts.length === 2) {
+                        const sYear = parseInt(parts[0]), eYear = parseInt(parts[1]);
+                        nextSession = (!isNaN(sYear) && !isNaN(eYear)) ? `${sYear+1}-${eYear+1}` : "2026-2027";
+                    } else nextSession = "2026-2027";
+                }
+            } catch(e) { console.warn(e); }
+            currentSessionSpan.innerText = currentSession;
+            nextSessionSpan.innerText = nextSession;
+        }
+
+        async function loadClasses() {
+            const snap = await getDocs(query(collection(db, "classes")));
+            allClasses = snap.docs.map(d => ({ id: d.id, name: d.data().name, order: d.data().order || 0 })).sort((a,b)=>a.order-b.order);
+            fromClassSelect.innerHTML = '<option value="">-- Select Class --</option>';
+            toClassSelect.innerHTML = '<option value="">-- Select Target Class --</option>';
+            allClasses.forEach(cls => {
+                fromClassSelect.appendChild(new Option(cls.name, cls.id));
+                toClassSelect.appendChild(new Option(cls.name, cls.id));
+            });
+        }
+
+        async function getSections(classId) {
+            if (!classId) return [];
+            if (sectionsCache[classId]) return sectionsCache[classId];
+            const secQuery = query(collection(db, "sections"), where("classId", "==", classId));
+            const snap = await getDocs(secQuery);
+            const sections = snap.docs.map(d => ({ id: d.id, name: d.data().name }));
+            sectionsCache[classId] = sections;
+            return sections;
+        }
+
+        // 🔥 Get complete parent data
+        async function getCompleteParentData(parentId) {
+            if (!parentId) return null;
+            if (parentDataCache[parentId]) return parentDataCache[parentId];
+            
+            try {
+                const parentDoc = await getDoc(doc(db, "parents", parentId));
+                if (parentDoc.exists()) {
+                    const data = parentDoc.data();
+                    parentDataCache[parentId] = {
+                        fatherName: data.fatherName || '',
+                        motherName: data.motherName || '',
+                        guardianName: data.guardianName || '',
+                        fatherPhone: data.fatherPhone || '',
+                        motherPhone: data.motherPhone || '',
+                        guardianPhone: data.guardianPhone || '',
+                        loginEmail: data.loginEmail || '',
+                        address: data.address || ''
+                    };
+                    return parentDataCache[parentId];
+                }
+            } catch(e) {
+                console.error('Error fetching parent:', e);
+            }
+            return null;
+        }
+
+        async function fetchEligibleStudents() {
+            const fromClassId = fromClassSelect.value;
+            const fromSectionName = fromSectionSelect.value;
+            
+            if (!fromClassId || !fromSectionName) {
+                showAlert("Please select both source Class and Section", "warning");
+                return;
+            }
+
+            showAlert("Loading students with parent data...", "success");
+            
+            const studentsList = [];
+            
+            try {
+                // Get session students
+                const sessionRef = collection(db, `current_session/${currentSession}/classes/${fromClassId}/students`);
+                const sessionSnap = await getDocs(sessionRef);
+                
+                for (const docSnap of sessionSnap.docs) {
+                    const data = docSnap.data();
+                    
+                    if (data.section !== fromSectionName) continue;
+                    if (data.promotedToNextSession === true) continue;
+                    if (data.status === 'inactive' || data.status === 'Inactive') continue;
+                    
+                    // Get complete parent data
+                    let parentInfo = null;
+                    let fatherName = data.fatherName || 'N/A';
+                    
+                    if (data.parentID) {
+                        parentInfo = await getCompleteParentData(data.parentID);
+                        if (parentInfo) {
+                            fatherName = parentInfo.fatherName || fatherName;
+                        }
+                    }
+                    
+                    studentsList.push({
+                        id: docSnap.id,
+                        rollNumber: data.rollNumber || 'N/A',
+                        fullName: data.fullName || 'Unnamed',
+                        fatherName: fatherName,
+                        classId: fromClassId,
+                        section: data.section,
+                        className: allClasses.find(c => c.id === fromClassId)?.name || 'Class',
+                        email: data.email || '',
+                        phone: data.phone || '',
+                        address: data.address || '',
+                        admissionNumber: data.admissionNumber || '',
+                        gender: data.gender || '',
+                        parentID: data.parentID || '',
+                        status: data.status || 'active',
+                        // Store complete parent data for promotion
+                        parentData: parentInfo,
+                        // Store all original data
+                        originalData: { ...data }
+                    });
+                }
+                
+                eligibleStudents = studentsList;
+                renderEligibleTable();
+                
+                if (eligibleStudents.length === 0) {
+                    showAlert(`⚠️ No eligible students found in ${fromClassSelect.options[fromClassSelect.selectedIndex]?.text} - ${fromSectionName}.`, "warning");
+                } else {
+                    showAlert(`✅ Found ${eligibleStudents.length} eligible student(s) with parent connections`, "success");
+                }
+            } catch(e) {
+                console.error('Error fetching students:', e);
+                showAlert('Error loading students: ' + e.message, 'error');
+            }
+        }
+
+        function renderEligibleTable() {
+            if (!eligibleStudents.length) {
+                eligibleTbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400"><i class="fas fa-user-slash"></i> No eligible students</td></tr>';
+                eligibleCountSpan.innerText = "0 students";
+                actionContainer.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            eligibleStudents.forEach(stu => {
+                const parentLinked = stu.parentID ? 
+                    '<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full"><i class="fas fa-link"></i> Linked</span>' : 
+                    '<span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full"><i class="fas fa-unlink"></i> No Parent</span>';
+                
+                html += `<tr class="border-b hover:bg-gray-50">
+                    <td class="px-4 py-2 font-mono text-xs">${escapeHtml(stu.rollNumber)}</td>
+                    <td class="px-4 py-2 font-medium">${escapeHtml(stu.fullName)}</td>
+                    <td class="px-4 py-2 text-gray-600">${escapeHtml(stu.fatherName)}</td>
+                    <td class="px-4 py-2">${parentLinked}</td>
+                    <td class="px-4 py-2"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">Ready</span></td>
+                </tr>`;
+            });
+            eligibleTbody.innerHTML = html;
+            eligibleCountSpan.innerText = `${eligibleStudents.length} students`;
+            checkTargetAndUpdatePromoButton();
+        }
+
+        function openPromotionModal() {
+            const targetClassId = toClassSelect.value;
+            const targetSectionName = toSectionSelect.value;
+            
+            if (!targetClassId || !targetSectionName) {
+                showAlert("Please select target Class and Section before promotion", "warning");
+                return;
+            }
+            
+            if (eligibleStudents.length === 0) {
+                showAlert("No students available to promote. Fetch students first.", "error");
+                return;
+            }
+
+            document.getElementById('confirmFromClass').innerText = fromClassSelect.options[fromClassSelect.selectedIndex]?.text || '';
+            document.getElementById('confirmFromSection').innerText = fromSectionSelect.value || '';
+            document.getElementById('confirmToClass').innerText = toClassSelect.options[toClassSelect.selectedIndex]?.text || '';
+            document.getElementById('confirmToSection').innerText = toSectionSelect.value || '';
+
+            const modalTbody = document.getElementById('promoStudentsList');
+            modalTbody.innerHTML = '';
+            selectedPromoIds.clear();
+
+            eligibleStudents.forEach(stu => {
+                const parentLinked = stu.parentID ? '✅ Linked' : '⚠️ No Parent';
+                selectedPromoIds.add(stu.id);
+                modalTbody.insertAdjacentHTML('beforeend', `
+                    <tr class="border-b">
+                        <td class="px-3 py-2"><input type="checkbox" class="promoStudentCheckbox" data-id="${stu.id}" checked></td>
+                        <td class="px-3 py-2">${escapeHtml(stu.rollNumber)}</td>
+                        <td class="px-3 py-2 font-medium">${escapeHtml(stu.fullName)}</td>
+                        <td class="px-3 py-2">${escapeHtml(stu.className)}</td>
+                        <td class="px-3 py-2 text-xs">${parentLinked}</td>
+                        <td class="px-3 py-2"><span class="text-success text-xs">Ready</span></td>
+                    </tr>
+                `);
+            });
+
+            document.getElementById('selectedCountLabel').innerText = selectedPromoIds.size;
+
+            document.querySelectorAll('.promoStudentCheckbox').forEach(cb => {
+                cb.addEventListener('change', (e) => {
+                    const sid = e.target.dataset.id;
+                    if (e.target.checked) selectedPromoIds.add(sid);
+                    else selectedPromoIds.delete(sid);
+                    document.getElementById('selectedCountLabel').innerText = selectedPromoIds.size;
+                });
+            });
+
+            const selectAllModal = document.getElementById('promoSelectAllCheck');
+            selectAllModal.checked = true;
+            selectAllModal.onchange = (e) => {
+                const isChecked = e.target.checked;
+                document.querySelectorAll('.promoStudentCheckbox').forEach(cb => {
+                    cb.checked = isChecked;
+                    const sid = cb.dataset.id;
+                    if (isChecked) selectedPromoIds.add(sid);
+                    else selectedPromoIds.delete(sid);
+                });
+                document.getElementById('selectedCountLabel').innerText = selectedPromoIds.size;
+            };
+
+            document.getElementById('promoModal').classList.remove('hidden');
+        }
+
+        async function executePromotion() {
+            const toClassId = toClassSelect.value;
+            const toSectionName = toSectionSelect.value;
+            const fromClassId = fromClassSelect.value;
+            const fromSectionName = fromSectionSelect.value;
+
+            if (!toClassId || !toSectionName) {
+                showAlert("Target class/section missing", "error");
+                return;
+            }
+            
+            if (selectedPromoIds.size === 0) {
+                showAlert("⚠️ No student selected! Please select at least one student to promote.", "warning");
+                return;
+            }
+
+            const studentsToPromote = eligibleStudents.filter(s => selectedPromoIds.has(s.id));
+            if (studentsToPromote.length === 0) {
+                showAlert("No matching students found", "error");
+                return;
+            }
+
+            const batch = writeBatch(db);
+            const toClassName = allClasses.find(c => c.id === toClassId)?.name || 'Promoted Class';
+
+            for (const student of studentsToPromote) {
+                // 🔥 CRITICAL: Preserve parent connection
+                const parentData = student.parentData || await getCompleteParentData(student.parentID);
+                
+                // Create new student in next session with COMPLETE parent data
+                const newStudentRef = doc(collection(db, `current_session/${nextSession}/classes/${toClassId}/students`));
+                
+                const newStudentData = {
+                    // Student basic info
+                    fullName: student.fullName,
+                    rollNumber: student.rollNumber,
+                    admissionNumber: student.admissionNumber,
+                    gender: student.gender,
+                    phone: student.phone,
+                    email: student.email,
+                    address: student.address,
+                    status: 'active',
+                    
+                    // 🔥 Parent connection - CRITICAL
+                    parentID: student.parentID || '',
+                    
+                    // 🔥 Parent details (backup in student record)
+                    fatherName: parentData?.fatherName || student.fatherName || '',
+                    motherName: parentData?.motherName || student.motherName || '',
+                    guardianName: parentData?.guardianName || student.guardianName || '',
+                    fatherPhone: parentData?.fatherPhone || student.fatherPhone || '',
+                    motherPhone: parentData?.motherPhone || student.motherPhone || '',
+                    guardianPhone: parentData?.guardianPhone || student.guardianPhone || '',
+                    parentLoginEmail: parentData?.loginEmail || '',
+                    parentAddress: parentData?.address || '',
+                    
+                    // Class info
+                    section: toSectionName,
+                    className: toClassName,
+                    classId: toClassId,
+                    session: nextSession,
+                    
+                    // Promotion tracking
+                    promotedFromSession: currentSession,
+                    promotedFromClassId: fromClassId,
+                    promotedFromClass: allClasses.find(c => c.id === fromClassId)?.name,
+                    promotedFromSection: fromSectionName,
+                    originalStudentId: student.id,
+                    promotedOn: new Date().toISOString(),
+                    promotedToNextSession: false
+                };
+                
+                batch.set(newStudentRef, newStudentData);
+                
+                // Update original student as promoted (session data)
+                const originalSessionRef = doc(db, `current_session/${currentSession}/classes/${fromClassId}/students`, student.id);
+                batch.update(originalSessionRef, {
+                    promotedToNextSession: true,
+                    promotedToClass: toClassName,
+                    promotedToSection: toSectionName,
+                    promotionDate: new Date().toISOString(),
+                    promotionSession: currentSession,
+                    promotedToClassId: toClassId,
+                    promotedToSectionName: toSectionName
+                });
+            }
+
+            // Log promotion
+            const logRef = doc(db, "promotion_history", `${Date.now()}_from_${fromClassId}_to_${toClassId}`);
+            batch.set(logRef, {
+                fromSession: currentSession,
+                toSession: nextSession,
+                fromClassId,
+                fromClassName: allClasses.find(c => c.id === fromClassId)?.name,
+                fromSection: fromSectionName,
+                toClassId,
+                toClassName,
+                toSection: toSectionName,
+                promotedAt: new Date().toISOString(),
+                studentCount: studentsToPromote.length,
+                studentNames: studentsToPromote.map(s => s.fullName),
+                studentIds: studentsToPromote.map(s => s.id),
+                parentIds: studentsToPromote.map(s => s.parentID).filter(pid => pid)
+            });
+
+            try {
+                await batch.commit();
+                showAlert(`✅ Successfully promoted ${studentsToPromote.length} student(s) with parent connections preserved!`, 'success');
+                closePromotionModal();
+                
+                // Remove promoted students from list
+                const promotedIdsSet = new Set(studentsToPromote.map(s => s.id));
+                eligibleStudents = eligibleStudents.filter(s => !promotedIdsSet.has(s.id));
+                renderEligibleTable();
+                selectedPromoIds.clear();
+            } catch (err) {
+                console.error('Promotion error:', err);
+                showAlert("Promotion failed: " + err.message, "error");
+            }
+        }
+
+        function closePromotionModal() {
+            document.getElementById('promoModal').classList.add('hidden');
+        }
+
+        function checkTargetAndUpdatePromoButton() {
+            if (eligibleStudents.length > 0 && toClassSelect.value && toSectionSelect.value) {
+                if (!document.getElementById('triggerPromoBtn')) {
+                    const btn = document.createElement('button');
+                    btn.id = 'triggerPromoBtn';
+                    btn.className = 'bg-success hover:bg-green-700 text-white font-medium py-2.5 px-6 rounded-xl flex items-center gap-2 shadow transition';
+                    btn.innerHTML = '<i class="fas fa-arrow-right-to-bracket"></i> Open Promotion Manager';
+                    btn.onclick = openPromotionModal;
+                    actionContainer.innerHTML = '';
+                    actionContainer.appendChild(btn);
+                }
+            } else if (eligibleStudents.length > 0 && (!toClassSelect.value || !toSectionSelect.value)) {
+                actionContainer.innerHTML = '<div class="text-amber-600 text-sm bg-amber-50 p-2 rounded-lg inline-flex items-center gap-2"><i class="fas fa-exclamation-triangle"></i> Select target class & section to enable promotion</div>';
+            } else if (eligibleStudents.length === 0) {
+                actionContainer.innerHTML = '';
+            }
+        }
+
+        async function onFromClassChange() {
+            const classId = fromClassSelect.value;
+            if (!classId) {
+                fromSectionSelect.disabled = true;
+                fromSectionSelect.innerHTML = '<option value="">Select Class First</option>';
+                eligibleStudents = [];
+                renderEligibleTable();
+                actionContainer.innerHTML = '';
+                return;
+            }
+            const sections = await getSections(classId);
+            fromSectionSelect.disabled = false;
+            fromSectionSelect.innerHTML = '<option value="">-- Select Section --</option>';
+            sections.forEach(sec => fromSectionSelect.appendChild(new Option(sec.name, sec.name)));
+            eligibleStudents = [];
+            renderEligibleTable();
+            actionContainer.innerHTML = '';
+        }
+
+        async function onToClassChange() {
+            const classId = toClassSelect.value;
+            if (!classId) {
+                toSectionSelect.disabled = true;
+                toSectionSelect.innerHTML = '<option value="">Select Class First</option>';
+                checkTargetAndUpdatePromoButton();
+                return;
+            }
+            const sections = await getSections(classId);
+            toSectionSelect.disabled = false;
+            toSectionSelect.innerHTML = '<option value="">-- Select Section --</option>';
+            sections.forEach(sec => toSectionSelect.appendChild(new Option(sec.name, sec.name)));
+            checkTargetAndUpdatePromoButton();
+        }
+
+        // Event listeners
+        fromClassSelect.addEventListener('change', onFromClassChange);
+        toClassSelect.addEventListener('change', onToClassChange);
+        fetchBtn.addEventListener('click', fetchEligibleStudents);
+        document.getElementById('confirmPromoteBtn').addEventListener('click', executePromotion);
+        document.getElementById('toSection').addEventListener('change', checkTargetAndUpdatePromoButton);
+
+        window.closePromotionModal = closePromotionModal;
+
+        // Initialize
+        await loadSession();
+        await loadClasses();
+    </script>
+</body>
+</html>
