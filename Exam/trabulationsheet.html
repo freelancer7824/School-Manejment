@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabulation Sheet | Session Wise | ONNO ROKOM BIDDYANIKETON</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body { 
+            background: #f8fafc; 
+            font-family: 'Hind Siliguri', sans-serif;
+        }
+        
+        .tabulation-container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); 
+            overflow-x: auto; 
+        }
+        
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            white-space: nowrap;
+            font-size: 12px;
+        }
+        
+        th, td { 
+            border: 1px solid #cbd5e1; 
+            padding: 8px 8px; 
+            text-align: center; 
+            font-size: 12px; 
+        }
+        
+        th { 
+            background-color: #f1f5f9; 
+            font-weight: 700; 
+            color: #1e293b;
+            padding: 10px 8px;
+        }
+        
+        .pass-status { 
+            color: #059669; 
+            font-weight: 800; 
+        }
+        
+        .fail-status { 
+            color: #dc2626; 
+            font-weight: 800; 
+        }
+        
+        .session-badge { 
+            background: linear-gradient(45deg, #3b82f6, #2563eb); 
+            color: white; 
+            font-size: 10px; 
+            padding: 2px 6px; 
+            border-radius: 20px; 
+        }
+        
+        /* ==================== PRINT STYLES - LANDSCAPE MODE ==================== */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            body {
+                background: white;
+                margin: 0;
+                padding: 0;
+            }
+            
+            @page {
+                size: landscape;
+                margin: 10mm;
+            }
+            
+            .max-w-full {
+                max-width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .tabulation-container {
+                box-shadow: none;
+                padding: 10px;
+                margin: 0;
+                border-radius: 0;
+                background: white;
+                overflow-x: visible;
+            }
+            
+            #tableWrapper {
+                overflow-x: visible !important;
+                width: 100% !important;
+            }
+            
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                page-break-inside: avoid;
+                font-size: 10px;
+            }
+            
+            thead {
+                display: table-header-group;
+            }
+            
+            th, td {
+                border: 1px solid #000;
+                padding: 5px 4px;
+                font-size: 9px;
+            }
+            
+            th {
+                background-color: #e2e8f0 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            #sheetHeader {
+                margin-bottom: 15px;
+                text-align: center;
+            }
+            
+            #displaySchool {
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            
+            #displayMeta {
+                font-size: 11px;
+                margin-bottom: 3px;
+            }
+            
+            #sessionInfo {
+                font-size: 9px;
+                margin-top: 5px;
+            }
+            
+            .pass-status {
+                color: #059669 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .fail-status {
+                color: #dc2626 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            tr {
+                page-break-inside: avoid;
+                page-break-after: avoid;
+            }
+            
+            .session-badge {
+                background: #3b82f6 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                color: white;
+            }
+            
+            .overflow-x-auto {
+                overflow-x: visible !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            th, td {
+                padding: 6px 4px;
+                font-size: 10px;
+            }
+            .tabulation-container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-full mx-auto">
+        <div class="text-center mb-8 no-print">
+            <h1 class="text-3xl font-bold text-indigo-900">Tabulation Sheet</h1>
+            <p class="text-gray-500">ONNO ROKOM BIDDYANIKETON</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 no-print">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <select id="sessionView" class="border p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="current">Current Session</option>
+                    <option value="next">Next Session</option>
+                </select>
+                <select id="examSelect" class="border p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">Select Exam</option>
+                </select>
+                <select id="classSelect" class="border p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">Select Class</option>
+                </select>
+                <select id="sectionSelect" class="border p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" disabled>
+                    <option value="">All Section</option>
+                </select>
+                <button id="loadSheetBtn" class="bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition-all">
+                    <i class="fas fa-table-list mr-2"></i> Load Tabulation
+                </button>
+            </div>
+            <div class="mt-3 flex justify-between items-center">
+                <span class="text-xs bg-blue-100 px-3 py-1 rounded-full">
+                    <i class="fas fa-database"></i> Session Data Only | No Root Data
+                </span>
+                <span class="text-xs text-gray-500">
+                    <i class="fas fa-print"></i> Print will be in Landscape mode
+                </span>
+            </div>
+        </div>
+
+        <!-- Result Content -->
+        <div id="printArea" class="tabulation-container">
+            <div id="sheetHeader" class="text-center mb-4 hidden">
+                <h2 class="text-xl font-bold uppercase" id="displaySchool">ONNO ROKOM BIDDYANIKETON</h2>
+                <p class="text-sm font-semibold" id="displayMeta"></p>
+                <p class="text-xs text-blue-600 mt-1" id="sessionInfo"></p>
+            </div>
+            
+            <div id="tableWrapper" class="overflow-x-auto">
+                <table id="tabulationTable">
+                    <thead id="tHead"></thead>
+                    <tbody id="tBody">
+                        <tr><td colspan="100%" class="py-10 text-gray-400 text-center">
+                            <i class="fas fa-info-circle text-2xl mb-2 block"></i>
+                            ফিল্টার সিলেক্ট করে লোড বাটনে ক্লিক করুন<br>
+                            <span class="text-xs">⚠️ শুধুমাত্র Session Data থেকে পড়া হচ্ছে (Root Data নয়)</span>
+                            <br>
+                            <span class="text-xs text-green-600 mt-2 block">🖨️ প্রিন্ট করার সময় LANDSCAPE মোড ব্যবহার করা হবে</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="mt-6 text-right no-print flex gap-3 justify-end">
+            <button id="printLandscapeBtn" class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all">
+                <i class="fas fa-print mr-2"></i> Print (Landscape)
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentSession = "2025-2026", nextSession = "2026-2027";
+        let allClasses = [], classOptionsMap = {};
+        let allExamsCache = [];
+        let allSubjectsCache = [];
+        let allSectionsCache = [];
+        let allMarksCache = [];
+        let allSetupCache = [];
+
+        function getGrade(obt, full) {
+            if (!full || full <= 0) return { lg: "-", gp: 0 };
+            const p = (obt / full) * 100;
+            if (p >= 80) return { lg: "A+", gp: 5.00 };
+            if (p >= 70) return { lg: "A", gp: 4.00 };
+            if (p >= 60) return { lg: "A-", gp: 3.50 };
+            if (p >= 50) return { lg: "B", gp: 3.00 };
+            if (p >= 40) return { lg: "C", gp: 2.00 };
+            if (p >= 33) return { lg: "D", gp: 1.00 };
+            return { lg: "F", gp: 0.00 };
+        }
+
+        function safeNum(v) {
+            const n = parseFloat(v);
+            return Number.isFinite(n) ? n : 0;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+        }
+
+        function getViewingSession() {
+            const sessionVal = document.getElementById('sessionView').value;
+            return sessionVal === 'current' ? currentSession : nextSession;
+        }
+
+        async function loadSessions() {
+            try {
+                const sdoc = await getDoc(doc(db, "config", "activeSession"));
+                if (sdoc.exists()) {
+                    currentSession = sdoc.data().sessionName || currentSession;
+                }
+                const parts = currentSession.split('-');
+                nextSession = parts.length === 2 ? `${parseInt(parts[0]) + 1}-${parseInt(parts[1]) + 1}` : "2026-2027";
+            } catch (e) {
+                console.error("Error loading session:", e);
+            }
+        }
+
+        async function loadClasses() {
+            const snap = await getDocs(query(collection(db, "classes"), orderBy("order")));
+            allClasses = snap.docs.map(d => ({ id: d.id, name: d.data().name }));
+            classOptionsMap = Object.fromEntries(allClasses.map(c => [c.id, c.name]));
+            
+            const clSelect = document.getElementById('classSelect');
+            clSelect.innerHTML = '<option value="">Select Class</option>';
+            allClasses.forEach(c => clSelect.appendChild(new Option(c.name, c.id)));
+        }
+
+        async function loadAllData() {
+            // Load all data without filters to avoid index issues
+            const [exSnap, subSnap, secSnap, marksSnap, setupSnap] = await Promise.all([
+                getDocs(collection(db, "exams")),
+                getDocs(collection(db, "subjects")),
+                getDocs(collection(db, "sections")),
+                getDocs(collection(db, "marks")),
+                getDocs(collection(db, "mark_setup"))
+            ]);
+            
+            allExamsCache = [];
+            exSnap.forEach(d => {
+                const data = d.data();
+                allExamsCache.push({ id: d.id, name: data.name, session: data.session, order: data.order || 0 });
+            });
+            
+            allSubjectsCache = [];
+            subSnap.forEach(d => {
+                const data = d.data();
+                allSubjectsCache.push({ id: d.id, name: data.name, classId: data.classId });
+            });
+            
+            allSectionsCache = [];
+            secSnap.forEach(d => {
+                const data = d.data();
+                allSectionsCache.push({ name: data.name, classId: data.classId });
+            });
+            
+            allMarksCache = [];
+            marksSnap.forEach(d => {
+                const data = d.data();
+                allMarksCache.push({ id: d.id, ...data });
+            });
+            
+            allSetupCache = [];
+            setupSnap.forEach(d => {
+                const data = d.data();
+                allSetupCache.push({ id: d.id, ...data });
+            });
+            
+            // Load exams for current session
+            loadExamsForSession();
+        }
+        
+        function loadExamsForSession() {
+            const viewingSession = getViewingSession();
+            const filteredExams = allExamsCache
+                .filter(exam => exam.session === viewingSession)
+                .sort((a, b) => a.order - b.order);
+            
+            const exSelect = document.getElementById('examSelect');
+            exSelect.innerHTML = '<option value="">Select Exam</option>';
+            filteredExams.forEach(exam => {
+                exSelect.innerHTML += `<option value="${exam.id}">${escapeHtml(exam.name)}</option>`;
+            });
+        }
+
+        async function loadSessionStudentsOnly(sessionVal, classId, sectionName) {
+            const students = [];
+            let targetSession = sessionVal === 'next' ? nextSession : currentSession;
+
+            try {
+                if (classId) {
+                    const studRef = collection(db, `current_session/${targetSession}/classes/${classId}/students`);
+                    const studSnap = await getDocs(studRef);
+                    
+                    for (const docSnap of studSnap.docs) {
+                        const data = docSnap.data();
+                        const studentSection = data.section || "";
+                        
+                        if (sectionName && studentSection !== sectionName) continue;
+                        if (sessionVal === 'current' && data.promotedToNextSession === true) continue;
+                        
+                        students.push({
+                            id: docSnap.id,
+                            ...data,
+                            classId: classId,
+                            className: classOptionsMap[classId] || data.className || '',
+                            section: studentSection,
+                            rollNumber: data.rollNumber || data.roll || '',
+                            fullName: data.fullName || '',
+                            _session: targetSession
+                        });
+                    }
+                }
+                
+                students.sort((a, b) => {
+                    const ar = safeNum(a.rollNumber);
+                    const br = safeNum(b.rollNumber);
+                    return ar - br;
+                });
+                
+            } catch (e) {
+                console.error('Error loading session data:', e);
+            }
+            
+            return students;
+        }
+
+        document.getElementById('classSelect').onchange = async (e) => {
+            const classId = e.target.value;
+            const secSelect = document.getElementById('sectionSelect');
+            if (!classId) {
+                secSelect.innerHTML = '<option value="">All Section</option>';
+                secSelect.disabled = true;
+                return;
+            }
+            secSelect.disabled = false;
+            const filteredSections = allSectionsCache.filter(sec => sec.classId === classId);
+            secSelect.innerHTML = '<option value="">All Section</option>';
+            filteredSections.forEach(sec => {
+                secSelect.innerHTML += `<option value="${sec.name}">${sec.name}</option>`;
+            });
+        };
+
+        document.getElementById('sessionView').addEventListener('change', () => {
+            loadExamsForSession();
+            document.getElementById('classSelect').value = '';
+            document.getElementById('sectionSelect').innerHTML = '<option value="">All Section</option>';
+            document.getElementById('sectionSelect').disabled = true;
+            document.getElementById('tBody').innerHTML = '';
+            document.getElementById('sheetHeader').classList.add('hidden');
+        });
+
+        document.getElementById('loadSheetBtn').onclick = async () => {
+            const sessionVal = document.getElementById('sessionView').value;
+            const examId = document.getElementById('examSelect').value;
+            const classId = document.getElementById('classSelect').value;
+            const secName = document.getElementById('sectionSelect').value;
+
+            if (!examId || !classId) {
+                alert("অনুগ্রহ করে পরীক্ষা এবং ক্লাস সিলেক্ট করুন");
+                return;
+            }
+
+            document.getElementById('tBody').innerHTML = '<tr><td colspan="100%" class="py-10 text-center"><i class="fas fa-spinner fa-spin text-2xl"></i><br>প্রসেসিং হচ্ছে...</td></tr>';
+
+            try {
+                const examName = allExamsCache.find(e => e.id === examId)?.name || examId;
+                const className = classOptionsMap[classId] || classId;
+                const targetSession = sessionVal === 'next' ? nextSession : currentSession;
+                
+                const students = await loadSessionStudentsOnly(sessionVal, classId, secName || null);
+                const subjects = allSubjectsCache.filter(sub => sub.classId === classId);
+                
+                if (students.length === 0) {
+                    document.getElementById('tBody').innerHTML = `<tr><td colspan="100%" class="py-10 text-center text-yellow-600">
+                        <i class="fas fa-exclamation-triangle text-3xl mb-2 block"></i>
+                        কোনো ছাত্র/ছাত্রী পাওয়া যায়নি!<br>
+                        <span class="text-xs">${className} ক্লাসে ${secName ? secName + ' সেকশনে ' : ''}${targetSession} সেশনে কোনো ছাত্র নেই বা সব প্রমোট হয়েছে</span>
+                        <br><span class="text-xs text-blue-500 mt-2 block">⚠️ শুধুমাত্র Session Data থেকে পড়া হচ্ছে</span>
+                    </td></tr>`;
+                    document.getElementById('sheetHeader').classList.add('hidden');
+                    return;
+                }
+
+                // Create header
+                let headHTML = `<tr class="bg-gray-100">
+                    <th rowspan="2" class="w-12">Roll</th>
+                    <th rowspan="2" class="w-40">Student Name</th>`;
+                subjects.forEach(sub => headHTML += `<th colspan="2" class="px-2">${escapeHtml(sub.name)}</th>`);
+                headHTML += `<th rowspan="2" class="w-16">Total</th>
+                    <th rowspan="2" class="w-14">GPA</th>
+                    <th rowspan="2" class="w-20">Status</th>
+                </tr>
+                <tr>`;
+                subjects.forEach(() => headHTML += `<th class="w-10">Obt</th><th class="w-10">LG</th>`);
+                headHTML += `</tr>`;
+                document.getElementById('tHead').innerHTML = headHTML;
+
+                // Create body
+                let bodyHTML = "";
+                
+                for (const stu of students) {
+                    let totalObtained = 0;
+                    let totalGP = 0;
+                    let isFailed = false;
+                    let rowMarksHTML = "";
+
+                    for (const sub of subjects) {
+                        const marksData = allMarksCache.find(m => m.studentId === stu.id && m.examId === examId && m.subjectId === sub.id);
+                        const m = marksData?.marks || {};
+                        
+                        const setupKey = `${examId}_${classId}_${stu.section || ''}_${sub.id}_${targetSession}`;
+                        const setupData = allSetupCache.find(s => s.id === setupKey);
+                        const setup = setupData?.marks || {};
+                        
+                        const full = (setup.written?.full || 0) + (setup.mcq?.full || 0) + (setup.practical?.full || 0);
+                        const obt = (m.written || 0) + (m.mcq || 0) + (m.practical || 0);
+                        const grade = getGrade(obt, full);
+
+                        totalObtained += obt;
+                        totalGP += grade.gp;
+                        if (grade.lg === "F") isFailed = true;
+
+                        rowMarksHTML += `<td class="font-medium">${obt}</td>
+                                        <td class="${grade.lg === 'F' ? 'text-red-500 font-bold' : 'text-green-700'}">${grade.lg}</td>`;
+                    }
+
+                    const subjectCount = subjects.length || 1;
+                    const finalGPA = isFailed ? 0.00 : (totalGP / subjectCount);
+                    const status = isFailed ? '<span class="fail-status"><i class="fas fa-times-circle"></i> FAILED</span>' : '<span class="pass-status"><i class="fas fa-check-circle"></i> PASSED</span>';
+
+                    bodyHTML += `<tr class="hover:bg-gray-50">
+                        <td class="font-bold">${stu.rollNumber || '-'}</td>
+                        <td class="text-left font-semibold">${escapeHtml(stu.fullName || '-')}</td>
+                        ${rowMarksHTML}
+                        <td class="font-bold bg-gray-50">${totalObtained}</td>
+                        <td class="font-bold ${finalGPA >= 3.5 ? 'text-green-700' : finalGPA >= 2 ? 'text-blue-700' : 'text-red-600'}">${finalGPA.toFixed(2)}</td>
+                        <td class="text-center">${status}</td>
+                    </tr>`;
+                }
+
+                document.getElementById('tBody').innerHTML = bodyHTML;
+                
+                document.getElementById('sheetHeader').classList.remove('hidden');
+                document.getElementById('displayMeta').innerHTML = `<strong>Exam:</strong> ${examName} | <strong>Class:</strong> ${className} | <strong>Section:</strong> ${secName || 'All'} | <strong>Total Students:</strong> ${students.length}`;
+                document.getElementById('sessionInfo').innerHTML = `<i class="fas fa-calendar-alt"></i> Session: ${targetSession} | <span class="session-badge"><i class="fas fa-database"></i> Session Data Only</span>`;
+                
+                document.getElementById('printArea').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('tBody').innerHTML = `<tr><td colspan="100%" class="py-10 text-center text-red-500">
+                    <i class="fas fa-exclamation-circle text-3xl mb-2 block"></i>
+                    ডাটা লোড করতে সমস্যা হয়েছে!<br>
+                    <span class="text-xs">${error.message}</span>
+                </td></tr>`;
+            }
+        };
+
+        document.getElementById('printLandscapeBtn').onclick = () => {
+            window.print();
+        };
+
+        async function init() {
+            await loadSessions();
+            await loadClasses();
+            await loadAllData();
+        }
+        
+        init();
+    </script>
+</body>
+</html>
