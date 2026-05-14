@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Attendance | Mark Student Attendance</title>
+    <title>Attendance | Mark Student Attendance - Session Wise</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
@@ -31,6 +31,7 @@
         .status-btn.active { transform: scale(1.02); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .student-row:hover { background-color: #fefce8; }
         .date-picker::-webkit-calendar-picker-indicator { cursor: pointer; }
+        .session-badge { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-6">
@@ -43,7 +44,7 @@
         </div>
     </div>
 
-    <div class="max-w-6xl mx-auto">
+    <div class="max-w-7xl mx-auto">
         <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
             <div class="flex items-center gap-3">
                 <a href="dashboard.html" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition">
@@ -60,8 +61,16 @@
             </div>
         </div>
 
+        <!-- Filters Card -->
         <div class="bg-white rounded-2xl shadow-md p-5 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+            <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Session</label>
+                    <select id="sessionSelect" class="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-primary/30">
+                        <option value="current">Current Session</option>
+                        <option value="next">Next Session</option>
+                    </select>
+                </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Class</label>
                     <select id="classSelect" class="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-primary/30">
@@ -95,6 +104,7 @@
             </div>
         </div>
 
+        <!-- Summary Cards -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="summaryCards">
             <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-primary">
                 <p class="text-gray-500 text-xs uppercase">Total Students</p>
@@ -114,6 +124,7 @@
             </div>
         </div>
 
+        <!-- Attendance Table -->
         <div class="bg-white rounded-2xl shadow-md overflow-hidden">
             <div class="bg-gradient-to-r from-primary/5 to-indigo-50 px-5 py-4 border-b flex justify-between items-center flex-wrap gap-2">
                 <div>
@@ -166,12 +177,14 @@
 
         let allClasses = [];
         let sectionsCache = {};
+        let classOptionsMap = {};
         let currentStudents = [];
         let attendanceRecords = {};
         let currentClassId = null;
         let currentSection = null;
         let currentDate = null;
-        let currentSessionName = "2025-2026";
+        let currentSession = "2025-2026";
+        let nextSession = "2026-2027";
 
         function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');
@@ -195,13 +208,21 @@
             return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m]));
         }
 
+        function getViewingSession() {
+            return document.getElementById('sessionSelect').value === 'current' ? currentSession : nextSession;
+        }
+
         async function loadSession() {
             try {
                 const s = await getDoc(doc(db, "config", "activeSession"));
-                if (s.exists()) currentSessionName = s.data().sessionName || currentSessionName;
-                document.getElementById('session_badge').innerHTML = `<i class="fas fa-calendar-alt mr-1"></i> Session: ${currentSessionName}`;
+                if (s.exists()) {
+                    currentSession = s.data().sessionName || currentSession;
+                }
+                const parts = currentSession.split('-');
+                nextSession = parts.length === 2 ? `${parseInt(parts[0]) + 1}-${parseInt(parts[1]) + 1}` : "2026-2027";
+                document.getElementById('session_badge').innerHTML = `<span class="session-badge"><i class="fas fa-database mr-1"></i> ${currentSession}</span>`;
             } catch(e) {
-                document.getElementById('session_badge').innerHTML = `<i class="fas fa-calendar-alt mr-1"></i> Session: ${currentSessionName}`;
+                document.getElementById('session_badge').innerHTML = `<span class="session-badge">${currentSession}</span>`;
             }
         }
 
@@ -215,6 +236,7 @@
                 snap.forEach(docSnap => {
                     const cls = { id: docSnap.id, name: docSnap.data().name };
                     allClasses.push(cls);
+                    classOptionsMap[cls.id] = cls.name;
                     select.appendChild(new Option(cls.name, cls.id));
                 });
             } catch (err) {
@@ -223,7 +245,7 @@
             }
         }
 
-        async function loadSections(classId) {
+        async function getSections(classId) {
             if (!classId) return [];
             if (sectionsCache[classId]) return sectionsCache[classId];
             try {
@@ -245,48 +267,56 @@
                 sectionSelect.disabled = true;
                 return;
             }
-            const sections = await loadSections(classId);
+            const sections = await getSections(classId);
             sectionSelect.disabled = false;
             sectionSelect.innerHTML = '<option value="">-- Select Section --</option>';
             sections.forEach(sec => sectionSelect.appendChild(new Option(sec.name, sec.name)));
         }
 
+        // 🔥 Load students from SESSION DATA only
         async function loadStudentsByClassSection(classId, sectionName) {
+            const students = [];
+            const targetSession = getViewingSession();
+            
             try {
-                const q = query(
-                    collection(db, `current_session/${currentSessionName}/classes/${classId}/students`),
-                    where("section", "==", sectionName),
-                    where("status", "==", "active")
-                );
-                const snap = await getDocs(q);
-                const students = [];
-                const classObj = allClasses.find(c => c.id === classId);
-                snap.forEach(docSnap => {
+                const studRef = collection(db, `current_session/${targetSession}/classes/${classId}/students`);
+                const studSnap = await getDocs(studRef);
+                
+                for (const docSnap of studSnap.docs) {
                     const data = docSnap.data();
+                    const studentSection = data.section || "";
+                    
+                    if (sectionName && studentSection !== sectionName) continue;
+                    if (document.getElementById('sessionSelect').value === 'current' && data.promotedToNextSession === true) continue;
+                    
                     students.push({
                         id: docSnap.id,
                         name: data.fullName || data.name || "Unnamed",
                         roll: data.rollNumber || data.roll || "N/A",
-                        section: data.section,
+                        section: studentSection,
                         classId: classId,
-                        className: classObj?.name || "Class"
+                        className: classOptionsMap[classId] || data.className || "Class"
                     });
-                });
+                }
+                
                 students.sort((a, b) => (parseInt(a.roll) || 0) - (parseInt(b.roll) || 0));
-                return students;
+                
             } catch (err) {
-                console.error(err);
-                return [];
+                console.error("Error loading students from session:", err);
             }
+            
+            return students;
         }
 
         async function loadExistingAttendance(dateStr, classId, section) {
             try {
+                const targetSession = getViewingSession();
                 const q = query(
                     collection(db, "attendance"),
                     where("date", "==", dateStr),
                     where("classId", "==", classId),
-                    where("section", "==", section)
+                    where("section", "==", section),
+                    where("sessionName", "==", targetSession)
                 );
                 const snap = await getDocs(q);
                 const records = {};
@@ -378,7 +408,7 @@
                     attendanceRecords[studentId].status = newStatus;
                     const remarkInput = document.querySelector(`.remark-input[data-student="${studentId}"]`);
                     if (remarkInput) attendanceRecords[studentId].remark = remarkInput.value;
-                    renderAttendanceTable(students, attendanceRecords, document.getElementById('statusFilter').value);
+                    renderAttendanceTable(currentStudents, attendanceRecords, document.getElementById('statusFilter').value);
                 });
             });
 
@@ -403,6 +433,11 @@
                 return;
             }
 
+            const targetSession = getViewingSession();
+            const saveBtn = document.getElementById('saveAttendanceBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Saving...';
+
             try {
                 const batch = writeBatch(db);
                 const attendanceCol = collection(db, "attendance");
@@ -411,7 +446,7 @@
                     const record = attendanceRecords[student.id];
                     if (!record) continue;
 
-                    const docId = `${currentDate}_${student.id}`;
+                    const docId = `${targetSession}_${currentDate}_${student.id}`;
                     const docRef = doc(attendanceCol, docId);
                     batch.set(docRef, {
                         studentId: student.id,
@@ -423,15 +458,19 @@
                         date: currentDate,
                         status: record.status,
                         remark: record.remark || '',
+                        sessionName: targetSession,
                         updatedAt: Timestamp.now()
                     }, { merge: true });
                 }
 
                 await batch.commit();
-                showToast(`Attendance saved (${currentStudents.length} students) for ${currentDate}`, "success");
+                showToast(`Attendance saved (${currentStudents.length} students) for ${currentDate} (${targetSession})`, "success");
             } catch (err) {
                 console.error(err);
                 showToast("Error: " + err.message, "error");
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Save';
             }
         }
 
@@ -475,11 +514,24 @@
                 });
 
                 renderAttendanceTable(students, attendanceRecords, document.getElementById('statusFilter').value);
+                showToast(`Loaded ${students.length} students from ${getViewingSession()} session`, "success");
             } catch (err) {
                 console.error(err);
                 tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-red-500">Error loading data</td></tr>`;
             }
         }
+
+        // Event Listeners
+        document.getElementById('sessionSelect').addEventListener('change', () => {
+            sectionsCache = {};
+            document.getElementById('classSelect').value = '';
+            document.getElementById('sectionSelect').innerHTML = '<option value="">First select class</option>';
+            document.getElementById('sectionSelect').disabled = true;
+            document.getElementById('attendanceTableBody').innerHTML = `<tr><td colspan="5" class="text-center py-12 text-gray-400">Select class, section & date then click Load</td></tr>`;
+            currentStudents = [];
+            attendanceRecords = {};
+            updateSummary([], {});
+        });
 
         document.getElementById('classSelect').addEventListener('change', async (e) => {
             await updateSectionDropdown(e.target.value);
@@ -499,11 +551,13 @@
             }
         });
 
+        // Set default date to today
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('attendanceDate').value = today;
 
-        await loadClasses();
+        // Initialize
         await loadSession();
+        await loadClasses();
     </script>
 </body>
 </html>
