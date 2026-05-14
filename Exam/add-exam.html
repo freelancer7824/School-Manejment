@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exam Control - Edit & Status</title>
+    <title>Exam Control - Session Wise | ONNO ROKOM BIDDYANIKETON</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js"></script>
     <style>
         :root {
             --primary: #2c3e50;
@@ -25,7 +25,7 @@
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: auto;
             background: #fff;
             padding: 20px;
@@ -34,6 +34,40 @@
         }
 
         h2 { text-align: center; color: var(--primary); margin-bottom: 20px; }
+
+        .session-info {
+            background: linear-gradient(135deg, var(--accent), #2980b9);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .session-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .session-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .session-selector select {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
         .input-group {
             display: flex;
@@ -45,7 +79,7 @@
             border-radius: 8px;
         }
 
-        .input-group input {
+        .input-group input, .input-group select {
             flex: 1;
             min-width: 180px;
             padding: 12px;
@@ -63,8 +97,9 @@
             transition: 0.2s;
         }
 
-        .btn-add { background: var(--accent); width: 100%; }
-        .btn-update { background: #8e44ad; display: none; width: 100%; }
+        .btn-add { background: var(--accent); }
+        .btn-update { background: #8e44ad; display: none; }
+        .btn-cancel { background: #95a5a6; display: none; }
         
         .status-badge {
             padding: 4px 8px;
@@ -85,9 +120,12 @@
         table { width: 100%; border-collapse: collapse; min-width: 700px; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
         th { background-color: var(--primary); color: white; }
+        .session-tag { font-size: 10px; background: #e0e0e0; padding: 2px 6px; border-radius: 10px; margin-left: 5px; }
+        .loading { text-align: center; padding: 40px; color: #666; }
 
-        @media (min-width: 600px) { 
-            .btn-add, .btn-update { width: auto; } 
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            th, td { padding: 8px 10px; font-size: 13px; }
         }
     </style>
 </head>
@@ -96,11 +134,29 @@
 <div class="container">
     <h2><i class="fas fa-edit"></i> Exam Management Control</h2>
 
+    <!-- Session Info Bar -->
+    <div class="session-info">
+        <div>
+            <i class="fas fa-calendar-alt"></i> <strong>Current Academic Session</strong>
+        </div>
+        <div class="session-selector">
+            <span class="session-badge" id="currentSessionLabel">Loading...</span>
+            <select id="sessionSelect">
+                <option value="current">Current Session</option>
+                <option value="next">Next Session</option>
+            </select>
+        </div>
+    </div>
+
     <!-- Input Section -->
     <div class="input-group">
-        <input type="hidden" id="editDocId"> <!-- লুকানো ফিল্ড ID রাখার জন্য -->
-        <input type="text" id="examName" placeholder="পরীক্ষার নাম...">
-        <input type="number" id="orderNumber" placeholder="সিরিয়াল">
+        <input type="hidden" id="editDocId">
+        <input type="text" id="examName" placeholder="পরীক্ষার নাম (যেমন: Half Yearly, Final Exam)...">
+        <input type="number" id="orderNumber" placeholder="সিরিয়াল (১, ২, ৩...)">
+        <select id="examStatus">
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+        </select>
         
         <button id="addBtn" class="btn btn-add" onclick="addExam()">
             <i class="fas fa-plus"></i> Add Exam
@@ -110,139 +166,288 @@
             <i class="fas fa-save"></i> Update Changes
         </button>
         
-        <button id="cancelBtn" class="btn btn-delete" style="display:none;" onclick="resetForm()">
-            Cancel
+        <button id="cancelBtn" class="btn btn-cancel" onclick="resetForm()">
+            <i class="fas fa-times"></i> Cancel
         </button>
     </div>
 
     <div class="table-responsive">
-        <table>
+        <table id="examTable">
             <thead>
                 <tr>
                     <th>Order</th>
                     <th>Exam Name</th>
+                    <th>Session</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody id="examTableBody"></tbody>
+            <tbody id="examTableBody">
+                <tr><td colspan="5" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading exams...</td></tr>
+            </tbody>
         </table>
+    </div>
+    
+    <div style="margin-top: 15px; padding: 10px; background: #e8f4f8; border-radius: 8px; font-size: 12px;">
+        <i class="fas fa-info-circle"></i> <strong>Note:</strong> প্রতিটি Exam নির্দিষ্ট Session এর অধীনে সংরক্ষিত হয়। 
+        Session পরিবর্তন করলে সেই Session এর Exams দেখাবে।
     </div>
 </div>
 
-<script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+    import { 
+        getFirestore, collection, addDoc, getDocs, query, where, 
+        orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc 
+    } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
     const firebaseConfig = {
         apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
         authDomain: "school-menejment.firebaseapp.com",
         projectId: "school-menejment",
         storageBucket: "school-menejment.firebasestorage.app",
         messagingSenderId: "348342436525",
-        appId: "1:348342436525:web:41fc72cb02f824baa3bc24"
+        appId: "1:348342436525:web:c339fe6216c4516aa3bc24"
     };
 
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-    const db = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    // ১. ডাটা যোগ করা
-    async function addExam() {
-        const name = document.getElementById('examName').value;
-        const order = document.getElementById('orderNumber').value;
-        if (!name || !order) { alert("সবগুলো ঘর পূরণ করুন"); return; }
+    let currentSession = "2025-2026";
+    let nextSession = "2026-2027";
+    let currentViewSession = "current"; // 'current' or 'next'
+    let allExamsCache = []; // Cache all exams
 
-        await db.collection("exams").add({
-            name: name,
-            order: parseInt(order),
-            status: "draft"
-        });
-        resetForm();
+    // Load active session from config
+    async function loadActiveSession() {
+        try {
+            const sdoc = await getDoc(doc(db, "config", "activeSession"));
+            if (sdoc.exists()) {
+                currentSession = sdoc.data().sessionName || currentSession;
+            }
+            const parts = currentSession.split('-');
+            nextSession = parts.length === 2 ? `${parseInt(parts[0]) + 1}-${parseInt(parts[1]) + 1}` : "2026-2027";
+        } catch (e) {
+            console.error("Error loading session:", e);
+        }
+        
+        document.getElementById('currentSessionLabel').innerHTML = `<i class="fas fa-database"></i> ${currentSession}`;
     }
 
-    // ২. রিয়েল টাইম ডাটা শো
-    db.collection("exams").orderBy("order", "asc").onSnapshot((snapshot) => {
+    // Get current viewing session string
+    function getViewingSession() {
+        return currentViewSession === 'current' ? currentSession : nextSession;
+    }
+
+    // Load and display exams (without complex query)
+    async function loadExams() {
+        const viewingSession = getViewingSession();
         const tableBody = document.getElementById('examTableBody');
-        tableBody.innerHTML = "";
         
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            const id = doc.id;
-            const currentStatus = data.status || "draft"; 
-            const statusClass = currentStatus === 'published' ? 'status-published' : 'status-draft';
+        tableBody.innerHTML = '<tr><td colspan="5" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading exams...</td></tr>';
+        
+        try {
+            // Get all exams first
+            const querySnapshot = await getDocs(collection(db, "exams"));
+            const allExams = [];
             
-            tableBody.innerHTML += `
-                <tr>
-                    <td>${data.order}</td>
-                    <td><strong>${data.name}</strong></td>
-                    <td><span class="status-badge ${statusClass}">${currentStatus}</span></td>
-                    <td>
-                        <button class="btn btn-action btn-edit" onclick="editExam('${id}', '${data.name}', ${data.order})">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                allExams.push({
+                    id: docSnap.id,
+                    ...data
+                });
+            });
+            
+            // Filter by session and sort by order
+            const filteredExams = allExams
+                .filter(exam => exam.session === viewingSession)
+                .sort((a, b) => (a.order || 0) - (b.order || 0));
+            
+            if (filteredExams.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 40px;">
+                    <i class="fas fa-calendar-times" style="font-size: 40px; color: #ccc;"></i><br>
+                    <strong>${viewingSession} সেশনে কোন পরীক্ষা নেই</strong><br>
+                    <small>উপরে ফর্ম পূরণ করে নতুন পরীক্ষা যোগ করুন</small>
+                </td></tr>`;
+                return;
+            }
+            
+            tableBody.innerHTML = "";
+            
+            filteredExams.forEach((data) => {
+                const id = data.id;
+                const currentStatus = data.status || "draft";
+                const statusClass = currentStatus === 'published' ? 'status-published' : 'status-draft';
+                
+                tableBody.innerHTML += `
+                    <tr>
+                        <td><strong>${data.order || '-'}</strong></td>
+                        <td><strong>${escapeHtml(data.name)}</strong>${data.session ? `<span class="session-tag">${data.session}</span>` : ''}</td>
+                        <td><span class="session-badge" style="background:#e0e7ff; color:#1e40af; font-size:11px;">${data.session || viewingSession}</span></td>
+                        <td><span class="status-badge ${statusClass}">${currentStatus === 'published' ? 'Published' : 'Draft'}</span></td>
+                        <td>
+                            <button class="btn btn-action btn-edit" onclick="window.editExam('${id}', '${escapeHtml(data.name)}', ${data.order || 0}, '${currentStatus}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            ${currentStatus === 'draft' ? 
+                                `<button class="btn btn-action btn-publish" onclick="window.toggleStatus('${id}', 'published')"><i class="fas fa-check"></i> Publish</button>` : 
+                                `<button class="btn btn-action btn-draft" onclick="window.toggleStatus('${id}', 'draft')"><i class="fas fa-undo"></i> Draft</button>`
+                            }
+                            <button class="btn btn-action btn-delete" onclick="window.deleteExam('${id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+        } catch (error) {
+            console.error("Error loading exams:", error);
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: red; padding: 40px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 40px;"></i><br>
+                Error loading exams: ${error.message}<br>
+                <small>Please check your connection and try again.</small>
+            </td></tr>`;
+        }
+    }
 
-                        ${currentStatus === 'draft' ? 
-                            `<button class="btn btn-action btn-publish" onclick="toggleStatus('${id}', 'published')"><i class="fas fa-check"></i> Publish</button>` : 
-                            `<button class="btn btn-action btn-draft" onclick="toggleStatus('${id}', 'draft')"><i class="fas fa-undo"></i> Draft</button>`
-                        }
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+    }
 
-                        <button class="btn btn-action btn-delete" onclick="deleteExam('${id}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-    });
+    // Add new exam
+    window.addExam = async function() {
+        const name = document.getElementById('examName').value.trim();
+        const order = document.getElementById('orderNumber').value;
+        const status = document.getElementById('examStatus').value;
+        
+        if (!name || !order) {
+            alert("দয়া করে পরীক্ষার নাম এবং সিরিয়াল নম্বর দিন");
+            return;
+        }
+        
+        const viewingSession = getViewingSession();
+        
+        try {
+            await addDoc(collection(db, "exams"), {
+                name: name,
+                order: parseInt(order),
+                status: status,
+                session: viewingSession,
+                createdAt: new Date().toISOString()
+            });
+            
+            resetForm();
+            alert(`✅ "${name}" পরীক্ষা ${viewingSession} সেশনে যোগ করা হয়েছে`);
+            await loadExams(); // Reload after add
+        } catch (error) {
+            console.error("Error adding exam:", error);
+            alert("Exam যোগ করতে সমস্যা হয়েছে: " + error.message);
+        }
+    };
 
-    // ৩. এডিট মোড অন করা
-    function editExam(id, name, order) {
+    // Edit exam
+    window.editExam = function(id, name, order, status) {
         document.getElementById('editDocId').value = id;
         document.getElementById('examName').value = name;
         document.getElementById('orderNumber').value = order;
+        document.getElementById('examStatus').value = status;
 
-        // বাটন পরিবর্তন
         document.getElementById('addBtn').style.display = 'none';
         document.getElementById('updateBtn').style.display = 'inline-block';
         document.getElementById('cancelBtn').style.display = 'inline-block';
         
-        window.scrollTo(0, 0); // পেজ স্ক্রল করে উপরে নিয়ে যাবে
-    }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
-    // ৪. আপডেট সাবমিট করা
-    async function submitUpdate() {
+    // Submit update
+    window.submitUpdate = async function() {
         const id = document.getElementById('editDocId').value;
-        const name = document.getElementById('examName').value;
+        const name = document.getElementById('examName').value.trim();
         const order = document.getElementById('orderNumber').value;
+        const status = document.getElementById('examStatus').value;
 
-        if (!id || !name || !order) return;
+        if (!id || !name || !order) {
+            alert("সব তথ্য পূরণ করুন");
+            return;
+        }
 
-        await db.collection("exams").doc(id).update({
-            name: name,
-            order: parseInt(order)
-        });
+        try {
+            await updateDoc(doc(db, "exams", id), {
+                name: name,
+                order: parseInt(order),
+                status: status,
+                updatedAt: new Date().toISOString()
+            });
+            
+            alert("✅ Exam তথ্য আপডেট হয়েছে!");
+            resetForm();
+            await loadExams(); // Reload after update
+        } catch (error) {
+            console.error("Error updating exam:", error);
+            alert("আপডেট করতে সমস্যা হয়েছে: " + error.message);
+        }
+    };
 
-        alert("তথ্য আপডেট হয়েছে!");
-        resetForm();
-    }
+    // Toggle status
+    window.toggleStatus = async function(id, newStatus) {
+        try {
+            await updateDoc(doc(db, "exams", id), { 
+                status: newStatus,
+                updatedAt: new Date().toISOString()
+            });
+            console.log(`Status changed to ${newStatus}`);
+            await loadExams(); // Reload after status change
+        } catch (error) {
+            console.error("Error toggling status:", error);
+            alert("স্ট্যাটাস পরিবর্তন করতে সমস্যা হয়েছে");
+        }
+    };
 
-    // ৫. ফর্ম রিসেট করা
-    function resetForm() {
+    // Delete exam
+    window.deleteExam = async function(id) {
+        if(confirm("আপনি কি এই পরীক্ষাটি সম্পূর্ণ মুছে ফেলতে চান?")) {
+            try {
+                await deleteDoc(doc(db, "exams", id));
+                alert("✅ পরীক্ষা মুছে ফেলা হয়েছে");
+                await loadExams(); // Reload after delete
+            } catch (error) {
+                console.error("Error deleting exam:", error);
+                alert("মুছে ফেলতে সমস্যা হয়েছে: " + error.message);
+            }
+        }
+    };
+
+    // Reset form
+    window.resetForm = function() {
         document.getElementById('editDocId').value = "";
         document.getElementById('examName').value = "";
         document.getElementById('orderNumber').value = "";
+        document.getElementById('examStatus').value = "draft";
+        
         document.getElementById('addBtn').style.display = 'inline-block';
         document.getElementById('updateBtn').style.display = 'none';
         document.getElementById('cancelBtn').style.display = 'none';
-    }
+    };
 
-    // ৬. স্ট্যাটাস ও ডিলিট
-    async function toggleStatus(id, newStatus) {
-        await db.collection("exams").doc(id).update({ status: newStatus });
-    }
+    // Session change handler
+    document.getElementById('sessionSelect').addEventListener('change', async (e) => {
+        currentViewSession = e.target.value;
+        const viewingSession = getViewingSession();
+        document.getElementById('currentSessionLabel').innerHTML = `<i class="fas fa-eye"></i> ${viewingSession}`;
+        resetForm();
+        await loadExams(); // Reload exams for new session
+    });
 
-    async function deleteExam(id) {
-        if(confirm("মুছে ফেলতে চান?")) {
-            await db.collection("exams").doc(id).delete();
-        }
+    // Initialize
+    async function init() {
+        await loadActiveSession();
+        await loadExams();
     }
+    
+    init();
 </script>
 
 </body>
