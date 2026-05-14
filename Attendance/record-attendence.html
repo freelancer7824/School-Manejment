@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Attendance | Mark Student Attendance - Session Wise</title>
+    <title>Attendance Reports | View Student Attendance Records - Session Wise</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
@@ -27,11 +27,36 @@
     </script>
     <style>
         body { background: #f1f5f9; font-family: 'Inter', sans-serif; }
-        .status-btn { transition: all 0.15s; cursor: pointer; }
-        .status-btn.active { transform: scale(1.02); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .student-row:hover { background-color: #fefce8; }
-        .date-picker::-webkit-calendar-picker-indicator { cursor: pointer; }
-        .session-badge { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .status-badge { transition: all 0.15s; }
+        .filter-panel { animation: fadeSlide 0.3s ease-out; }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            .no-print { display: none !important; }
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .session-badge {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-6">
@@ -47,23 +72,30 @@
     <div class="max-w-7xl mx-auto">
         <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
             <div class="flex items-center gap-3">
-                <a href="dashboard.html" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition">
+                <a href="dashboard.html" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition no-print">
                     <i class="fas fa-arrow-left text-primary"></i>
                 </a>
                 <h1 class="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
-                    <span class="bg-primary text-white p-1.5 rounded-xl"><i class="fas fa-calendar-check"></i></span>
-                    Mark Attendance
+                    <span class="bg-primary text-white p-1.5 rounded-xl"><i class="fas fa-chart-line"></i></span>
+                    Attendance Reports
                 </h1>
             </div>
             <div class="bg-white px-4 py-2 rounded-full shadow-sm text-sm font-medium text-gray-700">
-                <i class="fas fa-chalkboard-user text-primary mr-1"></i> 
-                <span id="session_badge">Session: 2025-2026</span>
+                <i class="fas fa-calendar-alt text-primary mr-1"></i>
+                <span id="sessionBadge">Session: 2025-2026</span>
+            </div>
+            <div class="flex gap-2 no-print">
+                <button id="printBtn" class="bg-white px-4 py-2 rounded-xl shadow-sm hover:bg-gray-50 transition text-gray-700">
+                    <i class="fas fa-print mr-1"></i> Print
+                </button>
+                <button id="exportBtn" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl shadow-sm hover:bg-indigo-100 transition">
+                    <i class="fas fa-download mr-1"></i> Export
+                </button>
             </div>
         </div>
 
-        <!-- Filters Card -->
-        <div class="bg-white rounded-2xl shadow-md p-5 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+        <div class="bg-white rounded-2xl shadow-md p-5 mb-6 filter-panel no-print">
+            <div class="grid grid-cols-1 md:grid-cols-7 gap-4 items-end">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Session</label>
                     <select id="sessionSelect" class="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-primary/30">
@@ -74,85 +106,91 @@
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Class</label>
                     <select id="classSelect" class="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-primary/30">
-                        <option value="">-- Select Class --</option>
+                        <option value="">All Classes</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Section</label>
                     <select id="sectionSelect" class="w-full border border-gray-300 rounded-xl p-2.5" disabled>
-                        <option value="">First select class</option>
+                        <option value="">All Sections</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Date</label>
-                    <input type="date" id="attendanceDate" class="w-full border border-gray-300 rounded-xl p-2.5 date-picker">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Filter</label>
-                    <select id="statusFilter" class="w-full border border-gray-300 rounded-xl p-2.5">
-                        <option value="all">All Students</option>
-                        <option value="present">Present Only</option>
-                        <option value="absent">Absent Only</option>
-                        <option value="late">Late Only</option>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Student</label>
+                    <select id="studentSelect" class="w-full border border-gray-300 rounded-xl p-2.5" disabled>
+                        <option value="">All Students</option>
                     </select>
                 </div>
-                <div class="flex gap-2">
-                    <button id="loadStudentsBtn" class="flex-1 bg-primary text-white py-2.5 rounded-xl hover:bg-blue-700 transition font-medium">
-                        <i class="fas fa-users mr-1"></i> Load
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">From Date</label>
+                    <input type="date" id="fromDate" class="w-full border border-gray-300 rounded-xl p-2.5">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">To Date</label>
+                    <input type="date" id="toDate" class="w-full border border-gray-300 rounded-xl p-2.5">
+                </div>
+                <div>
+                    <button id="filterBtn" class="w-full bg-primary text-white py-2.5 rounded-xl hover:bg-blue-700 transition font-medium">
+                        <i class="fas fa-search mr-1"></i> View Records
                     </button>
                 </div>
             </div>
+            <div class="flex gap-3 mt-4 pt-2 border-t border-gray-100">
+                <label class="inline-flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="radio" name="reportType" value="summary" checked class="text-primary"> Summary Report
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="radio" name="reportType" value="detailed" class="text-primary"> Detailed Report
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="radio" name="reportType" value="student" class="text-primary"> Single Student Report
+                </label>
+            </div>
         </div>
 
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="summaryCards">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
             <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-primary">
-                <p class="text-gray-500 text-xs uppercase">Total Students</p>
-                <p id="totalStudentsCount" class="text-2xl font-bold text-slate-800">0</p>
+                <p class="text-gray-500 text-xs uppercase">Total Records</p>
+                <p id="totalRecords" class="text-2xl font-bold text-slate-800">0</p>
             </div>
             <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-success">
                 <p class="text-gray-500 text-xs uppercase">Present</p>
-                <p id="presentCount" class="text-2xl font-bold text-success">0</p>
+                <p id="totalPresent" class="text-2xl font-bold text-success">0</p>
             </div>
             <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-danger">
                 <p class="text-gray-500 text-xs uppercase">Absent</p>
-                <p id="absentCount" class="text-2xl font-bold text-danger">0</p>
+                <p id="totalAbsent" class="text-2xl font-bold text-danger">0</p>
             </div>
             <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-warning">
                 <p class="text-gray-500 text-xs uppercase">Late</p>
-                <p id="lateCount" class="text-2xl font-bold text-warning">0</p>
+                <p id="totalLate" class="text-2xl font-bold text-warning">0</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-indigo">
+                <p class="text-gray-500 text-xs uppercase">Attendance %</p>
+                <p id="attPercent" class="text-2xl font-bold text-indigo-600">0%</p>
             </div>
         </div>
 
-        <!-- Attendance Table -->
         <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-            <div class="bg-gradient-to-r from-primary/5 to-indigo-50 px-5 py-4 border-b flex justify-between items-center flex-wrap gap-2">
-                <div>
-                    <h2 class="font-bold text-gray-800"><i class="fas fa-list-check text-primary mr-2"></i>Student Attendance</h2>
-                    <p class="text-xs text-gray-500 mt-0.5">Click on status badges to change attendance</p>
-                </div>
-                <div class="flex gap-2">
-                    <button id="markAllPresent" class="text-xs bg-success/20 text-success px-3 py-1.5 rounded-full hover:bg-success/30 transition">
-                        <i class="fas fa-check-circle"></i> All Present
-                    </button>
-                    <button id="saveAttendanceBtn" class="bg-primary text-white px-5 py-2 rounded-xl hover:bg-blue-700 transition font-medium">
-                        <i class="fas fa-save mr-1"></i> Save
-                    </button>
-                </div>
+            <div class="bg-gradient-to-r from-primary/5 to-indigo-50 px-5 py-4 border-b">
+                <h2 class="font-bold text-gray-800"><i class="fas fa-calendar-alt text-primary mr-2"></i>Attendance Records</h2>
+                <p class="text-xs text-gray-500 mt-0.5" id="recordInfo">Select filters and click View Records</p>
             </div>
             <div class="overflow-x-auto" style="max-height: 60vh; overflow-y: auto;">
-                <table class="w-full">
+                <table class="w-full" id="recordsTable">
                     <thead class="sticky top-0 bg-gray-50 z-10 border-b">
                         <tr class="text-left text-sm font-semibold text-gray-600">
-                            <th class="px-4 py-3 w-12">#</th>
+                            <th class="px-4 py-3">#</th>
+                            <th class="px-4 py-3">Date</th>
                             <th class="px-4 py-3">Student Name</th>
+                            <th class="px-4 py-3">Class - Section</th>
                             <th class="px-4 py-3">Roll No</th>
-                            <th class="px-4 py-3 text-center">Attendance Status</th>
+                            <th class="px-4 py-3 text-center">Status</th>
                             <th class="px-4 py-3">Remark</th>
                         </tr>
                     </thead>
-                    <tbody id="attendanceTableBody">
-                        <tr><td colspan="5" class="text-center py-12 text-gray-400"><i class="fas fa-hand-pointer text-3xl mb-2 block"></i>Select class, section & date, then click Load</td></tr>
+                    <tbody id="recordsTableBody">
+                        <tr><td colspan="7" class="text-center py-12 text-gray-400"><i class="fas fa-calendar-search text-3xl mb-2 block"></i>Select filters and click "View Records"</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -161,7 +199,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, collection, query, getDocs, doc, setDoc, where, orderBy, getDoc, writeBatch, Timestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
@@ -178,11 +216,9 @@
         let allClasses = [];
         let sectionsCache = {};
         let classOptionsMap = {};
-        let currentStudents = [];
-        let attendanceRecords = {};
-        let currentClassId = null;
-        let currentSection = null;
-        let currentDate = null;
+        let studentsCache = [];
+        let currentRecords = [];
+        let isLoading = false;
         let currentSession = "2025-2026";
         let nextSession = "2026-2027";
 
@@ -190,9 +226,7 @@
             const toast = document.getElementById('toast');
             const toastText = document.getElementById('toast-text');
             const toastIcon = document.getElementById('toast-icon');
-            toastIcon.className = type === 'success'
-                ? 'fas fa-check-circle text-success text-lg'
-                : 'fas fa-exclamation-circle text-danger text-lg';
+            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' : 'fas fa-exclamation-circle text-danger text-lg';
             toastText.innerText = msg;
             toast.classList.remove('hidden');
             toast.style.display = 'flex';
@@ -204,7 +238,7 @@
         window.hideToast = () => document.getElementById('toast').classList.add('hidden');
 
         function escapeHtml(str) {
-            if (str === null || str === undefined) return '';
+            if (!str) return '';
             return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m]));
         }
 
@@ -214,25 +248,25 @@
 
         async function loadSession() {
             try {
-                const s = await getDoc(doc(db, "config", "activeSession"));
-                if (s.exists()) {
-                    currentSession = s.data().sessionName || currentSession;
+                const snap = await getDoc(doc(db, "config", "activeSession"));
+                if (snap.exists()) {
+                    currentSession = snap.data().sessionName || currentSession;
                 }
                 const parts = currentSession.split('-');
                 nextSession = parts.length === 2 ? `${parseInt(parts[0]) + 1}-${parseInt(parts[1]) + 1}` : "2026-2027";
-                document.getElementById('session_badge').innerHTML = `<span class="session-badge"><i class="fas fa-database mr-1"></i> ${currentSession}</span>`;
-            } catch(e) {
-                document.getElementById('session_badge').innerHTML = `<span class="session-badge">${currentSession}</span>`;
+                document.getElementById('sessionBadge').innerHTML = `<span class="session-badge"><i class="fas fa-database mr-1"></i> ${currentSession}</span>`;
+            } catch (e) {
+                document.getElementById('sessionBadge').innerHTML = `<span class="session-badge">${currentSession}</span>`;
             }
         }
 
         async function loadClasses() {
             try {
-                const q = query(collection(db, "classes"), orderBy("order", "asc"));
-                const snap = await getDocs(q);
-                const select = document.getElementById('classSelect');
-                select.innerHTML = '<option value="">-- Select Class --</option>';
+                const snap = await getDocs(collection(db, "classes"));
                 allClasses = [];
+                classOptionsMap = {};
+                const select = document.getElementById('classSelect');
+                select.innerHTML = '<option value="">All Classes</option>';
                 snap.forEach(docSnap => {
                     const cls = { id: docSnap.id, name: docSnap.data().name };
                     allClasses.push(cls);
@@ -251,7 +285,7 @@
             try {
                 const snap = await getDocs(query(collection(db, "sections"), where("classId", "==", classId)));
                 const sections = [];
-                snap.forEach(docSnap => sections.push({ id: docSnap.id, name: docSnap.data().name }));
+                snap.forEach(docSnap => sections.push(docSnap.data().name));
                 sectionsCache[classId] = sections;
                 return sections;
             } catch (err) {
@@ -263,301 +297,328 @@
         async function updateSectionDropdown(classId) {
             const sectionSelect = document.getElementById('sectionSelect');
             if (!classId) {
-                sectionSelect.innerHTML = '<option value="">First select class</option>';
-                sectionSelect.disabled = true;
+                sectionSelect.innerHTML = '<option value="">All Sections</option>';
+                sectionSelect.disabled = false;
                 return;
             }
             const sections = await getSections(classId);
             sectionSelect.disabled = false;
-            sectionSelect.innerHTML = '<option value="">-- Select Section --</option>';
-            sections.forEach(sec => sectionSelect.appendChild(new Option(sec.name, sec.name)));
+            sectionSelect.innerHTML = '<option value="">All Sections</option>';
+            sections.forEach(sec => sectionSelect.appendChild(new Option(sec, sec)));
         }
 
         // 🔥 Load students from SESSION DATA only
-        async function loadStudentsByClassSection(classId, sectionName) {
+        async function loadSessionStudents(sessionVal, classId, sectionName) {
             const students = [];
-            const targetSession = getViewingSession();
+            const targetSession = sessionVal === 'next' ? nextSession : currentSession;
             
             try {
-                const studRef = collection(db, `current_session/${targetSession}/classes/${classId}/students`);
-                const studSnap = await getDocs(studRef);
-                
-                for (const docSnap of studSnap.docs) {
-                    const data = docSnap.data();
-                    const studentSection = data.section || "";
+                if (classId) {
+                    const studRef = collection(db, `current_session/${targetSession}/classes/${classId}/students`);
+                    const studSnap = await getDocs(studRef);
                     
-                    if (sectionName && studentSection !== sectionName) continue;
-                    if (document.getElementById('sessionSelect').value === 'current' && data.promotedToNextSession === true) continue;
-                    
-                    students.push({
-                        id: docSnap.id,
-                        name: data.fullName || data.name || "Unnamed",
-                        roll: data.rollNumber || data.roll || "N/A",
-                        section: studentSection,
-                        classId: classId,
-                        className: classOptionsMap[classId] || data.className || "Class"
-                    });
+                    for (const docSnap of studSnap.docs) {
+                        const data = docSnap.data();
+                        const studentSection = data.section || "";
+                        
+                        if (sectionName && studentSection !== sectionName) continue;
+                        if (sessionVal === 'current' && data.promotedToNextSession === true) continue;
+                        
+                        students.push({
+                            id: docSnap.id,
+                            name: data.fullName || data.name || "Unknown",
+                            classId: classId,
+                            section: studentSection,
+                            roll: data.rollNumber || data.roll || "N/A",
+                            className: classOptionsMap[classId] || data.className || ''
+                        });
+                    }
+                } else {
+                    const classesSnap = await getDocs(collection(db, "classes"));
+                    for (const classDoc of classesSnap.docs) {
+                        const cid = classDoc.id;
+                        const studRef = collection(db, `current_session/${targetSession}/classes/${cid}/students`);
+                        const studSnap = await getDocs(studRef);
+                        
+                        for (const docSnap of studSnap.docs) {
+                            const data = docSnap.data();
+                            const studentSection = data.section || "";
+                            
+                            if (sectionName && studentSection !== sectionName) continue;
+                            if (sessionVal === 'current' && data.promotedToNextSession === true) continue;
+                            
+                            students.push({
+                                id: docSnap.id,
+                                name: data.fullName || data.name || "Unknown",
+                                classId: cid,
+                                section: studentSection,
+                                roll: data.rollNumber || data.roll || "N/A",
+                                className: classOptionsMap[cid] || data.className || classDoc.data().name
+                            });
+                        }
+                    }
                 }
                 
-                students.sort((a, b) => (parseInt(a.roll) || 0) - (parseInt(b.roll) || 0));
+                students.sort((a, b) => {
+                    const ar = parseInt(a.roll) || 0;
+                    const br = parseInt(b.roll) || 0;
+                    return ar - br;
+                });
                 
-            } catch (err) {
-                console.error("Error loading students from session:", err);
+            } catch (e) {
+                console.error('Error loading session students:', e);
             }
             
             return students;
         }
 
-        async function loadExistingAttendance(dateStr, classId, section) {
+        async function updateStudentDropdown(classId, section) {
+            const studentSelect = document.getElementById('studentSelect');
+            const sessionVal = document.getElementById('sessionSelect').value;
+            
+            let filtered = await loadSessionStudents(sessionVal, classId, section);
+            studentsCache = filtered;
+            
+            studentSelect.disabled = false;
+            studentSelect.innerHTML = '<option value="">All Students</option>';
+            filtered.forEach(s => studentSelect.appendChild(new Option(`${s.name} (${s.roll})`, s.id)));
+        }
+
+        async function fetchAttendanceRecords() {
+            if (isLoading) return;
+
+            const sessionVal = document.getElementById('sessionSelect').value;
+            const classId = document.getElementById('classSelect').value;
+            const section = document.getElementById('sectionSelect').value;
+            const studentId = document.getElementById('studentSelect').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const reportType = document.querySelector('input[name="reportType"]:checked').value;
+            const viewingSession = getViewingSession();
+
+            isLoading = true;
+            const tbody = document.getElementById('recordsTableBody');
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12"><div class="loading-spinner mx-auto"></div><p class="text-gray-400 mt-2">Loading records...</p></td></table>`;
+
             try {
-                const targetSession = getViewingSession();
-                const q = query(
-                    collection(db, "attendance"),
-                    where("date", "==", dateStr),
-                    where("classId", "==", classId),
-                    where("section", "==", section),
-                    where("sessionName", "==", targetSession)
-                );
-                const snap = await getDocs(q);
-                const records = {};
-                snap.forEach(docSnap => {
-                    const data = docSnap.data();
-                    records[data.studentId] = {
-                        status: data.status || 'absent',
-                        remark: data.remark || '',
-                        attendanceId: docSnap.id
-                    };
-                });
-                return records;
+                const snapshot = await getDocs(collection(db, "attendance"));
+                let allRecords = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                // Filter by session
+                allRecords = allRecords.filter(r => r.sessionName === viewingSession);
+
+                if (classId && reportType !== 'student') allRecords = allRecords.filter(r => r.classId === classId);
+                if (section && reportType !== 'student') allRecords = allRecords.filter(r => r.section === section);
+                if (studentId && reportType === 'student') allRecords = allRecords.filter(r => r.studentId === studentId);
+                if (fromDate) allRecords = allRecords.filter(r => (r.date || '') >= fromDate);
+                if (toDate) allRecords = allRecords.filter(r => (r.date || '') <= toDate);
+
+                allRecords.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+                currentRecords = allRecords;
+                renderRecords(allRecords, reportType);
+                updateStatistics(allRecords);
+
+                if (allRecords.length === 0) showToast("No records found for the selected filters", "info");
+                else showToast(`Found ${allRecords.length} record(s) for ${viewingSession} session`, "success");
             } catch (err) {
-                console.warn(err);
-                return {};
+                console.error("Error fetching attendance:", err);
+                showToast("Error loading records: " + err.message, "error");
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12 text-red-500"><i class="fas fa-exclamation-triangle text-3xl mb-2 block"></i>Error loading records. Please try again.</td></tr>`;
+            } finally {
+                isLoading = false;
             }
         }
 
-        function updateSummary(students, records) {
-            const total = students.length;
-            let present = 0, absent = 0, late = 0;
-            students.forEach(s => {
-                const status = records[s.id]?.status || 'absent';
-                if (status === 'present') present++;
-                else if (status === 'late') late++;
-                else absent++;
-            });
-            document.getElementById('totalStudentsCount').innerText = total;
-            document.getElementById('presentCount').innerText = present;
-            document.getElementById('absentCount').innerText = absent;
-            document.getElementById('lateCount').innerText = late;
-        }
+        function renderRecords(records, reportType) {
+            const tbody = document.getElementById('recordsTableBody');
+            const recordInfo = document.getElementById('recordInfo');
 
-        function renderAttendanceTable(students, records, statusFilter = 'all') {
-            const tbody = document.getElementById('attendanceTableBody');
-            if (!students.length) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-gray-400"><i class="fas fa-user-graduate text-4xl mb-2 block"></i>No students found</td></tr>`;
-                updateSummary(students, records);
+            if (records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12 text-gray-400"><i class="fas fa-database text-3xl mb-2 block"></i>No attendance records found</td></tr>`;
+                recordInfo.innerText = `No records found`;
                 return;
             }
 
-            let filtered = [...students];
-            if (statusFilter !== 'all') {
-                filtered = students.filter(s => (records[s.id]?.status || 'absent') === statusFilter);
+            recordInfo.innerText = `Showing ${records.length} attendance record(s) | Session: ${getViewingSession()}`;
+
+            if (reportType === 'summary') {
+                const studentSummary = {};
+                records.forEach(rec => {
+                    const key = rec.studentId;
+                    if (!studentSummary[key]) {
+                        studentSummary[key] = {
+                            studentName: rec.studentName || "Unknown",
+                            roll: rec.roll || "N/A",
+                            className: rec.className || "N/A",
+                            section: rec.section || "N/A",
+                            present: 0,
+                            absent: 0,
+                            late: 0,
+                            total: 0
+                        };
+                    }
+                    if (rec.status === 'present') studentSummary[key].present++;
+                    else if (rec.status === 'late') studentSummary[key].late++;
+                    else studentSummary[key].absent++;
+                    studentSummary[key].total++;
+                });
+
+                let html = '';
+                let idx = 1;
+                for (const summary of Object.values(studentSummary)) {
+                    const presentPercent = summary.total > 0 ? ((summary.present / summary.total) * 100).toFixed(1) : 0;
+                    html += `
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="px-4 py-3 text-sm">${idx++}</td>
+                            <td class="px-4 py-3 text-sm font-medium">${escapeHtml(summary.studentName)}</td>
+                            <td class="px-4 py-3 text-sm">${escapeHtml(summary.className)} - ${escapeHtml(summary.section)}</td>
+                            <td class="px-4 py-3 text-sm">${escapeHtml(summary.roll)}</td>
+                            <td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded-full text-xs bg-success/20 text-success font-medium">P: ${summary.present}</span></td>
+                            <td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded-full text-xs bg-danger/20 text-danger font-medium">A: ${summary.absent}</span></td>
+                            <td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded-full text-xs bg-warning/20 text-warning font-medium">L: ${summary.late}</span></td>
+                            <td class="px-4 py-3 text-center"><span class="font-bold text-primary">${presentPercent}%</span></td>
+                        </tr>
+                    `;
+                }
+                tbody.innerHTML = html;
+                return;
             }
 
             let html = '';
-            filtered.forEach((student, idx) => {
-                const rec = records[student.id];
-                const currentStatus = rec?.status || 'absent';
-                const currentRemark = rec?.remark || '';
-                const statusColors = {
-                    present: 'bg-success/20 text-success border-success',
-                    absent: 'bg-danger/20 text-danger border-danger',
-                    late: 'bg-warning/20 text-warning border-warning'
-                };
+            records.forEach((rec, idx) => {
+                const statusColor = rec.status === 'present' ? 'bg-success/20 text-success' : (rec.status === 'late' ? 'bg-warning/20 text-warning' : 'bg-danger/20 text-danger');
+                const statusIcon = rec.status === 'present' ? 'fa-check-circle' : (rec.status === 'late' ? 'fa-clock' : 'fa-times-circle');
+                const statusText = rec.status === 'present' ? 'Present' : (rec.status === 'late' ? 'Late' : 'Absent');
 
                 html += `
-                    <tr class="student-row border-b border-gray-100 hover:bg-yellow-50/40 transition">
-                        <td class="px-4 py-3 text-sm text-gray-500 font-medium">${idx + 1}</td>
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">${escapeHtml((student.name || 'U').charAt(0))}</div>
-                                <span class="font-medium text-gray-800">${escapeHtml(student.name)}</span>
-                            </div>
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm">${idx + 1}</td>
+                        <td class="px-4 py-3 text-sm whitespace-nowrap">${escapeHtml(rec.date || 'N/A')}</td>
+                        <td class="px-4 py-3 text-sm font-medium">${escapeHtml(rec.studentName || 'Unknown')}</td>
+                        <td class="px-4 py-3 text-sm">${escapeHtml(rec.className || rec.classId || 'N/A')} - ${escapeHtml(rec.section || 'N/A')}</td>
+                        <td class="px-4 py-3 text-sm">${escapeHtml(rec.roll || 'N/A')}</td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="status-badge inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${statusColor}">
+                                <i class="fas ${statusIcon}"></i> ${statusText}
+                            </span>
                         </td>
-                        <td class="px-4 py-3 text-sm text-gray-600">${escapeHtml(student.roll)}</td>
-                        <td class="px-4 py-3">
-                            <div class="flex flex-wrap gap-2 justify-center">
-                                <button class="status-btn px-3 py-1.5 rounded-full text-xs font-medium border ${currentStatus === 'present' ? statusColors.present + ' active shadow-sm' : 'bg-gray-100 text-gray-600 border-gray-200'}" data-student="${student.id}" data-status="present"><i class="fas fa-check-circle mr-1"></i> Present</button>
-                                <button class="status-btn px-3 py-1.5 rounded-full text-xs font-medium border ${currentStatus === 'absent' ? statusColors.absent + ' active shadow-sm' : 'bg-gray-100 text-gray-600 border-gray-200'}" data-student="${student.id}" data-status="absent"><i class="fas fa-times-circle mr-1"></i> Absent</button>
-                                <button class="status-btn px-3 py-1.5 rounded-full text-xs font-medium border ${currentStatus === 'late' ? statusColors.late + ' active shadow-sm' : 'bg-gray-100 text-gray-600 border-gray-200'}" data-student="${student.id}" data-status="late"><i class="fas fa-clock mr-1"></i> Late</button>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <input type="text" class="remark-input w-full text-xs border border-gray-200 rounded-lg p-1.5 focus:ring-1 focus:ring-primary" placeholder="Optional remark" data-student="${student.id}" value="${escapeHtml(currentRemark)}">
-                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">${escapeHtml(rec.remark || '—')}</td>
                     </tr>
                 `;
             });
-
             tbody.innerHTML = html;
-
-            document.querySelectorAll('.status-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const studentId = btn.dataset.student;
-                    const newStatus = btn.dataset.status;
-                    if (!attendanceRecords[studentId]) attendanceRecords[studentId] = { status: 'absent', remark: '' };
-                    attendanceRecords[studentId].status = newStatus;
-                    const remarkInput = document.querySelector(`.remark-input[data-student="${studentId}"]`);
-                    if (remarkInput) attendanceRecords[studentId].remark = remarkInput.value;
-                    renderAttendanceTable(currentStudents, attendanceRecords, document.getElementById('statusFilter').value);
-                });
-            });
-
-            document.querySelectorAll('.remark-input').forEach(input => {
-                input.addEventListener('change', () => {
-                    const studentId = input.dataset.student;
-                    if (!attendanceRecords[studentId]) attendanceRecords[studentId] = { status: 'absent', remark: '' };
-                    attendanceRecords[studentId].remark = input.value;
-                });
-            });
-
-            updateSummary(students, records);
         }
 
-        async function saveAttendance() {
-            if (!currentClassId || !currentSection || !currentDate) {
-                showToast("Please select class, section and date first", "error");
+        function updateStatistics(records) {
+            const total = records.length;
+            let present = 0, absent = 0, late = 0;
+            records.forEach(rec => {
+                if (rec.status === 'present') present++;
+                else if (rec.status === 'late') late++;
+                else absent++;
+            });
+            document.getElementById('totalRecords').innerText = total;
+            document.getElementById('totalPresent').innerText = present;
+            document.getElementById('totalAbsent').innerText = absent;
+            document.getElementById('totalLate').innerText = late;
+            document.getElementById('attPercent').innerText = `${total > 0 ? ((present / total) * 100).toFixed(1) : 0}%`;
+        }
+
+        function printReport() { window.print(); }
+
+        function exportToCSV() {
+            const reportType = document.querySelector('input[name="reportType"]:checked').value;
+            if (currentRecords.length === 0) {
+                showToast("No records to export", "error");
                 return;
             }
-            if (currentStudents.length === 0) {
-                showToast("No students to save", "error");
-                return;
-            }
 
-            const targetSession = getViewingSession();
-            const saveBtn = document.getElementById('saveAttendanceBtn');
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Saving...';
-
-            try {
-                const batch = writeBatch(db);
-                const attendanceCol = collection(db, "attendance");
-
-                for (const student of currentStudents) {
-                    const record = attendanceRecords[student.id];
-                    if (!record) continue;
-
-                    const docId = `${targetSession}_${currentDate}_${student.id}`;
-                    const docRef = doc(attendanceCol, docId);
-                    batch.set(docRef, {
-                        studentId: student.id,
-                        studentName: student.name,
-                        roll: student.roll,
-                        classId: currentClassId,
-                        className: student.className,
-                        section: currentSection,
-                        date: currentDate,
-                        status: record.status,
-                        remark: record.remark || '',
-                        sessionName: targetSession,
-                        updatedAt: Timestamp.now()
-                    }, { merge: true });
+            let csvRows = [];
+            if (reportType === 'summary') {
+                csvRows.push(['Student Name', 'Class', 'Section', 'Roll No', 'Present', 'Absent', 'Late', 'Attendance %']);
+                const studentSummary = {};
+                currentRecords.forEach(rec => {
+                    const key = rec.studentId;
+                    if (!studentSummary[key]) {
+                        studentSummary[key] = {
+                            studentName: rec.studentName || "Unknown",
+                            roll: rec.roll || "N/A",
+                            className: rec.className || "N/A",
+                            section: rec.section || "N/A",
+                            present: 0, absent: 0, late: 0, total: 0
+                        };
+                    }
+                    if (rec.status === 'present') studentSummary[key].present++;
+                    else if (rec.status === 'late') studentSummary[key].late++;
+                    else studentSummary[key].absent++;
+                    studentSummary[key].total++;
+                });
+                for (const summary of Object.values(studentSummary)) {
+                    const percent = summary.total > 0 ? ((summary.present / summary.total) * 100).toFixed(1) : 0;
+                    csvRows.push([summary.studentName, summary.className, summary.section, summary.roll, summary.present, summary.absent, summary.late, percent + '%']);
                 }
-
-                await batch.commit();
-                showToast(`Attendance saved (${currentStudents.length} students) for ${currentDate} (${targetSession})`, "success");
-            } catch (err) {
-                console.error(err);
-                showToast("Error: " + err.message, "error");
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Save';
-            }
-        }
-
-        function markAllPresent() {
-            if (currentStudents.length === 0) return;
-            currentStudents.forEach(s => {
-                if (!attendanceRecords[s.id]) attendanceRecords[s.id] = { status: 'absent', remark: '' };
-                attendanceRecords[s.id].status = 'present';
-            });
-            renderAttendanceTable(currentStudents, attendanceRecords, document.getElementById('statusFilter').value);
-            showToast("All students marked as Present", "success");
-        }
-
-        async function loadAttendanceData() {
-            const classId = document.getElementById('classSelect').value;
-            const section = document.getElementById('sectionSelect').value;
-            const date = document.getElementById('attendanceDate').value;
-
-            if (!classId || !section || !date) {
-                showToast("Please select Class, Section and Date", "error");
-                return;
-            }
-
-            currentClassId = classId;
-            currentSection = section;
-            currentDate = date;
-
-            const tbody = document.getElementById('attendanceTableBody');
-            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12"><i class="fas fa-spinner fa-pulse text-primary text-2xl"></i><br>Loading...</td></tr>`;
-
-            try {
-                const students = await loadStudentsByClassSection(classId, section);
-                currentStudents = students;
-                const existing = await loadExistingAttendance(date, classId, section);
-
-                attendanceRecords = {};
-                students.forEach(s => {
-                    attendanceRecords[s.id] = existing[s.id]
-                        ? { status: existing[s.id].status, remark: existing[s.id].remark || '' }
-                        : { status: 'absent', remark: '' };
+            } else {
+                csvRows.push(['Date', 'Student Name', 'Class', 'Section', 'Roll No', 'Status', 'Remark']);
+                currentRecords.forEach(rec => {
+                    csvRows.push([rec.date || '', rec.studentName || '', rec.className || '', rec.section || '', rec.roll || '', rec.status || '', rec.remark || '']);
                 });
-
-                renderAttendanceTable(students, attendanceRecords, document.getElementById('statusFilter').value);
-                showToast(`Loaded ${students.length} students from ${getViewingSession()} session`, "success");
-            } catch (err) {
-                console.error(err);
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-red-500">Error loading data</td></tr>`;
             }
+
+            const csvContent = csvRows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute('download', `attendance_report_${getViewingSession()}_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast("Export complete", "success");
         }
 
         // Event Listeners
-        document.getElementById('sessionSelect').addEventListener('change', () => {
+        document.getElementById('sessionSelect').addEventListener('change', async () => {
             sectionsCache = {};
             document.getElementById('classSelect').value = '';
-            document.getElementById('sectionSelect').innerHTML = '<option value="">First select class</option>';
+            document.getElementById('sectionSelect').innerHTML = '<option value="">All Sections</option>';
             document.getElementById('sectionSelect').disabled = true;
-            document.getElementById('attendanceTableBody').innerHTML = `<tr><td colspan="5" class="text-center py-12 text-gray-400">Select class, section & date then click Load</td></tr>`;
-            currentStudents = [];
-            attendanceRecords = {};
-            updateSummary([], {});
+            document.getElementById('studentSelect').innerHTML = '<option value="">All Students</option>';
+            document.getElementById('studentSelect').disabled = true;
+            document.getElementById('recordsTableBody').innerHTML = `<tr><td colspan="7" class="text-center py-12 text-gray-400">Select filters and click "View Records"</td></tr>`;
+            currentRecords = [];
+            updateStatistics([]);
         });
 
         document.getElementById('classSelect').addEventListener('change', async (e) => {
             await updateSectionDropdown(e.target.value);
-            document.getElementById('sectionSelect').value = '';
-            document.getElementById('attendanceTableBody').innerHTML = `<tr><td colspan="5" class="text-center py-12 text-gray-400">Select section & date then click Load</td></tr>`;
-            currentStudents = [];
-            attendanceRecords = {};
-            updateSummary([], {});
+            await updateStudentDropdown(e.target.value, '');
         });
 
-        document.getElementById('loadStudentsBtn').addEventListener('click', loadAttendanceData);
-        document.getElementById('saveAttendanceBtn').addEventListener('click', saveAttendance);
-        document.getElementById('markAllPresent').addEventListener('click', markAllPresent);
-        document.getElementById('statusFilter').addEventListener('change', () => {
-            if (currentStudents.length > 0) {
-                renderAttendanceTable(currentStudents, attendanceRecords, document.getElementById('statusFilter').value);
-            }
+        document.getElementById('sectionSelect').addEventListener('change', async () => {
+            const classId = document.getElementById('classSelect').value;
+            const section = document.getElementById('sectionSelect').value;
+            await updateStudentDropdown(classId, section);
         });
 
-        // Set default date to today
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('attendanceDate').value = today;
+        document.getElementById('filterBtn').addEventListener('click', fetchAttendanceRecords);
+        document.getElementById('printBtn').addEventListener('click', printReport);
+        document.getElementById('exportBtn').addEventListener('click', exportToCSV);
+
+        // Set default dates
+        const today = new Date();
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+        document.getElementById('fromDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+        document.getElementById('toDate').value = today.toISOString().split('T')[0];
 
         // Initialize
         await loadSession();
         await loadClasses();
+        await updateStudentDropdown('', '');
+        document.getElementById('studentSelect').disabled = false;
+        await fetchAttendanceRecords();
     </script>
 </body>
 </html>
