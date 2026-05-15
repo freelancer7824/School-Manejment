@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send SMS - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght=300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; background: #fff; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; background: #fff; border-bottom: 1px solid #eee; }
+        .top-nav h2 { font-size: 18px; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+        .session-info { text-align: right; font-size: 13px; color: #555; }
+        .session-info i { color: #3498db; display: block; margin-bottom: 2px; }
+        .content-body { padding: 30px; }
+        .tabs { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 25px; }
+        .tab { padding: 10px 20px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; color: #777; }
+        .tab.active { border: 1px solid #ddd; border-bottom: 2px solid white; margin-bottom: -1px; color: #333; background: #fff; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+        .form-group label span { color: #e74c3c; }
+        input[type="text"], input[type="date"], textarea { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; outline: none; }
+        textarea { height: 100px; resize: vertical; }
+        .section-label { font-size: 16px; font-weight: 600; margin-top: 25px; margin-bottom: 15px; color: #444; }
+        .checkbox-group { margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 4px; }
+        .checkbox-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 14px; color: #555; cursor: pointer; }
+        
+        .btn-container { display: flex; gap: 10px; align-items: center; margin-top: 20px; }
+        .btn-show { background-color: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .btn-send { background-color: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; display: none; align-items: center; gap: 8px; }
+        
+        .contact-list-container { margin-top: 30px; border: 1px solid #eee; border-radius: 8px; overflow: hidden; display: none; }
+        .contact-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .contact-table th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #eee; }
+        .contact-table td { padding: 12px; border-bottom: 1px solid #eee; }
+        
+        .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .hidden { display: none; }
+        .loader-inline { animation: spin 1s linear infinite; margin-left: 5px; display: none; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="top-nav">
+            <h2><i class="fa-solid fa-circle-plus"></i> Send SMS</h2>
+            <div class="session-info">
+                <i class="fa-solid fa-calendar-check"></i>
+                <span id="display-session">Loading Session...</span>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <div class="tabs">
+                <div class="tab active" id="sendSmsTab">Send SMS</div>
+                <div class="tab" id="allSmsTab"><i class="fa-solid fa-clock-rotate-left"></i> History</div>
+            </div>
+
+            <div id="smsSection">
+                <form id="smsForm">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" id="smsTitle" placeholder="Enter SMS Title">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Message <span>*</span></label>
+                        <textarea id="smsMessage" placeholder="Write your message here..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Select Date for Absent Check <span>*</span></label>
+                        <input type="date" id="targetDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Message To <span>*</span></label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="absentCheck"> <strong>All Absent Students</strong>
+                            </label>
+                        </div>
+                    </div>
+
+                    <h3 class="section-label">Manual Class Selection:</h3>
+                    <div class="class-grid" id="classGrid"></div>
+
+                    <div class="btn-container">
+                        <button type="button" id="showContactBtn" class="btn-show">
+                            Show Contact <i class="fa-regular fa-eye"></i>
+                            <i class="fa-solid fa-spinner loader-inline" id="btnLoader"></i>
+                        </button>
+                        <button type="button" id="sendSmsBtn" class="btn-send">
+                            Send Message <i class="fa-solid fa-paper-plane"></i>
+                            <i class="fa-solid fa-spinner loader-inline" id="sendLoader"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="contact-list-container" id="contactListArea">
+                    <table class="contact-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Roll</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contactTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="historySection" class="hidden">
+                <h3 style="padding: 20px; color: #999;">History list will appear here...</h3>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, query, where, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        // Greenweb SMS API Configuration
+        const GREENWEB_API_TOKEN = "YOUR_GREENWEB_API_TOKEN_HERE"; 
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let currentSession = "";
+        let absentNumbers = []; 
+
+        async function fetchSession() {
+            const s = await getDoc(doc(db, "config", "activeSession"));
+            if (s.exists()) {
+                currentSession = s.data().sessionName;
+                document.getElementById('display-session').innerText = "Session: " + currentSession;
+            }
+        }
+
+        async function loadClasses() {
+            const classGrid = document.getElementById('classGrid');
+            const snap = await getDocs(collection(db, "classes"));
+            snap.forEach(docSnap => {
+                const name = docSnap.data().name;
+                const html = `<label class="checkbox-item"><input type="checkbox" class="class-check" value="${docSnap.id}"> ${name}</label>`;
+                classGrid.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        document.getElementById('showContactBtn').addEventListener('click', async () => {
+            const isAbsentOnly = document.getElementById('absentCheck').checked;
+            const targetDate = document.getElementById('targetDate').value;
+            const tbody = document.getElementById('contactTableBody');
+            const tableArea = document.getElementById('contactListArea');
+            const sendBtn = document.getElementById('sendSmsBtn');
+            const loader = document.getElementById('btnLoader');
+
+            if (!isAbsentOnly || !targetDate) {
+                alert("Please select 'All Absent Students' and a valid Date.");
+                return;
+            }
+
+            loader.style.display = "inline-block";
+            tbody.innerHTML = "";
+            tableArea.style.display = "none";
+            sendBtn.style.display = "none";
+            absentNumbers = [];
+
+            try {
+                const q = query(
+                    collection(db, "attendance"),
+                    where("date", "==", targetDate),
+                    where("status", "==", "absent"),
+                    where("sessionName", "==", currentSession)
+                );
+                
+                const snap = await getDocs(q);
+
+                if(snap.empty) {
+                    tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding:20px;'>No absent students found on this date.</td></tr>";
+                    tableArea.style.display = "block";
+                } else {
+                    for (const d of snap.docs) {
+                        const data = d.data();
+                        const studentRef = doc(db, `current_session/${currentSession}/classes/${data.classId}/students`, data.studentId);
+                        const sSnap = await getDoc(studentRef);
+                        
+                        let phone = "N/A";
+                        if (sSnap.exists()) {
+                            const sData = sSnap.data();
+                            phone = sData.guardianMobile || sData.mobile || sData.phone || "No Number";
+                        }
+
+                        // নম্বর ভ্যালিডেশন: গ্রিনওয়েব এর জন্য 11 ডিজিটের সঠিক বাংলাদেশি নম্বর ফিল্টার
+                        let cleanPhone = phone.replace(/[^0-9]/g, '');
+                        if(cleanPhone.startsWith('88')) cleanPhone = cleanPhone.substring(2);
+                        
+                        if(cleanPhone.length === 11 && cleanPhone.startsWith('01')) {
+                            if(!absentNumbers.includes(cleanPhone)) {
+                                absentNumbers.push(cleanPhone);
+                            }
+                        }
+
+                        tbody.insertAdjacentHTML('beforeend', `
+                            <tr>
+                                <td><strong>${data.studentName}</strong></td>
+                                <td>${data.roll}</td>
+                                <td style="color:#2563eb; font-weight:500;">${phone}</td>
+                                <td style="color:#e74c3c; font-weight:500;">Absent</td>
+                            </tr>
+                        `);
+                    }
+                    tableArea.style.display = "block";
+                    if(absentNumbers.length > 0) {
+                        sendBtn.style.display = "flex";
+                    } else {
+                        alert("No valid mobile numbers found to send SMS.");
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                alert("Data fetch failed. Check console for details.");
+            } finally {
+                loader.style.display = "none";
+            }
+        });
+
+        // Greenweb SMS পাঠানোর লজিক
+        document.getElementById('sendSmsBtn').addEventListener('click', async () => {
+            const msg = document.getElementById('smsMessage').value;
+            const title = document.getElementById('smsTitle').value || "Absent Notification";
+            const sendLoader = document.getElementById('sendLoader');
+            const sendSmsBtn = document.getElementById('sendSmsBtn');
+
+            if(!msg) return alert("Please write a message first!");
+            if(absentNumbers.length === 0) return alert("No contact numbers available!");
+            
+            if(GREENWEB_API_TOKEN === "YOUR_GREENWEB_API_TOKEN_HERE") {
+                return alert("Please configure your Greenweb API Token inside the script code first!");
+            }
+
+            if(confirm(`Send SMS to ${absentNumbers.length} students?`)) {
+                sendLoader.style.display = "inline-block";
+                sendSmsBtn.disabled = true;
+
+                // কমা দিয়ে নম্বরগুলো যুক্ত করা (গ্রিনওয়েব একাধিক নম্বর কমাসেল ফেক্ট নেয়)
+                const totalToNumbers = absentNumbers.join(',');
+
+                // Greenweb API URL এর সাথে কুয়েরি প্যারামিটার তৈরি
+                const apiUrl = `https://api.greenweb.com.bd/api.php?token=${encodeURIComponent(GREENWEB_API_TOKEN)}&to=${encodeURIComponent(totalToNumbers)}&message=${encodeURIComponent(msg)}`;
+
+                try {
+                    // API রিকোয়েস্ট পাঠানো হচ্ছে
+                    const response = await fetch(apiUrl, { method: 'GET' });
+                    
+                    // নোট: গ্রিনওয়েব সাধারণত JSON বা প্লেইন টেক্সট আইডি রিটার্ন করে (যেমন: SMS Submitted: ...)
+                    const resultText = await response.text(); 
+
+                    if (response.ok && (resultText.includes("SMS Submitted") || resultText.includes("Success"))) {
+                        alert(`Success! SMS sent to ${absentNumbers.length} numbers.`);
+                        
+                        // হিস্টোরি রাখার জন্য Firebase Firestore-এ ডাটা সেভ করা হচ্ছে
+                        await addDoc(collection(db, "sms_history"), {
+                            title: title,
+                            message: msg,
+                            recipientCount: absentNumbers.length,
+                            recipients: absentNumbers,
+                            date: serverTimestamp(),
+                            session: currentSession,
+                            apiResponse: resultText
+                        });
+
+                        // ফর্ম রিসেট করা
+                        document.getElementById('smsForm').reset();
+                        document.getElementById('contactListArea').style.display = "none";
+                        sendSmsBtn.style.display = "none";
+                    } else {
+                        console.error("API Error Response:", resultText);
+                        alert("Failed to send SMS. Response: " + resultText);
+                    }
+
+                } catch (error) {
+                    console.error("Network or API Error:", error);
+                    alert("An error occurred while communicating with Greenweb API. Check browser console.");
+                } finally {
+                    sendLoader.style.display = "none";
+                    sendSmsBtn.disabled = false;
+                }
+            }
+        });
+
+        // Tabs Logic
+        document.getElementById('allSmsTab').addEventListener('click', () => {
+            document.getElementById('smsSection').classList.add('hidden');
+            document.getElementById('historySection').classList.remove('hidden');
+            document.getElementById('allSmsTab').classList.add('active');
+            document.getElementById('sendSmsTab').classList.remove('active');
+            loadHistory();
+        });
+
+        document.getElementById('sendSmsTab').addEventListener('click', () => {
+            document.getElementById('smsSection').classList.remove('hidden');
+            document.getElementById('historySection').classList.add('hidden');
+            document.getElementById('sendSmsTab').classList.add('active');
+            document.getElementById('allSmsTab').classList.remove('active');
+        });
+
+        // হিস্টোরি লোড করার ফাংশন
+        async function loadHistory() {
+            const historySection = document.getElementById('historySection');
+            historySection.innerHTML = "<h4 style='padding:20px; color:#666;'>Loading history...</h4>";
+            try {
+                const q = query(collection(db, "sms_history"), where("session", "==", currentSession));
+                const snap = await getDocs(q);
+                if(snap.empty) {
+                    historySection.innerHTML = "<h3 style='padding: 20px; color: #999;'>No history found.</h3>";
+                    return;
+                }
+                let html = `<div style="padding:20px;"><table class="contact-table"><thead><tr><th>Title</th><th>Message</th><th>Total Numbers</th></tr></thead><tbody>`;
+                snap.forEach(d => {
+                    const data = d.data();
+                    html += `<tr><td><strong>${data.title}</strong></td><td>${data.message}</td><td>${data.recipientCount}</td></tr>`;
+                });
+                html += `</tbody></table></div>`;
+                historySection.innerHTML = html;
+            } catch(e) {
+                historySection.innerHTML = "<p style='color:red; padding:20px;'>Failed to load history.</p>";
+            }
+        }
+
+        window.onload = () => {
+            fetchSession();
+            loadClasses();
+            document.getElementById('targetDate').value = new Date().toISOString().split('T')[0];
+        };
+    </script>
+</body>
+</html>
