@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Result | ONNO ROKOM BIDDYANIKETON</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Hind+Siliguri:wght@400;700&display=swap');
+        
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Roboto', 'Hind Siliguri', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .marksheet-card {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 12mm;
+            margin: 20px auto;
+            background: white;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            color: #000;
+            border-radius: 8px;
+            break-inside: avoid;
+            page-break-after: always;
+        }
+        
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.03;
+            width: 450px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .content-wrap {
+            position: relative;
+            z-index: 1;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+        
+        th, td {
+            border: 1px solid #000;
+            padding: 4px 2px;
+            text-align: center;
+            font-size: 11px;
+        }
+        
+        .text-left {
+            text-align: left;
+            padding-left: 6px;
+        }
+        
+        .grade-table td {
+            font-size: 10px;
+            padding: 2px;
+        }
+        
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: white;
+                margin: 0;
+                padding: 0;
+            }
+            .marksheet-card {
+                margin: 0;
+                box-shadow: none;
+                border-radius: 0;
+                width: 100%;
+                page-break-after: avoid;
+            }
+            @page {
+                size: portrait;
+                margin: 10mm;
+            }
+        }
+        
+        .result-card {
+            transition: all 0.3s ease;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .error-shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto no-print">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg">
+                <h1 class="text-3xl font-bold text-white mb-2">
+                    <i class="fas fa-graduation-cap"></i> Student Result Portal
+                </h1>
+                <p class="text-white/80">ONNO ROKOM BIDDYANIKETON</p>
+            </div>
+        </div>
+
+        <!-- Search Card -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-8 result-card">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-search text-indigo-600"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Find Your Result</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Session Selection - Dropdown -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-calendar-alt text-indigo-500 mr-1"></i> Select Session
+                    </label>
+                    <select id="sessionSelect" class="w-full border-2 p-3 rounded-xl outline-none focus:border-indigo-500 transition-all bg-gray-50">
+                        <option value="">-- Select Session --</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-file-alt text-indigo-500 mr-1"></i> Select Exam
+                    </label>
+                    <select id="examSelect" class="w-full border-2 p-3 rounded-xl outline-none focus:border-indigo-500 transition-all bg-gray-50" disabled>
+                        <option value="">-- First Select Session --</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-chalkboard text-indigo-500 mr-1"></i> Select Class
+                    </label>
+                    <select id="classSelect" class="w-full border-2 p-3 rounded-xl outline-none focus:border-indigo-500 transition-all bg-gray-50" disabled>
+                        <option value="">-- First Select Exam --</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-users text-indigo-500 mr-1"></i> Select Section
+                    </label>
+                    <select id="sectionSelect" class="w-full border-2 p-3 rounded-xl outline-none focus:border-indigo-500 transition-all bg-gray-50" disabled>
+                        <option value="">-- First Select Class --</option>
+                    </select>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-id-card text-indigo-500 mr-1"></i> Enter Roll Number
+                    </label>
+                    <div class="flex gap-3">
+                        <input type="text" id="rollInput" placeholder="Enter your Roll Number (e.g., 101)" 
+                               class="flex-1 border-2 p-3 rounded-xl outline-none focus:border-indigo-500 bg-gray-50">
+                        <button id="showResultBtn" class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg">
+                            <i class="fas fa-eye mr-2"></i> Show Result
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                <p class="text-xs text-blue-600">
+                    <i class="fas fa-info-circle"></i> Instructions: Select Session, Exam, Class, Section and enter your Roll Number to view your marksheet.
+                </p>
+            </div>
+        </div>
+
+        <!-- Result Display Area -->
+        <div id="resultContainer" class="mt-8"></div>
+        
+        <!-- Print Button -->
+        <div id="printBtnContainer" class="text-center mt-6 no-print hidden">
+            <button onclick="window.print()" class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg">
+                <i class="fas fa-print mr-2"></i> Print Marksheet
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import {
+            getFirestore, doc, getDoc, collection, getDocs, query, where, orderBy
+        } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentSession = "2025-2026", nextSession = "2026-2027";
+        let allExamsCache = [];
+        let allClassesCache = [];
+        let allSubjectsCache = [];
+        let allSectionsCache = [];
+        let allSetupCache = [];
+        let allMarksCache = [];
+        
+        let currentSchoolName = "ONNO ROKOM BIDDYANIKETON";
+        let currentSchoolAddress = "PORANPUR, KAZIPUR, SIRAJGANJ";
+        
+        let availableSessions = [];
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+        }
+
+        function safeNum(v) {
+            const n = parseFloat(v);
+            return Number.isFinite(n) ? n : 0;
+        }
+
+        function calculateGrade(obt, full) {
+            if (!full || full <= 0) return { lg: "-", gp: 0 };
+            const p = (obt / full) * 100;
+            if (p >= 80) return { lg: "A+", gp: 5.00 };
+            if (p >= 70) return { lg: "A", gp: 4.00 };
+            if (p >= 60) return { lg: "A-", gp: 3.50 };
+            if (p >= 50) return { lg: "B", gp: 3.00 };
+            if (p >= 40) return { lg: "C", gp: 2.00 };
+            if (p >= 33) return { lg: "D", gp: 1.00 };
+            return { lg: "F", gp: 0.00 };
+        }
+
+        async function loadSessions() {
+            try {
+                const sdoc = await getDoc(doc(db, "config", "activeSession"));
+                if (sdoc.exists()) {
+                    currentSession = sdoc.data().sessionName || currentSession;
+                }
+                const parts = currentSession.split('-');
+                nextSession = parts.length === 2 ? `${parseInt(parts[0]) + 1}-${parseInt(parts[1]) + 1}` : "2026-2027";
+                
+                // Create available sessions list from 2020 to 2030
+                const startYear = 2020;
+                const endYear = 2030;
+                availableSessions = [];
+                for (let year = startYear; year < endYear; year++) {
+                    availableSessions.push(`${year}-${year + 1}`);
+                }
+                
+                renderSessionDropdown();
+                
+            } catch (e) {
+                console.error("Error loading session:", e);
+            }
+        }
+        
+        function renderSessionDropdown() {
+            const sessionSelect = document.getElementById('sessionSelect');
+            if (!sessionSelect) return;
+            
+            sessionSelect.innerHTML = '<option value="">-- Select Session --</option>';
+            availableSessions.forEach(session => {
+                const isActive = (session === currentSession);
+                sessionSelect.innerHTML += `<option value="${session}" ${isActive ? 'selected' : ''}>${session} ${isActive ? '(Active)' : ''}</option>`;
+            });
+        }
+        
+        function getSelectedSession() {
+            return document.getElementById('sessionSelect').value;
+        }
+
+        async function loadAllData() {
+            const [exSnap, clSnap, subSnap, secSnap, setupSnap, marksSnap] = await Promise.all([
+                getDocs(collection(db, "exams")),
+                getDocs(query(collection(db, "classes"), orderBy("order"))),
+                getDocs(collection(db, "subjects")),
+                getDocs(collection(db, "sections")),
+                getDocs(collection(db, "mark_setup")),
+                getDocs(collection(db, "marks"))
+            ]);
+            
+            allExamsCache = [];
+            exSnap.forEach(d => {
+                const data = d.data();
+                allExamsCache.push({ id: d.id, name: data.name, session: data.session, order: data.order || 0 });
+            });
+            
+            allClassesCache = [];
+            clSnap.forEach(d => {
+                const data = d.data();
+                allClassesCache.push({ id: d.id, name: data.name });
+            });
+            
+            allSubjectsCache = [];
+            subSnap.forEach(d => {
+                const data = d.data();
+                allSubjectsCache.push({ id: d.id, name: data.name, classId: data.classId });
+            });
+            
+            allSectionsCache = [];
+            secSnap.forEach(d => {
+                const data = d.data();
+                allSectionsCache.push({ name: data.name, classId: data.classId });
+            });
+            
+            allSetupCache = [];
+            setupSnap.forEach(d => {
+                const data = d.data();
+                allSetupCache.push({ id: d.id, ...data });
+            });
+            
+            allMarksCache = [];
+            marksSnap.forEach(d => {
+                const data = d.data();
+                allMarksCache.push({ id: d.id, ...data });
+            });
+        }
+
+        function loadExams() {
+            const sessionVal = getSelectedSession();
+            if (!sessionVal) return;
+            
+            const filteredExams = allExamsCache
+                .filter(exam => exam.session === sessionVal)
+                .sort((a, b) => a.order - b.order);
+            
+            const examSelect = document.getElementById('examSelect');
+            examSelect.innerHTML = '<option value="">-- Select Exam --</option>';
+            if (filteredExams.length === 0) {
+                examSelect.innerHTML += '<option disabled>No exams found for this session</option>';
+            }
+            filteredExams.forEach(exam => {
+                examSelect.innerHTML += `<option value="${exam.id}">${escapeHtml(exam.name)}</option>`;
+            });
+            examSelect.disabled = false;
+        }
+
+        function loadClasses() {
+            const classSelect = document.getElementById('classSelect');
+            classSelect.innerHTML = '<option value="">-- Select Class --</option>';
+            allClassesCache.forEach(cls => {
+                classSelect.innerHTML += `<option value="${cls.id}">${escapeHtml(cls.name)}</option>`;
+            });
+            classSelect.disabled = false;
+        }
+
+        function loadSections(classId) {
+            const filteredSections = allSectionsCache.filter(sec => sec.classId === classId);
+            const secSelect = document.getElementById('sectionSelect');
+            secSelect.innerHTML = '<option value="">-- Select Section --</option>';
+            filteredSections.forEach(sec => {
+                secSelect.innerHTML += `<option value="${sec.name}">${escapeHtml(sec.name)}</option>`;
+            });
+            secSelect.disabled = false;
+        }
+
+        async function getStudentData(sessionVal, classId, sectionName, rollNumber) {
+            const studRef = collection(db, `current_session/${sessionVal}/classes/${classId}/students`);
+            const studSnap = await getDocs(studRef);
+            
+            for (const docSnap of studSnap.docs) {
+                const data = docSnap.data();
+                const studentRoll = data.rollNumber || data.roll || '';
+                const studentSection = data.section || '';
+                
+                if (String(studentRoll) === String(rollNumber) && studentSection === sectionName) {
+                    return {
+                        id: docSnap.id,
+                        ...data,
+                        classId: classId,
+                        className: allClassesCache.find(c => c.id === classId)?.name || '',
+                        section: studentSection,
+                        rollNumber: studentRoll,
+                        fullName: data.fullName || '',
+                        admissionNo: data.admissionNumber || data.admissionNo || ''
+                    };
+                }
+            }
+            return null;
+        }
+
+        // Event Listeners
+        document.getElementById('sessionSelect').addEventListener('change', () => {
+            if (getSelectedSession()) {
+                loadExams();
+                document.getElementById('examSelect').disabled = false;
+                document.getElementById('classSelect').disabled = true;
+                document.getElementById('sectionSelect').disabled = true;
+                document.getElementById('rollInput').value = '';
+                document.getElementById('resultContainer').innerHTML = '';
+                document.getElementById('printBtnContainer').classList.add('hidden');
+            }
+        });
+
+        document.getElementById('examSelect').addEventListener('change', () => {
+            if (document.getElementById('examSelect').value) {
+                loadClasses();
+                document.getElementById('classSelect').disabled = false;
+                document.getElementById('sectionSelect').disabled = true;
+                document.getElementById('rollInput').value = '';
+                document.getElementById('resultContainer').innerHTML = '';
+                document.getElementById('printBtnContainer').classList.add('hidden');
+            }
+        });
+
+        document.getElementById('classSelect').addEventListener('change', (e) => {
+            const classId = e.target.value;
+            if (classId) {
+                loadSections(classId);
+                document.getElementById('sectionSelect').disabled = false;
+                document.getElementById('rollInput').value = '';
+                document.getElementById('resultContainer').innerHTML = '';
+                document.getElementById('printBtnContainer').classList.add('hidden');
+            }
+        });
+
+        document.getElementById('showResultBtn').onclick = async () => {
+            const sessionVal = getSelectedSession();
+            const examId = document.getElementById('examSelect').value;
+            const classId = document.getElementById('classSelect').value;
+            const sectionName = document.getElementById('sectionSelect').value;
+            const rollNumber = document.getElementById('rollInput').value.trim();
+
+            if (!sessionVal || !examId || !classId || !sectionName || !rollNumber) {
+                alert("Please fill all fields (Session, Exam, Class, Section, Roll Number)");
+                const container = document.getElementById('resultContainer');
+                container.classList.add('error-shake');
+                setTimeout(() => container.classList.remove('error-shake'), 500);
+                return;
+            }
+
+            const container = document.getElementById('resultContainer');
+            container.innerHTML = `
+                <div class='text-center p-12 bg-white rounded-2xl shadow-lg'>
+                    <i class='fas fa-spinner fa-spin text-4xl text-indigo-600 mb-4'></i>
+                    <p class='font-bold text-gray-600'>Loading your result...</p>
+                </div>
+            `;
+
+            try {
+                const examName = allExamsCache.find(e => e.id === examId)?.name || examId;
+                const student = await getStudentData(sessionVal, classId, sectionName, rollNumber);
+                
+                if (!student) {
+                    container.innerHTML = `
+                        <div class='text-center p-12 bg-white rounded-2xl shadow-lg border-2 border-red-200'>
+                            <i class='fas fa-user-graduate text-6xl text-red-400 mb-4'></i>
+                            <h3 class='font-bold text-xl text-red-600 mb-2'>Student Not Found!</h3>
+                            <p class='text-gray-600'>No student found with Roll Number "${rollNumber}" in ${sectionName} section for session ${sessionVal}.</p>
+                            <p class='text-sm text-gray-500 mt-2'>Please check your details and try again.</p>
+                        </div>
+                    `;
+                    document.getElementById('printBtnContainer').classList.add('hidden');
+                    return;
+                }
+
+                const subjects = allSubjectsCache.filter(sub => sub.classId === classId);
+                const marksData = allMarksCache.filter(m => m.studentId === student.id && m.examId === examId);
+                
+                let totalObtained = 0;
+                let totalFullMarks = 0;
+                let totalGP = 0;
+                let isFailed = false;
+                let rows = "";
+
+                subjects.forEach((sub, index) => {
+                    const marksObj = marksData.find(m => m.subjectId === sub.id);
+                    const m = marksObj?.marks || {};
+                    
+                    const setupKey = `${examId}_${classId}_${student.section || ''}_${sub.id}_${sessionVal}`;
+                    const setupData = allSetupCache.find(s => s.id === setupKey);
+                    const setup = setupData?.marks || {};
+
+                    const wF = setup.written?.enabled ? safeNum(setup.written.full) : 0;
+                    const mF = setup.mcq?.enabled ? safeNum(setup.mcq.full) : 0;
+                    const pF = setup.practical?.enabled ? safeNum(setup.practical.full) : 0;
+
+                    const wO = safeNum(m.written);
+                    const mO = safeNum(m.mcq);
+                    const pO = safeNum(m.practical);
+
+                    const rowTotal = wO + mO + pO;
+                    const rowFull = wF + mF + pF;
+                    const grade = calculateGrade(rowTotal, rowFull);
+
+                    totalObtained += rowTotal;
+                    totalFullMarks += rowFull;
+                    totalGP += grade.gp;
+                    if (grade.lg === "F") isFailed = true;
+
+                    rows += `
+                        <tr>
+                            <td>${String(index + 1).padStart(2, '0')}</td>
+                            <td class="text-left font-bold uppercase">${escapeHtml(sub.name)}</td>
+                            <td>${wF || '-'}</td>
+                            <td>${wF ? wO : '-'}</td>
+                            <td>${mF || '-'}</td>
+                            <td>${mF ? mO : '-'}</td>
+                            <td>${pF || '-'}</td>
+                            <td>${pF ? pO : '-'}</td>
+                            <td class="font-bold bg-gray-50">${rowFull || '-'}</td>
+                            <td class="font-bold bg-gray-50">${rowTotal}</td>
+                            <td class="font-black">${grade.lg}</td>
+                            <td>${grade.gp.toFixed(2)}</td>
+                        </tr>`;
+                });
+
+                const subjectCount = subjects.length || 1;
+                const finalGPA = isFailed ? 0.00 : (totalGP / subjectCount);
+                const finalGrade = isFailed ? "F" : calculateGrade(totalObtained, totalFullMarks).lg;
+
+                const marksheetHTML = `
+                    <div class="marksheet-card">
+                        <div class="content-wrap">
+                            <div class="flex justify-between items-center border-b-2 border-black pb-2">
+                                <div class="w-20 h-20 bg-gray-200 flex items-center justify-center text-gray-400 text-xs">LOGO</div>
+                                <div class="text-center">
+                                    <h1 class="text-2xl font-black text-indigo-900 leading-none uppercase">${escapeHtml(currentSchoolName)}</h1>
+                                    <p class="text-[10px] font-bold tracking-widest mt-1 uppercase">${escapeHtml(currentSchoolAddress)}</p>
+                                    <div class="mt-2 bg-black text-white px-4 py-1 text-[12px] font-bold uppercase rounded-full">Academic Transcript: ${escapeHtml(examName)}</div>
+                                </div>
+                                <div class="w-24 h-28 border-2 border-black flex items-center justify-center text-[10px] italic text-gray-400">PASSPORT PHOTO</div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-2 mt-4 text-[11px] font-bold uppercase">
+                                <div class="border-b border-gray-300 pb-1">STUDENT NAME: <span class="font-normal ml-1">${escapeHtml(student.fullName || '-')}</span></div>
+                                <div class="border-b border-gray-300 pb-1">CLASS: <span class="font-normal ml-1">${escapeHtml(student.className || '-')}</span></div>
+                                <div class="border-b border-gray-300 pb-1">ROLL NO: <span class="font-normal ml-1">${escapeHtml(student.rollNumber || '-')}</span></div>
+                                <div class="border-b border-gray-300 pb-1">SECTION: <span class="font-normal ml-1">${escapeHtml(student.section || 'N/A')}</span></div>
+                                <div class="border-b border-gray-300 pb-1">STUDENT ID: <span class="font-normal ml-1">${escapeHtml(student.admissionNo || '-')}</span></div>
+                                <div class="border-b border-gray-300 pb-1">SESSION: <span class="font-normal ml-1">${escapeHtml(sessionVal)}</span></div>
+                            </div>
+
+                            <table class="mt-4" style="font-size: 10px;">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th rowspan="2">SL</th><th rowspan="2" class="w-44">SUBJECT NAME</th>
+                                        <th colspan="2">WRITTEN</th><th colspan="2">MCQ</th><th colspan="2">PRAC.</th>
+                                        <th colspan="2">TOTAL</th><th rowspan="2">LG</th><th rowspan="2">GP</th><th rowspan="2">HI</th><th rowspan="2">POS</th>
+                                    </tr>
+                                    <tr class="text-[9px]">
+                                        <th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${rows}</tbody>
+                                <tfoot class="bg-gray-50 font-bold">
+                                    <tr>
+                                        <td colspan="2" class="text-left py-2 px-2 uppercase">Total: ${totalObtained} / ${totalFullMarks}</td>
+                                        <td colspan="4">GPA: ${finalGPA.toFixed(2)}</td>
+                                        <td colspan="4">LETTER GRADE: ${finalGrade}</td>
+                                        <td colspan="4">RESULT: <span class="${isFailed ? 'text-red-600' : 'text-emerald-700'}">${isFailed ? 'FAILED' : 'PASSED'}</span></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+
+                            <div class="grid grid-cols-2 gap-4 mt-4">
+                                <div>
+                                    <table class="grade-table w-full">
+                                        <tr class="bg-gray-100 font-bold uppercase"><td>Personal Traits</th><th>Rating</th></tr>
+                                        <tr><td class="text-left">Attendance & Punctuality</td><td>_______</td></tr>
+                                        <tr><td class="text-left">Cleanliness & Neatness</td><td>_______</td></tr>
+                                        <tr><td class="text-left">Behavior & Cooperation</td><td>_______</td></tr>
+                                        <tr><td class="text-left">Active Participation</td><td>_______</td></tr>
+                                    </table>
+                                </div>
+                                <div>
+                                    <table class="grade-table w-full">
+                                        <tr class="bg-gray-100 font-bold uppercase"><td>Range</th><th>Grade</th><th>GPA</th></tr>
+                                        <tr><td>80-100</td><td>A+</td><td>5.00</td></tr>
+                                        <tr><td>70-79</td><td>A</td><td>4.00</td></tr>
+                                        <tr><td>60-69</td><td>A-</td><td>3.50</td></tr>
+                                        <tr><td>50-59</td><td>B</td><td>3.00</td></tr>
+                                        <tr><td>40-49</td><td>C</td><td>2.00</td></tr>
+                                        <tr><td>33-39</td><td>D</td><td>1.00</td></tr>
+                                        <tr><td>00-32</td><td>F</td><td>0.00</td></tr>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 border border-black p-2 text-[10px]">
+                                <div class="flex border-b border-black mb-2 pb-1"><span class="font-bold w-40">CLASS TEACHER'S REMARK:</span><span class="flex-1"></span></div>
+                                <div class="flex pt-1"><span class="font-bold w-40">PRINCIPAL'S REMARK:</span><span class="flex-1"></span></div>
+                            </div>
+
+                            <div class="mt-12 flex justify-between px-6">
+                                <div class="text-center border-t border-black pt-1 w-40 font-bold text-[10px] uppercase">Class Teacher</div>
+                                <div class="text-center border-t border-black pt-1 w-40 font-bold text-[10px] uppercase">Guardian</div>
+                                <div class="text-center border-t border-black pt-1 w-40 font-bold text-[10px] uppercase">Principal</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                container.innerHTML = marksheetHTML;
+                document.getElementById('printBtnContainer').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                container.innerHTML = `
+                    <div class='text-center p-12 bg-white rounded-2xl shadow-lg border-2 border-red-200'>
+                        <i class='fas fa-exclamation-triangle text-6xl text-red-400 mb-4'></i>
+                        <h3 class='font-bold text-xl text-red-600 mb-2'>Error Loading Result!</h3>
+                        <p class='text-gray-600'>${error.message}</p>
+                        <p class='text-sm text-gray-500 mt-2'>Please try again or contact the school.</p>
+                    </div>
+                `;
+                document.getElementById('printBtnContainer').classList.add('hidden');
+            }
+        };
+
+        async function loadSchoolInfo() {
+            const schoolDoc = await getDoc(doc(db, "settings", "school_info"));
+            if (schoolDoc.exists()) {
+                const data = schoolDoc.data();
+                currentSchoolName = data.school_name || currentSchoolName;
+                currentSchoolAddress = data.contact_address || currentSchoolAddress;
+            }
+        }
+
+        async function init() {
+            await loadSessions();
+            await loadAllData();
+            await loadSchoolInfo();
+        }
+        
+        init();
+    </script>
+</body>
+</html>
