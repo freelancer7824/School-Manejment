@@ -7,10 +7,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <!-- Firebase Core App (Must be first) -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 
-<!-- Firebase Firestore (Data show korar jonno) -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <!-- Firebase Firestore (Data show korar jonno) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <style>
         /* ফন্ট এবং বেসিক রিসেট */
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&display=swap');
@@ -140,7 +140,6 @@
         }
 
         .dropdown-content {
-            /* ... (আগের মতো) ... */
             list-style: none;
             padding: 0;
             max-height: 0;
@@ -164,6 +163,11 @@
             color: #bdc3c7;
             text-decoration: none;
             font-size: 13px;
+        }
+        .dropdown-content li a.active-sub {
+            color: #fff;
+            background-color: #34495e;
+            font-weight: bold;
         }
 
 
@@ -227,7 +231,6 @@
             color: var(--header-text); 
         }
 
-        /* ... (header-right এবং user-dropdown-menu আগের মতো) ... */
         .header-right {
             display: flex;
             align-items: center;
@@ -266,7 +269,7 @@
             background-color: #fff;
             border: 1px solid #ccc;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            z-index: 1001;
+            z-index: 1011;
             min-width: 150px;
             display: none;
             list-style: none;
@@ -365,19 +368,23 @@
             }
         }
        .circular-container {
-  width: 70px;
-  height: 45px;
-  padding:2px;
-  margin-right: 10px;/* Creates a square container */
-  border-radius: 50%;
-  overflow: hidden; /* Hides parts of the image that extend outside the circle */
-}
+          width: 70px;
+          height: 45px;
+          padding:2px;
+          margin-right: 10px;
+          border-radius: 50%;
+          overflow: hidden; 
+        }
 
-.circular-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Ensures the image covers the container without stretching, cropping if necessary */
-}
+        .circular-container img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover; 
+        }
+        .sidebar-menu a.menu-item.active {
+            background-color: #34495e;
+            border-left: 4px solid #3498db;
+        }
     </style>
 </head>
 <body>
@@ -389,17 +396,16 @@
 
         <div class="sidebar-header">
             <div class="circular-container">
-    <img src="profile.jpg" alt="Description">
-</div>
-           
+                <img src="profile.jpg" alt="Description">
+            </div>
            <div class="user-info">
-    <strong id="school_name">Loading...</strong>
-    <small>Super Admin</small>
-</div>
-           
+                <strong id="school_name">Loading...</strong>
+                <small>Super Admin</small>
+            </div>
         </div>
+        
         <nav class="sidebar-menu">
-            <a href="#" class="menu-item active" data-link="../Dashboard/dashboard.html"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+            <a href="#" class="menu-item active" id="dashboard-menu-btn" data-link="../Dashboard/dashboard.html"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
 
             <div class="dropdown">
                 <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
@@ -433,27 +439,26 @@
                 </ul>
             </div>
 
-            
             <!-- Attendance Dropdown Solution -->
-<div class="dropdown">
-    <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
-        <i class="fas fa-calendar-check"></i> <span>Attendance</span> <i class="fas fa-angle-right arrow"></i>
-    </a>
-    <ul class="dropdown-content">
-        <li><a href="#" data-link="../Attendance/attendance.html">হাজিরা করুন</a></li>
-        <li><a href="#" data-link="../Attendance/record-attendence.html">হাজিরা দেখুন</a></li>
-    </ul>
-</div>
+            <div class="dropdown">
+                <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
+                    <i class="fas fa-calendar-check"></i> <span>Attendance</span> <i class="fas fa-angle-right arrow"></i>
+                </a>
+                <ul class="dropdown-content">
+                    <li><a href="#" data-link="../Attendance/attendance.html">হাজিরা করুন</a></li>
+                    <li><a href="#" data-link="../Attendance/record-attendence.html">হাজিরা দেখুন</a></li>
+                </ul>
+            </div>
             
             <div class="dropdown">
-    <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
-        <i class="fas fa-comments"></i> <span>Communicate</span> <i class="fas fa-angle-right arrow"></i>
-    </a>
-    <ul class="dropdown-content">
-        <li><a href="#" data-link="../Communicate/sms-home.html">Home</a></li>
-        <li><a href="#" data-link="../Communicate/sms-send.html">SMS Send</a></li>
-    </ul>
-</div>
+                <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
+                    <i class="fas fa-comments"></i> <span>Communicate</span> <i class="fas fa-angle-right arrow"></i>
+                </a>
+                <ul class="dropdown-content">
+                    <li><a href="#" data-link="../Communicate/sms-home.html">Home</a></li>
+                    <li><a href="#" data-link="../Communicate/sms-send.html">SMS Send</a></li>
+                </ul>
+            </div>
             
             <a href="#" class="menu-item" data-link="../View/create-user.html"><i class="fas fa-users"></i> <span>Users</span></a>
             <a href="#" class="menu-item" data-link="../View/parents.html"><i class="fas fa-chalkboard"></i> <span>Parents</span></a>
@@ -514,26 +519,17 @@
         const mainContent = document.getElementById('mainContent');
         const overlay = document.querySelector('.overlay');
         const userDropdown = document.getElementById('userDropdown');
+        const iframe = document.getElementById('main-iframe');
 
         function toggleSidebar() {
             if (window.innerWidth <= 768) {
-                // মোবাইল: সম্পূর্ণ হাইড/শো
                 sidebar.classList.toggle('open');
                 overlay.classList.toggle('active');
             } else {
-                // ডেস্কটপ: কল্যাপস (মিনি-সাইডবার) / এক্সপ্যান্ড
                 sidebar.classList.toggle('collapsed');
                 mainContent.classList.toggle('collapsed-margin');
             }
         }
-        
-        // ফাংশনটি এখন toggleSidebar() দ্বারা প্রতিস্থাপিত
-        /* function hideSidebar() {
-            if (window.innerWidth > 768) {
-                sidebar.classList.add('collapsed');
-                mainContent.classList.add('collapsed-margin');
-            }
-        } */
         
         function toggleUserDropdown(element) {
             userDropdown.classList.toggle('show');
@@ -546,13 +542,13 @@
             }
         });
 
-
-
         // ড্রপডাউন টগল ফাংশন
         function toggleDropdown(element) {
+            // ডিফল্ট লিঙ্ক ভিজিট বা হ্যাশ চেঞ্জ বন্ধ করা হচ্ছে
+            if(event) event.preventDefault();
+            
             const dropdownContent = element.nextElementSibling;
             
-            // যদি সাইডবার কল্যাপসড থাকে, তাহলে ড্রপডাউন কাজ করবে না
             if (sidebar.classList.contains('collapsed') && window.innerWidth > 768) {
                 return; 
             }
@@ -571,22 +567,57 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const links = document.querySelectorAll('.sidebar-menu a[data-link]');
-            const iframe = document.getElementById('main-iframe');
+        // URL Hash ভিত্তিক রেন্ডারিং লজিক (localStorage ছাড়া)
+        function loadPageFromHash() {
+            const links = document.querySelectorAll('a[data-link]');
+            let currentLink = window.location.hash.substring(1);
+            
+            if (!currentLink) {
+                currentLink = "../Dashboard/dashboard.html";
+            }
+
+            if(iframe.getAttribute('src') !== currentLink) {
+                iframe.src = currentLink;
+            }
+            
+            document.querySelectorAll('.sidebar-menu a, .user-dropdown-menu a').forEach(item => {
+                item.classList.remove('active');
+                item.classList.remove('active-sub');
+            });
 
             links.forEach(link => {
+                // ড্রপডাউন টগল বাটনের জন্য একটিভ স্টাইল এড়ানো হচ্ছে
+                if (link.getAttribute('data-link') === currentLink && !link.classList.contains('dropdown-toggle')) {
+                    if (link.classList.contains('menu-item')) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.add('active-sub');
+                        const parentDropdown = link.closest('.dropdown-content');
+                        if (parentDropdown) {
+                            parentDropdown.style.maxHeight = parentDropdown.scrollHeight + "px";
+                            parentDropdown.previousElementSibling.classList.add('open');
+                        }
+                    }
+                }
+            });
+        }
+
+        // পেজ লোড এবং ব্রাউজারের হ্যাশ চেঞ্জ ইভেন্ট ট্র্যাকিং
+        window.addEventListener('hashchange', loadPageFromHash);
+        window.addEventListener('DOMContentLoaded', () => {
+            loadPageFromHash();
+
+            const links = document.querySelectorAll('a[data-link]');
+            links.forEach(link => {
                 link.addEventListener('click', function(e) {
+                    // যদি ক্লিক করা আইটেমটি ড্রপডাউন টগল বাটন হয়, তাহলে লিংক লোড হবে না
+                    if (this.classList.contains('dropdown-toggle')) {
+                        return;
+                    }
+
                     e.preventDefault();
-
                     const url = this.getAttribute('data-link');
-
-                    document.querySelectorAll('.sidebar-menu a.menu-item').forEach(item => {
-                        item.classList.remove('active');
-                    });
-
-                    this.classList.add('active');
-                    iframe.src = url;
+                    window.location.hash = url;
 
                     if (window.innerWidth <= 768) {
                         toggleSidebar();
@@ -596,48 +627,39 @@
         });
     </script>
     
-    
     <script> 
-    // Firebase Configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
-    authDomain: "school-menejment.firebaseapp.com",
-    projectId: "school-menejment",
-    storageBucket: "school-menejment.firebasestorage.app",
-    messagingSenderId: "348342436525",
-    appId: "1:348342436525:web:41fc72cb02f824baa3bc24",
-    measurementId: "G-GS91N1J5SH"
-};
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:41fc72cb02f824baa3bc24",
+            measurementId: "G-GS91N1J5SH"
+        };
 
-// Initialize Firebase
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-const db = firebase.firestore();
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
 
-// Fetch Data in Realtime
-// Data Fetching logic
-db.collection("settings").doc("school_info").onSnapshot((doc) => {
-    if (doc.exists) {
-        const data = doc.data();
-        
-        // Firestore field check (name ba school_name)
-        const fetchedName = data.name || data.school_name || "Name Not Set";
-        
-        // 1. User info section-e set kora
-        document.getElementById("school_name").innerText = fetchedName;
-        
-        // 2. Apnar heading section-e set kora
-        document.getElementById("main_heading").innerText = fetchedName;
-        
-    } else {
-        console.log("Document not found!");
-    }
-}, (error) => {
-    console.error("Firebase Error:", error);
-});
+        // Fetch Data in Realtime
+        db.collection("settings").doc("school_info").onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                const fetchedName = data.name || data.school_name || "Name Not Set";
+                
+                document.getElementById("school_name").innerText = fetchedName;
+                document.getElementById("main_heading").innerText = fetchedName;
+                
+            } else {
+                console.log("Document not found!");
+            }
+        }, (error) => {
+            console.error("Firebase Error:", error);
+        });
     </script>
-
 </body>
-
 </html>
