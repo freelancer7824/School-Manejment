@@ -24,19 +24,21 @@
         }
     </script>
     <style>
-        body { background: #f1f5f9; }
+        body { background: #f1f5f9; overflow-x: hidden; }
         .card-hover { transition: all 0.2s ease; }
         .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
         .modal-backdrop { backdrop-filter: blur(2px); background-color: rgba(0,0,0,0.4); }
         .tab-active { border-bottom: 2px solid #3b82f6; color: #3b82f6; }
         .subject-tag { transition: all 0.15s; }
         .subject-tag:hover { transform: scale(1.02); }
+        /* Smooth scrolling for iframe content */
+        html, body { height: 100%; -webkit-overflow-scrolling: touch; }
     </style>
 </head>
-<body class="min-h-screen font-sans antialiased p-4 md:p-6">
+<body class="min-h-screen font-sans antialiased p-4 md:p-6 w-full">
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed top-20 right-4 z-50 hidden transition-all duration-300">
+    <div id="toast" class="fixed top-4 right-4 z-50 hidden transition-all duration-300">
         <div class="bg-white rounded-lg shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success">
             <i id="toast-icon" class="fas fa-check-circle text-success text-lg"></i>
             <p id="toast-text" class="text-gray-700 text-sm font-medium">Operation successful</p>
@@ -45,8 +47,8 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop transition-all">
-        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
+    <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop transition-all p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
                     <i class="fas fa-trash-alt text-danger"></i>
@@ -63,8 +65,8 @@
     </div>
 
     <!-- Class Form Modal (Add/Edit) -->
-    <div id="classModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-auto">
-        <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-auto">
+    <div id="classModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-y-auto">
+        <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-auto my-8">
             <div class="p-5 border-b flex justify-between items-center">
                 <h3 class="text-xl font-bold"><i class="fas fa-school text-primary mr-2"></i> <span id="classModalTitle">Add New Class</span></h3>
                 <button onclick="closeClassModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
@@ -97,10 +99,10 @@
             <div class="p-5">
                 <input type="hidden" id="sectionClassId">
                 <div class="flex gap-2 mb-4">
-                    <input type="text" id="newSectionName" class="flex-1 border border-gray-300 rounded-lg p-2.5" placeholder="Section name (e.g., A, B, Morning)">
-                    <button id="addSectionBtn" class="px-4 py-2 bg-success text-white rounded-lg hover:bg-green-700 transition"><i class="fas fa-plus"></i></button>
+                    <input type="text" id="newSectionName" class="flex-1 border border-gray-300 rounded-lg p-2.5 min-w-0" placeholder="Section name (e.g., A, B)">
+                    <button id="addSectionBtn" class="px-4 py-2 bg-success text-white rounded-lg hover:bg-green-700 transition shrink-0"><i class="fas fa-plus"></i></button>
                 </div>
-                <div id="sectionsList" class="space-y-2 max-h-64 overflow-y-auto">
+                <div id="sectionsList" class="space-y-2 max-h-64 overflow-y-auto pr-1">
                     <p class="text-gray-400 text-center py-4">Loading sections...</p>
                 </div>
             </div>
@@ -108,15 +110,15 @@
     </div>
 
     <!-- Subject Modal -->
-    <div id="subjectModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-auto">
-        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-auto">
+    <div id="subjectModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-y-auto">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-auto my-8">
             <div class="p-5 border-b flex justify-between items-center">
                 <h3 class="text-xl font-bold"><i class="fas fa-book-open text-primary mr-2"></i> Manage Subjects</h3>
                 <button onclick="closeSubjectModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
             </div>
             <div class="p-5">
                 <input type="hidden" id="subjectClassId">
-                <div class="grid md:grid-cols-2 gap-4 mb-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                     <div>
                         <label class="text-sm font-semibold">Subject Name</label>
                         <input type="text" id="subjectName" class="w-full border border-gray-300 rounded-lg p-2 mt-1" placeholder="Mathematics, English, etc.">
@@ -134,7 +136,7 @@
                 
                 <div class="border-t pt-4">
                     <h4 class="font-semibold mb-3">Subjects List</h4>
-                    <div id="subjectsList" class="space-y-2 max-h-64 overflow-y-auto">
+                    <div id="subjectsList" class="space-y-2 max-h-64 overflow-y-auto pr-1">
                         <p class="text-gray-400 text-center py-4">Loading subjects...</p>
                     </div>
                 </div>
@@ -143,25 +145,25 @@
     </div>
 
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto">
+    <div class="w-full max-w-7xl mx-auto">
         <!-- Header -->
-        <header class="flex flex-wrap justify-between items-center mb-6 gap-3">
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div class="flex items-center gap-3">
-                <a href="dashboard.html" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition">
+                <a href="dashboard.html" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition shrink-0">
                     <i class="fas fa-arrow-left text-primary"></i>
                 </a>
-                <h1 class="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
-                    <span class="bg-primary text-white p-1.5 rounded-lg"><i class="fas fa-chalkboard"></i></span> 
+                <h1 class="text-xl md:text-3xl font-bold text-slate-800 flex items-center gap-2 break-all">
+                    <span class="bg-primary text-white p-1.5 rounded-lg shrink-0"><i class="fas fa-chalkboard"></i></span> 
                     Class Management
                 </h1>
             </div>
-            <button id="addClassBtn" class="bg-primary text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition shadow-sm font-medium">
+            <button id="addClassBtn" class="w-full sm:w-auto bg-primary text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition shadow-sm font-medium whitespace-nowrap">
                 <i class="fas fa-plus-circle mr-2"></i> Add New Class
             </button>
         </header>
 
         <!-- Classes Grid -->
-        <div id="classesGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="classesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <div class="col-span-full text-center py-10 text-gray-400">
                 <i class="fas fa-spinner fa-spin text-2xl"></i> Loading classes...
             </div>
@@ -173,15 +175,15 @@
         import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, query, orderBy, where, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         
         const firebaseConfig = {
-  apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
-  authDomain: "school-menejment.firebaseapp.com",
-  databaseURL: "https://school-menejment-default-rtdb.firebaseio.com",
-  projectId: "school-menejment",
-  storageBucket: "school-menejment.firebasestorage.app",
-  messagingSenderId: "348342436525",
-  appId: "1:348342436525:web:c339fe6216c4516aa3bc24",
-  measurementId: "G-SQT1N4PVD3"
-};
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            databaseURL: "https://school-menejment-default-rtdb.firebaseio.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24",
+            measurementId: "G-SQT1N4PVD3"
+        };
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -217,14 +219,14 @@
                 snapshot.forEach(doc => {
                     allClasses.push({ id: doc.id, ...doc.data() });
                 });
-                renderClasses();
+                await renderClasses();
             } catch (error) {
                 console.error("Error loading classes:", error);
                 document.getElementById('classesGrid').innerHTML = `<div class="col-span-full text-center py-10 text-red-500"><i class="fas fa-exclamation-triangle"></i> Failed to load classes</div>`;
             }
         }
         
-        // Render classes grid
+        // Render classes grid (Optimized using Promise.all)
         async function renderClasses() {
             const grid = document.getElementById('classesGrid');
             if (allClasses.length === 0) {
@@ -235,66 +237,89 @@
                 return;
             }
             
-            grid.innerHTML = '';
-            for (const cls of allClasses) {
-                // Fetch section count and subject count for each class
-                const sectionsSnap = await getDocs(query(collection(db, "sections"), where("classId", "==", cls.id)));
-                const subjectsSnap = await getDocs(query(collection(db, "subjects"), where("classId", "==", cls.id)));
-                const sectionCount = sectionsSnap.size;
-                const subjectCount = subjectsSnap.size;
-                
-                const card = document.createElement('div');
-                card.className = 'bg-white rounded-2xl shadow-md overflow-hidden card-hover';
-                card.innerHTML = `
-                    <div class="p-5 border-b border-gray-100 flex justify-between items-start">
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-800">${escapeHtml(cls.name || 'Unnamed')}</h3>
-                            <p class="text-xs text-gray-400 mt-1">Order: ${cls.order || 0}</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button class="edit-class-btn text-primary hover:bg-blue-50 p-2 rounded-lg transition" data-id="${cls.id}" data-name="${escapeHtml(cls.name)}" data-order="${cls.order || 0}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="delete-class-btn text-danger hover:bg-red-50 p-2 rounded-lg transition" data-id="${cls.id}" data-name="${escapeHtml(cls.name)}">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="p-4 space-y-3">
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-600"><i class="fas fa-layer-group mr-1 text-primary"></i> Sections</span>
-                            <span class="font-semibold">${sectionCount}</span>
-                        </div>
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-600"><i class="fas fa-book mr-1 text-primary"></i> Subjects</span>
-                            <span class="font-semibold">${subjectCount}</span>
-                        </div>
-                        <div class="flex gap-2 pt-2">
-                            <button class="manage-sections-btn flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition" data-id="${cls.id}" data-name="${escapeHtml(cls.name)}">
-                                <i class="fas fa-layer-group mr-1"></i> Sections
-                            </button>
-                            <button class="manage-subjects-btn flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition" data-id="${cls.id}" data-name="${escapeHtml(cls.name)}">
-                                <i class="fas fa-book-open mr-1"></i> Subjects
-                            </button>
-                        </div>
-                    </div>
-                `;
-                grid.appendChild(card);
-            }
+            grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-400"><i class="fas fa-spinner fa-spin text-2xl"></i> Loading details...</div>';
             
-            // Attach event listeners
-            document.querySelectorAll('.edit-class-btn').forEach(btn => {
-                btn.addEventListener('click', () => editClass(btn.dataset.id, btn.dataset.name, btn.dataset.order));
-            });
-            document.querySelectorAll('.delete-class-btn').forEach(btn => {
-                btn.addEventListener('click', () => showDeleteConfirm('class', btn.dataset.id, btn.dataset.name));
-            });
-            document.querySelectorAll('.manage-sections-btn').forEach(btn => {
-                btn.addEventListener('click', () => openSectionModal(btn.dataset.id, btn.dataset.name));
-            });
-            document.querySelectorAll('.manage-subjects-btn').forEach(btn => {
-                btn.addEventListener('click', () => openSubjectModal(btn.dataset.id, btn.dataset.name));
-            });
+            try {
+                // Fetch all section & subject counts concurrently to fix "slow sequential loading"
+                const countsPromises = allClasses.map(async (cls) => {
+                    const sectionsQuery = getDocs(query(collection(db, "sections"), where("classId", "==", cls.id)));
+                    const subjectsQuery = getDocs(query(collection(db, "subjects"), where("classId", "==", cls.id)));
+                    const [sectionsSnap, subjectsSnap] = await Promise.all([sectionsQuery, subjectsQuery]);
+                    return {
+                        classId: cls.id,
+                        sectionCount: sectionsSnap.size,
+                        subjectCount: subjectsSnap.size
+                    };
+                });
+
+                const countsResults = await Promise.all(countsPromises);
+                const countsMap = countsResults.reduce((acc, current) => {
+                    acc[current.classId] = current;
+                    return acc;
+                }, {});
+
+                grid.innerHTML = '';
+                allClasses.forEach(cls => {
+                    const sectionCount = countsMap[cls.id]?.sectionCount || 0;
+                    const subjectCount = countsMap[cls.id]?.subjectCount || 0;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'bg-white rounded-2xl shadow-md overflow-hidden card-hover w-full';
+                    card.innerHTML = `
+                        <div class="p-5 border-b border-gray-100 flex justify-between items-start">
+                            <div class="min-w-0 flex-1 pr-2">
+                                <h3 class="text-xl font-bold text-gray-800 truncate">${escapeHtml(cls.name || 'Unnamed')}</h3>
+                                <p class="text-xs text-gray-400 mt-1">Order: ${cls.order || 0}</p>
+                            </div>
+                            <div class="flex gap-1 shrink-0">
+                                <button class="edit-class-btn text-primary hover:bg-blue-50 p-2 rounded-lg transition" data-id="${cls.id}" data-name="${escapeHtml(cls.name)}" data-order="${cls.order || 0}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="delete-class-btn text-danger hover:bg-red-50 p-2 rounded-lg transition" data-id="${cls.id}" data-name="${escapeHtml(cls.name)}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-4 space-y-3">
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-gray-600"><i class="fas fa-layer-group mr-1 text-primary"></i> Sections</span>
+                                <span class="font-semibold">${sectionCount}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-gray-600"><i class="fas fa-book mr-1 text-primary"></i> Subjects</span>
+                                <span class="font-semibold">${subjectCount}</span>
+                            </div>
+                            <div class="flex gap-2 pt-2">
+                                <button class="manage-sections-btn flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition whitespace-nowrap" data-id="${cls.id}" data-name="${escapeHtml(cls.name)}">
+                                    <i class="fas fa-layer-group mr-1"></i> Sections
+                                </button>
+                                <button class="manage-subjects-btn flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition whitespace-nowrap" data-id="${cls.id}" data-name="${escapeHtml(cls.name)}">
+                                    <i class="fas fa-book-open mr-1"></i> Subjects
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+                
+                // Attach event listeners
+                document.querySelectorAll('.edit-class-btn').forEach(btn => {
+                    btn.onclick = () => editClass(btn.dataset.id, btn.dataset.name, btn.dataset.order);
+                });
+                document.querySelectorAll('.delete-class-btn').forEach(btn => {
+                    btn.onclick = () => showDeleteConfirm('class', btn.dataset.id, btn.dataset.name);
+                });
+                document.querySelectorAll('.manage-sections-btn').forEach(btn => {
+                    btn.onclick = () => openSectionModal(btn.dataset.id, btn.dataset.name);
+                });
+                document.querySelectorAll('.manage-subjects-btn').forEach(btn => {
+                    btn.onclick = () => openSubjectModal(btn.dataset.id, btn.dataset.name);
+                });
+
+            } catch (error) {
+                console.error("Error rendering classes:", error);
+                grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500"><i class="fas fa-exclamation-triangle"></i> Error displaying layout</div>`;
+            }
         }
         
         function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
@@ -330,14 +355,13 @@
         
         async function deleteClass(id) {
             try {
-                // Delete all sections under this class
                 const sectionsSnap = await getDocs(query(collection(db, "sections"), where("classId", "==", id)));
                 const batch = writeBatch(db);
                 sectionsSnap.forEach(docSnap => batch.delete(docSnap.ref));
-                // Delete all subjects under this class
+                
                 const subjectsSnap = await getDocs(query(collection(db, "subjects"), where("classId", "==", id)));
                 subjectsSnap.forEach(docSnap => batch.delete(docSnap.ref));
-                // Delete class itself
+                
                 batch.delete(doc(db, "classes", id));
                 await batch.commit();
                 showToast(`Class and all associated data deleted successfully!`);
@@ -469,23 +493,24 @@
                 const div = document.createElement('div');
                 div.className = 'flex justify-between items-center p-3 bg-gray-50 rounded-lg';
                 div.innerHTML = `
-                    <span><i class="fas fa-layer-group text-primary mr-2"></i> ${escapeHtml(section.name)}</span>
-                    <button class="delete-section-btn text-danger hover:bg-red-100 p-1 rounded" data-id="${section.id}" data-name="${escapeHtml(section.name)}">
+                    <span class="truncate mr-2"><i class="fas fa-layer-group text-primary mr-2 shrink-0"></i> ${escapeHtml(section.name)}</span>
+                    <button class="delete-section-btn text-danger hover:bg-red-100 p-1 rounded shrink-0" data-id="${section.id}" data-name="${escapeHtml(section.name)}">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 `;
                 container.appendChild(div);
             });
             document.querySelectorAll('.delete-section-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
+                btn.onclick = async (e) => {
                     e.stopPropagation();
                     const sectionId = btn.dataset.id;
                     const sectionName = btn.dataset.name;
                     if (confirm(`Delete section "${sectionName}"?`)) {
                         await deleteSection(sectionId);
                         await refreshSectionsList(classId);
+                        await loadClasses(); // Refresh counts on grid
                     }
-                });
+                };
             });
         }
         
@@ -495,6 +520,7 @@
             await addSection(currentSectionClassId, newName);
             document.getElementById('newSectionName').value = '';
             await refreshSectionsList(currentSectionClassId);
+            await loadClasses(); // Refresh counts on grid
         };
         
         function closeSectionModal() { document.getElementById('sectionModal').classList.add('hidden'); currentSectionClassId = null; }
@@ -522,29 +548,30 @@
                 const typeIcon = sub.type === 'mandatory' ? 'fa-check-circle text-success' : (sub.type === 'additional' ? 'fa-plus-circle text-primary' : 'fa-star text-warning');
                 const typeText = sub.type === 'mandatory' ? 'Mandatory' : (sub.type === 'additional' ? 'Additional' : 'Optional');
                 const div = document.createElement('div');
-                div.className = 'flex justify-between items-center p-3 bg-gray-50 rounded-lg';
+                div.className = 'flex justify-between items-center p-3 bg-gray-50 rounded-lg gap-2';
                 div.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <i class="fas ${typeIcon}"></i>
-                        <span class="font-medium">${escapeHtml(sub.name)}</span>
-                        <span class="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded">${typeText}</span>
+                    <div class="flex items-center gap-2 min-w-0">
+                        <i class="fas ${typeIcon} shrink-0"></i>
+                        <span class="font-medium truncate">${escapeHtml(sub.name)}</span>
+                        <span class="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded shrink-0 hidden sm:inline">${typeText}</span>
                     </div>
-                    <button class="delete-subject-btn text-danger hover:bg-red-100 p-1 rounded" data-id="${sub.id}" data-name="${escapeHtml(sub.name)}">
+                    <button class="delete-subject-btn text-danger hover:bg-red-100 p-1 rounded shrink-0" data-id="${sub.id}" data-name="${escapeHtml(sub.name)}">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 `;
                 container.appendChild(div);
             });
             document.querySelectorAll('.delete-subject-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
+                btn.onclick = async (e) => {
                     e.stopPropagation();
                     const subjectId = btn.dataset.id;
                     const subjectName = btn.dataset.name;
                     if (confirm(`Delete subject "${subjectName}"?`)) {
                         await deleteSubject(subjectId);
                         await refreshSubjectsList(classId);
+                        await loadClasses(); // Refresh counts on grid
                     }
-                });
+                };
             });
         }
         
@@ -555,6 +582,7 @@
             await addSubject(currentSubjectClassId, name, type);
             document.getElementById('subjectName').value = '';
             await refreshSubjectsList(currentSubjectClassId);
+            await loadClasses(); // Refresh counts on grid
         };
         
         function closeSubjectModal() { document.getElementById('subjectModal').classList.add('hidden'); currentSubjectClassId = null; }
@@ -582,13 +610,13 @@
         
         // Close modals on outside click
         [classModal, document.getElementById('sectionModal'), document.getElementById('subjectModal'), document.getElementById('deleteModal')].forEach(modal => {
-            modal.addEventListener('click', (e) => {
+            modal.onclick = (e) => {
                 if (e.target === modal) {
                     modal.classList.add('hidden');
                     if (modal.id === 'sectionModal') currentSectionClassId = null;
                     if (modal.id === 'subjectModal') currentSubjectClassId = null;
                 }
-            });
+            };
         });
         
         // Initialize
