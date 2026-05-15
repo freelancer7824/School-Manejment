@@ -13,6 +13,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             font-family: 'Roboto', 'Hind Siliguri', sans-serif;
             min-height: 100vh;
+            padding: 20px;
         }
         
         .marksheet-card {
@@ -132,7 +133,6 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <!-- Session Selection - Dropdown -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                         <i class="fas fa-calendar-alt text-indigo-500 mr-1"></i> Select Session
@@ -190,10 +190,8 @@
             </div>
         </div>
 
-        <!-- Result Display Area -->
         <div id="resultContainer" class="mt-8"></div>
         
-        <!-- Print Button -->
         <div id="printBtnContainer" class="text-center mt-6 no-print hidden">
             <button onclick="window.print()" class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg">
                 <i class="fas fa-print mr-2"></i> Print Marksheet
@@ -219,7 +217,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let currentSession = "2025-2026", nextSession = "2026-2027";
+        let currentSession = "2025-2026";
         let allExamsCache = [];
         let allClassesCache = [];
         let allSubjectsCache = [];
@@ -260,10 +258,7 @@
                 if (sdoc.exists()) {
                     currentSession = sdoc.data().sessionName || currentSession;
                 }
-                const parts = currentSession.split('-');
-                nextSession = parts.length === 2 ? `${parseInt(parts[0]) + 1}-${parseInt(parts[1]) + 1}` : "2026-2027";
                 
-                // Create available sessions list from 2020 to 2030
                 const startYear = 2020;
                 const endYear = 2030;
                 availableSessions = [];
@@ -272,6 +267,13 @@
                 }
                 
                 renderSessionDropdown();
+                
+                // ডিফল্ট সিলেক্টেড সেশন অনুযায়ী Exam লোড করুন
+                const defaultSession = getSelectedSession();
+                if (defaultSession) {
+                    await loadExams();
+                    document.getElementById('examSelect').disabled = false;
+                }
                 
             } catch (e) {
                 console.error("Error loading session:", e);
@@ -294,20 +296,21 @@
         }
 
         async function loadAllData() {
-            const [exSnap, clSnap, subSnap, secSnap, setupSnap, marksSnap] = await Promise.all([
-                getDocs(collection(db, "exams")),
+            // শুধুমাত্র Published Exam লোড করবো
+            const exSnap = await getDocs(query(collection(db, "exams"), where("status", "==", "published")));
+            allExamsCache = [];
+            exSnap.forEach(d => {
+                const data = d.data();
+                allExamsCache.push({ id: d.id, name: data.name, session: data.session, order: data.order || 0 });
+            });
+
+            const [clSnap, subSnap, secSnap, setupSnap, marksSnap] = await Promise.all([
                 getDocs(query(collection(db, "classes"), orderBy("order"))),
                 getDocs(collection(db, "subjects")),
                 getDocs(collection(db, "sections")),
                 getDocs(collection(db, "mark_setup")),
                 getDocs(collection(db, "marks"))
             ]);
-            
-            allExamsCache = [];
-            exSnap.forEach(d => {
-                const data = d.data();
-                allExamsCache.push({ id: d.id, name: data.name, session: data.session, order: data.order || 0 });
-            });
             
             allClassesCache = [];
             clSnap.forEach(d => {
@@ -340,7 +343,7 @@
             });
         }
 
-        function loadExams() {
+        async function loadExams() {
             const sessionVal = getSelectedSession();
             if (!sessionVal) return;
             
@@ -351,7 +354,7 @@
             const examSelect = document.getElementById('examSelect');
             examSelect.innerHTML = '<option value="">-- Select Exam --</option>';
             if (filteredExams.length === 0) {
-                examSelect.innerHTML += '<option disabled>No exams found for this session</option>';
+                examSelect.innerHTML += '<option disabled>No published exams found for this session</option>';
             }
             filteredExams.forEach(exam => {
                 examSelect.innerHTML += `<option value="${exam.id}">${escapeHtml(exam.name)}</option>`;
@@ -396,6 +399,8 @@
                         section: studentSection,
                         rollNumber: studentRoll,
                         fullName: data.fullName || '',
+                        fatherName: data.fatherName || '',
+                        motherName: data.motherName || '',
                         admissionNo: data.admissionNumber || data.admissionNo || ''
                     };
                 }
@@ -403,10 +408,9 @@
             return null;
         }
 
-        // Event Listeners
-        document.getElementById('sessionSelect').addEventListener('change', () => {
+        document.getElementById('sessionSelect').addEventListener('change', async () => {
             if (getSelectedSession()) {
-                loadExams();
+                await loadExams();
                 document.getElementById('examSelect').disabled = false;
                 document.getElementById('classSelect').disabled = true;
                 document.getElementById('sectionSelect').disabled = true;
@@ -454,26 +458,14 @@
             }
 
             const container = document.getElementById('resultContainer');
-            container.innerHTML = `
-                <div class='text-center p-12 bg-white rounded-2xl shadow-lg'>
-                    <i class='fas fa-spinner fa-spin text-4xl text-indigo-600 mb-4'></i>
-                    <p class='font-bold text-gray-600'>Loading your result...</p>
-                </div>
-            `;
+            container.innerHTML = `<div class='text-center p-12 bg-white rounded-2xl shadow-lg'><i class='fas fa-spinner fa-spin text-4xl text-indigo-600 mb-4'></i><p class='font-bold text-gray-600'>Loading your result...</p></div>`;
 
             try {
                 const examName = allExamsCache.find(e => e.id === examId)?.name || examId;
                 const student = await getStudentData(sessionVal, classId, sectionName, rollNumber);
                 
                 if (!student) {
-                    container.innerHTML = `
-                        <div class='text-center p-12 bg-white rounded-2xl shadow-lg border-2 border-red-200'>
-                            <i class='fas fa-user-graduate text-6xl text-red-400 mb-4'></i>
-                            <h3 class='font-bold text-xl text-red-600 mb-2'>Student Not Found!</h3>
-                            <p class='text-gray-600'>No student found with Roll Number "${rollNumber}" in ${sectionName} section for session ${sessionVal}.</p>
-                            <p class='text-sm text-gray-500 mt-2'>Please check your details and try again.</p>
-                        </div>
-                    `;
+                    container.innerHTML = `<div class='text-center p-12 bg-white rounded-2xl shadow-lg border-2 border-red-200'><i class='fas fa-user-graduate text-6xl text-red-400 mb-4'></i><h3 class='font-bold text-xl text-red-600 mb-2'>Student Not Found!</h3><p class='text-gray-600'>No student found with Roll Number "${rollNumber}" in ${sectionName} section for session ${sessionVal}.</p></div>`;
                     document.getElementById('printBtnContainer').classList.add('hidden');
                     return;
                 }
@@ -481,10 +473,7 @@
                 const subjects = allSubjectsCache.filter(sub => sub.classId === classId);
                 const marksData = allMarksCache.filter(m => m.studentId === student.id && m.examId === examId);
                 
-                let totalObtained = 0;
-                let totalFullMarks = 0;
-                let totalGP = 0;
-                let isFailed = false;
+                let totalObtained = 0, totalFullMarks = 0, totalGP = 0, isFailed = false;
                 let rows = "";
 
                 subjects.forEach((sub, index) => {
@@ -498,10 +487,7 @@
                     const wF = setup.written?.enabled ? safeNum(setup.written.full) : 0;
                     const mF = setup.mcq?.enabled ? safeNum(setup.mcq.full) : 0;
                     const pF = setup.practical?.enabled ? safeNum(setup.practical.full) : 0;
-
-                    const wO = safeNum(m.written);
-                    const mO = safeNum(m.mcq);
-                    const pO = safeNum(m.practical);
+                    const wO = safeNum(m.written), mO = safeNum(m.mcq), pO = safeNum(m.practical);
 
                     const rowTotal = wO + mO + pO;
                     const rowFull = wF + mF + pF;
@@ -512,21 +498,7 @@
                     totalGP += grade.gp;
                     if (grade.lg === "F") isFailed = true;
 
-                    rows += `
-                        <tr>
-                            <td>${String(index + 1).padStart(2, '0')}</td>
-                            <td class="text-left font-bold uppercase">${escapeHtml(sub.name)}</td>
-                            <td>${wF || '-'}</td>
-                            <td>${wF ? wO : '-'}</td>
-                            <td>${mF || '-'}</td>
-                            <td>${mF ? mO : '-'}</td>
-                            <td>${pF || '-'}</td>
-                            <td>${pF ? pO : '-'}</td>
-                            <td class="font-bold bg-gray-50">${rowFull || '-'}</td>
-                            <td class="font-bold bg-gray-50">${rowTotal}</td>
-                            <td class="font-black">${grade.lg}</td>
-                            <td>${grade.gp.toFixed(2)}</td>
-                        </tr>`;
+                    rows += `<tr><td>${String(index+1).padStart(2,'0')}</td><td class="text-left font-bold uppercase">${escapeHtml(sub.name)}</td><td>${wF||'-'}</td><td>${wF?wO:'-'}</td><td>${mF||'-'}</td><td>${mF?mO:'-'}</td><td>${pF||'-'}</td><td>${pF?pO:'-'}</td><td class="font-bold bg-gray-50">${rowFull||'-'}</td><td class="font-bold bg-gray-50">${rowTotal}</td><td class="font-black">${grade.lg}</td><td>${grade.gp.toFixed(2)}</td><td>-</td><td>-</td></tr>`;
                 });
 
                 const subjectCount = subjects.length || 1;
@@ -557,30 +529,19 @@
 
                             <table class="mt-4" style="font-size: 10px;">
                                 <thead class="bg-gray-100">
-                                    <tr>
-                                        <th rowspan="2">SL</th><th rowspan="2" class="w-44">SUBJECT NAME</th>
-                                        <th colspan="2">WRITTEN</th><th colspan="2">MCQ</th><th colspan="2">PRAC.</th>
-                                        <th colspan="2">TOTAL</th><th rowspan="2">LG</th><th rowspan="2">GP</th><th rowspan="2">HI</th><th rowspan="2">POS</th>
-                                    </tr>
-                                    <tr class="text-[9px]">
-                                        <th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th>
-                                    </tr>
+                                    <tr><th rowspan="2">SL</th><th rowspan="2" class="w-44">SUBJECT NAME</th><th colspan="2">WRITTEN</th><th colspan="2">MCQ</th><th colspan="2">PRAC.</th><th colspan="2">TOTAL</th><th rowspan="2">LG</th><th rowspan="2">GP</th><th rowspan="2">HI</th><th rowspan="2">POS</th></tr>
+                                    <tr class="text-[9px]"><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th></tr>
                                 </thead>
                                 <tbody>${rows}</tbody>
                                 <tfoot class="bg-gray-50 font-bold">
-                                    <tr>
-                                        <td colspan="2" class="text-left py-2 px-2 uppercase">Total: ${totalObtained} / ${totalFullMarks}</td>
-                                        <td colspan="4">GPA: ${finalGPA.toFixed(2)}</td>
-                                        <td colspan="4">LETTER GRADE: ${finalGrade}</td>
-                                        <td colspan="4">RESULT: <span class="${isFailed ? 'text-red-600' : 'text-emerald-700'}">${isFailed ? 'FAILED' : 'PASSED'}</span></td>
-                                    </tr>
+                                    <tr><td colspan="2" class="text-left py-2 px-2 uppercase">Total: ${totalObtained} / ${totalFullMarks}</td><td colspan="4">GPA: ${finalGPA.toFixed(2)}</td><td colspan="4">LETTER GRADE: ${finalGrade}</td><td colspan="4">RESULT: <span class="${isFailed ? 'text-red-600' : 'text-emerald-700'}">${isFailed ? 'FAILED' : 'PASSED'}</span></td></tr>
                                 </tfoot>
                             </table>
 
                             <div class="grid grid-cols-2 gap-4 mt-4">
                                 <div>
                                     <table class="grade-table w-full">
-                                        <tr class="bg-gray-100 font-bold uppercase"><td>Personal Traits</th><th>Rating</th></tr>
+                                        <tr class="bg-gray-100 font-bold uppercase"><th>Personal Traits</th><th>Rating</th></tr>
                                         <tr><td class="text-left">Attendance & Punctuality</td><td>_______</td></tr>
                                         <tr><td class="text-left">Cleanliness & Neatness</td><td>_______</td></tr>
                                         <tr><td class="text-left">Behavior & Cooperation</td><td>_______</td></tr>
@@ -589,7 +550,7 @@
                                 </div>
                                 <div>
                                     <table class="grade-table w-full">
-                                        <tr class="bg-gray-100 font-bold uppercase"><td>Range</th><th>Grade</th><th>GPA</th></tr>
+                                        <tr class="bg-gray-100 font-bold uppercase"><th>Range</th><th>Grade</th><th>GPA</th></tr>
                                         <tr><td>80-100</td><td>A+</td><td>5.00</td></tr>
                                         <tr><td>70-79</td><td>A</td><td>4.00</td></tr>
                                         <tr><td>60-69</td><td>A-</td><td>3.50</td></tr>
@@ -620,14 +581,7 @@
                 
             } catch (error) {
                 console.error('Error:', error);
-                container.innerHTML = `
-                    <div class='text-center p-12 bg-white rounded-2xl shadow-lg border-2 border-red-200'>
-                        <i class='fas fa-exclamation-triangle text-6xl text-red-400 mb-4'></i>
-                        <h3 class='font-bold text-xl text-red-600 mb-2'>Error Loading Result!</h3>
-                        <p class='text-gray-600'>${error.message}</p>
-                        <p class='text-sm text-gray-500 mt-2'>Please try again or contact the school.</p>
-                    </div>
-                `;
+                container.innerHTML = `<div class='text-center p-12 bg-white rounded-2xl shadow-lg border-2 border-red-200'><i class='fas fa-exclamation-triangle text-6xl text-red-400 mb-4'></i><h3 class='font-bold text-xl text-red-600 mb-2'>Error Loading Result!</h3><p class='text-gray-600'>${error.message}</p></div>`;
                 document.getElementById('printBtnContainer').classList.add('hidden');
             }
         };
