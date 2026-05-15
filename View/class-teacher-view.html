@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>প্যারেন্ট ভিউ | ক্লাস অনুযায়ী শিক্ষক ও বিষয় তালিকা</title>
+    <!-- Tailwind + Font Awesome + Google Fonts for clean table styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#64748b',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        softGray: '#f8fafc'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: #eef2ff;
+            font-family: 'Inter', sans-serif;
+        }
+        /* clean table styles with responsive fallback but focus on beautiful table */
+        .class-table-container {
+            border-radius: 1.25rem;
+            overflow-x: auto;
+        }
+        .subject-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .subject-table thead th {
+            background: #f1f5f9;
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .subject-table tbody td {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #f0f2f5;
+            vertical-align: middle;
+            background-color: white;
+            transition: background 0.15s ease;
+        }
+        .subject-table tbody tr:hover td {
+            background-color: #fafcff;
+        }
+        .teacher-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #eef2ff;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1e40af;
+        }
+        .no-teacher-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff1f0;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            color: #b91c1c;
+        }
+        .class-selector {
+            transition: all 0.2s;
+        }
+        @media (max-width: 640px) {
+            .subject-table thead {
+                display: none;
+            }
+            .subject-table tbody tr {
+                display: block;
+                margin-bottom: 1rem;
+                border-radius: 1rem;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+                background: white;
+                border: 1px solid #e2e8f0;
+            }
+            .subject-table tbody td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem 1rem;
+                border-bottom: 1px solid #edf2f7;
+                text-align: right;
+            }
+            .subject-table tbody td:last-child {
+                border-bottom: none;
+            }
+            .subject-table tbody td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                font-size: 0.75rem;
+                color: #475569;
+                flex: 1;
+                text-align: left;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+            .teacher-badge, .no-teacher-badge {
+                justify-content: flex-end;
+                white-space: normal;
+                word-break: break-word;
+                max-width: 70%;
+            }
+        }
+        .fade-in {
+            animation: fadeIn 0.25s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        .custom-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25rem;
+            appearance: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
+
+    <div class="max-w-5xl mx-auto">
+        <!-- Header Section with parent friendly design -->
+        <div class="text-center mb-6 md:mb-8">
+            <div class="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm rounded-full px-4 py-1 shadow-sm mb-2">
+                <i class="fas fa-user-friends text-primary text-sm"></i>
+                <span class="text-xs font-medium text-gray-600">প্যারেন্ট অ্যাকাউন্ট · শুধুমাত্র প্রদর্শন</span>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-800 flex items-center justify-center gap-2 mt-1">
+                <i class="fas fa-chalkboard-teacher text-primary text-2xl md:text-3xl"></i>
+                <span>শ্রেণি ভিত্তিক বিষয় ও শিক্ষক</span>
+            </h1>
+            <p class="text-gray-500 text-sm mt-1">নিচের তালিকা থেকে ক্লাস নির্বাচন করলে সংশ্লিষ্ট বিষয় ও দায়িত্বপ্রাপ্ত শিক্ষক দেখাবে</p>
+        </div>
+
+        <!-- Class selection card (beautiful dropdown) -->
+        <div class="bg-white rounded-2xl shadow-lg p-5 mb-6 border border-gray-100">
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <i class="fas fa-graduation-cap text-primary"></i> 
+                <span>আপনার সন্তানের ক্লাস নির্বাচন করুন</span>
+            </label>
+            <div class="relative">
+                <select id="classSelect" class="custom-select w-full p-3.5 pr-10 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 bg-white text-gray-800 font-medium shadow-sm transition class-selector">
+                    <option value="">-- ক্লাস বাছাই করুন --</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <i class="fas fa-chevron-down text-gray-400 text-sm"></i>
+                </div>
+            </div>
+            <p class="text-xs text-gray-400 mt-2 flex items-center gap-1"><i class="fas fa-info-circle"></i> যে ক্লাস নির্বাচন করবেন, ঐ ক্লাসের সব বিষয় এবং শিক্ষকের নাম টেবিল আকারে দেখাবে।</p>
+        </div>
+
+        <!-- Table card: Subject & Teacher Information -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden class-table-container">
+            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 px-5 py-3 border-b border-gray-200 flex justify-between items-center flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-table-list text-indigo-600 text-lg"></i>
+                    <h2 class="font-bold text-gray-800 text-lg">বিষয় ও শিক্ষক তালিকা</h2>
+                    <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded-full">পঠন-দর্শন মোড</span>
+                </div>
+                <div id="selectedClassNameBadge" class="text-xs bg-white px-3 py-1.5 rounded-full shadow-sm text-gray-600">
+                    <i class="far fa-eye mr-1"></i> কোন ক্লাস নির্বাচিত হয়নি
+                </div>
+            </div>
+            <div id="tableContent" class="p-0 md:p-1">
+                <!-- Dynamic Table will be injected here -->
+                <div class="text-center py-16 px-4">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-3">
+                        <i class="fas fa-school text-gray-400 text-2xl"></i>
+                    </div>
+                    <h3 class="text-gray-500 font-medium">ক্লাস নির্বাচন করেনি</h3>
+                    <p class="text-gray-400 text-sm mt-1">উপরের ড্রপডাউন থেকে একটি ক্লাস বাছাই করলে এখানে বিষয় ও শিক্ষকের তালিকা দেখাবে।</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- footer note: read-only for parent -->
+        <div class="mt-8 text-center text-xs text-gray-400 border-t border-gray-200 pt-5">
+            <i class="fas fa-lock mr-1"></i> প্যারেন্ট ভিউ · শুধুমাত্র তথ্য দেখার জন্য। কোনো পরিবর্তন এখান থেকে করা যাবে না।
+        </div>
+    </div>
+
+    <!-- Firebase modular imports and configuration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, orderBy, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        
+        // Firebase configuration (same as your existing project)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            databaseURL: "https://school-menejment-default-rtdb.firebaseio.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24",
+            measurementId: "G-SQT1N4PVD3"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Global data stores
+        let allClasses = [];
+        let currentSelectedClassId = null;
+        
+        // Helper: show simple toast message (for errors or info)
+        function showMessage(text, isError = false) {
+            // Create floating toast if needed but simple alert alternative? better use small toast
+            const existingToast = document.getElementById('quickToast');
+            if(existingToast) existingToast.remove();
+            const toast = document.createElement('div');
+            toast.id = 'quickToast';
+            toast.className = `fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50 px-5 py-2.5 rounded-full shadow-lg text-white text-sm font-medium transition-all duration-300 ${isError ? 'bg-red-500' : 'bg-green-600'}`;
+            toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'} mr-2"></i>${text}`;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 2500);
+        }
+        
+        // Load classes from Firestore
+        async function loadClasses() {
+            try {
+                const q = query(collection(db, "classes"), orderBy("order", "asc"));
+                const snapshot = await getDocs(q);
+                allClasses = snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name, order: doc.data().order || 0 }));
+                renderClassSelect();
+                // if previously selected class exists, restore selection and reload table
+                if (currentSelectedClassId && allClasses.some(c => c.id === currentSelectedClassId)) {
+                    document.getElementById('classSelect').value = currentSelectedClassId;
+                    await loadSubjectsAndTeachersForClass(currentSelectedClassId);
+                } else if (currentSelectedClassId) {
+                    // previously selected class no longer exists
+                    currentSelectedClassId = null;
+                    document.getElementById('classSelect').value = "";
+                    showEmptyTable("পূর্বে নির্বাচিত ক্লাস আর উপলব্ধ নেই। নতুন ক্লাস নির্বাচন করুন।");
+                    updateClassBadge(null);
+                }
+            } catch (error) {
+                console.error("Error loading classes:", error);
+                showMessage("ক্লাস লোড করতে সমস্যা হয়েছে", true);
+                document.getElementById('classSelect').innerHTML = '<option value="">-- ত্রুটি, পুনরায় চেষ্টা করুন --</option>';
+            }
+        }
+        
+        // Render class dropdown
+        function renderClassSelect() {
+            const selectEl = document.getElementById('classSelect');
+            selectEl.innerHTML = '<option value="">-- ক্লাস বাছাই করুন --</option>';
+            allClasses.forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls.id;
+                option.textContent = `${cls.name}`;
+                selectEl.appendChild(option);
+            });
+        }
+        
+        // update badge showing selected class name
+        function updateClassBadge(className) {
+            const badgeSpan = document.getElementById('selectedClassNameBadge');
+            if (className) {
+                badgeSpan.innerHTML = `<i class="far fa-check-circle text-green-600 mr-1"></i> নির্বাচিত: ${className}`;
+            } else {
+                badgeSpan.innerHTML = `<i class="far fa-eye mr-1"></i> কোন ক্লাস নির্বাচিত হয়নি`;
+            }
+        }
+        
+        // show empty / placeholder table
+        function showEmptyTable(message = "দয়া করে একটি ক্লাস নির্বাচন করুন") {
+            const container = document.getElementById('tableContent');
+            container.innerHTML = `
+                <div class="text-center py-16 px-4">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-3">
+                        <i class="fas fa-chalkboard text-gray-400 text-2xl"></i>
+                    </div>
+                    <h3 class="text-gray-500 font-medium">${message}</h3>
+                    <p class="text-gray-400 text-sm mt-1">ক্লাস নির্বাচন করলে এখানে বিষয় ও শিক্ষকের তালিকা দেখাবে।</p>
+                </div>
+            `;
+        }
+        
+        // Core function: Load subjects + teacher assignments for selected class and render beautiful table
+        async function loadSubjectsAndTeachersForClass(classId) {
+            if (!classId) {
+                showEmptyTable();
+                updateClassBadge(null);
+                return;
+            }
+            
+            // Find class name
+            const selectedClass = allClasses.find(c => c.id === classId);
+            const className = selectedClass ? selectedClass.name : 'ক্লাস';
+            updateClassBadge(className);
+            
+            // Show loading state in table
+            const container = document.getElementById('tableContent');
+            container.innerHTML = `
+                <div class="flex justify-center items-center py-20">
+                    <div class="animate-pulse flex flex-col items-center">
+                        <i class="fas fa-spinner fa-spin text-primary text-3xl mb-3"></i>
+                        <span class="text-gray-500 text-sm">বিষয় ও শিক্ষকের তথ্য আনতে হচ্ছে...</span>
+                    </div>
+                </div>
+            `;
+            
+            try {
+                // 1. Fetch subjects for this class
+                const subjectsQuery = query(collection(db, "subjects"), where("classId", "==", classId));
+                const subjectsSnap = await getDocs(subjectsQuery);
+                const subjects = subjectsSnap.docs.map(docSnap => ({
+                    id: docSnap.id,
+                    name: docSnap.data().name || "বিষয়",
+                    type: docSnap.data().type || "general"
+                }));
+                
+                if (subjects.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-14 px-4">
+                            <div class="bg-amber-50 inline-flex p-3 rounded-full mb-3">
+                                <i class="fas fa-folder-open text-amber-500 text-xl"></i>
+                            </div>
+                            <h3 class="text-gray-600 font-medium">কোন বিষয় পাওয়া যায়নি</h3>
+                            <p class="text-gray-400 text-sm max-w-sm mx-auto">"${className}" ক্লাসের জন্য এখনো কোনো বিষয় সংযোজন করা হয়নি।</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // 2. Fetch teacher assignments (teacher_subject collection) for this class
+                const assignmentQuery = query(collection(db, "teacher_subject"), where("classId", "==", classId));
+                const assignmentSnap = await getDocs(assignmentQuery);
+                const assignmentMap = new Map(); // key: subjectId, value: { teacherId, teacherName, assignmentId }
+                assignmentSnap.forEach(docA => {
+                    const data = docA.data();
+                    assignmentMap.set(data.subjectId, {
+                        teacherId: data.teacherId || null,
+                        teacherName: data.teacherName || null,
+                        assignmentId: docA.id
+                    });
+                });
+                
+                // 3. Optionally fetch all teachers just to get fallback names, but we already have teacherName in assignment map
+                // Build final rows with subject and teacher info
+                const tableRows = subjects.map(sub => {
+                    const assignment = assignmentMap.get(sub.id);
+                    let teacherName = assignment?.teacherName || null;
+                    let teacherId = assignment?.teacherId || null;
+                    // if teacherName is missing but teacherId exists, we could try to fetch from teachers collection but assignment doc normally stores name.
+                    // for robust, if teacherName missing but teacherId exists, we can fetch but this is rare.
+                    return {
+                        subjectId: sub.id,
+                        subjectName: sub.name,
+                        teacherName: teacherName,
+                        teacherId: teacherId,
+                        isAssigned: !!(teacherName && teacherId)
+                    };
+                });
+                
+                // Render the table beautifully
+                renderSubjectsTable(tableRows, className);
+                
+            } catch (error) {
+                console.error("Error loading subjects/teachers:", error);
+                container.innerHTML = `
+                    <div class="text-center py-14 px-4">
+                        <div class="bg-red-50 inline-flex p-3 rounded-full mb-3">
+                            <i class="fas fa-exclamation-triangle text-red-400 text-xl"></i>
+                        </div>
+                        <h3 class="text-gray-700 font-medium">তথ্য লোড করতে সমস্যা হয়েছে</h3>
+                        <p class="text-gray-400 text-sm">ইন্টারনেট সংযোগ চেক করুন অথবা পুনরায় চেষ্টা করুন।</p>
+                        <button onclick="location.reload()" class="mt-3 text-primary text-sm underline">রিফ্রেশ করুন</button>
+                    </div>
+                `;
+                showMessage("বিষয় ও শিক্ষকের তথ্য আনতে ব্যর্থ হয়েছে", true);
+            }
+        }
+        
+        // Render elegant table with subjects and assigned teachers
+        function renderSubjectsTable(subjectsList, className) {
+            const container = document.getElementById('tableContent');
+            if (!subjectsList.length) {
+                container.innerHTML = `<div class="text-center py-12">কোনো বিষয় তথ্য নেই</div>`;
+                return;
+            }
+            
+            // Build table HTML
+            let tableHtml = `
+                <div class="overflow-x-auto">
+                    <table class="subject-table w-full">
+                        <thead>
+                            <tr>
+                                <th class="text-left rounded-tl-xl">#</th>
+                                <th class="text-left">বিষয়ের নাম</th>
+                                <th class="text-left">দায়িত্বপ্রাপ্ত শিক্ষক</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            subjectsList.forEach((subject, idx) => {
+                const serial = idx + 1;
+                let teacherDisplay = '';
+                if (subject.isAssigned && subject.teacherName) {
+                    teacherDisplay = `
+                        <div class="teacher-badge">
+                            <i class="fas fa-chalkboard-user text-indigo-600 text-sm"></i>
+                            <span class="font-medium">${escapeHtml(subject.teacherName)}</span>
+                        </div>
+                    `;
+                } else {
+                    teacherDisplay = `
+                        <div class="no-teacher-badge">
+                            <i class="fas fa-user-slash text-red-500 text-xs"></i>
+                            <span class="text-red-600">শিক্ষক নিযুক্ত নন</span>
+                        </div>
+                    `;
+                }
+                
+                tableHtml += `
+                    <tr class="fade-in">
+                        <td data-label="ক্রম" class="font-medium text-gray-500 w-12">${serial}</td>
+                        <td data-label="বিষয়ের নাম" class="font-semibold text-gray-800">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-book text-primary text-sm opacity-70"></i>
+                                <span>${escapeHtml(subject.subjectName)}</span>
+                            </div>
+                        </td>
+                        <td data-label="দায়িত্বপ্রাপ্ত শিক্ষক">
+                            ${teacherDisplay}
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableHtml += `
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-gray-50 px-5 py-2.5 text-xs text-gray-500 border-t flex justify-between items-center flex-wrap gap-2">
+                    <span><i class="far fa-clock mr-1"></i> মোট বিষয়: ${subjectsList.length} টি</span>
+                    <span><i class="fas fa-user-check text-success mr-1"></i> শিক্ষক নিয়োগপ্রাপ্ত বিষয়: ${subjectsList.filter(s => s.isAssigned).length}</span>
+                </div>
+            `;
+            
+            container.innerHTML = tableHtml;
+        }
+        
+        // Helper to escape HTML
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+                return c;
+            });
+        }
+        
+        // Event listener on class select dropdown
+        document.getElementById('classSelect').addEventListener('change', async (e) => {
+            const selectedValue = e.target.value;
+            if (!selectedValue) {
+                currentSelectedClassId = null;
+                showEmptyTable("দয়া করে একটি ক্লাস নির্বাচন করুন");
+                updateClassBadge(null);
+                return;
+            }
+            currentSelectedClassId = selectedValue;
+            await loadSubjectsAndTeachersForClass(currentSelectedClassId);
+        });
+        
+        // initial data load
+        (async function initialize() {
+            await loadClasses();
+            // If there's any preselected via url or none, just wait user action.
+            // Also we can check if any class exists but not auto-select to keep clean parent view.
+            if (allClasses.length === 0) {
+                const container = document.getElementById('tableContent');
+                container.innerHTML = `
+                    <div class="text-center py-14 px-4">
+                        <i class="fas fa-database text-gray-300 text-4xl mb-3"></i>
+                        <p class="text-gray-500">কোন ক্লাস পাওয়া যায়নি। প্রশাসকের সাহায্য নিন।</p>
+                    </div>
+                `;
+            }
+        })();
+        
+        // Expose any necessary methods (no edit)
+        window.showEmptyTable = showEmptyTable;
+    </script>
+</body>
+</html>
