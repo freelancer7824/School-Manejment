@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Academic Settings | Manage Holidays</title>
+    <!-- Tailwind + Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#6b7280',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #f1f5f9; }
+        .settings-card { transition: all 0.2s ease; }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased p-4 md:p-6">
+
+    <!-- Global Toast Message -->
+    <div id="toast-message" class="fixed top-20 right-4 z-50 hidden transition-all duration-300 transform translate-x-0">
+        <div class="bg-white rounded-lg shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success">
+            <i id="toast-icon" class="fas fa-check-circle text-success text-lg"></i>
+            <p id="toast-text" class="text-gray-700 text-sm font-medium">Operation successful</p>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-wrap justify-between items-center mb-6 gap-3">
+            <div class="flex items-center gap-3">
+                <a href="admission.html" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition">
+                    <i class="fas fa-arrow-left text-primary"></i>
+                </a>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="bg-primary text-white p-1.5 rounded-lg"><i class="fas fa-umbrella-beach"></i></span> 
+                    ছুটির তালিকা (Holidays)
+                </h1>
+            </div>
+            <div class="bg-white px-4 py-2 rounded-full shadow-sm text-sm font-medium text-gray-700 border border-gray-200">
+                <i class="fas fa-user-shield text-primary mr-1"></i> Admin Panel
+            </div>
+        </header>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Left: Form to Add Holiday -->
+            <div class="md:col-span-1">
+                <div class="settings-card bg-white rounded-2xl shadow-md overflow-hidden sticky top-6">
+                    <div class="p-5 border-b border-gray-100">
+                        <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                            <i class="fas fa-calendar-plus text-primary"></i> নতুন ছুটি যুক্ত করুন
+                        </h2>
+                    </div>
+                    
+                    <form id="addHolidayForm" class="p-5 space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">ছুটির নাম (Title)</label>
+                            <input type="text" id="holidayTitle" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary/40 outline-none" placeholder="উদা: ঈদ-উল-ফিতর, শীতকালীন ছুটি">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">ছুটির ধরন (Type)</label>
+                            <select id="holidayType" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary/40 outline-none">
+                                <option value="Government">সরকারি ছুটি (Government)</option>
+                                <option value="Institutional">প্রাতিষ্ঠানিক ছুটি (Institutional)</option>
+                                <option value="Emergency">জরুরি ছুটি (Emergency)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">শুরুর তারিখ (Start Date)</label>
+                            <input type="date" id="startDate" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary/40 outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">শেষের তারিখ (End Date)</label>
+                            <input type="date" id="endDate" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary/40 outline-none">
+                        </div>
+
+                        <button type="submit" id="saveHolidayBtn" class="w-full py-2.5 bg-primary text-white rounded-xl hover:bg-blue-700 transition shadow-sm font-medium flex items-center justify-center gap-2">
+                            <i class="fas fa-plus"></i> তালিকাভুক্ত করুন
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right: Holiday List Table -->
+            <div class="md:col-span-2">
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+                    <div class="p-5 border-b border-gray-100 flex justify-between items-center flex-wrap gap-2">
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-lg flex items-center gap-2">
+                                <i class="fas fa-list text-primary"></i> সেশন ভিত্তিক ছুটির দিনসমূহ
+                            </h3>
+                            <p class="text-xs text-gray-500 mt-0.5">চলতি সেশন: <span id="active-session-text" class="font-semibold text-primary">Loading...</span></p>
+                        </div>
+                        <button id="refreshHolidays" class="px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition">
+                            <i class="fas fa-sync-alt"></i> রিলোড
+                        </button>
+                    </div>
+
+                    <!-- Responsive Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-gray-100 text-gray-600 font-semibold">
+                                    <th class="p-4">ছুটির বিবরণ</th>
+                                    <th class="p-4">ধরন</th>
+                                    <th class="p-4">তারিখ ও সময়কাল</th>
+                                    <th class="p-4 text-center">অ্যাকশন</th>
+                                </tr>
+                            </thead>
+                            <tbody id="holidayTableBody" class="divide-y divide-gray-50 text-gray-700">
+                                <tr>
+                                    <td colspan="4" class="p-8 text-center text-gray-400">
+                                        <i class="fas fa-spinner fa-spin text-xl mb-2 block"></i> ডাটা লোড হচ্ছে...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-5 transform transition-all scale-95">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-danger">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800">ছুটি মুছে ফেলার নিশ্চিতকরণ</h3>
+            </div>
+            <p class="text-gray-600 mb-4 text-sm">আপনি কি নিশ্চিত যে এই ছুটির রেকর্ডটি তালিকা থেকে স্থায়ীভাবে মুছে ফেলতে চান?</p>
+            <div class="flex justify-end gap-3 text-sm">
+                <button id="cancelDelete" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">বাতিল</button>
+                <button id="confirmDelete" class="px-4 py-2 bg-danger text-white rounded-lg hover:bg-red-700 transition">মুছে ফেলুন</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, collection, addDoc, getDocs, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            databaseURL: "https://school-menejment-default-rtdb.firebaseio.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24",
+            measurementId: "G-SQT1N4PVD3"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let currentSession = "2025-2026";
+        let deleteIdPending = null;
+
+        // Toast Handler
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast-message');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+            
+            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' : 'fas fa-exclamation-circle text-danger text-lg';
+            toastText.innerText = message;
+            toast.classList.remove('hidden');
+            toast.style.display = 'flex';
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                setTimeout(() => { toast.style.display = 'none'; }, 300);
+            }, 3000);
+        }
+
+        window.hideToast = () => {
+            const toast = document.getElementById('toast-message');
+            toast.classList.add('hidden');
+        };
+
+        // Fetch Current Session Config
+        async function fetchActiveSession() {
+            try {
+                const sessionDoc = await getDoc(doc(db, "config", "activeSession"));
+                if (sessionDoc.exists()) {
+                    currentSession = sessionDoc.data().sessionName || "2025-2026";
+                }
+                document.getElementById('active-session-text').innerText = currentSession;
+                await loadHolidays();
+            } catch (error) {
+                console.error("Error fetching session:", error);
+                showToast("সেশন লোড করতে ব্যর্থ হয়েছে", "error");
+            }
+        }
+
+        // Load Holiday Records from Path Isolation
+        async function loadHolidays() {
+            const tableBody = document.getElementById('holidayTableBody');
+            try {
+                // Isolation Path: current_session/{session}/holidays
+                const holidaysRef = collection(db, `current_session/${currentSession}/holidays`);
+                const q = query(holidaysRef, orderBy("startDate", "asc"));
+                const querySnapshot = await getDocs(q);
+                
+                tableBody.innerHTML = '';
+                
+                if (querySnapshot.empty) {
+                    tableBody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-400"><i class="fas fa-folder-open text-2xl block mb-1"></i>কোনো ছুটির দিন রেকর্ড করা নেই।</td></tr>`;
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const badgeColor = data.type === 'Government' ? 'bg-green-100 text-green-700' : data.type === 'Institutional' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700';
+                    
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-slate-50 transition';
+                    row.innerHTML = `
+                        <td class="p-4 font-semibold text-gray-800">${data.title}</td>
+                        <td class="p-4">
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeColor}">${data.type}</span>
+                        </td>
+                        <td class="p-4 text-xs text-gray-600">
+                            <i class="far fa-calendar-alt text-primary mr-1"></i> ${data.startDate} থেকে ${data.endDate}
+                        </td>
+                        <td class="p-4 text-center">
+                            <button data-id="${doc.id}" class="delete-btn text-danger hover:text-red-700 p-2 text-sm bg-red-50 hover:bg-red-100 rounded-lg transition">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Attach delete triggers
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.onclick = (e) => {
+                        deleteIdPending = btn.getAttribute('data-id');
+                        document.getElementById('deleteModal').classList.remove('hidden');
+                    };
+                });
+
+            } catch (error) {
+                console.error("Error loading holidays:", error);
+                tableBody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-danger">ডাটাবেজ কানেকশন ত্রুটি!</td></tr>`;
+            }
+        }
+
+        // Form Submit Actions
+        document.getElementById('addHolidayForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const saveBtn = document.getElementById('saveHolidayBtn');
+            
+            const title = document.getElementById('holidayTitle').value.trim();
+            const type = document.getElementById('holidayType').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if(new Date(startDate) > new Date(endDate)) {
+                showToast("শুরুর তারিখ শেষ তারিখের চেয়ে বড় হতে পারে না!", "error");
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> প্রসেসিং...';
+
+            try {
+                const holidaysRef = collection(db, `current_session/${currentSession}/holidays`);
+                await addDoc(holidaysRef, {
+                    title,
+                    type,
+                    startDate,
+                    endDate,
+                    createdAt: serverTimestamp()
+                });
+
+                showToast("ছুটি সফলভাবে তালিকাভুক্ত হয়েছে", "success");
+                document.getElementById('addHolidayForm').reset();
+                await loadHolidays();
+            } catch (error) {
+                console.error("Insert error:", error);
+                showToast("সংরক্ষণ করা সম্ভব হয়নি", "error");
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-plus"></i> তালিকাভুক্ত করুন';
+            }
+        });
+
+        // Delete Operational Logic
+        document.getElementById('cancelDelete').onclick = () => {
+            document.getElementById('deleteModal').classList.add('hidden');
+            deleteIdPending = null;
+        };
+
+        document.getElementById('confirmDelete').onclick = async () => {
+            if (deleteIdPending) {
+                document.getElementById('deleteModal').classList.add('hidden');
+                try {
+                    await deleteDoc(doc(db, `current_session/${currentSession}/holidays`, deleteIdPending));
+                    showToast("রেকর্ডটি মুছে ফেলা হয়েছে", "success");
+                    await loadHolidays();
+                } catch (error) {
+                    showToast("মুছে ফেলতে ব্যর্থ হয়েছে", "error");
+                } finally {
+                    deleteIdPending = null;
+                }
+            }
+        };
+
+        // Manual Reload Click
+        document.getElementById('refreshHolidays').onclick = async () => {
+            const btn = document.getElementById('refreshHolidays');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            await loadHolidays();
+            btn.innerHTML = '<i class="fas fa-sync-alt"></i> রিলোড';
+            showToast("তথ্য রিফ্রেশ করা হয়েছে");
+        };
+
+        // Fire Initial Scripts
+        fetchActiveSession();
+    </script>
+</body>
+</html>

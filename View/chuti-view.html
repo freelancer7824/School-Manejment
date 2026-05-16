@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ছুটির তালিকা | Academic Holiday List</title>
+    <!-- Tailwind + Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        govColor: '#10b981',
+                        instColor: '#2563eb',
+                        emerColor: '#f59e0b'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #f8fafc; }
+        .holiday-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .holiday-card:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased p-4 md:p-6">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header Section -->
+        <header class="text-center mb-8 mt-4">
+            <div class="inline-block bg-primary/10 text-primary text-2xl p-3.5 rounded-full mb-3">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-800">প্রাতিষ্ঠানিক ও সরকারি ছুটির তালিকা</h1>
+            <p class="text-sm text-gray-500 mt-1">শিক্ষাবর্ষ বা চলতি সেশন: <span id="active-session-text" class="font-bold text-primary">লোড হচ্ছে...</span></p>
+        </header>
+
+        <!-- Quick Info / Counter Grid -->
+        <div class="grid grid-cols-3 gap-3 mb-6">
+            <button onclick="filterHolidays('all')" id="btn-all" class="filter-btn bg-white border-2 border-primary p-3 rounded-xl shadow-sm text-center active-filter">
+                <span class="block text-xl font-bold text-primary" id="count-all">-</span>
+                <span class="text-xs font-semibold text-gray-600">মোট ছুটি</span>
+            </button>
+            <button onclick="filterHolidays('Government')" id="btn-gov" class="filter-btn bg-white border border-gray-200 p-3 rounded-xl shadow-sm text-center">
+                <span class="block text-xl font-bold text-govColor" id="count-gov">-</span>
+                <span class="text-xs font-semibold text-gray-600">সরকারি</span>
+            </button>
+            <button onclick="filterHolidays('Institutional')" id="btn-inst" class="filter-btn bg-white border border-gray-200 p-3 rounded-xl shadow-sm text-center">
+                <span class="block text-xl font-bold text-instColor" id="count-inst">-</span>
+                <span class="text-xs font-semibold text-gray-600">প্রাতিষ্ঠানিক</span>
+            </button>
+        </div>
+
+        <!-- Holiday Cards Container -->
+        <div id="holiday-list-container" class="space-y-3">
+            <!-- Loading Spinner -->
+            <div id="loading-state" class="text-center py-12 text-gray-400">
+                <i class="fas fa-circle-notch fa-spin text-3xl mb-2 text-primary"></i>
+                <p class="text-sm font-medium">ছুটির তালিকা লোড করা হচ্ছে...</p>
+            </div>
+        </div>
+
+        <!-- Footer Notice -->
+        <footer class="text-center mt-12 text-xs text-gray-400 border-t border-gray-200 pt-4">
+            <p><i class="fas fa-info-circle"></i> পরিস্থিতি বিবেচনায় যেকোনো জরুরি ছুটি কর্তৃপক্ষ পরিবর্তন করার অধিকার সংরক্ষণ করে।</p>
+        </footer>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            databaseURL: "https://school-menejment-default-rtdb.firebaseio.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24",
+            measurementId: "G-SQT1N4PVD3"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let currentSession = "2025-2026";
+        let allHolidaysData = [];
+
+        // Fetch Current Session Configuration
+        async function init() {
+            try {
+                const sessionDoc = await getDoc(doc(db, "config", "activeSession"));
+                if (sessionDoc.exists()) {
+                    currentSession = sessionDoc.data().sessionName || "2025-2026";
+                }
+                document.getElementById('active-session-text').innerText = currentSession;
+                await fetchHolidaysFromServer();
+            } catch (error) {
+                console.error("Initialization Failed:", error);
+                document.getElementById('loading-state').innerHTML = `<p class="text-red-500"><i class="fas fa-exclamation-triangle"></i> সার্ভার কানেকশন ত্রুটি!</p>`;
+            }
+        }
+
+        // Fetch Data from isolated path
+        async function fetchHolidaysFromServer() {
+            try {
+                const holidaysRef = collection(db, `current_session/${currentSession}/holidays`);
+                const q = query(holidaysRef, orderBy("startDate", "asc"));
+                const querySnapshot = await getDocs(q);
+                
+                allHolidaysData = [];
+                querySnapshot.forEach((doc) => {
+                    allHolidaysData.push(doc.data());
+                });
+
+                updateCounters();
+                renderCards(allHolidaysData);
+
+            } catch (error) {
+                console.error("Data Fetch Error:", error);
+            }
+        }
+
+        // Calculate and display badge counters
+        function updateCounters() {
+            const total = allHolidaysData.length;
+            const gov = allHolidaysData.filter(h => h.type === 'Government').length;
+            const inst = allHolidaysData.filter(h => h.type === 'Institutional').length;
+
+            document.getElementById('count-all').innerText = total;
+            document.getElementById('count-gov').innerText = gov;
+            document.getElementById('count-inst').innerText = inst;
+        }
+
+        // Render Cards Interface
+        function renderCards(dataList) {
+            const container = document.getElementById('holiday-list-container');
+            container.innerHTML = '';
+
+            if (dataList.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white p-8 text-center text-gray-400 rounded-2xl shadow-sm border border-gray-100">
+                        <i class="fas fa-umbrella-beach text-3xl mb-2 text-gray-300"></i>
+                        <p class="text-sm">এই ক্যাটাগরিতে কোনো ছুটির রেকর্ড পাওয়া যায়নি।</p>
+                    </div>`;
+                return;
+            }
+
+            dataList.forEach(holiday => {
+                let badgeStyle = "bg-green-50 text-green-700 border-green-200";
+                let typeText = "সরকারি ছুটি";
+                
+                if (holiday.type === 'Institutional') {
+                    badgeStyle = "bg-blue-50 text-blue-700 border-blue-200";
+                    typeText = "প্রাতিষ্ঠানিক ছুটি";
+                } else if (holiday.type === 'Emergency') {
+                    badgeStyle = "bg-amber-50 text-amber-700 border-amber-200";
+                    typeText = "জরুরি ঘোষণা";
+                }
+
+                // Date formatting to dynamic localized look (Optional raw print)
+                const dateString = holiday.startDate === holiday.endDate 
+                    ? `${holiday.startDate}` 
+                    : `${holiday.startDate} থেকে ${holiday.endDate}`;
+
+                const card = document.createElement('div');
+                card.className = 'holiday-card bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex items-center justify-between gap-4';
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <h3 class="font-bold text-gray-800 text-base md:text-lg">${holiday.title}</h3>
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                            <span class="flex items-center gap-1 font-medium text-slate-600">
+                                <i class="far fa-calendar-alt text-primary"></i> ${dateString}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <span class="px-2.5 py-1 text-xs font-bold border rounded-lg ${badgeStyle}">
+                            ${typeText}
+                        </span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Filtering Tab Logic
+        window.filterHolidays = function(type) {
+            // Reset active style classes
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('border-primary', 'active-filter');
+                btn.classList.add('border-gray-200');
+            });
+
+            // Set active highlight
+            if (type === 'all') document.getElementById('btn-all').classList.replace('border-gray-200', 'border-primary');
+            if (type === 'Government') document.getElementById('btn-gov').classList.replace('border-gray-200', 'border-primary');
+            if (type === 'Institutional') document.getElementById('btn-inst').classList.replace('border-gray-200', 'border-primary');
+
+            if (type === 'all') {
+                renderCards(allHolidaysData);
+            } else {
+                const filtered = allHolidaysData.filter(h => h.type === type);
+                renderCards(filtered);
+            }
+        }
+
+        // Run Initial Script
+        init();
+    </script>
+</body>
+</html>
