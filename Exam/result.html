@@ -6,6 +6,7 @@
     <title>Student Result | ONNO ROKOM BIDDYANIKETON</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Hind+Siliguri:wght@400;700&display=swap');
         
@@ -108,6 +109,64 @@
             25% { transform: translateX(-10px); }
             75% { transform: translateX(10px); }
         }
+
+        /* Admin Panel Styles - Photo Management */
+        .admin-photo-panel {
+            background: white;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .student-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #667eea;
+        }
+        .student-avatar-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #667eea;
+        }
+        .photo-edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .photo-edit-card {
+            background: white;
+            max-width: 500px;
+            width: 90%;
+            border-radius: 24px;
+            overflow: hidden;
+        }
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -120,6 +179,25 @@
                     <i class="fas fa-graduation-cap"></i> Student Result Portal
                 </h1>
                 <p class="text-white/80">ONNO ROKOM BIDDYANIKETON</p>
+            </div>
+        </div>
+
+        <!-- Admin Photo Management Panel (For Teachers/Admins) -->
+        <div class="admin-photo-panel no-print" id="adminPanel" style="display: none;">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-camera text-green-600"></i>
+                </div>
+                <h3 class="font-bold text-gray-800">Student Photo Management</h3>
+                <span class="text-xs text-gray-400 ml-auto">Admin Access Only</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr><th class="p-2">Photo</th><th>Name</th><th>Class</th><th>Roll</th><th>Action</th></tr>
+                    </thead>
+                    <tbody id="adminStudentList"></tbody>
+                </table>
             </div>
         </div>
 
@@ -199,11 +277,35 @@
         </div>
     </div>
 
+    <!-- Photo Edit Modal -->
+    <div id="photoEditModal" class="photo-edit-modal hidden" style="display: none;">
+        <div class="photo-edit-card">
+            <div class="bg-indigo-50 px-6 py-4 border-b flex justify-between items-center">
+                <h3 class="font-bold text-lg flex items-center gap-2"><i class="fas fa-user-edit text-indigo-600"></i> Update Student Photo</h3>
+                <button onclick="closePhotoModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div class="p-6 text-center">
+                <img id="modalStudentPhoto" src="" class="student-avatar-large mx-auto mb-4">
+                <p class="font-bold" id="modalStudentName"></p>
+                <p class="text-sm text-gray-500" id="modalStudentInfo"></p>
+                <div class="flex gap-3 justify-center mt-5">
+                    <button id="uploadPhotoBtn" class="bg-indigo-600 text-white px-5 py-2 rounded-lg"><i class="fas fa-upload"></i> Upload Photo</button>
+                    <button id="removePhotoBtn" class="border border-red-400 text-red-600 px-5 py-2 rounded-lg"><i class="fas fa-trash"></i> Remove</button>
+                </div>
+                <div class="mt-4 flex justify-end gap-2 border-t pt-4">
+                    <button onclick="closePhotoModal()" class="px-4 py-2 border rounded-lg">Cancel</button>
+                    <button id="savePhotoBtn" class="px-5 py-2 bg-green-600 text-white rounded-lg">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import {
-            getFirestore, doc, getDoc, collection, getDocs, query, where, orderBy
+            getFirestore, doc, getDoc, collection, getDocs, query, where, orderBy, updateDoc
         } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
@@ -216,6 +318,10 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const CLOUDINARY_CLOUD_NAME = "dhvtgzy5x";
+        const CLOUDINARY_UPLOAD_PRESET = "Rosenews";
 
         let currentSession = "2025-2026";
         let allExamsCache = [];
@@ -224,11 +330,44 @@
         let allSectionsCache = [];
         let allSetupCache = [];
         let allMarksCache = [];
+        let allStudentsCache = []; // For admin panel
         
         let currentSchoolName = "ONNO ROKOM BIDDYANIKETON";
         let currentSchoolAddress = "PORANPUR, KAZIPUR, SIRAJGANJ";
-        
         let availableSessions = [];
+        
+        let currentEditingStudent = null;
+        let tempPhotoUrl = "";
+        let cloudinaryWidget = null;
+
+        function showToastMessage(msg, type = "success") {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.style.background = type === 'error' ? '#dc2626' : '#10b981';
+            toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle'} mr-2"></i>${msg}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function initCloudinaryWidget() {
+            if (!window.cloudinary) return;
+            cloudinaryWidget = window.cloudinary.createUploadWidget({
+                cloudName: CLOUDINARY_CLOUD_NAME,
+                uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+                sources: ['local', 'camera'],
+                multiple: false,
+                maxFileSize: 2000000,
+                clientAllowedFormats: ['jpg', 'jpeg', 'png']
+            }, (error, result) => {
+                if (!error && result && result.event === "success") {
+                    tempPhotoUrl = result.info.secure_url;
+                    document.getElementById('modalStudentPhoto').src = tempPhotoUrl;
+                    showToastMessage("Photo uploaded! Click Save to update.", "success");
+                } else if (error) {
+                    showToastMessage("Upload failed: " + (error.message || "Max 2MB"), "error");
+                }
+            });
+        }
 
         function escapeHtml(str) {
             if (!str) return '';
@@ -255,55 +394,30 @@
         async function loadSessions() {
             try {
                 const sdoc = await getDoc(doc(db, "config", "activeSession"));
-                if (sdoc.exists()) {
-                    currentSession = sdoc.data().sessionName || currentSession;
-                }
-                
-                const startYear = 2020;
-                const endYear = 2030;
+                if (sdoc.exists()) currentSession = sdoc.data().sessionName || currentSession;
+                const startYear = 2020, endYear = 2030;
                 availableSessions = [];
-                for (let year = startYear; year < endYear; year++) {
-                    availableSessions.push(`${year}-${year + 1}`);
-                }
-                
+                for (let year = startYear; year < endYear; year++) availableSessions.push(`${year}-${year + 1}`);
                 renderSessionDropdown();
-                
-                // ডিফল্ট সিলেক্টেড সেশন অনুযায়ী Exam লোড করুন
                 const defaultSession = getSelectedSession();
-                if (defaultSession) {
-                    await loadExams();
-                    document.getElementById('examSelect').disabled = false;
-                }
-                
-            } catch (e) {
-                console.error("Error loading session:", e);
-            }
+                if (defaultSession) await loadExams();
+            } catch (e) { console.error(e); }
         }
         
         function renderSessionDropdown() {
             const sessionSelect = document.getElementById('sessionSelect');
-            if (!sessionSelect) return;
-            
             sessionSelect.innerHTML = '<option value="">-- Select Session --</option>';
             availableSessions.forEach(session => {
-                const isActive = (session === currentSession);
-                sessionSelect.innerHTML += `<option value="${session}" ${isActive ? 'selected' : ''}>${session} ${isActive ? '(Active)' : ''}</option>`;
+                sessionSelect.innerHTML += `<option value="${session}" ${session === currentSession ? 'selected' : ''}>${session} ${session === currentSession ? '(Active)' : ''}</option>`;
             });
         }
         
-        function getSelectedSession() {
-            return document.getElementById('sessionSelect').value;
-        }
+        function getSelectedSession() { return document.getElementById('sessionSelect').value; }
 
         async function loadAllData() {
-            // শুধুমাত্র Published Exam লোড করবো
             const exSnap = await getDocs(query(collection(db, "exams"), where("status", "==", "published")));
-            allExamsCache = [];
-            exSnap.forEach(d => {
-                const data = d.data();
-                allExamsCache.push({ id: d.id, name: data.name, session: data.session, order: data.order || 0 });
-            });
-
+            allExamsCache = exSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            
             const [clSnap, subSnap, secSnap, setupSnap, marksSnap] = await Promise.all([
                 getDocs(query(collection(db, "classes"), orderBy("order"))),
                 getDocs(collection(db, "subjects")),
@@ -312,62 +426,111 @@
                 getDocs(collection(db, "marks"))
             ]);
             
-            allClassesCache = [];
-            clSnap.forEach(d => {
-                const data = d.data();
-                allClassesCache.push({ id: d.id, name: data.name });
-            });
+            allClassesCache = clSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
+            allSubjectsCache = subSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            allSectionsCache = secSnap.docs.map(d => ({ name: d.data().name, classId: d.data().classId }));
+            allSetupCache = setupSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            allMarksCache = marksSnap.docs.map(d => ({ id: d.id, ...d.data() }));
             
-            allSubjectsCache = [];
-            subSnap.forEach(d => {
-                const data = d.data();
-                allSubjectsCache.push({ id: d.id, name: data.name, classId: data.classId });
-            });
-            
-            allSectionsCache = [];
-            secSnap.forEach(d => {
-                const data = d.data();
-                allSectionsCache.push({ name: data.name, classId: data.classId });
-            });
-            
-            allSetupCache = [];
-            setupSnap.forEach(d => {
-                const data = d.data();
-                allSetupCache.push({ id: d.id, ...data });
-            });
-            
-            allMarksCache = [];
-            marksSnap.forEach(d => {
-                const data = d.data();
-                allMarksCache.push({ id: d.id, ...data });
-            });
+            // Load all students for admin panel
+            await loadAllStudentsForAdmin();
+        }
+        
+        async function loadAllStudentsForAdmin() {
+            allStudentsCache = [];
+            const classesSnap = await getDocs(collection(db, "classes"));
+            for (const classDoc of classesSnap.docs) {
+                const classId = classDoc.id;
+                const sessionVal = getSelectedSession() || currentSession;
+                const studRef = collection(db, `current_session/${sessionVal}/classes/${classId}/students`);
+                const studSnap = await getDocs(studRef);
+                for (const docSnap of studSnap.docs) {
+                    const data = docSnap.data();
+                    allStudentsCache.push({
+                        id: docSnap.id,
+                        fullName: data.fullName || data.name || "-",
+                        className: allClassesCache.find(c => c.id === classId)?.name || "",
+                        section: data.section || "",
+                        rollNumber: data.rollNumber || data.roll || "",
+                        classId: classId,
+                        profileImage: data.profileImage || "",
+                        _sessionPath: `current_session/${sessionVal}/classes/${classId}/students`
+                    });
+                }
+            }
+            renderAdminPanel();
+        }
+
+        function renderAdminPanel() {
+            const tbody = document.getElementById('adminStudentList');
+            if (!tbody) return;
+            tbody.innerHTML = allStudentsCache.map(s => `
+                <tr class="border-b">
+                    <td class="p-2"><img src="${s.profileImage || `https://ui-avatars.com/api/?background=667eea&color=fff&name=${encodeURIComponent(s.fullName)}`}" class="student-avatar" onerror="this.src='https://ui-avatars.com/api/?background=667eea&color=fff&name=${encodeURIComponent(s.fullName)}'"></td>
+                    <td class="p-2 font-medium">${escapeHtml(s.fullName)}</td>
+                    <td class="p-2">${escapeHtml(s.className)} (${escapeHtml(s.section)})</td>
+                    <td class="p-2">${escapeHtml(s.rollNumber)}</td>
+                    <td class="p-2"><button onclick='openPhotoEditor("${s.id}")' class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg text-xs"><i class="fas fa-camera"></i> Edit Photo</button></td>
+                </tr>
+            `).join('');
+        }
+
+        window.openPhotoEditor = async (studentId) => {
+            const student = allStudentsCache.find(s => s.id === studentId);
+            if (!student) return;
+            currentEditingStudent = student;
+            tempPhotoUrl = student.profileImage || "";
+            document.getElementById('modalStudentPhoto').src = student.profileImage || `https://ui-avatars.com/api/?background=667eea&color=fff&name=${encodeURIComponent(student.fullName)}`;
+            document.getElementById('modalStudentName').innerText = student.fullName;
+            document.getElementById('modalStudentInfo').innerText = `${student.className} - ${student.section} | Roll: ${student.rollNumber}`;
+            document.getElementById('photoEditModal').style.display = 'flex';
+            document.getElementById('photoEditModal').classList.remove('hidden');
+        };
+
+        window.closePhotoModal = () => {
+            document.getElementById('photoEditModal').classList.add('hidden');
+            document.getElementById('photoEditModal').style.display = 'none';
+            currentEditingStudent = null;
+            tempPhotoUrl = "";
+        };
+
+        async function saveStudentPhoto() {
+            if (!currentEditingStudent) return;
+            try {
+                const studentRef = doc(db, currentEditingStudent._sessionPath, currentEditingStudent.id);
+                await updateDoc(studentRef, { profileImage: tempPhotoUrl });
+                // Update local cache
+                const idx = allStudentsCache.findIndex(s => s.id === currentEditingStudent.id);
+                if (idx !== -1) allStudentsCache[idx].profileImage = tempPhotoUrl;
+                renderAdminPanel();
+                showToastMessage("Student photo updated successfully!", "success");
+                closePhotoModal();
+            } catch (err) {
+                showToastMessage("Update failed: " + err.message, "error");
+            }
+        }
+
+        async function removeStudentPhoto() {
+            if (!currentEditingStudent) return;
+            tempPhotoUrl = "";
+            document.getElementById('modalStudentPhoto').src = `https://ui-avatars.com/api/?background=667eea&color=fff&name=${encodeURIComponent(currentEditingStudent.fullName)}`;
+            showToastMessage("Photo removed. Click Save to confirm.", "warning");
         }
 
         async function loadExams() {
             const sessionVal = getSelectedSession();
             if (!sessionVal) return;
-            
-            const filteredExams = allExamsCache
-                .filter(exam => exam.session === sessionVal)
-                .sort((a, b) => a.order - b.order);
-            
+            const filteredExams = allExamsCache.filter(exam => exam.session === sessionVal);
             const examSelect = document.getElementById('examSelect');
             examSelect.innerHTML = '<option value="">-- Select Exam --</option>';
-            if (filteredExams.length === 0) {
-                examSelect.innerHTML += '<option disabled>No published exams found for this session</option>';
-            }
-            filteredExams.forEach(exam => {
-                examSelect.innerHTML += `<option value="${exam.id}">${escapeHtml(exam.name)}</option>`;
-            });
+            filteredExams.forEach(exam => examSelect.innerHTML += `<option value="${exam.id}">${escapeHtml(exam.name)}</option>`);
             examSelect.disabled = false;
         }
 
         function loadClasses() {
             const classSelect = document.getElementById('classSelect');
             classSelect.innerHTML = '<option value="">-- Select Class --</option>';
-            allClassesCache.forEach(cls => {
-                classSelect.innerHTML += `<option value="${cls.id}">${escapeHtml(cls.name)}</option>`;
-            });
+            allClassesCache.forEach(cls => classSelect.innerHTML += `<option value="${cls.id}">${escapeHtml(cls.name)}</option>`);
             classSelect.disabled = false;
         }
 
@@ -375,21 +538,17 @@
             const filteredSections = allSectionsCache.filter(sec => sec.classId === classId);
             const secSelect = document.getElementById('sectionSelect');
             secSelect.innerHTML = '<option value="">-- Select Section --</option>';
-            filteredSections.forEach(sec => {
-                secSelect.innerHTML += `<option value="${sec.name}">${escapeHtml(sec.name)}</option>`;
-            });
+            filteredSections.forEach(sec => secSelect.innerHTML += `<option value="${sec.name}">${escapeHtml(sec.name)}</option>`);
             secSelect.disabled = false;
         }
 
         async function getStudentData(sessionVal, classId, sectionName, rollNumber) {
             const studRef = collection(db, `current_session/${sessionVal}/classes/${classId}/students`);
             const studSnap = await getDocs(studRef);
-            
             for (const docSnap of studSnap.docs) {
                 const data = docSnap.data();
                 const studentRoll = data.rollNumber || data.roll || '';
                 const studentSection = data.section || '';
-                
                 if (String(studentRoll) === String(rollNumber) && studentSection === sectionName) {
                     return {
                         id: docSnap.id,
@@ -399,48 +558,23 @@
                         section: studentSection,
                         rollNumber: studentRoll,
                         fullName: data.fullName || '',
-                        fatherName: data.fatherName || '',
-                        motherName: data.motherName || '',
-                        admissionNo: data.admissionNumber || data.admissionNo || ''
+                        admissionNo: data.admissionNumber || data.admissionNo || '',
+                        profileImage: data.profileImage || ''
                     };
                 }
             }
             return null;
         }
 
+        // Event Listeners
         document.getElementById('sessionSelect').addEventListener('change', async () => {
-            if (getSelectedSession()) {
-                await loadExams();
-                document.getElementById('examSelect').disabled = false;
-                document.getElementById('classSelect').disabled = true;
-                document.getElementById('sectionSelect').disabled = true;
-                document.getElementById('rollInput').value = '';
-                document.getElementById('resultContainer').innerHTML = '';
-                document.getElementById('printBtnContainer').classList.add('hidden');
-            }
+            if (getSelectedSession()) { await loadExams(); await loadAllStudentsForAdmin(); }
+            document.getElementById('examSelect').disabled = false;
+            document.getElementById('resultContainer').innerHTML = '';
+            document.getElementById('printBtnContainer').classList.add('hidden');
         });
-
-        document.getElementById('examSelect').addEventListener('change', () => {
-            if (document.getElementById('examSelect').value) {
-                loadClasses();
-                document.getElementById('classSelect').disabled = false;
-                document.getElementById('sectionSelect').disabled = true;
-                document.getElementById('rollInput').value = '';
-                document.getElementById('resultContainer').innerHTML = '';
-                document.getElementById('printBtnContainer').classList.add('hidden');
-            }
-        });
-
-        document.getElementById('classSelect').addEventListener('change', (e) => {
-            const classId = e.target.value;
-            if (classId) {
-                loadSections(classId);
-                document.getElementById('sectionSelect').disabled = false;
-                document.getElementById('rollInput').value = '';
-                document.getElementById('resultContainer').innerHTML = '';
-                document.getElementById('printBtnContainer').classList.add('hidden');
-            }
-        });
+        document.getElementById('examSelect').addEventListener('change', () => { if (document.getElementById('examSelect').value) loadClasses(); });
+        document.getElementById('classSelect').addEventListener('change', (e) => { if (e.target.value) loadSections(e.target.value); });
 
         document.getElementById('showResultBtn').onclick = async () => {
             const sessionVal = getSelectedSession();
@@ -450,36 +584,31 @@
             const rollNumber = document.getElementById('rollInput').value.trim();
 
             if (!sessionVal || !examId || !classId || !sectionName || !rollNumber) {
-                alert("Please fill all fields (Session, Exam, Class, Section, Roll Number)");
-                const container = document.getElementById('resultContainer');
-                container.classList.add('error-shake');
-                setTimeout(() => container.classList.remove('error-shake'), 500);
+                alert("Please fill all fields");
                 return;
             }
 
             const container = document.getElementById('resultContainer');
-            container.innerHTML = `<div class='text-center p-12 bg-white rounded-2xl shadow-lg'><i class='fas fa-spinner fa-spin text-4xl text-indigo-600 mb-4'></i><p class='font-bold text-gray-600'>Loading your result...</p></div>`;
+            container.innerHTML = `<div class='text-center p-12 bg-white rounded-2xl shadow-lg'><i class='fas fa-spinner fa-spin text-4xl text-indigo-600 mb-4'></i><p>Loading...</p></div>`;
 
             try {
                 const examName = allExamsCache.find(e => e.id === examId)?.name || examId;
                 const student = await getStudentData(sessionVal, classId, sectionName, rollNumber);
-                
                 if (!student) {
-                    container.innerHTML = `<div class='text-center p-12 bg-white rounded-2xl shadow-lg border-2 border-red-200'><i class='fas fa-user-graduate text-6xl text-red-400 mb-4'></i><h3 class='font-bold text-xl text-red-600 mb-2'>Student Not Found!</h3><p class='text-gray-600'>No student found with Roll Number "${rollNumber}" in ${sectionName} section for session ${sessionVal}.</p></div>`;
+                    container.innerHTML = `<div class='text-center p-12 bg-white rounded-2xl shadow-lg'><i class='fas fa-user-graduate text-6xl text-red-400 mb-4'></i><h3 class='font-bold text-xl text-red-600'>Student Not Found!</h3></div>`;
                     document.getElementById('printBtnContainer').classList.add('hidden');
                     return;
                 }
 
+                const studentPhoto = student.profileImage || `https://ui-avatars.com/api/?background=667eea&color=fff&name=${encodeURIComponent(student.fullName)}`;
                 const subjects = allSubjectsCache.filter(sub => sub.classId === classId);
                 const marksData = allMarksCache.filter(m => m.studentId === student.id && m.examId === examId);
                 
-                let totalObtained = 0, totalFullMarks = 0, totalGP = 0, isFailed = false;
-                let rows = "";
+                let totalObtained = 0, totalFullMarks = 0, totalGP = 0, isFailed = false, rows = "";
 
                 subjects.forEach((sub, index) => {
                     const marksObj = marksData.find(m => m.subjectId === sub.id);
                     const m = marksObj?.marks || {};
-                    
                     const setupKey = `${examId}_${classId}_${student.section || ''}_${sub.id}_${sessionVal}`;
                     const setupData = allSetupCache.find(s => s.id === setupKey);
                     const setup = setupData?.marks || {};
@@ -488,17 +617,16 @@
                     const mF = setup.mcq?.enabled ? safeNum(setup.mcq.full) : 0;
                     const pF = setup.practical?.enabled ? safeNum(setup.practical.full) : 0;
                     const wO = safeNum(m.written), mO = safeNum(m.mcq), pO = safeNum(m.practical);
-
-                    const rowTotal = wO + mO + pO;
-                    const rowFull = wF + mF + pF;
+                    const rowTotal = wO + mO + pO, rowFull = wF + mF + pF;
                     const grade = calculateGrade(rowTotal, rowFull);
-
-                    totalObtained += rowTotal;
-                    totalFullMarks += rowFull;
-                    totalGP += grade.gp;
+                    totalObtained += rowTotal; totalFullMarks += rowFull; totalGP += grade.gp;
                     if (grade.lg === "F") isFailed = true;
 
-                    rows += `<tr><td>${String(index+1).padStart(2,'0')}</td><td class="text-left font-bold uppercase">${escapeHtml(sub.name)}</td><td>${wF||'-'}</td><td>${wF?wO:'-'}</td><td>${mF||'-'}</td><td>${mF?mO:'-'}</td><td>${pF||'-'}</td><td>${pF?pO:'-'}</td><td class="font-bold bg-gray-50">${rowFull||'-'}</td><td class="font-bold bg-gray-50">${rowTotal}</td><td class="font-black">${grade.lg}</td><td>${grade.gp.toFixed(2)}</td><td>-</td><td>-</td></tr>`;
+                    rows += `<tr><td>${String(index+1).padStart(2,'0')}</td><td class="text-left font-bold">${escapeHtml(sub.name)}</td>
+                        <td>${wF||'-'}</td><td>${wF?wO:'-'}</td><td>${mF||'-'}</td><td>${mF?mO:'-'}</td>
+                        <td>${pF||'-'}</td><td>${pF?pO:'-'}</td><td class="font-bold">${rowFull||'-'}</td>
+                        <td class="font-bold">${rowTotal}</td><td class="font-black">${grade.lg}</td>
+                        <td>${grade.gp.toFixed(2)}</td><td>-</td><td>-</td></tr>`;
                 });
 
                 const subjectCount = subjects.length || 1;
@@ -506,102 +634,69 @@
                 const finalGrade = isFailed ? "F" : calculateGrade(totalObtained, totalFullMarks).lg;
 
                 const marksheetHTML = `
-                    <div class="marksheet-card">
-                        <div class="content-wrap">
-                            <div class="flex justify-between items-center border-b-2 border-black pb-2">
-                                <div class="w-20 h-20 bg-gray-200 flex items-center justify-center text-gray-400 text-xs">LOGO</div>
-                                <div class="text-center">
-                                    <h1 class="text-2xl font-black text-indigo-900 leading-none uppercase">${escapeHtml(currentSchoolName)}</h1>
-                                    <p class="text-[10px] font-bold tracking-widest mt-1 uppercase">${escapeHtml(currentSchoolAddress)}</p>
-                                    <div class="mt-2 bg-black text-white px-4 py-1 text-[12px] font-bold uppercase rounded-full">Academic Transcript: ${escapeHtml(examName)}</div>
-                                </div>
-                                <div class="w-24 h-28 border-2 border-black flex items-center justify-center text-[10px] italic text-gray-400">PASSPORT PHOTO</div>
+                <div class="marksheet-card">
+                    <div class="content-wrap">
+                        <div class="flex justify-between items-center border-b-2 border-black pb-2">
+                            <div class="w-20 h-20 bg-gray-200 flex items-center justify-center text-gray-400 text-xs">LOGO</div>
+                            <div class="text-center">
+                                <h1 class="text-2xl font-black text-indigo-900 uppercase">${escapeHtml(currentSchoolName)}</h1>
+                                <p class="text-[10px] font-bold mt-1 uppercase">${escapeHtml(currentSchoolAddress)}</p>
+                                <div class="mt-2 bg-black text-white px-4 py-1 text-[12px] font-bold rounded-full">Academic Transcript: ${escapeHtml(examName)}</div>
                             </div>
-
-                            <div class="grid grid-cols-3 gap-2 mt-4 text-[11px] font-bold uppercase">
-                                <div class="border-b border-gray-300 pb-1">STUDENT NAME: <span class="font-normal ml-1">${escapeHtml(student.fullName || '-')}</span></div>
-                                <div class="border-b border-gray-300 pb-1">CLASS: <span class="font-normal ml-1">${escapeHtml(student.className || '-')}</span></div>
-                                <div class="border-b border-gray-300 pb-1">ROLL NO: <span class="font-normal ml-1">${escapeHtml(student.rollNumber || '-')}</span></div>
-                                <div class="border-b border-gray-300 pb-1">SECTION: <span class="font-normal ml-1">${escapeHtml(student.section || 'N/A')}</span></div>
-                                <div class="border-b border-gray-300 pb-1">STUDENT ID: <span class="font-normal ml-1">${escapeHtml(student.admissionNo || '-')}</span></div>
-                                <div class="border-b border-gray-300 pb-1">SESSION: <span class="font-normal ml-1">${escapeHtml(sessionVal)}</span></div>
-                            </div>
-
-                            <table class="mt-4" style="font-size: 10px;">
-                                <thead class="bg-gray-100">
-                                    <tr><th rowspan="2">SL</th><th rowspan="2" class="w-44">SUBJECT NAME</th><th colspan="2">WRITTEN</th><th colspan="2">MCQ</th><th colspan="2">PRAC.</th><th colspan="2">TOTAL</th><th rowspan="2">LG</th><th rowspan="2">GP</th><th rowspan="2">HI</th><th rowspan="2">POS</th></tr>
-                                    <tr class="text-[9px]"><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th></tr>
-                                </thead>
-                                <tbody>${rows}</tbody>
-                                <tfoot class="bg-gray-50 font-bold">
-                                    <tr><td colspan="2" class="text-left py-2 px-2 uppercase">Total: ${totalObtained} / ${totalFullMarks}</td><td colspan="4">GPA: ${finalGPA.toFixed(2)}</td><td colspan="4">LETTER GRADE: ${finalGrade}</td><td colspan="4">RESULT: <span class="${isFailed ? 'text-red-600' : 'text-emerald-700'}">${isFailed ? 'FAILED' : 'PASSED'}</span></td></tr>
-                                </tfoot>
-                            </table>
-
-                            <div class="grid grid-cols-2 gap-4 mt-4">
-                                <div>
-                                    <table class="grade-table w-full">
-                                        <tr class="bg-gray-100 font-bold uppercase"><th>Personal Traits</th><th>Rating</th></tr>
-                                        <tr><td class="text-left">Attendance & Punctuality</td><td>_______</td></tr>
-                                        <tr><td class="text-left">Cleanliness & Neatness</td><td>_______</td></tr>
-                                        <tr><td class="text-left">Behavior & Cooperation</td><td>_______</td></tr>
-                                        <tr><td class="text-left">Active Participation</td><td>_______</td></tr>
-                                    </table>
-                                </div>
-                                <div>
-                                    <table class="grade-table w-full">
-                                        <tr class="bg-gray-100 font-bold uppercase"><th>Range</th><th>Grade</th><th>GPA</th></tr>
-                                        <tr><td>80-100</td><td>A+</td><td>5.00</td></tr>
-                                        <tr><td>70-79</td><td>A</td><td>4.00</td></tr>
-                                        <tr><td>60-69</td><td>A-</td><td>3.50</td></tr>
-                                        <tr><td>50-59</td><td>B</td><td>3.00</td></tr>
-                                        <tr><td>40-49</td><td>C</td><td>2.00</td></tr>
-                                        <tr><td>33-39</td><td>D</td><td>1.00</td></tr>
-                                        <tr><td>00-32</td><td>F</td><td>0.00</td></tr>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <div class="mt-6 border border-black p-2 text-[10px]">
-                                <div class="flex border-b border-black mb-2 pb-1"><span class="font-bold w-40">CLASS TEACHER'S REMARK:</span><span class="flex-1"></span></div>
-                                <div class="flex pt-1"><span class="font-bold w-40">PRINCIPAL'S REMARK:</span><span class="flex-1"></span></div>
-                            </div>
-
-                            <div class="mt-12 flex justify-between px-6">
-                                <div class="text-center border-t border-black pt-1 w-40 font-bold text-[10px] uppercase">Class Teacher</div>
-                                <div class="text-center border-t border-black pt-1 w-40 font-bold text-[10px] uppercase">Guardian</div>
-                                <div class="text-center border-t border-black pt-1 w-40 font-bold text-[10px] uppercase">Principal</div>
+                            <div class="w-24 h-28 border-2 border-black flex items-center justify-center overflow-hidden">
+                                <img src="${escapeHtml(studentPhoto)}" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?background=667eea&color=fff&name=${encodeURIComponent(student.fullName)}'">
                             </div>
                         </div>
+                        <div class="grid grid-cols-3 gap-2 mt-4 text-[11px] font-bold uppercase">
+                            <div class="border-b pb-1">STUDENT NAME: <span class="font-normal">${escapeHtml(student.fullName)}</span></div>
+                            <div class="border-b pb-1">CLASS: <span class="font-normal">${escapeHtml(student.className)}</span></div>
+                            <div class="border-b pb-1">ROLL NO: <span class="font-normal">${escapeHtml(student.rollNumber)}</span></div>
+                            <div class="border-b pb-1">SECTION: <span class="font-normal">${escapeHtml(student.section)}</span></div>
+                            <div class="border-b pb-1">STUDENT ID: <span class="font-normal">${escapeHtml(student.admissionNo)}</span></div>
+                            <div class="border-b pb-1">SESSION: <span class="font-normal">${escapeHtml(sessionVal)}</span></div>
+                        </div>
+                        <table class="mt-4"><thead class="bg-gray-100"><tr><th rowspan="2">SL</th><th rowspan="2">SUBJECT</th><th colspan="2">WRITTEN</th><th colspan="2">MCQ</th><th colspan="2">PRAC.</th><th colspan="2">TOTAL</th><th rowspan="2">LG</th><th rowspan="2">GP</th><th rowspan="2">HI</th><th rowspan="2">POS</th></tr><tr class="text-[9px]"><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th></tr></thead>
+                        <tbody>${rows}</tbody>
+                        <tfoot class="bg-gray-50 font-bold"><tr><td colspan="2" class="text-left py-2 px-2">Total: ${totalObtained} / ${totalFullMarks}</td><td colspan="4">GPA: ${finalGPA.toFixed(2)}</td><td colspan="4">LETTER GRADE: ${finalGrade}</td><td colspan="4">RESULT: <span class="${isFailed ? 'text-red-600' : 'text-emerald-700'}">${isFailed ? 'FAILED' : 'PASSED'}</span></td></tr></tfoot>
+                        </table>
+                        <div class="grid grid-cols-2 gap-4 mt-4"><div><table class="grade-table w-full"><tr class="bg-gray-100"><th>Personal Traits</th><th>Rating</th></tr><tr><td class="text-left">Attendance</td><td>_______</td></tr><tr><td class="text-left">Behavior</td><td>_______</td></tr></table></div><div><table class="grade-table w-full"><tr class="bg-gray-100"><th>Range</th><th>Grade</th><th>GPA</th></tr><tr><td>80-100</td><td>A+</td><td>5.00</td></tr><tr><td>70-79</td><td>A</td><td>4.00</td></tr><tr><td>60-69</td><td>A-</td><td>3.50</td></tr><tr><td>33-39</td><td>D</td><td>1.00</td></tr></table></div></div>
+                        <div class="mt-6 border border-black p-2 text-[10px]"><div class="flex border-b pb-1"><span class="font-bold w-40">CLASS TEACHER'S REMARK:</span><span class="flex-1"></span></div><div class="flex pt-1"><span class="font-bold w-40">PRINCIPAL'S REMARK:</span><span class="flex-1"></span></div></div>
+                        <div class="mt-12 flex justify-between"><div class="text-center border-t pt-1 w-40 text-[10px]">Class Teacher</div><div class="text-center border-t pt-1 w-40 text-[10px]">Guardian</div><div class="text-center border-t pt-1 w-40 text-[10px]">Principal</div></div>
                     </div>
-                `;
-
+                </div>`;
                 container.innerHTML = marksheetHTML;
                 document.getElementById('printBtnContainer').classList.remove('hidden');
-                
             } catch (error) {
-                console.error('Error:', error);
-                container.innerHTML = `<div class='text-center p-12 bg-white rounded-2xl shadow-lg border-2 border-red-200'><i class='fas fa-exclamation-triangle text-6xl text-red-400 mb-4'></i><h3 class='font-bold text-xl text-red-600 mb-2'>Error Loading Result!</h3><p class='text-gray-600'>${error.message}</p></div>`;
-                document.getElementById('printBtnContainer').classList.add('hidden');
+                container.innerHTML = `<div class='text-center p-12 bg-white rounded-2xl shadow-lg'><i class='fas fa-exclamation-triangle text-6xl text-red-400'></i><p class='mt-2'>Error: ${error.message}</p></div>`;
             }
         };
 
         async function loadSchoolInfo() {
             const schoolDoc = await getDoc(doc(db, "settings", "school_info"));
             if (schoolDoc.exists()) {
-                const data = schoolDoc.data();
-                currentSchoolName = data.school_name || currentSchoolName;
-                currentSchoolAddress = data.contact_address || currentSchoolAddress;
+                currentSchoolName = schoolDoc.data().school_name || currentSchoolName;
+                currentSchoolAddress = schoolDoc.data().contact_address || currentSchoolAddress;
             }
         }
 
-        async function init() {
+        // Check if logged in user is admin/teacher to show photo management panel
+        onAuthStateChanged(auth, async (user) => {
             await loadSessions();
             await loadAllData();
             await loadSchoolInfo();
-        }
-        
-        init();
+            initCloudinaryWidget();
+            
+            // For demo, show admin panel if specific email (you can adjust logic)
+            if (user && (user.email === "admin@school.com" || user.email === "teacher@school.com")) {
+                document.getElementById('adminPanel').style.display = 'block';
+            } else {
+                document.getElementById('adminPanel').style.display = 'none';
+            }
+        });
+
+        document.getElementById('uploadPhotoBtn')?.addEventListener('click', () => cloudinaryWidget?.open());
+        document.getElementById('removePhotoBtn')?.addEventListener('click', removeStudentPhoto);
+        document.getElementById('savePhotoBtn')?.addEventListener('click', saveStudentPhoto);
     </script>
 </body>
 </html>
