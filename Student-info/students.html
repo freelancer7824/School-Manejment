@@ -3,15 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Student Manager | Session Data Only | Parent Connection Preserved</title>
+    <title>Student Manager | Session Data Update | No Duplicate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script>tailwind.config={theme:{extend:{colors:{primary:'#3b82f6',success:'#10b981',danger:'#ef4444',warning:'#f59e0b'}}}};</script>
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#3b82f6', success: '#10b981', danger: '#ef4444', warning: '#f59e0b' }
+                }
+            }
+        };
+    </script>
     <style>
         body { background: #f1f5f9; font-family: system-ui, -apple-system, 'Segoe UI', Roboto; }
         .dropdown-menu { transition: opacity 0.1s; }
         .session-badge { background: linear-gradient(45deg, #3b82f6, #2563eb); color: white; }
         .parent-linked { background: linear-gradient(45deg, #10b981, #059669); }
+        .student-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #e2e8f0; }
+        .image-preview { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; border: 2px solid #ddd; }
+        .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; }
+        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-6">
@@ -41,47 +54,85 @@
     </div>
     
     <div id="editModal" class="hidden fixed inset-0 z-50 overflow-auto bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="sticky top-0 bg-white p-4 border-b flex justify-between">
-                <h3 class="font-bold text-xl">
-                    <i class="fas fa-edit text-primary"></i> Edit Student 
+        <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
+                <h3 class="font-bold text-xl"><i class="fas fa-edit text-primary"></i> Edit Student 
                     <span id="editLocationInfo" class="ml-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium"></span>
                 </h3>
-                <button onclick="closeEditModal()" class="text-2xl">&times;</button>
+                <button onclick="closeEditModal()" class="text-2xl hover:text-gray-700">&times;</button>
             </div>
             <form id="editForm" class="p-5 space-y-4">
                 <input type="hidden" id="editId">
                 <input type="hidden" id="editParentId">
                 <input type="hidden" id="editSessionPath">
+                <input type="hidden" id="editImageUrl">
+                
+                <div class="border rounded-xl p-4 bg-gray-50">
+                    <label class="block text-sm font-semibold mb-2"><i class="fas fa-camera text-primary"></i> Profile Image (Max 2MB)</label>
+                    <div class="flex items-center gap-4 flex-wrap">
+                        <img id="editImagePreview" src="https://via.placeholder.com/80" class="image-preview">
+                        <div>
+                            <button type="button" id="uploadNewImageBtn" class="bg-primary text-white px-4 py-2 rounded-lg text-sm">
+                                <i class="fas fa-upload"></i> Upload New Image
+                            </button>
+                            <button type="button" id="removeImageBtn" class="ml-2 border border-red-300 text-red-600 px-4 py-2 rounded-lg text-sm">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                            <p class="text-xs text-gray-500 mt-2">Supported: JPG, PNG | Max 2MB</p>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="grid md:grid-cols-2 gap-4">
                     <div><label class="text-sm font-semibold">Full Name *</label><input id="eName" class="w-full border rounded-lg p-2" required></div>
                     <div><label class="text-sm font-semibold">Roll Number</label><input id="eRoll" class="w-full border rounded-lg p-2"></div>
                     <div><label class="text-sm font-semibold">Admission No</label><input id="eAdm" class="w-full border rounded-lg p-2"></div>
                     <div><label class="text-sm font-semibold">Gender</label><select id="eGender" class="w-full border rounded-lg p-2"><option>Male</option><option>Female</option><option>Other</option></select></div>
-                    <div><label class="text-sm font-semibold">Class <span class="text-primary">*</span></label><select id="eClassId" class="w-full border rounded-lg p-2" required></select></div>
-                    <div><label class="text-sm font-semibold">Section <span class="text-primary">*</span></label><select id="eSection" class="w-full border rounded-lg p-2" required><option value="">-- Select Section --</option></select></div>
+                    <div><label class="text-sm font-semibold">Class *</label><select id="eClassId" class="w-full border rounded-lg p-2" required></select></div>
+                    <div><label class="text-sm font-semibold">Section *</label><select id="eSection" class="w-full border rounded-lg p-2" required><option value="">-- Select Section --</option></select></div>
                     <div><label class="text-sm font-semibold">Phone</label><input id="ePhone" class="w-full border rounded-lg p-2"></div>
                     <div><label class="text-sm font-semibold">Email</label><input id="eEmail" class="w-full border rounded-lg p-2"></div>
                     <div class="md:col-span-2"><label class="text-sm font-semibold">Address</label><textarea id="eAddress" rows="2" class="w-full border rounded-lg p-2"></textarea></div>
                     <div><label class="text-sm font-semibold">Status</label><select id="eStatus" class="w-full border rounded-lg p-2"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
                 </div>
-                <div class="border-t pt-3 mt-2">
-                    <h4 class="font-bold text-primary mb-2"><i class="fas fa-users"></i> Parent / Guardian Details</h4>
-                    <div class="grid md:grid-cols-2 gap-3">
-                        <div><label>Father Name</label><input id="eFather" class="w-full border rounded p-2"></div>
-                        <div><label>Father Phone</label><input id="eFatherPhone" class="w-full border rounded p-2"></div>
-                        <div><label>Mother Name</label><input id="eMother" class="w-full border rounded p-2"></div>
-                        <div><label>Mother Phone</label><input id="eMotherPhone" class="w-full border rounded p-2"></div>
-                        <div><label>Guardian Name</label><input id="eGuardian" class="w-full border rounded p-2"></div>
-                        <div><label>Guardian Phone</label><input id="eGuardianPhone" class="w-full border rounded p-2"></div>
-                        <div class="md:col-span-2"><label>Parent Login Email</label><input id="eParentEmail" class="w-full border rounded p-2"></div>
+                
+                <div class="border-t pt-4 mt-2">
+                    <h4 class="font-bold text-primary mb-3"><i class="fas fa-book-open"></i> Subjects (Class Based)</h4>
+                    <div id="editSubjectsContainer" class="space-y-3">
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <div><span class="font-medium text-sm">Mandatory Subjects</span><div id="editMandatoryList" class="mt-2 space-y-1 text-sm border rounded p-2 bg-gray-50 min-h-[100px]"></div></div>
+                            <div><span class="font-medium text-sm">Additional Subjects</span><div id="editAdditionalList" class="mt-2 space-y-1 text-sm border rounded p-2 bg-gray-50 min-h-[100px]"></div></div>
+                            <div><span class="font-medium text-sm">Optional (Fourth)</span><select id="editFourthSubject" class="mt-2 w-full border rounded-lg p-2"><option value="">None</option></select></div>
+                        </div>
                     </div>
                 </div>
-                <div class="flex justify-end gap-3 pt-4">
+                
+                <div class="border-t pt-4 mt-2">
+                    <h4 class="font-bold text-primary mb-3"><i class="fas fa-users"></i> Parent / Guardian Account</h4>
+                    <div class="relative mb-3">
+                        <input type="text" id="parentSearchInput" class="w-full border rounded-lg p-2 pr-10" placeholder="Search parent by name or phone..." autocomplete="off">
+                        <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <div id="parentSuggestDropdown" class="hidden absolute z-50 w-full bg-white border border-gray-200 rounded-xl shadow-xl mt-1 max-h-64 overflow-y-auto"></div>
+                    </div>
+                    <div id="selectedParentInfo" class="hidden mt-2 p-3 bg-green-50 rounded-lg border border-green-200 flex items-center justify-between">
+                        <div><i class="fas fa-check-circle text-green-600"></i> <strong id="selectedParentName"></strong> (<span id="selectedParentPhone"></span>)</div>
+                        <button type="button" id="changeParentBtn" class="text-primary text-sm"><i class="fas fa-exchange-alt"></i> Change</button>
+                    </div>
+                </div>
+                
+                <div id="parentDetailsSection" class="grid md:grid-cols-2 gap-3 border rounded-lg p-3 bg-gray-50 hidden">
+                    <div><label class="text-xs">Father Name</label><input id="eFather" class="w-full border rounded p-1 text-sm"></div>
+                    <div><label class="text-xs">Father Phone</label><input id="eFatherPhone" class="w-full border rounded p-1 text-sm"></div>
+                    <div><label class="text-xs">Mother Name</label><input id="eMother" class="w-full border rounded p-1 text-sm"></div>
+                    <div><label class="text-xs">Mother Phone</label><input id="eMotherPhone" class="w-full border rounded p-1 text-sm"></div>
+                    <div><label class="text-xs">Guardian Name</label><input id="eGuardian" class="w-full border rounded p-1 text-sm"></div>
+                    <div><label class="text-xs">Guardian Phone</label><input id="eGuardianPhone" class="w-full border rounded p-1 text-sm"></div>
+                    <div class="md:col-span-2"><label class="text-xs">Parent Login Email</label><input id="eParentEmail" class="w-full border rounded p-1 text-sm"></div>
+                </div>
+                
+                <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded-lg">Cancel</button>
-                    <button type="submit" class="px-5 py-2 bg-primary text-white rounded-lg">
-                        <i class="fas fa-save"></i> Save Changes
-                    </button>
+                    <button type="submit" class="px-5 py-2 bg-primary text-white rounded-lg"><i class="fas fa-save"></i> Save Changes</button>
                 </div>
             </form>
         </div>
@@ -111,7 +162,7 @@
         <div class="flex justify-between items-center mb-5 flex-wrap gap-3">
             <div class="flex items-center gap-3">
                 <span class="bg-primary text-white p-2 rounded-xl"><i class="fas fa-users text-xl"></i></span>
-                <h1 class="text-2xl font-bold text-gray-800">Student Dashboard</h1>
+                <h1 class="text-2xl font-bold text-gray-800">Student Manager</h1>
             </div>
             <div class="bg-white px-4 py-2 rounded-full shadow text-sm font-medium">
                 <i class="fas fa-calendar-alt text-primary mr-1"></i>
@@ -130,36 +181,24 @@
                 </div>
                 <div class="flex-1 min-w-[130px]">
                     <label class="block text-xs font-semibold text-gray-600">Class</label>
-                    <select id="filterClass" class="w-full border rounded-lg p-2">
-                        <option value="">All Classes</option>
-                    </select>
+                    <select id="filterClass" class="w-full border rounded-lg p-2"><option value="">All Classes</option></select>
                 </div>
                 <div class="flex-1 min-w-[130px]">
                     <label class="block text-xs font-semibold text-gray-600">Section</label>
-                    <select id="filterSection" class="w-full border rounded-lg p-2" disabled>
-                        <option>Select class first</option>
-                    </select>
+                    <select id="filterSection" class="w-full border rounded-lg p-2" disabled><option>Select class first</option></select>
                 </div>
                 <div class="flex-[2]">
                     <label class="block text-xs font-semibold text-gray-600">Search</label>
                     <input id="searchInput" type="text" placeholder="Name, Roll, Phone..." class="w-full border rounded-lg p-2">
                 </div>
                 <div class="flex gap-2">
-                    <button id="refreshBtn" class="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
-                    <button id="gotoPromoBtn" class="bg-orange-100 text-orange-700 px-4 py-2 rounded-lg text-sm font-medium">
-                        <i class="fas fa-arrow-up"></i> Promote
-                    </button>
+                    <button id="refreshBtn" class="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg"><i class="fas fa-sync-alt"></i></button>
+                    <button id="gotoPromoBtn" class="bg-orange-100 text-orange-700 px-4 py-2 rounded-lg text-sm font-medium"><i class="fas fa-arrow-up"></i> Promote</button>
                 </div>
             </div>
             <div class="mt-3 flex justify-between items-center text-sm">
-                <span class="text-gray-500">
-                    Total: <span id="totalCountSpan" class="font-bold text-primary">0</span> students 
-                </span>
-                <span class="text-xs bg-blue-100 px-2 py-1 rounded-full">
-                    <i class="fas fa-database"></i> Session Data Only | Parent Connection Preserved
-                </span>
+                <span class="text-gray-500">Total: <span id="totalCountSpan" class="font-bold text-primary">0</span> students</span>
+                <span class="text-xs bg-blue-100 px-2 py-1 rounded-full"><i class="fas fa-database"></i> Session Data | Parent Linked</span>
             </div>
         </div>
         
@@ -186,10 +225,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { 
-            getFirestore, collection, query, getDocs, doc, updateDoc, deleteDoc, 
-            getDoc, where, orderBy, setDoc 
-        } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getFirestore, collection, query, getDocs, doc, updateDoc, deleteDoc, getDoc, where, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk", 
@@ -203,9 +239,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let sessionStudents = [], allClasses = [], sectionsCache = {}, parentCache = {};
+        const CLOUDINARY_CLOUD_NAME = "dhvtgzy5x";
+        const CLOUDINARY_UPLOAD_PRESET = "Rosenews";
+        
+        let sessionStudents = [], allClasses = [], sectionsCache = {}, parentCache = {}, allParents = [];
         let currentSession = "2025-2026", nextSession = "2026-2027";
         let selectedStudentIdForDelete = null;
+        let cloudinaryWidget = null;
 
         function showToast(msg, type = "success") {
             const toast = document.getElementById('toast');
@@ -248,6 +288,22 @@
             allClasses.forEach(c => eClass.appendChild(new Option(c.name, c.id)));
         }
 
+        async function loadSubjectsForClass(classId) {
+            if (!classId) return { mandatory: [], additional: [], optional: [] };
+            try {
+                const q = query(collection(db, "subjects"), where("classId", "==", classId));
+                const snap = await getDocs(q);
+                const subjects = { mandatory: [], additional: [], optional: [] };
+                snap.forEach(doc => {
+                    const sub = doc.data();
+                    if (sub.type === 'mandatory') subjects.mandatory.push(sub.name);
+                    else if (sub.type === 'additional') subjects.additional.push(sub.name);
+                    else if (sub.type === 'optional') subjects.optional.push(sub.name);
+                });
+                return subjects;
+            } catch(e) { return { mandatory: [], additional: [], optional: [] }; }
+        }
+
         async function getSections(classId) {
             if (!classId) return [];
             if (sectionsCache[classId]) return sectionsCache[classId];
@@ -255,6 +311,53 @@
             const secs = snap.docs.map(d => ({ id: d.id, name: d.data().name }));
             sectionsCache[classId] = secs;
             return secs;
+        }
+
+        async function loadAllParents() {
+            const snap = await getDocs(query(collection(db, "parents"), orderBy("guardianName")));
+            allParents = [];
+            snap.forEach(doc => {
+                const d = doc.data();
+                allParents.push({ id: doc.id, name: d.guardianName, phone: d.guardianPhone, data: d });
+            });
+        }
+
+        function renderParentDropdown(searchTerm = "") {
+            const term = searchTerm.trim().toLowerCase();
+            let filtered = allParents;
+            if (term) filtered = allParents.filter(p => p.name?.toLowerCase().includes(term) || p.phone?.includes(term));
+            const dropdown = document.getElementById('parentSuggestDropdown');
+            if (!filtered.length) {
+                dropdown.innerHTML = '<div class="p-3 text-gray-500 text-center">No parents found</div>';
+                dropdown.classList.remove('hidden');
+                return;
+            }
+            dropdown.innerHTML = "";
+            filtered.forEach(p => {
+                const div = document.createElement('div');
+                div.className = "p-3 border-b hover:bg-blue-50 cursor-pointer transition";
+                div.innerHTML = `<div class="font-medium"><i class="fas fa-user-circle mr-1"></i>${escapeHtml(p.name)}</div><div class="text-xs text-gray-500"><i class="fas fa-phone-alt mr-1"></i>${p.phone}</div>`;
+                div.onclick = () => { selectParentForEdit(p); dropdown.classList.add('hidden'); };
+                dropdown.appendChild(div);
+            });
+            dropdown.classList.remove('hidden');
+        }
+
+        async function selectParentForEdit(parent) {
+            document.getElementById('editParentId').value = parent.id;
+            document.getElementById('parentSearchInput').value = `${parent.name} (${parent.phone})`;
+            document.getElementById('selectedParentInfo').classList.remove('hidden');
+            document.getElementById('selectedParentName').innerText = parent.name;
+            document.getElementById('selectedParentPhone').innerText = parent.phone;
+            document.getElementById('parentDetailsSection').classList.remove('hidden');
+            
+            document.getElementById('eFather').value = parent.data?.fatherName || '';
+            document.getElementById('eFatherPhone').value = parent.data?.fatherPhone || '';
+            document.getElementById('eMother').value = parent.data?.motherName || '';
+            document.getElementById('eMotherPhone').value = parent.data?.motherPhone || '';
+            document.getElementById('eGuardian').value = parent.data?.guardianName || '';
+            document.getElementById('eGuardianPhone').value = parent.data?.guardianPhone || '';
+            document.getElementById('eParentEmail').value = parent.data?.loginEmail || '';
         }
 
         async function loadSessionDataOnly() {
@@ -287,17 +390,8 @@
                         });
                     }
                 }
-                
-                studentsList.sort((a, b) => {
-                    const ar = parseFloat(a.rollNumber || a.roll || 0);
-                    const br = parseFloat(b.rollNumber || b.roll || 0);
-                    return ar - br;
-                });
-                
-            } catch (e) {
-                console.error('Error loading session data:', e);
-            }
-
+                studentsList.sort((a, b) => (parseFloat(a.rollNumber) || 0) - (parseFloat(b.rollNumber) || 0));
+            } catch (e) { console.error('Error loading session data:', e); }
             sessionStudents = studentsList;
             return sessionStudents;
         }
@@ -310,15 +404,9 @@
                 if (p.exists()) {
                     const d = p.data();
                     const data = { 
-                        father: d.fatherName || '', 
-                        mother: d.motherName || '', 
-                        guardian: d.guardianName || '', 
-                        fPhone: d.fatherPhone || '', 
-                        mPhone: d.motherPhone || '', 
-                        gPhone: d.guardianPhone || '', 
-                        email: d.loginEmail || '', 
-                        address: d.address || '',
-                        parentId: parentId
+                        father: d.fatherName || '', mother: d.motherName || '', guardian: d.guardianName || '',
+                        fPhone: d.fatherPhone || '', mPhone: d.motherPhone || '', gPhone: d.guardianPhone || '',
+                        email: d.loginEmail || '', parentId: parentId
                     };
                     parentCache[parentId] = data;
                     return data;
@@ -333,19 +421,17 @@
             const search = document.getElementById('searchInput').value.toLowerCase().trim();
             
             let filtered = [...sessionStudents];
-            
             if (classId) filtered = filtered.filter(s => s.classId === classId);
             if (section) filtered = filtered.filter(s => s.section === section);
             if (search) {
                 filtered = filtered.filter(s => 
                     (s.fullName || '').toLowerCase().includes(search) || 
-                    String(s.rollNumber || '').toLowerCase().includes(search) || 
+                    String(s.rollNumber || '').includes(search) || 
                     String(s.phone || '').includes(search)
                 );
             }
             
             document.getElementById('totalCountSpan').innerText = filtered.length;
-            
             const tbody = document.getElementById('studentTableBody');
             if (!filtered.length) {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center py-12 text-gray-400"><i class="fas fa-user-slash text-3xl"></i><p>No students found</p></td></tr>';
@@ -356,26 +442,31 @@
             for (let i = 0; i < filtered.length; i++) {
                 const s = filtered[i];
                 const parent = await getParentData(s.parentID);
+                const imageUrl = s.profileImage || s.passportPhotoURL;
                 
                 const row = tbody.insertRow();
                 row.className = 'border-b hover:bg-gray-50';
                 row.innerHTML = `
                     <td class="px-4 py-3 text-gray-500">${i + 1}</td>
                     <td class="px-4 py-3">
-                        <div class="font-semibold">${escapeHtml(s.fullName || '—')}</div>
-                        <div class="text-xs text-gray-400 mt-1">
-                            <span class="bg-green-50 px-2 py-0.5 rounded-full">${escapeHtml(s.status || 'active')}</span> | 
-                            ${escapeHtml(s.gender || '')}
-                            <span class="ml-2 session-badge px-2 py-0.5 rounded-full text-xs">${escapeHtml(s._session || currentSession)}</span>
-                            ${s.parentID ? '<span class="ml-1 parent-linked px-2 py-0.5 rounded-full text-xs text-white"><i class="fas fa-link"></i> Parent Linked</span>' : ''}
+                        <div class="flex items-center gap-3">
+                            <img src="${imageUrl || 'https://ui-avatars.com/api/?background=3b82f6&color=fff&name=' + encodeURIComponent(s.fullName || 'S')}" 
+                                 class="student-avatar" onerror="this.src='https://ui-avatars.com/api/?background=3b82f6&color=fff&name=${encodeURIComponent(s.fullName || 'S')}'">
+                            <div>
+                                <div class="font-semibold">${escapeHtml(s.fullName || '—')}</div>
+                                <div class="text-xs text-gray-400 mt-1">
+                                    <span class="bg-green-50 px-2 py-0.5 rounded-full">${escapeHtml(s.status || 'active')}</span> | 
+                                    ${escapeHtml(s.gender || '')}
+                                    <span class="ml-2 session-badge px-2 py-0.5 rounded-full text-xs">${escapeHtml(s._session || currentSession)}</span>
+                                </div>
+                            </div>
                         </div>
                     </td>
                     <td class="px-4 py-2 text-sm">
-                        <div><i class="fas fa-user w-5 text-primary"></i> ${escapeHtml(parent?.father || s.fatherName || 'N/A')}</div>
-                        <div class="mt-1"><i class="fas fa-user-check text-primary w-5"></i> ${escapeHtml(parent?.guardian || s.guardianName || 'N/A')}</div>
-                        ${s.parentID ? `<button class="viewParentBtn mt-2 text-primary text-xs font-medium bg-blue-50 px-2 py-1 rounded-full hover:bg-blue-100" data-pid="${s.parentID}" data-sname="${escapeHtml(s.fullName)}">
+                        <div><i class="fas fa-user w-5 text-primary"></i> ${escapeHtml(parent?.guardian || s.guardianName || 'N/A')}</div>
+                        <button class="viewParentBtn mt-2 text-primary text-xs font-medium bg-blue-50 px-2 py-1 rounded-full hover:bg-blue-100" data-pid="${s.parentID || ''}" data-sname="${escapeHtml(s.fullName)}">
                             <i class="fas fa-table-list"></i> View Parent
-                        </button>` : '<span class="text-xs text-gray-400 mt-2 inline-block">No parent linked</span>'}
+                        </button>
                     </td>
                     <td class="px-4 py-2 text-xs">
                         📞 ${escapeHtml(s.phone || 'N/A')}<br>
@@ -401,14 +492,13 @@
                                 <i class="fas fa-trash-alt"></i> Delete
                             </button>
                         </div>
-                    </td>`;
+                    </td>
+                `;
             }
             attachTableEvents();
         }
 
-        function closeAllMenus() { 
-            document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.add('hidden')); 
-        }
+        function closeAllMenus() { document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.add('hidden')); }
 
         function toggleMenuHandler(e) { 
             e.stopPropagation(); 
@@ -436,8 +526,7 @@
                 if (student) { closeAllMenus(); openDeleteModal(student.id, student.fullName); } 
             }));
             document.querySelectorAll('.viewParentBtn').forEach(btn => btn.addEventListener('click', () => { 
-                const pid = btn.dataset.pid; 
-                if (pid) openParentProfileTable(pid, btn.dataset.sname); 
+                if (btn.dataset.pid) openParentProfileTable(btn.dataset.pid, btn.dataset.sname); 
                 else showToast('No parent linked', 'warning'); 
             }));
         }
@@ -446,49 +535,26 @@
             const s = sessionStudents.find(x => x.id === id);
             if (!s) return;
             const parent = await getParentData(s.parentID);
+            const imageUrl = s.profileImage || s.passportPhotoURL;
             document.getElementById('profileContent').innerHTML = `
                 <div class="space-y-4">
                     <div class="flex items-center gap-4 border-b pb-3">
-                        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow">
-                            ${s.fullName?.charAt(0) || 'S'}
-                        </div>
+                        <img src="${imageUrl || 'https://ui-avatars.com/api/?background=3b82f6&color=fff&name=' + encodeURIComponent(s.fullName || 'S')}" 
+                             class="w-20 h-20 rounded-full object-cover border-2 border-primary" onerror="this.src='https://ui-avatars.com/api/?background=3b82f6&color=fff&name=${encodeURIComponent(s.fullName || 'S')}'">
                         <div>
                             <h2 class="text-xl font-bold">${escapeHtml(s.fullName)}</h2>
-                            <p class="text-gray-500">
-                                ${escapeHtml(s.className)} - ${escapeHtml(s.section)} | 
-                                Roll: ${escapeHtml(s.rollNumber)} 
-                            </p>
+                            <p class="text-gray-500">${escapeHtml(s.className)} - ${escapeHtml(s.section)} | Roll: ${escapeHtml(s.rollNumber)}</p>
                             <p class="text-xs text-blue-600 mt-1"><i class="fas fa-database"></i> Session: ${escapeHtml(s._session || currentSession)}</p>
-                            ${s.parentID ? `<p class="text-xs text-green-600 mt-1"><i class="fas fa-link"></i> Parent ID: ${escapeHtml(s.parentID)}</p>` : ''}
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-3 text-sm">
-                        <div class="bg-gray-50 p-3 rounded-lg">
-                            <p class="font-bold text-primary">Father</p>
-                            ${escapeHtml(parent?.father || s.fatherName || 'N/A')}<br>
-                            📞 ${escapeHtml(parent?.fPhone || '')}
-                        </div>
-                        <div class="bg-gray-50 p-3 rounded-lg">
-                            <p class="font-bold text-primary">Mother</p>
-                            ${escapeHtml(parent?.mother || s.motherName || 'N/A')}<br>
-                            📞 ${escapeHtml(parent?.mPhone || '')}
-                        </div>
-                        <div class="bg-gray-50 p-3 rounded-lg">
-                            <p class="font-bold text-primary">Guardian</p>
-                            ${escapeHtml(parent?.guardian || s.guardianName || 'N/A')}<br>
-                            📞 ${escapeHtml(parent?.gPhone || '')}
-                        </div>
-                        <div class="bg-gray-50 p-3 rounded-lg">
-                            <p class="font-bold text-primary">Contact</p>
-                            📞 ${escapeHtml(s.phone || '')}<br>
-                            ✉️ ${escapeHtml(s.email || '')}<br>
-                            🏠 ${escapeHtml((s.address || '').substring(0,60))}
-                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg"><p class="font-bold text-primary">Father</p>${escapeHtml(parent?.father || s.fatherName || 'N/A')}<br>📞 ${escapeHtml(parent?.fPhone || '')}</div>
+                        <div class="bg-gray-50 p-3 rounded-lg"><p class="font-bold text-primary">Mother</p>${escapeHtml(parent?.mother || s.motherName || 'N/A')}<br>📞 ${escapeHtml(parent?.mPhone || '')}</div>
+                        <div class="bg-gray-50 p-3 rounded-lg"><p class="font-bold text-primary">Guardian</p>${escapeHtml(parent?.guardian || s.guardianName || 'N/A')}<br>📞 ${escapeHtml(parent?.gPhone || '')}</div>
+                        <div class="bg-gray-50 p-3 rounded-lg"><p class="font-bold text-primary">Contact</p>📞 ${escapeHtml(s.phone || '')}<br>✉️ ${escapeHtml(s.email || '')}</div>
                     </div>
                 </div>
-                <div class="mt-5 text-right">
-                    <button onclick="closeProfileModal()" class="px-5 py-2 bg-primary text-white rounded-lg">Close</button>
-                </div>
+                <div class="mt-5 text-right"><button onclick="closeProfileModal()" class="px-5 py-2 bg-primary text-white rounded-lg">Close</button></div>
             `;
             document.getElementById('profileModal').classList.remove('hidden');
         }
@@ -501,42 +567,40 @@
                     <i class="fas fa-users text-4xl text-primary bg-primary/10 p-3 rounded-full"></i>
                     <h3 class="text-lg font-bold mt-2">${escapeHtml(p.guardian || 'Guardian')}</h3>
                     <p class="text-xs text-gray-500">Guardian of <strong>${escapeHtml(sname)}</strong></p>
-                    <p class="text-xs text-gray-400 mt-1">Parent ID: ${escapeHtml(pid)}</p>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm border-collapse">
-                        <tr class="border-b bg-gray-50">
-                            <td class="py-2 px-3 font-semibold w-32"><i class="fas fa-user text-primary"></i> Father</td>
-                            <td class="py-2 px-3">${escapeHtml(p.father || '—')}</td>
-                            <td class="py-2 px-3 font-semibold">Phone</td>
-                            <td class="py-2 px-3">${escapeHtml(p.fPhone || '—')}</td>
-                         </tr>
-                        <tr class="border-b">
-                            <td class="py-2 px-3 font-semibold"><i class="fas fa-user text-primary"></i> Mother</td>
-                            <td class="py-2 px-3">${escapeHtml(p.mother || '—')}</td>
-                            <td class="py-2 px-3 font-semibold">Phone</td>
-                            <td class="py-2 px-3">${escapeHtml(p.mPhone || '—')}</td>
-                         </tr>
-                        <tr class="border-b bg-gray-50">
-                            <td class="py-2 px-3 font-semibold"><i class="fas fa-user-shield text-primary"></i> Guardian</td>
-                            <td class="py-2 px-3">${escapeHtml(p.guardian || '—')}</td>
-                            <td class="py-2 px-3 font-semibold">Phone</td>
-                            <td class="py-2 px-3">${escapeHtml(p.gPhone || '—')}</td>
-                         </tr>
-                        <tr>
-                            <td class="py-2 px-3 font-semibold"><i class="fas fa-envelope text-primary"></i> Email</td>
-                            <td colspan="3" class="py-2 px-3">${escapeHtml(p.email || '—')}</td>
-                         </tr>
-                        ${p.address ? `<tr class="bg-gray-50"><td class="py-2 px-3 font-semibold"><i class="fas fa-location-dot text-primary"></i> Address</td><td colspan="3" class="py-2 px-3">${escapeHtml(p.address)}</td></tr>` : ''}
+                        <tr class="border-b"><td class="py-2 font-semibold">Father</td><td>${escapeHtml(p.father || '—')}</td><td class="font-semibold">Phone</td><td>${escapeHtml(p.fPhone || '—')}</td></tr>
+                        <tr class="border-b"><td class="py-2 font-semibold">Mother</td><td>${escapeHtml(p.mother || '—')}</td><td class="font-semibold">Phone</td><td>${escapeHtml(p.mPhone || '—')}</td></tr>
+                        <tr class="border-b"><td class="py-2 font-semibold">Guardian</td><td>${escapeHtml(p.guardian || '—')}</td><td class="font-semibold">Phone</td><td>${escapeHtml(p.gPhone || '—')}</td></tr>
+                        <tr><td class="py-2 font-semibold">Email</td><td colspan="3">${escapeHtml(p.email || '—')}</td></tr>
                     </table>
                 </div>
-                <div class="mt-5 text-right">
-                    <button onclick="closeParentProfileModal()" class="px-4 py-2 bg-primary text-white rounded-lg text-sm">
-                        <i class="fas fa-check"></i> Close
-                    </button>
-                </div>
+                <div class="mt-5 text-right"><button onclick="closeParentProfileModal()" class="px-4 py-2 bg-primary text-white rounded-lg">Close</button></div>
             `;
             document.getElementById('parentProfileModal').classList.remove('hidden');
+        }
+
+        function initCloudinaryWidget() {
+            if (!window.cloudinary) return;
+            cloudinaryWidget = window.cloudinary.createUploadWidget({
+                cloudName: CLOUDINARY_CLOUD_NAME,
+                uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+                sources: ['local', 'camera'],
+                multiple: false,
+                maxFileSize: 2000000,
+                clientAllowedFormats: ['jpg', 'jpeg', 'png'],
+                maxImageFileSize: 2000000
+            }, (error, result) => {
+                if (!error && result && result.event === "success") {
+                    const imageUrl = result.info.secure_url;
+                    document.getElementById('editImagePreview').src = imageUrl;
+                    document.getElementById('editImageUrl').value = imageUrl;
+                    showToast('Image uploaded successfully!', 'success');
+                } else if (error) {
+                    showToast('Upload failed: ' + (error.message || 'File too large? Max 2MB'), 'error');
+                }
+            });
         }
 
         async function openEditModal(id) {
@@ -550,6 +614,8 @@
             document.getElementById('editParentId').value = s.parentID || '';
             document.getElementById('editSessionPath').value = s._sessionPath || '';
             document.getElementById('editLocationInfo').innerText = locationInfo;
+            document.getElementById('editImageUrl').value = s.profileImage || s.passportPhotoURL || '';
+            document.getElementById('editImagePreview').src = s.profileImage || s.passportPhotoURL || 'https://via.placeholder.com/80';
             
             document.getElementById('eName').value = s.fullName || '';
             document.getElementById('eRoll').value = s.rollNumber || '';
@@ -560,19 +626,55 @@
             document.getElementById('eAddress').value = s.address || '';
             document.getElementById('eStatus').value = s.status || 'active';
             
-            document.getElementById('eFather').value = parent?.father || s.fatherName || '';
-            document.getElementById('eFatherPhone').value = parent?.fPhone || '';
-            document.getElementById('eMother').value = parent?.mother || s.motherName || '';
-            document.getElementById('eMotherPhone').value = parent?.mPhone || '';
-            document.getElementById('eGuardian').value = parent?.guardian || s.guardianName || '';
-            document.getElementById('eGuardianPhone').value = parent?.gPhone || '';
-            document.getElementById('eParentEmail').value = parent?.email || '';
-            
             document.getElementById('eClassId').value = s.classId || '';
             await updateEditSectionDropdown(s.classId);
             document.getElementById('eSection').value = s.section || '';
             
+            await loadEditSubjects(s.classId, s.mandatorySubjects || [], s.additionalSubjects || []);
+            
+            if (s.parentID && parent) {
+                document.getElementById('editParentId').value = s.parentID;
+                document.getElementById('parentSearchInput').value = `${parent.guardian || 'Guardian'} (${parent.gPhone || ''})`;
+                document.getElementById('selectedParentInfo').classList.remove('hidden');
+                document.getElementById('selectedParentName').innerText = parent.guardian || 'Guardian';
+                document.getElementById('selectedParentPhone').innerText = parent.gPhone || '';
+                document.getElementById('parentDetailsSection').classList.remove('hidden');
+                document.getElementById('eFather').value = parent.father || '';
+                document.getElementById('eFatherPhone').value = parent.fPhone || '';
+                document.getElementById('eMother').value = parent.mother || '';
+                document.getElementById('eMotherPhone').value = parent.mPhone || '';
+                document.getElementById('eGuardian').value = parent.guardian || '';
+                document.getElementById('eGuardianPhone').value = parent.gPhone || '';
+                document.getElementById('eParentEmail').value = parent.email || '';
+            } else {
+                document.getElementById('selectedParentInfo').classList.add('hidden');
+                document.getElementById('parentDetailsSection').classList.add('hidden');
+                document.getElementById('parentSearchInput').value = '';
+            }
+            
             document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        async function loadEditSubjects(classId, existingMandatory = [], existingAdditional = []) {
+            const subjects = await loadSubjectsForClass(classId);
+            const mandatoryDiv = document.getElementById('editMandatoryList');
+            const additionalDiv = document.getElementById('editAdditionalList');
+            const fourthSelect = document.getElementById('editFourthSubject');
+            
+            mandatoryDiv.innerHTML = '';
+            subjects.mandatory.forEach(sub => {
+                const checked = existingMandatory.includes(sub) ? 'checked' : '';
+                mandatoryDiv.innerHTML += `<label class="flex items-center gap-2"><input type="checkbox" name="editMandatorySub" value="${sub}" ${checked}> <span>${sub}</span></label>`;
+            });
+            
+            additionalDiv.innerHTML = '';
+            subjects.additional.forEach(sub => {
+                const checked = existingAdditional.includes(sub) ? 'checked' : '';
+                additionalDiv.innerHTML += `<label class="flex items-center gap-2"><input type="checkbox" name="editAdditionalSub" value="${sub}" ${checked}> <span>${sub}</span></label>`;
+            });
+            
+            fourthSelect.innerHTML = '<option value="">None</option>';
+            subjects.optional.forEach(sub => fourthSelect.appendChild(new Option(sub, sub)));
         }
 
         async function updateEditSectionDropdown(classId) {
@@ -586,118 +688,116 @@
             secSelect.disabled = false;
             secSelect.innerHTML = '<option value="">-- Select Section --</option>';
             secs.forEach(sec => secSelect.appendChild(new Option(sec.name, sec.name)));
+            await loadEditSubjects(classId);
         }
 
-        document.getElementById('eClassId').addEventListener('change', e => updateEditSectionDropdown(e.target.value));
-
-        // এই ফাংশনটি replace করুন আপনার saveStudentEdit ফাংশনের জায়গায়
-async function saveStudentEdit(e) {
-    e.preventDefault();
-    const id = document.getElementById('editId').value;
-    const newClassId = document.getElementById('eClassId').value;
-    const newSection = document.getElementById('eSection').value;
-    const className = allClasses.find(c => c.id === newClassId)?.name || '';
-    
-    if (!newClassId || !newSection) {
-        showToast('Please select both Class and Section', 'error');
-        return;
-    }
-    
-    const oldSessionPath = document.getElementById('editSessionPath').value;
-    const parentId = document.getElementById('editParentId').value;
-    const sessionVal = document.getElementById('sessionView').value;
-    let targetSession = currentSession;
-    if (sessionVal === 'next') targetSession = nextSession;
-    
-    // Get old student data to check if class/section changed
-    const oldStudent = sessionStudents.find(s => s.id === id);
-    const oldClassId = oldStudent?.classId;
-    const oldSection = oldStudent?.section;
-    
-    const studentUpdate = {
-        fullName: document.getElementById('eName').value,
-        rollNumber: document.getElementById('eRoll').value,
-        admissionNumber: document.getElementById('eAdm').value,
-        gender: document.getElementById('eGender').value,
-        classId: newClassId,
-        section: newSection,
-        className,
-        phone: document.getElementById('ePhone').value,
-        email: document.getElementById('eEmail').value,
-        address: document.getElementById('eAddress').value,
-        status: document.getElementById('eStatus').value,
-        fatherName: document.getElementById('eFather').value,
-        motherName: document.getElementById('eMother').value,
-        guardianName: document.getElementById('eGuardian').value,
-        fatherPhone: document.getElementById('eFatherPhone').value,
-        motherPhone: document.getElementById('eMotherPhone').value,
-        guardianPhone: document.getElementById('eGuardianPhone').value,
-        parentID: parentId,
-        updatedAt: new Date().toISOString()
-    };
-    
-    try {
-        // If class OR section changed, need to move the student
-        if (oldClassId !== newClassId || oldSection !== newSection) {
-            console.log(`🔄 Moving student from ${oldClassId}/${oldSection} to ${newClassId}/${newSection}`);
+        // ✅ আপডেটেড saveStudentEdit - Session Data সঠিকভাবে আপডেট হবে
+        async function saveStudentEdit(e) {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const newClassId = document.getElementById('eClassId').value;
+            const newSection = document.getElementById('eSection').value;
+            const className = allClasses.find(c => c.id === newClassId)?.name || '';
+            const imageUrl = document.getElementById('editImageUrl').value;
             
-            // 1. Delete from old location
-            if (oldSessionPath) {
-                await deleteDoc(doc(db, oldSessionPath, id));
-                console.log(`✅ Deleted from old path: ${oldSessionPath}`);
+            if (!newClassId || !newSection) {
+                showToast('Please select both Class and Section', 'error');
+                return;
             }
             
-            // 2. Create new session path
-            const newSessionPath = `current_session/${targetSession}/classes/${newClassId}/students`;
-            studentUpdate.createdAt = new Date().toISOString();
+            const mandatorySubjects = Array.from(document.querySelectorAll('input[name="editMandatorySub"]:checked')).map(cb => cb.value);
+            const additionalSubjects = Array.from(document.querySelectorAll('input[name="editAdditionalSub"]:checked')).map(cb => cb.value);
+            const fourthSub = document.getElementById('editFourthSubject').value;
+            if (fourthSub && !additionalSubjects.includes(fourthSub)) additionalSubjects.push(fourthSub);
             
-            // 3. Save to new location
-            await setDoc(doc(db, newSessionPath, id), studentUpdate);
-            console.log(`✅ Created at new path: ${newSessionPath}`);
+            const oldSessionPath = document.getElementById('editSessionPath').value;
+            const parentId = document.getElementById('editParentId').value;
             
-            // 4. Update the student's sessionPath in our local array
-            const studentIndex = sessionStudents.findIndex(s => s.id === id);
-            if (studentIndex !== -1) {
-                sessionStudents[studentIndex]._sessionPath = newSessionPath;
-                sessionStudents[studentIndex].classId = newClassId;
-                sessionStudents[studentIndex].section = newSection;
-                sessionStudents[studentIndex].className = className;
-            }
-        } else {
-            // Same class/section - just update existing
-            if (oldSessionPath) {
-                await setDoc(doc(db, oldSessionPath, id), studentUpdate, { merge: true });
-                console.log(`✅ Updated at same path: ${oldSessionPath}`);
-            } else {
-                // If no session path found, create new (should not happen normally)
-                const newSessionPath = `current_session/${targetSession}/classes/${newClassId}/students`;
-                await setDoc(doc(db, newSessionPath, id), studentUpdate);
-            }
-        }
-        
-        // Update parent data if needed (still in parents collection - this is fine)
-        if (parentId) {
-            await setDoc(doc(db, 'parents', parentId), {
+            // Get old student data from current sessionStudents array
+            const oldStudent = sessionStudents.find(s => s.id === id);
+            const oldClassId = oldStudent?.classId;
+            const oldSection = oldStudent?.section;
+            
+            const studentUpdate = {
+                fullName: document.getElementById('eName').value,
+                rollNumber: document.getElementById('eRoll').value,
+                admissionNumber: document.getElementById('eAdm').value,
+                gender: document.getElementById('eGender').value,
+                classId: newClassId,
+                section: newSection,
+                className,
+                phone: document.getElementById('ePhone').value,
+                email: document.getElementById('eEmail').value,
+                address: document.getElementById('eAddress').value,
+                status: document.getElementById('eStatus').value,
+                profileImage: imageUrl,
+                mandatorySubjects,
+                additionalSubjects,
+                parentID: parentId,
                 fatherName: document.getElementById('eFather').value,
-                fatherPhone: document.getElementById('eFatherPhone').value,
                 motherName: document.getElementById('eMother').value,
-                motherPhone: document.getElementById('eMotherPhone').value,
                 guardianName: document.getElementById('eGuardian').value,
+                fatherPhone: document.getElementById('eFatherPhone').value,
+                motherPhone: document.getElementById('eMotherPhone').value,
                 guardianPhone: document.getElementById('eGuardianPhone').value,
-                loginEmail: document.getElementById('eParentEmail').value
-            }, { merge: true });
-            parentCache[parentId] = null;
+                updatedAt: new Date().toISOString()
+            };
+            
+            try {
+                // Check if class or section changed
+                if (oldClassId !== newClassId || oldSection !== newSection) {
+                    console.log(`Moving student from ${oldClassId}/${oldSection} to ${newClassId}/${newSection}`);
+                    
+                    // Delete from old location
+                    if (oldSessionPath) {
+                        await deleteDoc(doc(db, oldSessionPath, id));
+                    }
+                    
+                    // Create new session path and save
+                    const newSessionPath = `current_session/${oldStudent?._session || currentSession}/classes/${newClassId}/students`;
+                    studentUpdate.createdAt = new Date().toISOString();
+                    await setDoc(doc(db, newSessionPath, id), studentUpdate);
+                    
+                    // Update local array
+                    const studentIndex = sessionStudents.findIndex(s => s.id === id);
+                    if (studentIndex !== -1) {
+                        sessionStudents[studentIndex]._sessionPath = newSessionPath;
+                        sessionStudents[studentIndex].classId = newClassId;
+                        sessionStudents[studentIndex].section = newSection;
+                        sessionStudents[studentIndex].className = className;
+                    }
+                } else {
+                    // Same class/section - just update using updateDoc (NO DUPLICATE)
+                    if (oldSessionPath) {
+                        await updateDoc(doc(db, oldSessionPath, id), studentUpdate);
+                    } else {
+                        const sessionPath = `current_session/${oldStudent?._session || currentSession}/classes/${newClassId}/students`;
+                        await setDoc(doc(db, sessionPath, id), studentUpdate, { merge: true });
+                    }
+                }
+                
+                // Update parent data
+                if (parentId && document.getElementById('eGuardian').value) {
+                    await setDoc(doc(db, 'parents', parentId), {
+                        fatherName: document.getElementById('eFather').value,
+                        fatherPhone: document.getElementById('eFatherPhone').value,
+                        motherName: document.getElementById('eMother').value,
+                        motherPhone: document.getElementById('eMotherPhone').value,
+                        guardianName: document.getElementById('eGuardian').value,
+                        guardianPhone: document.getElementById('eGuardianPhone').value,
+                        loginEmail: document.getElementById('eParentEmail').value
+                    }, { merge: true });
+                    parentCache[parentId] = null;
+                }
+                
+                closeEditModal();
+                showToast('✅ Student updated successfully!', 'success');
+                await refreshAll();
+            } catch (err) {
+                console.error('Update error:', err);
+                showToast(err.message || 'Update failed', 'error');
+            }
         }
-        
-        closeEditModal();
-        showToast('✅ Student updated successfully! (Session Data Only)', 'success');
-        await refreshAll();
-        
-    } catch (err) {
-        console.error('Update error:', err);
-        showToast(err.message || 'Update failed', 'error');
-    }
-}
 
         function openDeleteModal(id, name) { 
             selectedStudentIdForDelete = id; 
@@ -717,9 +817,7 @@ async function saveStudentEdit(e) {
                     } else {
                         showToast('Student not found in session', 'error');
                     }
-                } catch (e) { 
-                    showToast(e.message, 'error'); 
-                } 
+                } catch (e) { showToast(e.message, 'error'); } 
                 selectedStudentIdForDelete = null; 
             } 
         };
@@ -732,7 +830,7 @@ async function saveStudentEdit(e) {
         async function refreshAll() { 
             sectionsCache = {};
             parentCache = {};
-            document.getElementById('studentTableBody').innerHTML = '<tr><td colspan="6" class="text-center py-10"><i class="fas fa-spinner fa-spin text-2xl"></i> Loading...</td></tr>';
+            document.getElementById('studentTableBody').innerHTML = '<tr><td colspan="6" class="text-center py-10"><i class="fas fa-spinner fa-spin text-2xl"></i> Loading...<\/td><\/tr>';
             await loadSessionDataOnly(); 
             await renderFilteredTable(); 
         }
@@ -740,13 +838,7 @@ async function saveStudentEdit(e) {
         document.getElementById('filterClass').addEventListener('change', async e => { 
             const cid = e.target.value; 
             const secSelect = document.getElementById('filterSection'); 
-            secSelect.value = ''; 
-            if (!cid) { 
-                secSelect.disabled = true; 
-                secSelect.innerHTML = '<option>Select class first</option>'; 
-                renderFilteredTable(); 
-                return; 
-            } 
+            if (!cid) { secSelect.disabled = true; secSelect.innerHTML = '<option>Select class first</option>'; renderFilteredTable(); return; } 
             const secs = await getSections(cid); 
             secSelect.disabled = false; 
             secSelect.innerHTML = '<option value="">All Sections</option>'; 
@@ -759,6 +851,27 @@ async function saveStudentEdit(e) {
         document.getElementById('sessionView').addEventListener('change', () => refreshAll());
         document.getElementById('refreshBtn').addEventListener('click', () => refreshAll());
         document.getElementById('gotoPromoBtn').addEventListener('click', () => window.location.href = 'promotion.html');
+        document.getElementById('eClassId').addEventListener('change', e => updateEditSectionDropdown(e.target.value));
+        document.getElementById('parentSearchInput').addEventListener('input', e => renderParentDropdown(e.target.value));
+        document.getElementById('changeParentBtn')?.addEventListener('click', () => {
+            document.getElementById('selectedParentInfo').classList.add('hidden');
+            document.getElementById('parentDetailsSection').classList.add('hidden');
+            document.getElementById('parentSearchInput').value = '';
+            document.getElementById('editParentId').value = '';
+        });
+        document.getElementById('uploadNewImageBtn')?.addEventListener('click', () => cloudinaryWidget?.open());
+        document.getElementById('removeImageBtn')?.addEventListener('click', () => {
+            document.getElementById('editImagePreview').src = 'https://via.placeholder.com/80';
+            document.getElementById('editImageUrl').value = '';
+            showToast('Image removed', 'warning');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!document.getElementById('parentSearchInput')?.contains(e.target) && 
+                !document.getElementById('parentSuggestDropdown')?.contains(e.target)) {
+                document.getElementById('parentSuggestDropdown')?.classList.add('hidden');
+            }
+        });
 
         window.closeEditModal = () => { closeAllMenus(); document.getElementById('editModal').classList.add('hidden'); };
         window.closeProfileModal = () => document.getElementById('profileModal').classList.add('hidden');
@@ -767,6 +880,8 @@ async function saveStudentEdit(e) {
         async function init() { 
             await loadSessions(); 
             await loadClasses(); 
+            await loadAllParents();
+            initCloudinaryWidget();
             await refreshAll(); 
         }
 
