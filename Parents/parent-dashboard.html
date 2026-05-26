@@ -38,6 +38,7 @@
         th, td { border: 1px solid #000; padding: 4px 2px; text-align: center; font-size: 11px; }
         .text-left { text-align: left; padding-left: 6px; }
         .grade-table td { font-size: 10px; padding: 2px; }
+        .not-enrolled { background-color: #f9fafb; color: #9ca3af; }
         
         .attendance-print-card {
             width: 210mm;
@@ -280,7 +281,6 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // Cloudinary config
     const CLOUDINARY_CLOUD_NAME = "dhvtgzy5x";
     const CLOUDINARY_UPLOAD_PRESET = "Rosenews";
     
@@ -292,7 +292,6 @@
     let schoolName = "ONNO ROKOM BIDDYANIKETON";
     let schoolAddress = "PORANPUR, KAZIPUR, SIRAJGANJ";
     
-    // Current editing student data
     let currentEditingStudent = null;
     let tempNewPhotoUrl = "";
     let cloudinaryWidget = null;
@@ -307,10 +306,7 @@
     }
 
     function initCloudinaryWidget() {
-        if (!window.cloudinary) {
-            console.warn("Cloudinary widget not loaded yet");
-            return;
-        }
+        if (!window.cloudinary) return;
         cloudinaryWidget = window.cloudinary.createUploadWidget({
             cloudName: CLOUDINARY_CLOUD_NAME,
             uploadPreset: CLOUDINARY_UPLOAD_PRESET,
@@ -321,9 +317,8 @@
             maxImageFileSize: 2000000
         }, (error, result) => {
             if (!error && result && result.event === "success") {
-                const imageUrl = result.info.secure_url;
-                tempNewPhotoUrl = imageUrl;
-                document.getElementById('editStudentAvatar').src = imageUrl;
+                tempNewPhotoUrl = result.info.secure_url;
+                document.getElementById('editStudentAvatar').src = tempNewPhotoUrl;
                 showToastMessage('Photo uploaded successfully! Click Save to update.', 'success');
             } else if (error) {
                 showToastMessage('Upload failed: ' + (error.message || 'Max 2MB'), 'error');
@@ -342,7 +337,7 @@
 
     function escapeHtml(str) { 
         if (!str) return ""; 
-        return String(str).replace(/[&<>]/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[m])); 
+        return String(str).replace(/[&<>"]/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': '&quot;' }[m])); 
     }
 
     function calculateGrade(obt, full) {
@@ -385,7 +380,8 @@
             const snap = await getDocs(collection(db, "classes"));
             classOptionsMap = {};
             snap.forEach(docSnap => { classOptionsMap[docSnap.id] = docSnap.data().name; });
-        } catch(e) { console.error("Classes load error:", e); }
+            return snap; // Return for parallel processing
+        } catch(e) { console.error("Classes load error:", e); return { docs: [] }; }
     }
 
     async function loadParentData(user) {
@@ -407,21 +403,34 @@
         } catch(err) { console.error(err); return null; }
     }
 
+    // 🔥 FAST LOADING: Using Promise.all to load all class students in parallel
     async function loadStudents(parentId) {
         const tbody = document.getElementById("studentTableBody");
         if (!parentId) { tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-400">Parent account not linked</td></tr>`; return; }
+        
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-blue-500"><i class="fas fa-spinner fa-pulse mr-2"></i> Fetching students data fast...</td></tr>`;
+        
         try {
-            await loadClasses();
+            const classesSnap = await loadClasses();
             allStudents = [];
-            const classesSnap = await getDocs(collection(db, "classes"));
-            for (const classDoc of classesSnap.docs) {
+            
+            // Create an array of promises for fetching students of each class simultaneously
+            const studentFetchPromises = classesSnap.docs.map(classDoc => {
                 const classId = classDoc.id;
                 const studRef = collection(db, `current_session/${currentSession}/classes/${classId}/students`);
-                const studSnap = await getDocs(studRef);
+                return getDocs(studRef);
+            });
+
+            // Wait for all queries to finish at the same time (MUCH FASTER)
+            const studentSnaps = await Promise.all(studentFetchPromises);
+            
+            // Process the results
+            studentSnaps.forEach((studSnap, index) => {
+                const classId = classesSnap.docs[index].id;
                 for (const docSnap of studSnap.docs) {
                     const data = docSnap.data();
                     if (data.parentID === parentId) {
-                        const studentObj = {
+                        allStudents.push({
                             id: docSnap.id,
                             fullName: data.fullName || data.name || "-",
                             className: classOptionsMap[classId] || data.className || "-",
@@ -431,12 +440,12 @@
                             phone: data.phone || "-",
                             classId: classId,
                             profileImage: data.profileImage || data.passportPhotoURL || null,
+                            additionalSubjects: data.additionalSubjects || [], // Needed for marksheet logic
                             _sessionPath: `current_session/${currentSession}/classes/${classId}/students`
-                        };
-                        allStudents.push(studentObj);
+                        });
                     }
                 }
-            }
+            });
             
             if (allStudents.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-400">No students admitted under your account yet.</td></tr>`;
@@ -469,7 +478,6 @@
         }
     }
 
-    // Open edit profile modal for student photo
     window.openEditProfile = async (studentId) => {
         const student = allStudents.find(s => s.id === studentId);
         if (!student) { showMessage("Student data not found", "error"); return; }
@@ -489,26 +497,23 @@
         tempNewPhotoUrl = "";
     };
 
-    // Save photo changes to Firestore
     async function saveStudentPhoto() {
         if (!currentEditingStudent) return;
         const newPhoto = tempNewPhotoUrl || "";
         try {
             const studentRef = doc(db, currentEditingStudent._sessionPath, currentEditingStudent.id);
             await updateDoc(studentRef, { profileImage: newPhoto });
-            // update local array
             const idx = allStudents.findIndex(s => s.id === currentEditingStudent.id);
             if (idx !== -1) allStudents[idx].profileImage = newPhoto;
             showToastMessage("Student photo updated successfully!", "success");
             closeEditProfileModal();
-            await loadStudents(currentParentId); // refresh table
+            await loadStudents(currentParentId); 
         } catch(err) {
             console.error("Update error:", err);
             showMessage("Failed to update photo: " + err.message, "error");
         }
     }
 
-    // Delete photo handler
     async function deleteStudentPhoto() {
         if (!currentEditingStudent) return;
         try {
@@ -522,12 +527,11 @@
         } catch(err) { showMessage("Delete failed", "error"); }
     }
 
-    // Cloudinary upload
     document.getElementById('uploadPhotoBtn')?.addEventListener('click', () => { if (cloudinaryWidget) cloudinaryWidget.open(); else showMessage("Cloudinary not ready", "error"); });
     document.getElementById('deletePhotoBtn')?.addEventListener('click', deleteStudentPhoto);
     document.getElementById('savePhotoChanges')?.addEventListener('click', saveStudentPhoto);
 
-    // Marksheet with student photo
+    // 🔥 Updated Marksheet Logic (With Optional/Fourth Subject & GPA Bonus)
     window.viewMarksheet = async (studentId, studentName, className, section, rollNumber, admissionNumber, classId, studentPhotoUrl) => {
         const modal = document.getElementById('marksheetModal');
         const contentDiv = document.getElementById('marksheetContent');
@@ -537,6 +541,9 @@
         
         try {
             await getSchoolInfo();
+            const studentObj = allStudents.find(s => s.id === studentId);
+            const studentAdditional = studentObj ? (studentObj.additionalSubjects || []) : [];
+
             const [examsSnap, marksSnap, subjectsSnap, setupSnap] = await Promise.all([
                 getDocs(collection(db, "exams")).catch(e => ({ docs: [] })),
                 getDocs(query(collection(db, "marks"), where("session", "==", currentSession))).catch(e => ({ docs: [] })),
@@ -554,8 +561,14 @@
             
             const marksByExam = {};
             marksSnap.forEach(d => { const data = d.data(); if (data.studentId === studentId) { if (!marksByExam[data.examId]) marksByExam[data.examId] = []; marksByExam[data.examId].push(data); } });
+            
+            // Fetching Subject Type (mandatory/optional)
             const subjects = {};
-            subjectsSnap.forEach(d => subjects[d.id] = d.data().name);
+            subjectsSnap.forEach(d => {
+                const data = d.data();
+                subjects[d.id] = { name: data.name, type: data.type || 'mandatory' };
+            });
+
             const setupMap = {};
             setupSnap.forEach(d => setupMap[d.id] = d.data().marks);
             
@@ -564,27 +577,74 @@
             
             for (const exam of exams) {
                 const examMarks = marksByExam[exam.id] || [];
-                let totalObtained = 0, totalFullMarks = 0, totalGP = 0, isFailed = false, rows = "", subjectCount = 0;
+                let totalObtained = 0, totalFullMarks = 0, totalGP = 0, isFailed = false, rows = "";
+                let mandatorySubCount = 0, fourthSubGP = 0, fourthSubBonus = 0;
                 const studentSection = section || "";
                 const subjectEntries = Object.entries(subjects);
+
                 for (let idx = 0; idx < subjectEntries.length; idx++) {
-                    const [subId, subName] = subjectEntries[idx];
+                    const [subId, subData] = subjectEntries[idx];
+                    const subName = subData.name;
+                    const subType = subData.type;
+                    const isStudentFourthSub = subType === 'optional' && studentAdditional.includes(subName);
+
+                    // Check if subject is optional and NOT taken by student
+                    if (subType === 'optional' && !isStudentFourthSub) {
+                        rows += `<tr class="not-enrolled">
+                            <td class="text-center">${String(idx+1).padStart(2,'0')}</td>
+                            <td class="text-left font-bold uppercase">${escapeHtml(subName)} <span class="text-[8px] font-normal italic">(Not Enrolled)</span></td>
+                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                        </tr>`;
+                        continue; 
+                    }
+
                     const m = examMarks.find(x => x.subjectId === subId) || { marks: {} };
                     const setupId = `${exam.id}_${classId}_${studentSection}_${subId}_${currentSession}`;
                     const setup = setupMap[setupId] || {};
+                    
                     const wF = setup.written?.enabled ? safeNum(setup.written.full) : 0;
                     const mF = setup.mcq?.enabled ? safeNum(setup.mcq.full) : 0;
                     const pF = setup.practical?.enabled ? safeNum(setup.practical.full) : 0;
-                    const wO = m.marks?.written || 0; const mO = m.marks?.mcq || 0; const pO = m.marks?.practical || 0;
-                    const rowTotal = safeNum(wO) + safeNum(mO) + safeNum(pO);
+                    const wO = safeNum(m.marks?.written); 
+                    const mO = safeNum(m.marks?.mcq); 
+                    const pO = safeNum(m.marks?.practical);
+                    
+                    const rowTotal = wO + mO + pO;
                     const rowFull = wF + mF + pF;
                     const grade = calculateGrade(rowTotal, rowFull);
-                    if (rowFull > 0) subjectCount++;
-                    totalObtained += rowTotal; totalFullMarks += rowFull; totalGP += grade.gp;
-                    if (grade.lg === "F") isFailed = true;
-                    rows += `<tr><td class="text-center">${String(idx+1).padStart(2,'0')}</td><td class="text-left font-bold">${escapeHtml(subName)}</td><td class="text-center">${wF||'-'}</td><td class="text-center">${wF?wO:'-'}</td><td class="text-center">${mF||'-'}</td><td class="text-center">${mF?mO:'-'}</td><td class="text-center">${pF||'-'}</td><td class="text-center">${pF?pO:'-'}</td><td class="text-center font-bold">${rowFull||'-'}</td><td class="text-center font-bold">${rowTotal}</td><td class="text-center font-black">${grade.lg}</td><td class="text-center">${grade.gp.toFixed(2)}</td><td class="text-center">-</td><td class="text-center">-</td></tr>`;
+                    
+                    totalObtained += rowTotal; 
+                    totalFullMarks += rowFull;
+                    
+                    if (isStudentFourthSub) {
+                        fourthSubGP = grade.gp;
+                        if (grade.lg === "F") isFailed = true;
+                    } else {
+                        totalGP += grade.gp;
+                        mandatorySubCount++;
+                        if (grade.lg === "F") isFailed = true;
+                    }
+
+                    let displaySubName = escapeHtml(subName);
+                    if (isStudentFourthSub) displaySubName += ` <span class="text-[8px] text-indigo-700 font-normal">(4th Sub)</span>`;
+
+                    rows += `<tr>
+                        <td class="text-center">${String(idx+1).padStart(2,'0')}</td>
+                        <td class="text-left font-bold uppercase">${displaySubName}</td>
+                        <td class="text-center">${wF||'-'}</td><td class="text-center">${wF?wO:'-'}</td>
+                        <td class="text-center">${mF||'-'}</td><td class="text-center">${mF?mO:'-'}</td>
+                        <td class="text-center">${pF||'-'}</td><td class="text-center">${pF?pO:'-'}</td>
+                        <td class="text-center font-bold">${rowFull||'-'}</td><td class="text-center font-bold">${rowTotal}</td>
+                        <td class="text-center font-black">${grade.lg}</td><td class="text-center">${grade.gp.toFixed(2)}</td>
+                        <td class="text-center">-</td><td class="text-center">-</td>
+                    </tr>`;
                 }
-                const finalGPA = isFailed ? 0.00 : (subjectCount > 0 ? totalGP / subjectCount : 0);
+
+                // Education Board Rule: 4th Subject Bonus Calculation
+                fourthSubBonus = Math.max(0, fourthSubGP - 2.00);
+                const finalGPA = isFailed ? 0.00 : ((totalGP + fourthSubBonus) / (mandatorySubCount || 1));
+                const finalGrade = isFailed ? "F" : calculateGrade(totalObtained, totalFullMarks).lg;
                 const resultText = isFailed ? 'FAILED' : 'PASSED';
                 const resultColor = isFailed ? 'text-red-600' : 'text-emerald-700';
                 
@@ -611,7 +671,7 @@
                             <div class="border-b border-gray-300 pb-1">STUDENT ID: <span class="font-normal ml-1">${escapeHtml(admissionNumber)}</span></div>
                             <div class="border-b border-gray-300 pb-1">SESSION: <span class="font-normal ml-1">${escapeHtml(currentSession)}</span></div>
                         </div>
-                        <table class="mt-4" style="font-size: 10px;"><thead class="bg-gray-100"><tr><th rowspan="2">SL</th><th rowspan="2" class="w-44">SUBJECT NAME</th><th colspan="2">WRITTEN</th><th colspan="2">MCQ</th><th colspan="2">PRAC.</th><th colspan="2">TOTAL</th><th rowspan="2">LG</th><th rowspan="2">GP</th><th rowspan="2">HI</th><th rowspan="2">POS</th></tr><tr class="text-[9px]"><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th></tr></thead><tbody>${rows}</tbody><tfoot class="bg-gray-50 font-bold"><tr><td colspan="2" class="text-left py-2 px-2 uppercase">Total: ${totalObtained} / ${totalFullMarks}</td><td colspan="4">GPA: ${finalGPA.toFixed(2)}</td><td colspan="4">LETTER GRADE: ${isFailed ? 'F' : calculateGrade(totalObtained, totalFullMarks).lg}</td><td colspan="4">RESULT: <span class="${resultColor}">${resultText}</span></td></tr></tfoot></table>
+                        <table class="mt-4" style="font-size: 10px;"><thead class="bg-gray-100"><tr><th rowspan="2">SL</th><th rowspan="2" class="w-44">SUBJECT NAME</th><th colspan="2">WRITTEN</th><th colspan="2">MCQ</th><th colspan="2">PRAC.</th><th colspan="2">TOTAL</th><th rowspan="2">LG</th><th rowspan="2">GP</th><th rowspan="2">HI</th><th rowspan="2">POS</th></tr><tr class="text-[9px]"><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th></tr></thead><tbody>${rows}</tbody><tfoot class="bg-gray-50 font-bold"><tr><td colspan="2" class="text-left py-2 px-2 uppercase">Total: ${totalObtained} / ${totalFullMarks}</td><td colspan="4">GPA: ${finalGPA.toFixed(2)} ${fourthSubBonus > 0 ? `<span class="text-[8px] text-green-700">(+${fourthSubBonus.toFixed(2)} Bonus)</span>` : ''}</td><td colspan="4">LETTER GRADE: ${finalGrade}</td><td colspan="4">RESULT: <span class="${resultColor}">${resultText}</span></td></tr></tfoot></table>
                         <div class="grid grid-cols-2 gap-4 mt-4"><div><table class="grade-table w-full"><tr class="bg-gray-100 font-bold uppercase"><td>Personal Traits</td><td>Rating</td></tr><tr><td class="text-left">Attendance & Punctuality</td><td>_______</td></tr><tr><td class="text-left">Cleanliness & Neatness</td><td>_______</td></tr></table></div><div><table class="grade-table w-full"><tr class="bg-gray-100 font-bold uppercase"><td>Range</td><td>Grade</td><td>GPA</td></tr><tr><td>80-100</td><td>A+</td><td>5.00</td></tr><tr><td>70-79</td><td>A</td><td>4.00</td></tr><tr><td>60-69</td><td>A-</td><td>3.50</td></tr><tr><td>33-39</td><td>D</td><td>1.00</td></tr></table></div></div>
                         <div class="mt-6 border border-black p-2 text-[10px]"><div class="flex border-b border-black mb-2 pb-1"><span class="font-bold w-40">CLASS TEACHER'S REMARK:</span><span class="flex-1"></span></div><div class="flex pt-1"><span class="font-bold w-40">PRINCIPAL'S REMARK:</span><span class="flex-1"></span></div></div>
                         <div class="mt-12 flex justify-between px-6"><div class="text-center border-t border-black pt-1 w-40 font-bold text-[10px] uppercase">Class Teacher</div><div class="text-center border-t border-black pt-1 w-40 font-bold text-[10px] uppercase">Guardian</div><div class="text-center border-t border-black pt-1 w-40 font-bold text-[10px] uppercase">Principal</div></div>
@@ -641,7 +701,7 @@
         } catch (err) { contentDiv.innerHTML = `<div class="text-center py-20 text-red-500">Error: ${err.message}</div>`; showMessage("অ্যাটেন্ডেন্স তথ্য লোড করতে সমস্যা হয়েছে", "error"); }
     };
 
-    window.printCurrentMarksheet = () => { const w = window.open('', '_blank'); w.document.write(`<html><head><title>Marksheet</title><style>body{margin:0;padding:0;} .marksheet-card{width:210mm;min-height:297mm;padding:12mm;margin:0;page-break-after:always;position:relative;} .watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.04;width:450px;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #000;padding:4px;} @page{size:portrait;margin:10mm;}</style></head><body>${document.getElementById('marksheetContent').innerHTML}</body></html>`); w.document.close(); w.print(); };
+    window.printCurrentMarksheet = () => { const w = window.open('', '_blank'); w.document.write(`<html><head><title>Marksheet</title><style>body{margin:0;padding:0;} .marksheet-card{width:210mm;min-height:297mm;padding:12mm;margin:0;page-break-after:always;position:relative;} .watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.04;width:450px;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #000;padding:4px;} .not-enrolled{background-color:#f9fafb;color:#9ca3af;} @page{size:portrait;margin:10mm;}</style></head><body>${document.getElementById('marksheetContent').innerHTML}</body></html>`); w.document.close(); w.print(); };
     window.printCurrentAttendance = () => { const w = window.open('', '_blank'); w.document.write(`<html><head><title>Attendance</title><style>body{margin:0;padding:12mm;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #ddd;padding:6px;}</style></head><body>${document.getElementById('attendanceContent').innerHTML}</body></html>`); w.document.close(); w.print(); };
     window.closeMarksheetModal = () => { document.getElementById('marksheetModal').classList.add('hidden'); document.getElementById('marksheetContent').innerHTML = ''; };
     window.closeAttendanceModal = () => { document.getElementById('attendanceModal').classList.add('hidden'); document.getElementById('attendanceContent').innerHTML = ''; };
