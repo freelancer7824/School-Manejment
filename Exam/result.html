@@ -70,6 +70,11 @@
             padding: 2px;
         }
         
+        .not-enrolled {
+            background-color: #f9fafb;
+            color: #9ca3af;
+        }
+        
         @media print {
             .no-print {
                 display: none !important;
@@ -330,7 +335,7 @@
         let allSectionsCache = [];
         let allSetupCache = [];
         let allMarksCache = [];
-        let allStudentsCache = []; // For admin panel
+        let allStudentsCache = []; 
         
         let currentSchoolName = "ONNO ROKOM BIDDYANIKETON";
         let currentSchoolAddress = "PORANPUR, KAZIPUR, SIRAJGANJ";
@@ -371,7 +376,7 @@
 
         function escapeHtml(str) {
             if (!str) return '';
-            return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+            return String(str).replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
         }
 
         function safeNum(v) {
@@ -432,7 +437,6 @@
             allSetupCache = setupSnap.docs.map(d => ({ id: d.id, ...d.data() }));
             allMarksCache = marksSnap.docs.map(d => ({ id: d.id, ...d.data() }));
             
-            // Load all students for admin panel
             await loadAllStudentsForAdmin();
         }
         
@@ -499,7 +503,6 @@
             try {
                 const studentRef = doc(db, currentEditingStudent._sessionPath, currentEditingStudent.id);
                 await updateDoc(studentRef, { profileImage: tempPhotoUrl });
-                // Update local cache
                 const idx = allStudentsCache.findIndex(s => s.id === currentEditingStudent.id);
                 if (idx !== -1) allStudentsCache[idx].profileImage = tempPhotoUrl;
                 renderAdminPanel();
@@ -604,9 +607,26 @@
                 const subjects = allSubjectsCache.filter(sub => sub.classId === classId);
                 const marksData = allMarksCache.filter(m => m.studentId === student.id && m.examId === examId);
                 
+                // 🔥 ফোর্থ সাবজেক্ট ও বোনাস জিপিএ ক্যালকুলেশন ভ্যারিয়েবল
                 let totalObtained = 0, totalFullMarks = 0, totalGP = 0, isFailed = false, rows = "";
+                let mandatorySubCount = 0, fourthSubGP = 0, fourthSubBonus = 0;
 
                 subjects.forEach((sub, index) => {
+                    const subType = sub.type || 'mandatory';
+                    const studentAdditional = student.additionalSubjects || [];
+                    const isStudentFourthSub = subType === 'optional' && studentAdditional.includes(sub.name);
+                    
+                    // যে অপশনাল সাবজেক্ট সে পরেনি, সেটি ধূসর করে দেখাবে কিন্তু মার্কশীটে থাকবে
+                    if (subType === 'optional' && !isStudentFourthSub) {
+                        rows += `<tr class="not-enrolled">
+                            <td>${String(index+1).padStart(2,'0')}</td>
+                            <td class="text-left font-bold uppercase">${escapeHtml(sub.name)} <span class="text-[8px] font-normal italic">(Not Enrolled)</span></td>
+                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                        </tr>`;
+                        return; 
+                    }
+
                     const marksObj = marksData.find(m => m.subjectId === sub.id);
                     const m = marksObj?.marks || {};
                     const setupKey = `${examId}_${classId}_${student.section || ''}_${sub.id}_${sessionVal}`;
@@ -619,18 +639,36 @@
                     const wO = safeNum(m.written), mO = safeNum(m.mcq), pO = safeNum(m.practical);
                     const rowTotal = wO + mO + pO, rowFull = wF + mF + pF;
                     const grade = calculateGrade(rowTotal, rowFull);
-                    totalObtained += rowTotal; totalFullMarks += rowFull; totalGP += grade.gp;
-                    if (grade.lg === "F") isFailed = true;
+                    
+                    totalObtained += rowTotal; 
+                    totalFullMarks += rowFull;
+                    
+                    // ফোর্থ সাবজেক্ট হলে আলাদা ভাবে গ্রেড ক্যালকুলেট ও ফেইল চেক
+                    if (isStudentFourthSub) {
+                        fourthSubGP = grade.gp;
+                        if (grade.lg === "F") isFailed = true;
+                    } else {
+                        totalGP += grade.gp;
+                        mandatorySubCount++;
+                        if (grade.lg === "F") isFailed = true;
+                    }
 
-                    rows += `<tr><td>${String(index+1).padStart(2,'0')}</td><td class="text-left font-bold">${escapeHtml(sub.name)}</td>
+                    let displaySubName = escapeHtml(sub.name);
+                    if (isStudentFourthSub) displaySubName += ` <span class="text-[8px] text-indigo-700 font-normal">(4th Sub)</span>`;
+
+                    rows += `<tr>
+                        <td>${String(index+1).padStart(2,'0')}</td>
+                        <td class="text-left font-bold uppercase">${displaySubName}</td>
                         <td>${wF||'-'}</td><td>${wF?wO:'-'}</td><td>${mF||'-'}</td><td>${mF?mO:'-'}</td>
                         <td>${pF||'-'}</td><td>${pF?pO:'-'}</td><td class="font-bold">${rowFull||'-'}</td>
                         <td class="font-bold">${rowTotal}</td><td class="font-black">${grade.lg}</td>
-                        <td>${grade.gp.toFixed(2)}</td><td>-</td><td>-</td></tr>`;
+                        <td>${grade.gp.toFixed(2)}</td><td>-</td><td>-</td>
+                    </tr>`;
                 });
 
-                const subjectCount = subjects.length || 1;
-                const finalGPA = isFailed ? 0.00 : (totalGP / subjectCount);
+                // শিক্ষাবোর্ড নিয়ম: 4th Subject এ 2.00 এর বেশি হলে বোনাস পয়েন্ট যোগ হবে
+                fourthSubBonus = Math.max(0, fourthSubGP - 2.00);
+                const finalGPA = isFailed ? 0.00 : ((totalGP + fourthSubBonus) / (mandatorySubCount || 1));
                 const finalGrade = isFailed ? "F" : calculateGrade(totalObtained, totalFullMarks).lg;
 
                 const marksheetHTML = `
@@ -657,7 +695,14 @@
                         </div>
                         <table class="mt-4"><thead class="bg-gray-100"><tr><th rowspan="2">SL</th><th rowspan="2">SUBJECT</th><th colspan="2">WRITTEN</th><th colspan="2">MCQ</th><th colspan="2">PRAC.</th><th colspan="2">TOTAL</th><th rowspan="2">LG</th><th rowspan="2">GP</th><th rowspan="2">HI</th><th rowspan="2">POS</th></tr><tr class="text-[9px]"><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th></tr></thead>
                         <tbody>${rows}</tbody>
-                        <tfoot class="bg-gray-50 font-bold"><tr><td colspan="2" class="text-left py-2 px-2">Total: ${totalObtained} / ${totalFullMarks}</td><td colspan="4">GPA: ${finalGPA.toFixed(2)}</td><td colspan="4">LETTER GRADE: ${finalGrade}</td><td colspan="4">RESULT: <span class="${isFailed ? 'text-red-600' : 'text-emerald-700'}">${isFailed ? 'FAILED' : 'PASSED'}</span></td></tr></tfoot>
+                        <tfoot class="bg-gray-50 font-bold">
+                            <tr>
+                                <td colspan="2" class="text-left py-2 px-2">Total: ${totalObtained} / ${totalFullMarks}</td>
+                                <td colspan="4">GPA: ${finalGPA.toFixed(2)} ${fourthSubBonus > 0 ? `<span class="text-[8px] text-green-700">(+${fourthSubBonus.toFixed(2)} Bonus)</span>` : ''}</td>
+                                <td colspan="4">LETTER GRADE: ${finalGrade}</td>
+                                <td colspan="4">RESULT: <span class="${isFailed ? 'text-red-600' : 'text-emerald-700'}">${isFailed ? 'FAILED' : 'PASSED'}</span></td>
+                            </tr>
+                        </tfoot>
                         </table>
                         <div class="grid grid-cols-2 gap-4 mt-4"><div><table class="grade-table w-full"><tr class="bg-gray-100"><th>Personal Traits</th><th>Rating</th></tr><tr><td class="text-left">Attendance</td><td>_______</td></tr><tr><td class="text-left">Behavior</td><td>_______</td></tr></table></div><div><table class="grade-table w-full"><tr class="bg-gray-100"><th>Range</th><th>Grade</th><th>GPA</th></tr><tr><td>80-100</td><td>A+</td><td>5.00</td></tr><tr><td>70-79</td><td>A</td><td>4.00</td></tr><tr><td>60-69</td><td>A-</td><td>3.50</td></tr><tr><td>33-39</td><td>D</td><td>1.00</td></tr></table></div></div>
                         <div class="mt-6 border border-black p-2 text-[10px]"><div class="flex border-b pb-1"><span class="font-bold w-40">CLASS TEACHER'S REMARK:</span><span class="flex-1"></span></div><div class="flex pt-1"><span class="font-bold w-40">PRINCIPAL'S REMARK:</span><span class="flex-1"></span></div></div>
@@ -679,14 +724,12 @@
             }
         }
 
-        // Check if logged in user is admin/teacher to show photo management panel
         onAuthStateChanged(auth, async (user) => {
             await loadSessions();
             await loadAllData();
             await loadSchoolInfo();
             initCloudinaryWidget();
             
-            // For demo, show admin panel if specific email (you can adjust logic)
             if (user && (user.email === "admin@school.com" || user.email === "teacher@school.com")) {
                 document.getElementById('adminPanel').style.display = 'block';
             } else {
