@@ -25,6 +25,7 @@
         }
         .loading-spinner { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .not-enrolled { background-color: #f9fafb; color: #9ca3af; }
     </style>
 </head>
 <body>
@@ -191,50 +192,32 @@
             return sessionVal === 'current' ? currentSession : nextSession;
         }
 
-        // 🔥 Session data থেকে ছবি লোড করার ফাংশন
         async function getStudentPhotoUrl(studentId, classId, session) {
-            if (!studentId || !classId || !session) {
-                return null;
-            }
-            
+            if (!studentId || !classId || !session) return null;
             try {
                 const studentRef = doc(db, `current_session/${session}/classes/${classId}/students`, studentId);
                 const studentSnap = await getDoc(studentRef);
-                
                 if (studentSnap.exists()) {
                     const data = studentSnap.data();
                     const photoUrl = data.profileImage || data.passportPhotoURL || data.photo || null;
-                    
-                    if (photoUrl && (photoUrl.startsWith('http') || photoUrl.startsWith('https'))) {
-                        return photoUrl;
-                    }
+                    if (photoUrl && (photoUrl.startsWith('http') || photoUrl.startsWith('https'))) return photoUrl;
                 }
-            } catch (error) {
-                console.warn(`Could not load photo for student ${studentId}:`, error);
-            }
-            
+            } catch (error) { console.warn(`Could not load photo for student ${studentId}:`, error); }
             return null;
         }
 
-        // ছবির HTML তৈরি (ফটো না থাকলে UI Avatars)
         function getStudentPhotoHTML(photoUrl, studentName) {
             if (photoUrl) {
                 return `<img src="${photoUrl}" class="student-photo" alt="${escapeHtml(studentName)}" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?background=4f46e5&color=fff&bold=true&length=2&name=${encodeURIComponent(studentName || 'S')}&size=120';">`;
             } else {
-                return `<div class="w-24 h-28 border-2 border-black flex items-center justify-center bg-gray-100">
-                            <i class="fas fa-user-graduate text-4xl text-gray-400"></i>
-                        </div>`;
+                return `<div class="w-24 h-28 border-2 border-black flex items-center justify-center bg-gray-100"><i class="fas fa-user-graduate text-4xl text-gray-400"></i></div>`;
             }
         }
 
-        // 🔥 ONLY session data - NO root data at all
         async function loadSessionStudentsOnly(sessionVal, filterClassId, filterSectionName) {
             const studentsList = [];
-            
             let targetSession = currentSession;
             if (sessionVal === 'next') targetSession = nextSession;
-
-            console.log(`🔍 Loading ONLY session data: Session=${targetSession}, Class=${filterClassId}, Section=${filterSectionName}`);
 
             try {
                 if (filterClassId) {
@@ -244,21 +227,15 @@
                     for (const docSnap of studSnap.docs) {
                         const data = docSnap.data();
                         const studentSection = data.section || "";
-                        
                         if (filterSectionName && studentSection !== filterSectionName) continue;
                         if (sessionVal === 'current' && data.promotedToNextSession === true) continue;
                         
                         studentsList.push({
-                            id: docSnap.id,
-                            ...data,
-                            classId: filterClassId,
+                            id: docSnap.id, ...data, classId: filterClassId,
                             className: classOptionsMap[filterClassId] || data.className || '',
-                            section: studentSection,
-                            rollNumber: data.rollNumber || data.roll || '',
-                            fullName: data.fullName || '',
-                            admissionNo: data.admissionNumber || data.admissionNo || '',
-                            _session: targetSession,
-                            _sessionPath: `current_session/${targetSession}/classes/${filterClassId}/students`
+                            section: studentSection, rollNumber: data.rollNumber || data.roll || '',
+                            fullName: data.fullName || '', admissionNo: data.admissionNumber || data.admissionNo || '',
+                            _session: targetSession, _sessionPath: `current_session/${targetSession}/classes/${filterClassId}/students`
                         });
                     }
                 } else {
@@ -271,43 +248,26 @@
                         for (const docSnap of studSnap.docs) {
                             const data = docSnap.data();
                             const studentSection = data.section || "";
-                            
                             if (filterSectionName && studentSection !== filterSectionName) continue;
                             if (sessionVal === 'current' && data.promotedToNextSession === true) continue;
                             
                             studentsList.push({
-                                id: docSnap.id,
-                                ...data,
-                                classId: classId,
+                                id: docSnap.id, ...data, classId: classId,
                                 className: classOptionsMap[classId] || data.className || classDoc.data().name,
-                                section: studentSection,
-                                rollNumber: data.rollNumber || data.roll || '',
-                                fullName: data.fullName || '',
-                                admissionNo: data.admissionNumber || data.admissionNo || '',
-                                _session: targetSession,
-                                _sessionPath: `current_session/${targetSession}/classes/${classId}/students`
+                                section: studentSection, rollNumber: data.rollNumber || data.roll || '',
+                                fullName: data.fullName || '', admissionNo: data.admissionNumber || data.admissionNo || '',
+                                _session: targetSession, _sessionPath: `current_session/${targetSession}/classes/${classId}/students`
                             });
                         }
                     }
                 }
-                
-                studentsList.sort((a, b) => {
-                    const ar = safeNum(a.rollNumber);
-                    const br = safeNum(b.rollNumber);
-                    return ar - br;
-                });
-                
-            } catch (e) {
-                console.error('Error loading session data:', e);
-            }
-
-            console.log(`✅ Found ${studentsList.length} students from session data only`);
+                studentsList.sort((a, b) => safeNum(a.rollNumber) - safeNum(b.rollNumber));
+            } catch (e) { console.error('Error loading session data:', e); }
             return studentsList;
         }
 
         async function loadSetupMaps(examId, classId) {
             const viewingSession = getViewingSession();
-            
             const [setupSnap, marksSnap, subSnap] = await Promise.all([
                 getDocs(collection(db, "mark_setup")),
                 getDocs(query(collection(db, "marks"), where("examId", "==", examId), where("session", "==", viewingSession))),
@@ -315,13 +275,14 @@
             ]);
 
             const setupMap = {};
-            setupSnap.forEach(d => {
-                const data = d.data();
-                setupMap[d.id] = data.marks || data;
-            });
+            setupSnap.forEach(d => { const data = d.data(); setupMap[d.id] = data.marks || data; });
 
+            // 🔥 সাবজেক্টের টাইপ (mandatory/additional/optional) সহ ডাটা নিচ্ছি
             const subjects = {};
-            subSnap.forEach(d => subjects[d.id] = d.data().name || d.id);
+            subSnap.forEach(d => {
+                const data = d.data();
+                subjects[d.id] = { name: data.name || d.id, type: data.type || 'mandatory' };
+            });
 
             const marksByStu = {};
             marksSnap.forEach(d => {
@@ -347,12 +308,9 @@
             const classId = e.target.value;
             secSelect.innerHTML = '<option value="">সব সেকশন</option>';
             secSelect.disabled = !classId;
-            
             if (classId) {
                 const sections = await getSections(classId);
-                sections.forEach(sec => {
-                    secSelect.appendChild(new Option(sec.name, sec.name));
-                });
+                sections.forEach(sec => secSelect.appendChild(new Option(sec.name, sec.name)));
             }
         });
 
@@ -362,69 +320,72 @@
             const filterClassId = document.getElementById("classSelect").value;
             const filterSectionName = document.getElementById("sectionSelect").value;
 
-            if (!examId || !filterClassId) {
-                alert("Please select Exam and Class");
-                return;
-            }
+            if (!examId || !filterClassId) { alert("Please select Exam and Class"); return; }
 
             const container = document.getElementById("allMarksheets");
-            container.innerHTML = `
-                <div class='text-center mt-20 p-12 bg-gray-50 rounded-2xl'>
-                    <i class='fas fa-spinner fa-spin text-4xl text-indigo-600 mb-4'></i>
-                    <p class='font-bold text-xl text-indigo-600'>ডেটা প্রসেসিং হচ্ছে...</p>
-                    <p class='text-gray-500 text-sm mt-2'>Session: ${getViewingSession()}</p>
-                    <p class='text-gray-400 text-xs mt-1'>ছবি লোড করা হচ্ছে (Session Data থেকে)</p>
-                </div>
-            `;
+            container.innerHTML = `<div class='text-center mt-20 p-12 bg-gray-50 rounded-2xl'>
+                <i class='fas fa-spinner fa-spin text-4xl text-indigo-600 mb-4'></i>
+                <p class='font-bold text-xl text-indigo-600'>ডেটা প্রসেসিং হচ্ছে...</p>
+                <p class='text-gray-500 text-sm mt-2'>Session: ${getViewingSession()}</p></div>`;
 
             try {
                 const examName = document.querySelector('#examSelect option:checked').textContent;
                 const { setupMap, subjects, marksByStu } = await loadSetupMaps(examId, filterClassId);
                 const students = await loadSessionStudentsOnly(sessionVal, filterClassId, filterSectionName);
                 
-                // 🔥 ছবি সহ মার্কশীট জেনারেট করছি
                 await generateMarksheetsHTMLWithPhoto(students, examName, setupMap, subjects, marksByStu, sessionVal, examId);
                 
                 if (students.length === 0) {
-                    container.innerHTML = `
-                        <div class='text-center mt-20 p-12 bg-yellow-50 border-2 border-yellow-200 rounded-2xl'>
-                            <i class='fas fa-info-circle text-4xl text-yellow-600 mb-4'></i>
-                            <p class='font-bold text-xl text-yellow-800 mb-2'>কোনো ছাত্র/ছাত্রী পাওয়া যায়নি</p>
-                            <p class='text-yellow-700'>${classOptionsMap[filterClassId] || filterClassId} ক্লাসে ${filterSectionName ? filterSectionName + ' সেকশনে' : ''} কোনো ছাত্র নেই বা সব প্রমোট হয়েছে</p>
-                            <p class='text-yellow-600 text-sm mt-2'>⚠️ শুধুমাত্র Session Data দেখানো হচ্ছে (Root Data বাদ দেওয়া হয়েছে)</p>
-                            <p class='text-blue-500 text-xs mt-2'>Session: ${getViewingSession()}</p>
-                        </div>
-                    `;
+                    container.innerHTML = `<div class='text-center mt-20 p-12 bg-yellow-50 border-2 border-yellow-200 rounded-2xl'>
+                        <i class='fas fa-info-circle text-4xl text-yellow-600 mb-4'></i>
+                        <p class='font-bold text-xl text-yellow-800 mb-2'>কোনো ছাত্র/ছাত্রী পাওয়া যায়নি</p></div>`;
                 }
             } catch (error) {
-                container.innerHTML = `<p class='text-center mt-20 text-red-600'>Error loading data: ${error.message}</p>`;
+                container.innerHTML = `<p class='text-center mt-20 text-red-600'>Error: ${error.message}</p>`;
                 console.error(error);
             }
         };
 
-        // 🔥 মার্কশীট জেনারেট করার ফাংশন (ছবি যোগ করা হয়েছে - বাকি সব 100% একই)
         async function generateMarksheetsHTMLWithPhoto(students, examName, setupMap, subjects, marksByStu, sessionVal, examId) {
             let finalHTML = "";
             const viewingSession = getViewingSession();
 
             for (const stu of students) {
-                // ছাত্রের ছবি লোড করা হচ্ছে (শুধু session data থেকে)
                 const photoUrl = await getStudentPhotoUrl(stu.id, stu.classId, viewingSession);
                 const photoHTML = getStudentPhotoHTML(photoUrl, stu.fullName);
                 
                 const myMarks = marksByStu[stu.id] || [];
-                let totalObtained = 0;
-                let totalFullMarks = 0;
-                let totalGP = 0;
-                let isFailed = false;
+                let totalObtained = 0, totalFullMarks = 0, totalGP = 0, isFailed = false;
+                
+                // 🔥 ফোর্থ সাবজেক্ট বোনাস ও গ্রেড ক্যালকুলেশন ভ্যারিয়েবল
+                let mandatorySubCount = 0, fourthSubGP = 0, fourthSubBonus = 0;
+                
                 let rows = "";
-
                 const subjectEntries = Object.keys(subjects);
                 
                 if (subjectEntries.length === 0) {
                     rows = `<tr><td colspan="14" class="text-center py-4 text-red-500">No subjects configured for this class</td></tr>`;
                 } else {
                     subjectEntries.forEach((subId, index) => {
+                        const subData = subjects[subId];
+                        const subName = subData.name;
+                        const subType = subData.type;
+                        
+                        // 🔥 স্টুডেন্ট ভর্তির সময় যে ফোর্থ/অপশনাল সাবজেক্ট নিয়েছিল কিনা চেক
+                        const studentAdditional = stu.additionalSubjects || [];
+                        const isStudentFourthSub = subType === 'optional' && studentAdditional.includes(subName);
+                        
+                        // যে অপশনাল সাবজেক্ট সে পরেনি, সেটি ধূসর করে দেখাবে কিন্তু মার্কশীটে থাকবে
+                        if (subType === 'optional' && !isStudentFourthSub) {
+                            rows += `<tr class="not-enrolled">
+                                <td class="text-center">${String(index + 1).padStart(2, '0')}</td>
+                                <td class="text-left font-bold uppercase">${escapeHtml(subName)} <span class="text-[8px] font-normal italic">(Not Enrolled)</span></td>
+                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                            </tr>`;
+                            return; 
+                        }
+
                         const m = myMarks.find(x => x.subjectId === subId) || { marks: {} };
                         const setupId = `${examId}_${stu.classId}_${stu.section || ''}_${subId}_${viewingSession}`;
                         const setup = setupMap[setupId] || {};
@@ -443,31 +404,44 @@
 
                         totalObtained += rowTotal;
                         totalFullMarks += rowFull;
-                        totalGP += grade.gp;
-                        if (grade.lg === "F") isFailed = true;
+                        
+                        // 🔥 ফোর্থ সাবজেক্ট হলে আলাদা ভাবে গ্রেড ক্যালকুলেট
+                        if (isStudentFourthSub) {
+                            fourthSubGP = grade.gp;
+                            if (grade.lg === "F") isFailed = true; 
+                        } else {
+                            totalGP += grade.gp;
+                            mandatorySubCount++;
+                            if (grade.lg === "F") isFailed = true;
+                        }
 
-                        rows += `
-                            <tr>
-                                <td class="text-center">${String(index + 1).padStart(2, '0')}</td>
-                                <td class="text-left font-bold uppercase">${escapeHtml(subjects[subId])}</td>
-                                <td class="text-center">${wF || '-'}</td>
-                                <td class="text-center">${wF ? wO : '-'}</td>
-                                <td class="text-center">${mF || '-'}</td>
-                                <td class="text-center">${mF ? mO : '-'}</td>
-                                <td class="text-center">${pF || '-'}</td>
-                                <td class="text-center">${pF ? pO : '-'}</td>
-                                <td class="text-center font-bold bg-gray-50">${rowFull || '-'}</td>
-                                <td class="text-center font-bold bg-gray-50">${rowTotal}</td>
-                                <td class="text-center font-black">${grade.lg}</td>
-                                <td class="text-center">${grade.gp.toFixed(2)}</td>
-                                <td class="text-center">-</td>
-                                <td class="text-center">-</td>
-                            </tr>`;
+                        let displaySubName = escapeHtml(subName);
+                        if (isStudentFourthSub) {
+                            displaySubName += ` <span class="text-[8px] text-indigo-700 font-normal">(4th Sub)</span>`;
+                        }
+
+                        rows += `<tr>
+                            <td class="text-center">${String(index + 1).padStart(2, '0')}</td>
+                            <td class="text-left font-bold uppercase">${displaySubName}</td>
+                            <td class="text-center">${wF || '-'}</td>
+                            <td class="text-center">${wF ? wO : '-'}</td>
+                            <td class="text-center">${mF || '-'}</td>
+                            <td class="text-center">${mF ? mO : '-'}</td>
+                            <td class="text-center">${pF || '-'}</td>
+                            <td class="text-center">${pF ? pO : '-'}</td>
+                            <td class="text-center font-bold bg-gray-50">${rowFull || '-'}</td>
+                            <td class="text-center font-bold bg-gray-50">${rowTotal}</td>
+                            <td class="text-center font-black">${grade.lg}</td>
+                            <td class="text-center">${grade.gp.toFixed(2)}</td>
+                            <td class="text-center">-</td>
+                            <td class="text-center">-</td>
+                        </tr>`;
                     });
                 }
 
-                const subjectCount = subjectEntries.length || 1;
-                const finalGPA = isFailed ? 0.00 : (totalGP / subjectCount);
+                // 🔥 বাংলাদেশ শিক্ষাবোর্ড নিয়ম: 4th Subject এ 2.00 এর বেশি হলে বোনাস পয়েন্ট যোগ হবে
+                fourthSubBonus = Math.max(0, fourthSubGP - 2.00);
+                const finalGPA = isFailed ? 0.00 : ((totalGP + fourthSubBonus) / (mandatorySubCount || 1));
                 const finalGrade = isFailed ? "F" : calculateGrade(totalObtained, totalFullMarks).lg;
                 const displaySession = sessionVal === 'next' ? nextSession : currentSession;
 
@@ -475,20 +449,15 @@
                 <div class="marksheet-card" data-name="${(stu.fullName || '').toLowerCase()}" data-roll="${stu.rollNumber || ''}" data-class="${stu.classId}">
                     <div class="content-wrap">
                         <div class="flex justify-between items-center border-b-2 border-black pb-2">
-                            
-                           <div class="w-20 h-20 flex items-center justify-center overflow-hidden rounded-md">
-    <img id="schoolLogoImg" src="onno_logo.png" alt="School Logo" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?background=4f46e5&color=fff&bold=true&name=School&size=80'">
-</div> 
-                            
-                            
+                            <div class="w-20 h-20 flex items-center justify-center overflow-hidden rounded-md">
+                                <img id="schoolLogoImg" src="onno_logo.png" alt="School Logo" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?background=4f46e5&color=fff&bold=true&name=School&size=80'">
+                            </div> 
                             <div class="text-center">
                                 <h1 class="text-2xl font-black text-indigo-900 leading-none uppercase">${escapeHtml(currentSchoolName)}</h1>
                                 <p class="text-[10px] font-bold tracking-widest mt-1 uppercase">${escapeHtml(currentSchoolAddress)}</p>
                                 <div class="mt-2 bg-black text-white px-4 py-1 text-[12px] font-bold uppercase rounded-full">Academic Transcript: ${escapeHtml(examName)}</div>
                             </div>
-                            <div class="w-24 h-28 flex items-center justify-center">
-                                ${photoHTML}
-                            </div>
+                            <div class="w-24 h-28 flex items-center justify-center">${photoHTML}</div>
                         </div>
 
                         <div class="grid grid-cols-3 gap-2 mt-4 text-[11px] font-bold uppercase">
@@ -515,7 +484,7 @@
                             <tfoot class="bg-gray-50 font-bold">
                                 <tr>
                                     <td colspan="2" class="text-left py-2 px-2 uppercase">Total: ${totalObtained} / ${totalFullMarks}</td>
-                                    <td colspan="4">GPA: ${finalGPA.toFixed(2)}</td>
+                                    <td colspan="4">GPA: ${finalGPA.toFixed(2)} ${fourthSubBonus > 0 ? `<span class="text-[8px] text-green-700">(+${fourthSubBonus.toFixed(2)} Bonus)</span>` : ''}</td>
                                     <td colspan="4">LETTER GRADE: ${finalGrade}</td>
                                     <td colspan="4">RESULT: <span class="${isFailed ? 'text-red-600' : 'text-emerald-700'}">${isFailed ? 'FAILED' : 'PASSED'}</span></td>
                                 </tr>
@@ -525,7 +494,7 @@
                         <div class="grid grid-cols-2 gap-4 mt-4">
                             <div>
                                 <table class="grade-table w-full">
-                                    <tr class="bg-gray-100 font-bold uppercase"><td>Personal Traits</th><th>Rating</th></tr>
+                                    <tr class="bg-gray-100 font-bold uppercase"><td>Personal Traits</td><td>Rating</td></tr>
                                     <tr><td class="text-left">Attendance & Punctuality</td><td>_______</td></tr>
                                     <tr><td class="text-left">Cleanliness & Neatness</td><td>_______</td></tr>
                                     <tr><td class="text-left">Behavior & Cooperation</td><td>_______</td></tr>
@@ -534,7 +503,7 @@
                             </div>
                             <div>
                                 <table class="grade-table w-full">
-                                    <tr class="bg-gray-100 font-bold uppercase"><td>Range</th><th>Grade</th><th>GPA</th></tr>
+                                    <tr class="bg-gray-100 font-bold uppercase"><td>Range</td><td>Grade</td><td>GPA</td></tr>
                                     <tr><td>80-100</td><td>A+</td><td>5.00</td></tr>
                                     <tr><td>70-79</td><td>A</td><td>4.00</td></tr>
                                     <tr><td>60-69</td><td>A-</td><td>3.50</td></tr>
@@ -581,7 +550,6 @@
             document.getElementById("allMarksheets").innerHTML = "";
         };
 
-        // Initialize
         async function init() {
             await loadSessions();
             await loadClasses();
