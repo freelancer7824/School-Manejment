@@ -6,18 +6,20 @@
     <title>সম্পূর্ণ অ্যাডমিন ড্যাশবোর্ড</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
-    <!-- Firebase Core App (Must be first) -->
+    <!-- Firebase Core App -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-
-    <!-- Firebase Firestore (Data show korar jonno) -->
+    <!-- Firebase Auth (Login check করার জন্য যোগ করা হয়েছে) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <!-- Firebase Firestore -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
     <style>
         /* ফন্ট এবং বেসিক রিসেট */
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&display=swap');
 
         :root {
             --sidebar-width: 250px;
-            --sidebar-collapsed-width: 60px; /* নতুন: কল্যাপসড অবস্থায় সাইডবারের প্রস্থ */
+            --sidebar-collapsed-width: 60px; 
             --header-height: 60px;
             --sidebar-bg: #2c3e50;
             --header-bg: #2c3e50; 
@@ -58,9 +60,8 @@
             flex-shrink: 0;
         }
         
-        /* নতুন: কল্যাপসড (হাইড) অবস্থায় */
         .sidebar.collapsed {
-            width: var(--sidebar-collapsed-width); /* শুধুমাত্র আইকনের জন্য ছোট হবে */
+            width: var(--sidebar-collapsed-width); 
         }
         
         .sidebar-header {
@@ -71,7 +72,6 @@
             position: relative; 
             transition: opacity 0.3s ease;
         }
-        /* কল্যাপসড অবস্থায় হেডার ইনফো হাইড */
         .sidebar.collapsed .sidebar-header {
             padding-left: 10px;
             padding-right: 10px;
@@ -79,11 +79,10 @@
         .sidebar.collapsed .sidebar-header .user-info,
         .sidebar.collapsed .sidebar-header img {
              display: none;
-             
         }
 
         .sidebar.collapsed .nav-hide-icon {
-            transform: rotate(180deg); /* অ্যারো উল্টে যাবে */
+            transform: rotate(180deg); 
             left: 50%;
             transform: translateX(-50%);
             right: auto;
@@ -112,13 +111,11 @@
             cursor: pointer;
         }
         
-        /* নতুন: কল্যাপসড অবস্থায় মেনু আইটেম */
         .sidebar.collapsed .sidebar-menu a.menu-item {
             justify-content: center;
-            padding: 12px 0; /* প্যাডিং কমানো */
+            padding: 12px 0; 
         }
         
-        /* নতুন: মেনু টাইটেল হাইড */
         .menu-item span {
             margin-left: 15px;
             transition: opacity 0.3s ease;
@@ -130,13 +127,12 @@
             margin-left: 0;
         }
 
-        /* ড্রপডাউন/সাব-মেনু স্টাইল */
         .dropdown-toggle .arrow {
             margin-left: auto;
             transition: transform 0.3s ease;
         }
         .sidebar.collapsed .dropdown-toggle .arrow {
-            display: none; /* কল্যাপসড অবস্থায় ড্রপডাউন অ্যারো হাইড */
+            display: none; 
         }
 
         .dropdown-content {
@@ -148,7 +144,6 @@
             background-color: #233140;
         }
 
-        /* কল্যাপসড অবস্থায় সাব-মেনু সম্পূর্ণ হাইড, কারণ মিনি-সাইডবারে এটি সম্ভব না */
         .sidebar.collapsed .dropdown-content {
             display: none;
         }
@@ -170,7 +165,6 @@
             font-weight: bold;
         }
 
-
         /* --- প্রধান কন্টেন্ট এরিয়া --- */
         .main-content {
             flex-grow: 1;
@@ -181,19 +175,16 @@
             width: calc(100% - var(--sidebar-width)); 
         }
 
-        /* নতুন: কল্যাপসড অবস্থায় মার্জিন ও প্রস্থ অ্যাডজাস্ট */
         .main-content.collapsed-margin {
             margin-left: var(--sidebar-collapsed-width);
             width: calc(100% - var(--sidebar-collapsed-width));
         }
 
-        /* ছোট স্ক্রিনের জন্য ফুল-উইডথ */
         .main-content.full-width {
             margin-left: 0;
             width: 100%;
         }
         
-        /* হেডার (টপ নেভিগেশন বার - প্রফেশনাল ডিজাইন) */
         .header {
             background-color: var(--header-bg); 
             color: var(--header-text); 
@@ -318,7 +309,6 @@
         }
         
         /* --- রেসপন্সিভ ডিজাইন --- */
-
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -439,7 +429,6 @@
                 </ul>
             </div>
 
-            <!-- Attendance Dropdown Solution -->
             <div class="dropdown">
                 <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
                     <i class="fas fa-calendar-check"></i> <span>Attendance</span> <i class="fas fa-angle-right arrow"></i>
@@ -492,7 +481,8 @@
                 <h3 id="main_heading">Loading...</h3>
             </div>
             <div class="header-right">
-                <span class="session-info">Current Session: 2025-2026</span>
+                <!-- এখানে আইডি দেওয়া হয়েছে ডাইনামিক সেশন শো করার জন্য -->
+                <span class="session-info" id="session-display">Current Session: Loading...</span>
                 
                 <div class="user-avatar-group" onclick="toggleUserDropdown(this)">
                     <i class="fas fa-user-circle user-icon"></i>
@@ -542,9 +532,7 @@
             }
         });
 
-        // ড্রপডাউন টগল ফাংশন
         function toggleDropdown(element) {
-            // ডিফল্ট লিঙ্ক ভিজিট বা হ্যাশ চেঞ্জ বন্ধ করা হচ্ছে
             if(event) event.preventDefault();
             
             const dropdownContent = element.nextElementSibling;
@@ -567,7 +555,6 @@
             }
         }
 
-        // URL Hash ভিত্তিক রেন্ডারিং লজিক (localStorage ছাড়া)
         function loadPageFromHash() {
             const links = document.querySelectorAll('a[data-link]');
             let currentLink = window.location.hash.substring(1);
@@ -586,7 +573,6 @@
             });
 
             links.forEach(link => {
-                // ড্রপডাউন টগল বাটনের জন্য একটিভ স্টাইল এড়ানো হচ্ছে
                 if (link.getAttribute('data-link') === currentLink && !link.classList.contains('dropdown-toggle')) {
                     if (link.classList.contains('menu-item')) {
                         link.classList.add('active');
@@ -602,7 +588,6 @@
             });
         }
 
-        // পেজ লোড এবং ব্রাউজারের হ্যাশ চেঞ্জ ইভেন্ট ট্র্যাকিং
         window.addEventListener('hashchange', loadPageFromHash);
         window.addEventListener('DOMContentLoaded', () => {
             loadPageFromHash();
@@ -610,7 +595,6 @@
             const links = document.querySelectorAll('a[data-link]');
             links.forEach(link => {
                 link.addEventListener('click', function(e) {
-                    // যদি ক্লিক করা আইটেমটি ড্রপডাউন টগল বাটন হয়, তাহলে লিংক লোড হবে না
                     if (this.classList.contains('dropdown-toggle')) {
                         return;
                     }
@@ -644,8 +628,18 @@
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.firestore();
+        const auth = firebase.auth();
 
-        // Fetch Data in Realtime
+        // ১. Login Protection Check
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                // ইউজার লগইন না থাকলে login.html পেজে রিডাইরেক্ট করা হচ্ছে
+                // আপনার লগইন পেজের লোকেশন অনুযায়ী পথ পরিবর্তন করে নিন
+                window.location.href = '../Auth/login.html'; 
+            }
+        });
+
+        // ২. School Info Fetch
         db.collection("settings").doc("school_info").onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
@@ -659,6 +653,19 @@
             }
         }, (error) => {
             console.error("Firebase Error:", error);
+        });
+
+        // ৩. Current Session Dynamic Fetch (আগের কোড অনুযায়ী)
+        db.collection("config").doc("activeSession").onSnapshot((doc) => {
+            if (doc.exists) {
+                const sessionName = doc.data().sessionName || "Not Set";
+                document.getElementById("session-display").innerText = `Current Session: ${sessionName}`;
+            } else {
+                document.getElementById("session-display").innerText = "Current Session: Not Set";
+            }
+        }, (error) => {
+            console.error("Session Fetch Error:", error);
+            document.getElementById("session-display").innerText = "Current Session: Error";
         });
     </script>
 </body>
