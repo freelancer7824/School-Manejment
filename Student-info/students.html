@@ -242,10 +242,33 @@
         const CLOUDINARY_CLOUD_NAME = "dhvtgzy5x";
         const CLOUDINARY_UPLOAD_PRESET = "Rosenews";
         
-        let sessionStudents = [], allClasses = [], sectionsCache = {}, parentCache = {}, allParents = [];
+        const CACHE_KEY = 'studentManager_cache';
+        const CACHE_TTL = 3 * 60 * 1000; // 3 মিনিট ক্যাশ
+
+        let sessionStudents = [], allClasses = [], sectionsCache = {}, parentCache = {}, allParents = [], parentsMap = {};
         let currentSession = "2025-2026", nextSession = "2026-2027";
         let selectedStudentIdForDelete = null;
         let cloudinaryWidget = null;
+
+        // ===== ক্যাশ হেল্পার =====
+        function getCachedData() {
+            try {
+                const raw = localStorage.getItem(CACHE_KEY);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                if (Date.now() - parsed.timestamp > CACHE_TTL) {
+                    localStorage.removeItem(CACHE_KEY);
+                    return null;
+                }
+                return parsed.data;
+            } catch { return null; }
+        }
+
+        function setCachedData(data) {
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+            } catch {}
+        }
 
         function showToast(msg, type = "success") {
             const toast = document.getElementById('toast');
@@ -279,6 +302,10 @@
         async function loadClasses() {
             const snap = await getDocs(query(collection(db, "classes"), orderBy("order")));
             allClasses = snap.docs.map(d => ({ id: d.id, name: d.data().name }));
+            populateClassDropdowns();
+        }
+
+        function populateClassDropdowns() {
             const filterClass = document.getElementById('filterClass');
             filterClass.innerHTML = '<option value="">All Classes</option>';
             allClasses.forEach(c => filterClass.appendChild(new Option(c.name, c.id)));
@@ -316,9 +343,12 @@
         async function loadAllParents() {
             const snap = await getDocs(query(collection(db, "parents"), orderBy("guardianName")));
             allParents = [];
+            parentsMap = {};
             snap.forEach(doc => {
                 const d = doc.data();
-                allParents.push({ id: doc.id, name: d.guardianName, phone: d.guardianPhone, data: d });
+                const parentObj = { id: doc.id, name: d.guardianName, phone: d.guardianPhone, data: d };
+                allParents.push(parentObj);
+                parentsMap[doc.id] = parentObj;
             });
         }
 
@@ -370,17 +400,20 @@
 
             try {
                 const classesSnap = await getDocs(collection(db, "classes"));
-                for (const classDoc of classesSnap.docs) {
+                
+                // সব ক্লাসের স্টুডেন্ট একসাথে (প্যারালালে) লোড হচ্ছে
+                const studentPromises = classesSnap.docs.map(async classDoc => {
                     const classId = classDoc.id;
                     const className = classDoc.data().name || classMap[classId] || '';
                     const studRef = collection(db, `current_session/${targetSession}/classes/${classId}/students`);
                     const studSnap = await getDocs(studRef);
                     
-                    for (const docSnap of studSnap.docs) {
+                    const classStudents = [];
+                    studSnap.forEach(docSnap => {
                         const data = docSnap.data();
-                        if (sessionVal === 'current' && data.promotedToNextSession === true) continue;
+                        if (sessionVal === 'current' && data.promotedToNextSession === true) return;
                         
-                        studentsList.push({
+                        classStudents.push({
                             id: docSnap.id,
                             ...data,
                             classId: data.classId || classId,
@@ -388,17 +421,39 @@
                             _sessionPath: `current_session/${targetSession}/classes/${classId}/students`,
                             _session: targetSession
                         });
-                    }
-                }
+                    });
+                    return classStudents;
+                });
+
+                const results = await Promise.all(studentPromises);
+                studentsList = results.flat();
+                
                 studentsList.sort((a, b) => (parseFloat(a.rollNumber) || 0) - (parseFloat(b.rollNumber) || 0));
             } catch (e) { console.error('Error loading session data:', e); }
             sessionStudents = studentsList;
             return sessionStudents;
         }
 
-        async function getParentData(parentId) {
+        function getParentDataFast(parentId) {
             if (!parentId) return null;
             if (parentCache[parentId]) return parentCache[parentId];
+            const pMapItem = parentsMap[parentId];
+            if (pMapItem) {
+                const d = pMapItem.data;
+                const data = { 
+                    father: d.fatherName || '', mother: d.motherName || '', guardian: d.guardianName || '',
+                    fPhone: d.fatherPhone || '', mPhone: d.motherPhone || '', gPhone: d.guardianPhone || '',
+                    email: d.loginEmail || '', parentId: parentId
+                };
+                parentCache[parentId] = data;
+                return data;
+            }
+            return null;
+        }
+
+        async function getParentData(parentId) {
+            const fastData = getParentDataFast(parentId);
+            if (fastData) return fastData;
             try {
                 const p = await getDoc(doc(db, "parents", parentId));
                 if (p.exists()) {
@@ -438,63 +493,65 @@
                 return;
             }
 
-            tbody.innerHTML = '';
+            let rowsHtml = '';
             for (let i = 0; i < filtered.length; i++) {
                 const s = filtered[i];
-                const parent = await getParentData(s.parentID);
+                const parent = getParentDataFast(s.parentID); // সরাসরি ম্যাপ থেকে তৎক্ষণাৎ ডাটা
                 const imageUrl = s.profileImage || s.passportPhotoURL;
+                const avatarFallback = `https://ui-avatars.com/api/?background=3b82f6&color=fff&name=${encodeURIComponent(s.fullName || 'S')}`;
                 
-                const row = tbody.insertRow();
-                row.className = 'border-b hover:bg-gray-50';
-                row.innerHTML = `
-                    <td class="px-4 py-3 text-gray-500">${i + 1}</td>
-                    <td class="px-4 py-3">
-                        <div class="flex items-center gap-3">
-                            <img src="${imageUrl || 'https://ui-avatars.com/api/?background=3b82f6&color=fff&name=' + encodeURIComponent(s.fullName || 'S')}" 
-                                 class="student-avatar" onerror="this.src='https://ui-avatars.com/api/?background=3b82f6&color=fff&name=${encodeURIComponent(s.fullName || 'S')}'">
-                            <div>
-                                <div class="font-semibold">${escapeHtml(s.fullName || '—')}</div>
-                                <div class="text-xs text-gray-400 mt-1">
-                                    <span class="bg-green-50 px-2 py-0.5 rounded-full">${escapeHtml(s.status || 'active')}</span> | 
-                                    ${escapeHtml(s.gender || '')}
-                                    <span class="ml-2 session-badge px-2 py-0.5 rounded-full text-xs">${escapeHtml(s._session || currentSession)}</span>
+                rowsHtml += `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-4 py-3 text-gray-500">${i + 1}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-3">
+                                <img src="${imageUrl || avatarFallback}" 
+                                     class="student-avatar" onerror="this.src='${avatarFallback}'">
+                                <div>
+                                    <div class="font-semibold">${escapeHtml(s.fullName || '—')}</div>
+                                    <div class="text-xs text-gray-400 mt-1">
+                                        <span class="bg-green-50 px-2 py-0.5 rounded-full">${escapeHtml(s.status || 'active')}</span> | 
+                                        ${escapeHtml(s.gender || '')}
+                                        <span class="ml-2 session-badge px-2 py-0.5 rounded-full text-xs">${escapeHtml(s._session || currentSession)}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </td>
-                    <td class="px-4 py-2 text-sm">
-                        <div><i class="fas fa-user w-5 text-primary"></i> ${escapeHtml(parent?.guardian || s.guardianName || 'N/A')}</div>
-                        <button class="viewParentBtn mt-2 text-primary text-xs font-medium bg-blue-50 px-2 py-1 rounded-full hover:bg-blue-100" data-pid="${s.parentID || ''}" data-sname="${escapeHtml(s.fullName)}">
-                            <i class="fas fa-table-list"></i> View Parent
-                        </button>
-                    </td>
-                    <td class="px-4 py-2 text-xs">
-                        📞 ${escapeHtml(s.phone || 'N/A')}<br>
-                        ✉️ ${escapeHtml(String(s.email || '').slice(0,22))}
-                    </td>
-                    <td class="px-4 py-2">
-                        <span class="bg-blue-100 px-2 py-1 rounded text-xs font-semibold">${escapeHtml(s.className || '—')}</span> - ${escapeHtml(s.section || '—')}<br>
-                        <span class="text-gray-500 text-xs">Roll: ${escapeHtml(s.rollNumber || '—')}</span>
-                    </td>
-                    <td class="px-4 py-2 text-center relative">
-                        <button class="actionToggle p-2 rounded-full hover:bg-gray-100 transition" data-id="${s.id}">
-                            <i class="fas fa-ellipsis-v text-gray-600"></i>
-                        </button>
-                        <div id="menu-${s.id}" class="dropdown-menu hidden absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-xl border z-30 overflow-hidden">
-                            <button class="viewProfile w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2" data-id="${s.id}">
-                                <i class="fas fa-eye text-primary"></i> Profile
+                        </td>
+                        <td class="px-4 py-2 text-sm">
+                            <div><i class="fas fa-user w-5 text-primary"></i> ${escapeHtml(parent?.guardian || s.guardianName || 'N/A')}</div>
+                            <button class="viewParentBtn mt-2 text-primary text-xs font-medium bg-blue-50 px-2 py-1 rounded-full hover:bg-blue-100" data-pid="${s.parentID || ''}" data-sname="${escapeHtml(s.fullName)}">
+                                <i class="fas fa-table-list"></i> View Parent
                             </button>
-                            <button class="editStudent w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2" data-id="${s.id}">
-                                <i class="fas fa-pen text-warning"></i> Edit
+                        </td>
+                        <td class="px-4 py-2 text-xs">
+                            📞 ${escapeHtml(s.phone || 'N/A')}<br>
+                            ✉️ ${escapeHtml(String(s.email || '').slice(0,22))}
+                        </td>
+                        <td class="px-4 py-2">
+                            <span class="bg-blue-100 px-2 py-1 rounded text-xs font-semibold">${escapeHtml(s.className || '—')}</span> - ${escapeHtml(s.section || '—')}<br>
+                            <span class="text-gray-500 text-xs">Roll: ${escapeHtml(s.rollNumber || '—')}</span>
+                        </td>
+                        <td class="px-4 py-2 text-center relative">
+                            <button class="actionToggle p-2 rounded-full hover:bg-gray-100 transition" data-id="${s.id}">
+                                <i class="fas fa-ellipsis-v text-gray-600"></i>
                             </button>
-                            <hr class="my-1">
-                            <button class="deleteStudent w-full text-left px-4 py-2 text-sm text-danger hover:bg-red-50 flex items-center gap-2" data-id="${s.id}">
-                                <i class="fas fa-trash-alt"></i> Delete
-                            </button>
-                        </div>
-                    </td>
+                            <div id="menu-${s.id}" class="dropdown-menu hidden absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-xl border z-30 overflow-hidden">
+                                <button class="viewProfile w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2" data-id="${s.id}">
+                                    <i class="fas fa-eye text-primary"></i> Profile
+                                </button>
+                                <button class="editStudent w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2" data-id="${s.id}">
+                                    <i class="fas fa-pen text-warning"></i> Edit
+                                </button>
+                                <hr class="my-1">
+                                <button class="deleteStudent w-full text-left px-4 py-2 text-sm text-danger hover:bg-red-50 flex items-center gap-2" data-id="${s.id}">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
                 `;
             }
+            tbody.innerHTML = rowsHtml; // একবারে ডোম আপডেট (ফাস্ট রেন্ডারিং)
             attachTableEvents();
         }
 
@@ -536,11 +593,13 @@
             if (!s) return;
             const parent = await getParentData(s.parentID);
             const imageUrl = s.profileImage || s.passportPhotoURL;
+            const avatarFallback = `https://ui-avatars.com/api/?background=3b82f6&color=fff&name=${encodeURIComponent(s.fullName || 'S')}`;
+            
             document.getElementById('profileContent').innerHTML = `
                 <div class="space-y-4">
                     <div class="flex items-center gap-4 border-b pb-3">
-                        <img src="${imageUrl || 'https://ui-avatars.com/api/?background=3b82f6&color=fff&name=' + encodeURIComponent(s.fullName || 'S')}" 
-                             class="w-20 h-20 rounded-full object-cover border-2 border-primary" onerror="this.src='https://ui-avatars.com/api/?background=3b82f6&color=fff&name=${encodeURIComponent(s.fullName || 'S')}'">
+                        <img src="${imageUrl || avatarFallback}" 
+                             class="w-20 h-20 rounded-full object-cover border-2 border-primary" onerror="this.src='${avatarFallback}'">
                         <div>
                             <h2 class="text-xl font-bold">${escapeHtml(s.fullName)}</h2>
                             <p class="text-gray-500">${escapeHtml(s.className)} - ${escapeHtml(s.section)} | Roll: ${escapeHtml(s.rollNumber)}</p>
@@ -691,7 +750,6 @@
             await loadEditSubjects(classId);
         }
 
-        // ✅ আপডেটেড saveStudentEdit - Session Data সঠিকভাবে আপডেট হবে
         async function saveStudentEdit(e) {
             e.preventDefault();
             const id = document.getElementById('editId').value;
@@ -713,7 +771,6 @@
             const oldSessionPath = document.getElementById('editSessionPath').value;
             const parentId = document.getElementById('editParentId').value;
             
-            // Get old student data from current sessionStudents array
             const oldStudent = sessionStudents.find(s => s.id === id);
             const oldClassId = oldStudent?.classId;
             const oldSection = oldStudent?.section;
@@ -744,21 +801,12 @@
             };
             
             try {
-                // Check if class or section changed
                 if (oldClassId !== newClassId || oldSection !== newSection) {
-                    console.log(`Moving student from ${oldClassId}/${oldSection} to ${newClassId}/${newSection}`);
-                    
-                    // Delete from old location
-                    if (oldSessionPath) {
-                        await deleteDoc(doc(db, oldSessionPath, id));
-                    }
-                    
-                    // Create new session path and save
+                    if (oldSessionPath) await deleteDoc(doc(db, oldSessionPath, id));
                     const newSessionPath = `current_session/${oldStudent?._session || currentSession}/classes/${newClassId}/students`;
                     studentUpdate.createdAt = new Date().toISOString();
                     await setDoc(doc(db, newSessionPath, id), studentUpdate);
                     
-                    // Update local array
                     const studentIndex = sessionStudents.findIndex(s => s.id === id);
                     if (studentIndex !== -1) {
                         sessionStudents[studentIndex]._sessionPath = newSessionPath;
@@ -767,7 +815,6 @@
                         sessionStudents[studentIndex].className = className;
                     }
                 } else {
-                    // Same class/section - just update using updateDoc (NO DUPLICATE)
                     if (oldSessionPath) {
                         await updateDoc(doc(db, oldSessionPath, id), studentUpdate);
                     } else {
@@ -776,7 +823,6 @@
                     }
                 }
                 
-                // Update parent data
                 if (parentId && document.getElementById('eGuardian').value) {
                     await setDoc(doc(db, 'parents', parentId), {
                         fatherName: document.getElementById('eFather').value,
@@ -833,6 +879,8 @@
             document.getElementById('studentTableBody').innerHTML = '<tr><td colspan="6" class="text-center py-10"><i class="fas fa-spinner fa-spin text-2xl"></i> Loading...<\/td><\/tr>';
             await loadSessionDataOnly(); 
             await renderFilteredTable(); 
+            // রিফ্রেশ এর পর নতুন ডাটা ক্যাশে সেভ করে রাখা
+            setCachedData({ sessionStudents, allClasses, allParents, currentSession, nextSession });
         }
 
         document.getElementById('filterClass').addEventListener('change', async e => { 
@@ -878,11 +926,32 @@
         window.closeParentProfileModal = () => document.getElementById('parentProfileModal').classList.add('hidden');
 
         async function init() { 
-            await loadSessions(); 
-            await loadClasses(); 
-            await loadAllParents();
+            // ১. ক্যাশ থেকে ডাটা লোড করে তৎক্ষণাৎ টেবিল তৈরি
+            const cached = getCachedData();
+            if (cached) {
+                sessionStudents = cached.sessionStudents || [];
+                allClasses = cached.allClasses || [];
+                allParents = cached.allParents || [];
+                currentSession = cached.currentSession || currentSession;
+                nextSession = cached.nextSession || nextSession;
+                
+                parentsMap = {};
+                allParents.forEach(p => parentsMap[p.id] = p);
+                
+                document.getElementById('sessionBadge').innerText = currentSession;
+                document.getElementById('nextBadge').innerText = nextSession;
+                populateClassDropdowns();
+                renderFilteredTable();
+            }
+
+            // ২. ফায়ারবেস থেকে ফ্রেশ ডাটা প্যারালালে আনা
+            await Promise.all([loadSessions(), loadClasses(), loadAllParents()]);
             initCloudinaryWidget();
-            await refreshAll(); 
+            
+            // ৩. ফ্রেশ ডাটা দিয়ে টেবিল আপডেট এবং ক্যাশে সেভ
+            await loadSessionDataOnly(); 
+            await renderFilteredTable(); 
+            setCachedData({ sessionStudents, allClasses, allParents, currentSession, nextSession });
         }
 
         document.getElementById('editForm').addEventListener('submit', saveStudentEdit);
