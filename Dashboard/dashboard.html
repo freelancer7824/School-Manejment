@@ -25,6 +25,9 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        const CACHE_KEY = 'dashboard_data_cache';
+        const CACHE_TTL = 5 * 60 * 1000; // 5 মিনিট ক্যাশ টিটিএল
+
         const dashboardMetrics = {
             admin: { id: 'totalAdmin', icon: 'fa-user-cog', color: '#e74c3c', label: 'Total Admins' },
             teacher: { id: 'totalTeacher', icon: 'fa-chalkboard-teacher', color: '#2ecc71', label: 'Total Teachers' },
@@ -34,79 +37,153 @@
             totalUsers: { id: 'totalUsers', icon: 'fa-users', color: '#e67e22', label: 'Total Users' }
         };
 
-        async function loadCurrentSession() {
+        /* ===== ক্যাশ হেল্পার ===== */
+        function getCachedData() {
             try {
-                const sessionDoc = await getDoc(doc(db, "config", "activeSession"));
-                let sessionName = "2025-2026";
-                if (sessionDoc.exists()) sessionName = sessionDoc.data().sessionName || "2025-2026";
+                const raw = localStorage.getItem(CACHE_KEY);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                if (Date.now() - parsed.timestamp > CACHE_TTL) {
+                    localStorage.removeItem(CACHE_KEY);
+                    return null;
+                }
+                return parsed.data;
+            } catch {
+                return null;
+            }
+        }
+
+        function setCachedData(data) {
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+            } catch { /* ক্যাশ সেভ ব্যর্থ হলেও সমস্যা নেই */ }
+        }
+
+        /* ===== UI আপডেট ফাংশন ===== */
+        function updateUI(data) {
+            const mapping = {
+                admin: 'totalAdmin',
+                teacher: 'totalTeacher',
+                student: 'totalStudent',
+                parent: 'totalParent',
+                superadmin: 'totalSuperAdmin',
+                totalUsers: 'totalUsers'
+            };
+
+            for (const key in mapping) {
+                const el = document.getElementById(mapping[key]);
+                if (el) el.textContent = data[key] ?? 0;
+            }
+
+            if (data.sessionName) {
                 const el = document.getElementById('currentSessionDisplay');
-                if (el) el.innerHTML = `<i class="fas fa-calendar-alt"></i> <span>${sessionName}</span>`;
-                return sessionName;
-            } catch (error) {
-                console.error("Error loading current session:", error);
-                const el = document.getElementById('currentSessionDisplay');
-                if (el) el.innerHTML = `<i class="fas fa-calendar-alt"></i> <span>2025-2026</span>`;
-                return "2025-2026";
+                if (el) el.innerHTML = `<i class="fas fa-calendar-alt"></i> <span>${data.sessionName}</span>`;
             }
         }
 
-        async function countSessionStudents(sessionName) {
-            let total = 0;
-            const classesSnap = await getDocs(collection(db, "classes"));
-            for (const classDoc of classesSnap.docs) {
-                const studentsSnap = await getDocs(collection(db, `current_session/${sessionName}/classes/${classDoc.id}/students`));
-                total += studentsSnap.size;
-            }
-            return total;
+        function hideLoadingOverlay() {
+            const overlay = document.getElementById('loading-overlay');
+            if (!overlay) return;
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 300);
         }
 
-        async function loadStudentCount(sessionName) {
+        function showError(message) {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) overlay.innerHTML = `<p style="color:red;">${message}</p>`;
+        }
+
+        /* ===== কার্ড তৈরি ===== */
+        function createDashboardCards() {
+            const grid = document.getElementById('infoCardsGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            let cardIndex = 1;
+            for (const key in dashboardMetrics) {
+                const metric = dashboardMetrics[key];
+                const card = document.createElement('div');
+                card.classList.add('info-card', `card-${cardIndex++}`);
+                card.innerHTML = `
+                    <div class="card-details">
+                        <div class="count" id="${metric.id}">0</div>
+                        <div class="label">${metric.label}</div>
+                    </div>
+                    <i class="fas ${metric.icon} card-icon"></i>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        /* ===== ফায়ারবেস থেকে ডাটা লোড (সব প্যারালালে) ===== */
+        async function fetchAllDataFromFirebase() {
+            // ১. সেশন নাম আনা হচ্ছে
+            const sessionPromise = getDoc(doc(db, "config", "activeSession"))
+                .then(snap => snap.exists() ? (snap.data().sessionName || "2025-2026") : "2025-2026")
+                .catch(() => "2025-2026");
+
+            // ২. ইউজার কাউন্ট আনা হচ্ছে
+            const usersPromise = getDocs(collection(db, "users"))
+                .then(snap => {
+                    const counts = { admin: 0, teacher: 0, superadmin: 0 };
+                    snap.forEach(d => {
+                        const role = d.data().role ? String(d.data().role).toLowerCase() : null;
+                        if (role === 'admin') counts.admin++;
+                        else if (role === 'teacher') counts.teacher++;
+                        else if (role === 'superadmin') counts.superadmin++;
+                    });
+                    return counts;
+                })
+                .catch(() => ({ admin: 0, teacher: 0, superadmin: 0 }));
+
+            // ৩. প্যারেন্ট কাউন্ট আনা হচ্ছে
+            const parentsPromise = getDocs(collection(db, "parents"))
+                .then(snap => snap.size)
+                .catch(() => 0);
+
+            // তিনটি রিকোয়েস্ট একসাথে চলছে
+            const [sessionName, userCounts, parentCount] = await Promise.all([
+                sessionPromise,
+                usersPromise,
+                parentsPromise
+            ]);
+
+            // ৪. সেশন নাম জানার পর স্টুডেন্ট কাউন্ট আনা হচ্ছে (সেশন দরকার)
+            let studentCount = 0;
             try {
-                const total = await countSessionStudents(sessionName);
-                const el = document.getElementById('totalStudent');
-                if (el) el.textContent = total;
-                return total;
-            } catch (error) {
-                console.error("Error loading student count:", error);
-                const el = document.getElementById('totalStudent');
-                if (el) el.textContent = "0";
-                return 0;
+                const classesSnap = await getDocs(collection(db, "classes"));
+                // সব ক্লাসের স্টুডেন্ট কাউন্ট প্যারালালে আনা হচ্ছে
+                const studentPromises = classesSnap.docs.map(classDoc =>
+                    getDocs(collection(db, `current_session/${sessionName}/classes/${classDoc.id}/students`))
+                        .then(snap => snap.size)
+                        .catch(() => 0)
+                );
+                const classCounts = await Promise.all(studentPromises);
+                studentCount = classCounts.reduce((sum, c) => sum + c, 0);
+            } catch (e) {
+                console.error("Student count error:", e);
             }
+
+            const totalUsers = userCounts.admin + userCounts.teacher + userCounts.superadmin + parentCount;
+
+            return {
+                admin: userCounts.admin,
+                teacher: userCounts.teacher,
+                student: studentCount,
+                parent: parentCount,
+                superadmin: userCounts.superadmin,
+                totalUsers: totalUsers,
+                sessionName: sessionName
+            };
         }
 
-        async function loadParentCount() {
-            try {
-                const snap = await getDocs(collection(db, "parents"));
-                const el = document.getElementById('totalParent');
-                if (el) el.textContent = snap.size;
-                return snap.size;
-            } catch (error) {
-                console.error("Error loading parent count:", error);
-                const el = document.getElementById('totalParent');
-                if (el) el.textContent = "0";
-                return 0;
-            }
-        }
-
-        function updateLoadingOverlay(done = false, errorMessage = "") {
-            const loadingOverlay = document.getElementById('loading-overlay');
-            if (!loadingOverlay) return;
-            if (done) {
-                loadingOverlay.style.opacity = '0';
-                setTimeout(() => { loadingOverlay.style.display = 'none'; }, 400);
-            } else if (errorMessage) {
-                loadingOverlay.innerHTML = `<p style="color:red;">${errorMessage}</p>`;
-            }
-        }
-
-        function loadUserCounts() {
+        /* ===== রিয়েলটাইম লিসেনার (ইউজার পরিবর্তন ধরা) ===== */
+        function setupRealtimeListener() {
             const q = query(collection(db, "users"));
             onSnapshot(q, async (snapshot) => {
                 const counts = { admin: 0, teacher: 0, superadmin: 0 };
-
                 snapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const role = data.role ? String(data.role).toLowerCase() : null;
+                    const role = docSnap.data().role ? String(docSnap.data().role).toLowerCase() : null;
                     if (role === 'admin') counts.admin++;
                     else if (role === 'teacher') counts.teacher++;
                     else if (role === 'superadmin') counts.superadmin++;
@@ -120,47 +197,48 @@
                 if (teacherEl) teacherEl.textContent = counts.teacher;
                 if (superAdminEl) superAdminEl.textContent = counts.superadmin;
 
-                const sessionName = await loadCurrentSession();
-                const parentCount = await loadParentCount();
-                await loadStudentCount(sessionName);
-
-                const totalUsersValue = counts.admin + counts.teacher + counts.superadmin + parentCount;
+                // টোটাল ইউজার আপডেট (প্যারেন্ট + স্টুডেন্ট আলাদা ফেচ না করে ক্যাশ থেকে নেওয়া)
+                const cached = getCachedData();
+                const parentCount = cached ? cached.parent : 0;
+                const totalUsers = counts.admin + counts.teacher + counts.superadmin + parentCount;
                 const totalUsersEl = document.getElementById('totalUsers');
-                if (totalUsersEl) totalUsersEl.textContent = totalUsersValue;
-
-                updateLoadingOverlay(true);
+                if (totalUsersEl) totalUsersEl.textContent = totalUsers;
             }, (error) => {
-                console.error("Error loading user counts:", error);
-                updateLoadingOverlay(false, `Error fetching data: ${error.message}`);
+                console.error("Realtime listener error:", error);
             });
         }
 
-        function createDashboardCards() {
-            const grid = document.getElementById('infoCardsGrid');
-            if (!grid) return;
-            grid.innerHTML = '';
+        /* ===== মেইন ইনিশিয়ালাইজেশন ===== */
+        function init() {
+            createDashboardCards();
 
-            let cardIndex = 1;
-            for (const key in dashboardMetrics) {
-                const metric = dashboardMetrics[key];
-                const card = document.createElement('div');
-                card.classList.add('info-card', `card-${cardIndex++}`);
-                card.style.backgroundColor = metric.color;
-                card.innerHTML = `
-                    <div class="card-details">
-                        <div class="count" id="${metric.id}">0</div>
-                        <div class="label">${metric.label}</div>
-                    </div>
-                    <i class="fas ${metric.icon} card-icon"></i>
-                `;
-                grid.appendChild(card);
+            // ক্যাশ থেকে ডাটা দিয়ে তৎক্ষণাৎ UI আপডেট
+            const cached = getCachedData();
+            if (cached) {
+                updateUI(cached);
+                hideLoadingOverlay(); // ক্যাশ থাকলে স্পিনার তৎক্ষণাৎ চলে যাবে
             }
+
+            // ফায়ারবেস থেকে ফ্রেশ ডাটা আনা হচ্ছে
+            fetchAllDataFromFirebase()
+                .then(data => {
+                    updateUI(data);
+                    setCachedData(data);
+                    if (!cached) hideLoadingOverlay(); // ক্যাশ না থাকলে এখানে হাইড
+                    setupRealtimeListener();
+                })
+                .catch(error => {
+                    console.error("Data fetch error:", error);
+                    if (!cached) showError(`Error: ${error.message}`);
+                });
         }
 
-        window.onload = () => {
-            createDashboardCards();
-            loadUserCounts();
-        };
+        // DOM রেডি হলেই শুরু, window.onload এর জন্য অপেক্ষা না করে
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 
     <style>
@@ -296,7 +374,7 @@
             align-items: center;
             flex-direction: column;
             z-index: 1000;
-            transition: opacity 0.5s;
+            transition: opacity 0.3s ease;
         }
 
         .spinner {
