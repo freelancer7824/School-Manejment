@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Parent Dashboard | Fee & Transactions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 
+                        primary: '#3b82f6', 
+                        primaryDark: '#2563eb',
+                        success: '#10b981', 
+                        danger: '#ef4444', 
+                        warning: '#f59e0b',
+                        purple: '#8b5cf6'
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Hind+Siliguri:wght@400;700&display=swap');
+        body { background: #f1f5f9; font-family: 'Roboto', 'Hind Siliguri', sans-serif; }
+        .student-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #e2e8f0; }
+        .fade-in { animation: fadeIn 0.25s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .session-badge { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .toast-notification {
+            position: fixed; bottom: 20px; right: 20px; background: #333; color: white;
+            padding: 12px 20px; border-radius: 8px; z-index: 9999; animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Transaction Modal -->
+    <div id="transactionModal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl fade-in">
+            <div class="bg-gradient-to-r from-purple to-purple-800 p-5 rounded-t-2xl text-white">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-bold text-lg"><i class="fas fa-history mr-2"></i>Transaction History</h3>
+                        <p class="text-sm opacity-90 mt-1" id="transStudentInfo">Student Name | Class</p>
+                    </div>
+                    <button onclick="closeTransactionModal()" class="text-2xl hover:text-gray-200">&times;</button>
+                </div>
+            </div>
+            
+            <!-- Summary -->
+            <div class="grid grid-cols-3 gap-3 p-4 border-b bg-gray-50">
+                <div class="text-center p-2 bg-white rounded-lg shadow-sm">
+                    <div class="text-xs text-gray-500">Total Paid</div>
+                    <div class="text-lg font-bold text-success">৳ <span id="transTotalPaid">0</span></div>
+                </div>
+                <div class="text-center p-2 bg-white rounded-lg shadow-sm">
+                    <div class="text-xs text-gray-500">Total Due</div>
+                    <div class="text-lg font-bold text-danger">৳ <span id="transTotalDue">0</span></div>
+                </div>
+                <div class="text-center p-2 bg-white rounded-lg shadow-sm">
+                    <div class="text-xs text-gray-500">Current Fee</div>
+                    <div class="text-lg font-bold text-primary">৳ <span id="transCurrentFee">0</span></div>
+                </div>
+            </div>
+
+            <!-- Transaction List -->
+            <div class="p-4 max-h-[55vh] overflow-y-auto">
+                <div id="transactionListContainer" class="space-y-2">
+                    <div class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</div>
+                </div>
+            </div>
+
+            <div class="p-4 border-t">
+                <button onclick="closeTransactionModal()" class="w-full bg-purple text-white py-2.5 rounded-xl font-bold hover:bg-purple-800 transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto">
+        
+        <!-- Header -->
+        <div class="bg-white rounded-xl shadow p-4 mb-5 flex justify-between items-center flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-wallet text-purple text-2xl"></i>
+                <h1 class="text-xl font-bold text-gray-800">Fee & Transactions</h1>
+            </div>
+            <div class="flex gap-3 items-center">
+                <div class="text-sm bg-gray-100 px-3 py-1 rounded-full">
+                    <i class="fas fa-calendar-alt text-blue-500 mr-1"></i>
+                    <span id="sessionBadge" class="session-badge">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parent Info Card -->
+        <div class="bg-white rounded-xl shadow p-4 mb-6 flex items-center gap-4 border-l-4 border-purple">
+            <div class="w-12 h-12 rounded-full bg-purple flex items-center justify-center text-white text-xl">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <div>
+                <div class="text-xs text-gray-500">Welcome, Parent</div>
+                <div class="text-xl font-bold text-gray-800" id="parentName">Loading...</div>
+            </div>
+            <div class="ml-auto text-sm text-gray-600">
+                <i class="fas fa-phone-alt text-purple mr-1"></i>
+                <span id="parentPhone">---</span>
+            </div>
+        </div>
+
+        <!-- Student Table -->
+        <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="px-5 py-4 border-b font-semibold text-gray-700 bg-gray-50">
+                <i class="fas fa-users text-purple mr-2"></i> My Children — Fee Status
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 text-gray-600">
+                        <tr>
+                            <th class="px-4 py-3 text-left">#</th>
+                            <th class="px-4 py-3 text-left">Photo</th>
+                            <th class="px-4 py-3 text-left">Student Name</th>
+                            <th class="px-4 py-3 text-left">Class & Section</th>
+                            <th class="px-4 py-3 text-left">Roll</th>
+                            <th class="px-4 py-3 text-left">Current Fee</th>
+                            <th class="px-4 py-3 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody">
+                        <tr><td colspan="7" class="text-center py-8 text-gray-400"><i class="fas fa-spinner fa-pulse mr-2"></i> Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center text-xs text-gray-400">
+            <i class="fas fa-info-circle text-purple mr-1"></i> Click "Transaction" to view payment history, due months & fee details
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "firebase/app";
+        import { getFirestore, collection, query, where, getDocs, getDoc, doc, orderBy } from "firebase/firestore";
+        import { getAuth, onAuthStateChanged } from "firebase/auth";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // ===== State =====
+        let currentParentId = null;
+        let currentSession = "2025-2026";
+        let allStudents = [];
+        let classOptionsMap = {};
+        let classFeesMap = {};
+        const ALL_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+        // ===== Toast =====
+        function showToastMessage(msg, type = "success") {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.style.background = type === 'error' ? '#dc2626' : type === 'warning' ? '#f59e0b' : '#10b981';
+            toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-triangle' : type === 'warning' ? 'fa-exclamation-circle' : 'fa-check-circle'} mr-2"></i>${msg}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3500);
+        }
+
+        function escapeHtml(str) { 
+            if (!str) return ""; 
+            return String(str).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': '&quot;', "'": '&#039;' }[m])); 
+        }
+
+        // স্টুডেন্টের বর্তমান ফি বের করা
+        function getStudentFee(student) {
+            if (student.currentFee && student.currentFee > 0) return student.currentFee;
+            return classFeesMap[student.classId] || 0;
+        }
+
+        // ===== Session Load =====
+        async function getSession() {
+            try {
+                const sessionDoc = await getDoc(doc(db, "config", "activeSession"));
+                if (sessionDoc.exists()) currentSession = sessionDoc.data().sessionName || "2025-2026";
+            } catch (e) { console.error(e); }
+            document.getElementById("sessionBadge").innerHTML = `<i class="fas fa-database mr-1"></i> ${currentSession}`;
+        }
+
+        // ===== Classes & Fees Load =====
+        async function loadClassesAndFees() {
+            try {
+                const classesSnap = await getDocs(collection(db, "classes"));
+                classOptionsMap = {};
+                classesSnap.forEach(d => { classOptionsMap[d.id] = d.data().name; });
+
+                // সব ক্লাসের ফি একসাথে লোড
+                classFeesMap = {};
+                const feePromises = classesSnap.docs.map(async classDoc => {
+                    const classId = classDoc.id;
+                    try {
+                        const feeDoc = await getDoc(doc(db, "classFees", `${classId}_${currentSession}`));
+                        if (feeDoc.exists()) classFeesMap[classId] = feeDoc.data().totalMonthly || 0;
+                        else classFeesMap[classId] = 0;
+                    } catch (e) { classFeesMap[classId] = 0; }
+                });
+                await Promise.all(feePromises);
+                return classesSnap;
+            } catch (e) { console.error(e); return { docs: [] }; }
+        }
+
+        // ===== Parent Data Load =====
+        async function loadParentData(user) {
+            if (!user) return null;
+            try {
+                const q = query(collection(db, "parents"), where("authUserId", "==", user.uid));
+                const snap = await getDocs(q);
+                if (!snap.empty) {
+                    const parentDoc = snap.docs[0];
+                    const data = parentDoc.data();
+                    currentParentId = parentDoc.id;
+                    document.getElementById("parentName").innerText = data.guardianName || data.fatherName || "Parent";
+                    document.getElementById("parentPhone").innerText = data.guardianPhone || data.fatherPhone || "-";
+                    return currentParentId;
+                } else {
+                    document.getElementById("parentName").innerHTML = '<span class="text-red-500">Parent profile not found</span>';
+                    return null;
+                }
+            } catch (err) { console.error(err); return null; }
+        }
+
+        // ===== Students Load =====
+        async function loadStudents(parentId) {
+            const tbody = document.getElementById("studentTableBody");
+            if (!parentId) { tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-400">Parent account not linked</td></tr>`; return; }
+            
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-purple"><i class="fas fa-spinner fa-pulse mr-2"></i> Fetching students...</td></tr>`;
+            
+            try {
+                const classesSnap = await loadClassesAndFees();
+                allStudents = [];
+                
+                const studentFetchPromises = classesSnap.docs.map(classDoc => {
+                    const classId = classDoc.id;
+                    const studRef = collection(db, `current_session/${currentSession}/classes/${classId}/students`);
+                    return getDocs(studRef);
+                });
+
+                const studentSnaps = await Promise.all(studentFetchPromises);
+                
+                studentSnaps.forEach((studSnap, index) => {
+                    const classId = classesSnap.docs[index].id;
+                    for (const docSnap of studSnap.docs) {
+                        const data = docSnap.data();
+                        if (data.parentID === parentId && data.promotedToNextSession !== true) {
+                            allStudents.push({
+                                id: docSnap.id,
+                                fullName: data.fullName || data.name || "-",
+                                className: classOptionsMap[classId] || data.className || "-",
+                                section: data.section || "",
+                                rollNumber: data.rollNumber || data.roll || "-",
+                                classId: classId,
+                                profileImage: data.profileImage || data.passportPhotoURL || null,
+                                currentFee: data.currentFee || 0,
+                                _sessionPath: `current_session/${currentSession}/classes/${classId}/students`
+                            });
+                        }
+                    }
+                });
+                
+                if (allStudents.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-400">No students found under your account.</td></tr>`;
+                    return;
+                }
+                
+                renderStudentTable();
+            } catch (err) { 
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-red-400">Error: ${err.message}</td></tr>`;
+            }
+        }
+
+        // ===== Render Student Table =====
+        function renderStudentTable() {
+            const tbody = document.getElementById("studentTableBody");
+            tbody.innerHTML = allStudents.map((s, i) => {
+                const avatarUrl = s.profileImage || `https://ui-avatars.com/api/?background=8b5cf6&color=fff&name=${encodeURIComponent(s.fullName)}`;
+                const studentFee = getStudentFee(s);
+                const isCustomFee = s.currentFee && s.currentFee > 0;
+                const fallbackAvatar = `https://ui-avatars.com/api/?background=8b5cf6&color=fff&name=${encodeURIComponent(s.fullName)}`;
+                
+                return `
+                <tr class="border-t hover:bg-purple-50/30 transition">
+                    <td class="px-4 py-3 text-gray-400 text-xs">${i + 1}</td>
+                    <td class="px-2 py-2">
+                        <img src="${escapeHtml(avatarUrl)}" class="student-avatar" onerror="this.src='${fallbackAvatar}'">
+                    </td>
+                    <td class="px-4 py-3 font-semibold text-gray-800">${escapeHtml(s.fullName)}</td>
+                    <td class="px-4 py-3">
+                        <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs font-medium">${escapeHtml(s.className)}</span>
+                        ${s.section ? ` <span class="text-gray-500 text-xs">- ${escapeHtml(s.section)}</span>` : ""}
+                    </td>
+                    <td class="px-4 py-3 font-mono text-gray-700">${escapeHtml(s.rollNumber)}</td>
+                    <td class="px-4 py-3">
+                        <span class="font-bold text-sm ${isCustomFee ? 'text-purple' : 'text-primary'}">৳${studentFee.toLocaleString()}</span>
+                        ${isCustomFee ? '<span class="text-[10px] text-purple bg-purple-50 px-1 rounded ml-1">Custom</span>' : ''}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <button class="transBtn bg-purple text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-purple-800 transition shadow-sm" data-id="${s.id}">
+                            <i class="fas fa-history mr-1"></i> Transaction
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            tbody.querySelectorAll('.transBtn').forEach(btn => {
+                btn.addEventListener('click', () => openTransactionModal(btn.dataset.id));
+            });
+        }
+
+        // ===== Calculate Student Due Data =====
+        async function getStudentDueData(studentId, studentFee) {
+            const feeToUse = studentFee || 0;
+            try {
+                const q = query(collection(db, "payments"), where("studentId", "==", studentId), where("session", "==", currentSession));
+                const snap = await getDocs(q);
+                
+                let totalPaid = 0;
+                let paidSessionMonths = [];
+                let allTransactions = [];
+
+                snap.forEach(d => {
+                    const data = d.data();
+                    totalPaid += data.amount || 0;
+                    allTransactions.push({ id: d.id, ...data });
+                    if (data.feeType === 'session_fee') {
+                        paidSessionMonths.push({ month: data.month, year: data.year });
+                    }
+                });
+
+                const startYear = parseInt(currentSession.split('-')[0]);
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonthIndex = now.getMonth();
+
+                let expectedMonths = [];
+                if (currentYear === startYear) {
+                    for (let i = 0; i <= currentMonthIndex; i++) expectedMonths.push({ month: ALL_MONTHS[i], year: startYear });
+                } else if (currentYear > startYear) {
+                    for (let i = 0; i < 12; i++) expectedMonths.push({ month: ALL_MONTHS[i], year: startYear });
+                    for (let i = 0; i <= currentMonthIndex; i++) expectedMonths.push({ month: ALL_MONTHS[i], year: currentYear });
+                }
+
+                let dueMonths = expectedMonths.filter(em => !paidSessionMonths.some(pm => pm.month === em.month && pm.year === em.year));
+                const dueAmount = dueMonths.length * feeToUse;
+
+                allTransactions.sort((a, b) => {
+                    const dateA = a.paidAt?.toMillis ? a.paidAt.toMillis() : 0;
+                    const dateB = b.paidAt?.toMillis ? b.paidAt.toMillis() : 0;
+                    return dateB - dateA;
+                });
+
+                return { totalPaid, dueAmount, dueMonths, allTransactions };
+            } catch (e) {
+                console.error('Due calc error:', e);
+                return { totalPaid: 0, dueAmount: 0, dueMonths: [], allTransactions: [] };
+            }
+        }
+
+        // ===== Transaction Modal =====
+        async function openTransactionModal(studentId) {
+            const s = allStudents.find(x => x.id === studentId);
+            if (!s) { showToastMessage('Student not found', 'error'); return; }
+
+            const studentFee = getStudentFee(s);
+            const isCustomFee = s.currentFee && s.currentFee > 0;
+
+            document.getElementById('transStudentInfo').innerText = `${s.fullName} | ${s.className} - ${s.section}`;
+            document.getElementById('transCurrentFee').innerText = studentFee.toLocaleString();
+            document.getElementById('transTotalPaid').innerText = '...';
+            document.getElementById('transTotalDue').innerText = '...';
+            document.getElementById('transactionListContainer').innerHTML = '<div class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</div>';
+            
+            document.getElementById('transactionModal').classList.remove('hidden');
+
+            const dueData = await getStudentDueData(studentId, studentFee);
+            
+            document.getElementById('transTotalPaid').innerText = dueData.totalPaid.toLocaleString();
+            document.getElementById('transTotalDue').innerText = dueData.dueAmount.toLocaleString();
+
+            const container = document.getElementById('transactionListContainer');
+            
+            // Student Fee Info
+            let feeInfoHtml = `
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-semibold text-blue-700">Current Monthly Fee</div>
+                            <div class="text-lg font-bold text-blue-800">৳ ${studentFee.toLocaleString()}</div>
+                        </div>
+                        ${isCustomFee ? '<span class="text-[10px] bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-semibold">Individual Fee</span>' : '<span class="text-[10px] bg-blue-100 text-blue-600 px-2 py-1 rounded-full">Class Fee</span>'}
+                    </div>
+                </div>
+            `;
+
+            if (dueData.dueMonths.length > 0) {
+                feeInfoHtml += `
+                    <div class="bg-red-50 border border-red-200 rounded-xl p-3 mb-3">
+                        <div class="text-xs font-bold text-red-700 mb-2"><i class="fas fa-exclamation-triangle mr-1"></i> Due Months (${dueData.dueMonths.length}) — ৳${dueData.dueAmount.toLocaleString()}</div>
+                        <div class="flex flex-wrap gap-1.5">
+                            ${dueData.dueMonths.map(dm => `<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-medium">${dm.month} ${dm.year}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                feeInfoHtml += `
+                    <div class="bg-green-50 border border-green-200 rounded-xl p-3 mb-3">
+                        <div class="text-xs font-bold text-green-700"><i class="fas fa-check-circle mr-1"></i> No session fee due! All clear.</div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = feeInfoHtml;
+
+            if (dueData.allTransactions.length === 0) {
+                container.innerHTML += '<div class="text-center text-gray-400 py-6 text-sm">No payment records found</div>';
+            } else {
+                container.innerHTML += `
+                    <div class="text-xs font-bold text-gray-500 mb-2 mt-2"><i class="fas fa-list mr-1"></i> Payment History</div>
+                ` + dueData.allTransactions.map(t => {
+                    const dateStr = t.paidAt?.toDate ? t.paidAt.toDate().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+                    const typeLabel = t.feeType === 'session_fee' ? 'Session' : t.feeType === 'admission_fee' ? 'Admission' : t.feeType === 'exam_fee' ? 'Exam' : t.feeType === 'transport_fee' ? 'Transport' : t.feeType === 'lab_fee' ? 'Lab' : t.feeType === 'library_fee' ? 'Library' : t.feeType;
+                    const typeBg = t.feeType === 'session_fee' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700';
+                    
+                    return `
+                        <div class="flex items-center justify-between p-3 border rounded-xl hover:bg-gray-50 transition">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-check text-success text-xs"></i>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-sm text-gray-800">${typeLabel} Fee</div>
+                                    <div class="text-xs text-gray-400">${dateStr} ${t.month ? `• ${t.month} ${t.year || ''}` : ''}</div>
+                                </div>
+                            </div>
+                            <div class="text-right flex-shrink-0">
+                                <div class="font-bold text-success">৳ ${t.amount?.toLocaleString() || 0}</div>
+                                <span class="${typeBg} px-1.5 py-0.5 rounded text-[10px] font-medium">${t.status || 'paid'}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        window.closeTransactionModal = () => document.getElementById('transactionModal').classList.add('hidden');
+
+        // ===== Auth & Init =====
+        onAuthStateChanged(auth, async (user) => {
+            await getSession();
+            if (user) {
+                const parentId = await loadParentData(user);
+                if (parentId) await loadStudents(parentId);
+            } else {
+                document.getElementById("studentTableBody").innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-400">Please login to view transactions</td></tr>`;
+                showToastMessage("Please login first", "error");
+            }
+        });
+    </script>
+</body>
+</html>
