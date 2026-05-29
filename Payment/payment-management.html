@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Payment Management | Class-wise Monthly Fee Setup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 
+                        primary: '#059669', 
+                        primaryDark: '#047857',
+                        primaryLight: '#d1fae5',
+                        accent: '#f59e0b',
+                        danger: '#ef4444', 
+                        success: '#10b981', 
+                        warning: '#f59e0b',
+                        slate: '#64748b'
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body { background: #f0fdf4; font-family: system-ui, -apple-system, 'Segoe UI', Roboto; }
+        .fee-card { transition: all 0.2s ease; }
+        .fee-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(5,150,105,0.12); }
+        .amount-input:focus { box-shadow: 0 0 0 3px rgba(5,150,105,0.15); }
+        .class-chip { transition: all 0.15s ease; }
+        .class-chip:hover { transform: scale(1.03); }
+        .class-chip.active { background: #059669; color: white; box-shadow: 0 2px 8px rgba(5,150,105,0.3); }
+        .pulse-dot { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .fade-in { animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .shimmer { background: linear-gradient(90deg, #f0fdf4 25%, #dcfce7 50%, #f0fdf4 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .total-bar { background: linear-gradient(135deg, #059669, #047857); }
+        .stat-card { background: white; border-left: 4px solid #059669; }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-5 right-5 z-50 hidden transition-all duration-300">
+        <div class="bg-white rounded-xl shadow-xl px-5 py-3 flex items-center gap-3 border-l-4 border-success min-w-[260px]">
+            <i id="toastIcon" class="fas fa-check-circle text-success text-lg"></i>
+            <span id="toastText" class="text-gray-700 text-sm font-medium">Success</span>
+            <button onclick="hideToast()" class="ml-2 text-gray-400 hover:text-gray-700"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
+    <!-- Delete Fee Modal -->
+    <div id="deleteFeeModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 fade-in">
+            <div class="flex gap-3 items-center mb-3">
+                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <i class="fas fa-trash-alt text-danger"></i>
+                </div>
+                <h3 class="text-lg font-bold">Delete Fee Item</h3>
+            </div>
+            <p class="text-gray-600 text-sm">Remove <strong id="deleteFeeName"></strong> from this class?</p>
+            <div class="flex justify-end gap-3 mt-5">
+                <button onclick="closeDeleteFeeModal()" class="px-4 py-2 border rounded-lg text-sm">Cancel</button>
+                <button id="confirmDeleteFee" class="px-4 py-2 bg-danger text-white rounded-lg text-sm">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Copy Fees Modal -->
+    <div id="copyFeesModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 fade-in">
+            <div class="flex gap-3 items-center mb-4">
+                <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                    <i class="fas fa-copy text-accent"></i>
+                </div>
+                <h3 class="text-lg font-bold">Copy Fee Structure</h3>
+            </div>
+            <p class="text-gray-500 text-sm mb-3">Copy all fee items from another class:</p>
+            <select id="copySourceClass" class="w-full border rounded-lg p-2 mb-2"></select>
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800 mb-4">
+                <i class="fas fa-exclamation-triangle mr-1"></i>
+                This will replace all existing fee items for the current class.
+            </div>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeCopyModal()" class="px-4 py-2 border rounded-lg text-sm">Cancel</button>
+                <button id="confirmCopyFees" class="px-4 py-2 bg-accent text-white rounded-lg text-sm">Copy Fees</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6 flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+                <span class="bg-primary text-white p-2.5 rounded-xl shadow-lg shadow-primary/20"><i class="fas fa-money-bill-wave text-xl"></i></span>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Payment Management</h1>
+                    <p class="text-sm text-gray-500">Class-wise monthly fee setup</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="bg-white px-4 py-2 rounded-full shadow text-sm font-medium">
+                    <i class="fas fa-calendar-alt text-primary mr-1"></i>
+                    <select id="sessionView" class="bg-transparent outline-none font-medium text-gray-700 cursor-pointer">
+                        <option value="current">Current Session</option>
+                        <option value="next">Next Session</option>
+                    </select>
+                </div>
+                <button id="backToStudentBtn" class="bg-white px-4 py-2 rounded-full shadow text-sm font-medium text-gray-600 hover:text-primary transition">
+                    <i class="fas fa-arrow-left mr-1"></i> Students
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="stat-card rounded-xl p-4 shadow-sm">
+                <div class="text-xs text-gray-500 font-medium">Total Classes</div>
+                <div class="text-2xl font-bold text-gray-800 mt-1" id="statTotalClasses">0</div>
+            </div>
+            <div class="stat-card rounded-xl p-4 shadow-sm">
+                <div class="text-xs text-gray-500 font-medium">Configured</div>
+                <div class="text-2xl font-bold text-primary mt-1" id="statConfigured">0</div>
+            </div>
+            <div class="stat-card rounded-xl p-4 shadow-sm">
+                <div class="text-xs text-gray-500 font-medium">Not Configured</div>
+                <div class="text-2xl font-bold text-accent mt-1" id="statNotConfigured">0</div>
+            </div>
+            <div class="stat-card rounded-xl p-4 shadow-sm">
+                <div class="text-xs text-gray-500 font-medium">Avg. Monthly Fee</div>
+                <div class="text-2xl font-bold text-gray-800 mt-1" id="statAvgFee">0</div>
+            </div>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="grid lg:grid-cols-12 gap-6">
+
+            <!-- Left: Class List -->
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-2xl shadow-md p-4 sticky top-4">
+                    <h3 class="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                        <i class="fas fa-layer-group text-primary"></i> Select Class
+                    </h3>
+                    <input id="classSearchInput" type="text" placeholder="Search class..." class="w-full border rounded-lg p-2 text-sm mb-3 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none">
+                    <div id="classListContainer" class="space-y-1.5 max-h-[60vh] overflow-y-auto pr-1">
+                        <div class="shimmer h-10 rounded-lg"></div>
+                        <div class="shimmer h-10 rounded-lg"></div>
+                        <div class="shimmer h-10 rounded-lg"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Fee Setup -->
+            <div class="lg:col-span-9">
+                <div id="noClassSelected" class="bg-white rounded-2xl shadow-md p-12 text-center">
+                    <i class="fas fa-hand-pointer text-6xl text-gray-200 mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-300">Select a Class</h3>
+                    <p class="text-gray-300 text-sm mt-1">Choose a class from the left to set up monthly fees</p>
+                </div>
+
+                <div id="feeSetupPanel" class="hidden space-y-5 fade-in">
+                    <!-- Class Header -->
+                    <div class="bg-white rounded-2xl shadow-md p-5">
+                        <div class="flex justify-between items-center flex-wrap gap-3">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-800">
+                                    <i class="fas fa-graduation-cap text-primary mr-2"></i>
+                                    <span id="selectedClassName">Class Name</span>
+                                </h2>
+                                <p class="text-sm text-gray-400 mt-1">
+                                    Session: <span id="selectedSessionLabel" class="font-medium text-gray-600">2025-2026</span>
+                                    <span class="mx-2">|</span>
+                                    <span id="feeStatusBadge" class="px-2 py-0.5 rounded-full text-xs font-medium"></span>
+                                </p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="copyFeesBtn" class="border border-amber-300 text-amber-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-amber-50 transition">
+                                    <i class="fas fa-copy mr-1"></i> Copy From
+                                </button>
+                                <button id="addFeeItemBtn" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primaryDark transition shadow-sm shadow-primary/20">
+                                    <i class="fas fa-plus mr-1"></i> Add Fee Item
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fee Items -->
+                    <div id="feeItemsContainer" class="space-y-3">
+                        <!-- Fee items will be rendered here -->
+                    </div>
+
+                    <!-- Add Fee Form (hidden by default) -->
+                    <div id="addFeeForm" class="hidden bg-white rounded-2xl shadow-md p-5 border-2 border-primary/30 fade-in">
+                        <h4 class="font-bold text-gray-700 mb-3"><i class="fas fa-plus-circle text-primary mr-1"></i> Add New Fee Item</h4>
+                        <div class="grid md:grid-cols-12 gap-3 items-end">
+                            <div class="md:col-span-5">
+                                <label class="text-xs font-semibold text-gray-500">Fee Name *</label>
+                                <input id="newFeeName" type="text" placeholder="e.g. Tuition Fee" class="w-full border rounded-lg p-2 text-sm mt-1 focus:border-primary outline-none">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="text-xs font-semibold text-gray-500">Amount (৳) *</label>
+                                <input id="newFeeAmount" type="number" min="0" placeholder="0" class="w-full border rounded-lg p-2 text-sm mt-1 focus:border-primary outline-none amount-input">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="text-xs font-semibold text-gray-500">Type</label>
+                                <select id="newFeeType" class="w-full border rounded-lg p-2 text-sm mt-1 focus:border-primary outline-none">
+                                    <option value="monthly">Monthly</option>
+                                    <option value="yearly">Yearly</option>
+                                    <option value="one_time">One Time</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2 flex gap-2">
+                                <button id="saveNewFeeBtn" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium flex-1 hover:bg-primaryDark transition">
+                                    <i class="fas fa-check"></i> Add
+                                </button>
+                                <button id="cancelNewFeeBtn" class="border px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 transition">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Bar -->
+                    <div class="total-bar rounded-2xl p-5 text-white shadow-lg shadow-primary/20">
+                        <div class="flex justify-between items-center flex-wrap gap-3">
+                            <div>
+                                <div class="text-sm opacity-80">Total Monthly Fee</div>
+                                <div class="text-3xl font-bold mt-1">৳ <span id="totalMonthlyFee">0</span></div>
+                            </div>
+                            <div class="flex gap-6 text-center">
+                                <div>
+                                    <div class="text-sm opacity-80">Monthly Items</div>
+                                    <div class="text-xl font-bold" id="monthlyItemCount">0</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm opacity-80">Yearly Items</div>
+                                    <div class="text-xl font-bold" id="yearlyItemCount">0</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm opacity-80">One Time</div>
+                                    <div class="text-xl font-bold" id="oneTimeItemCount">0</div>
+                                </div>
+                            </div>
+                            <button id="saveAllFeesBtn" class="bg-white text-primary px-6 py-3 rounded-xl font-bold hover:bg-gray-50 transition shadow-md">
+                                <i class="fas fa-save mr-2"></i> Save Configuration
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Classes Overview -->
+        <div class="mt-8">
+            <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2">
+                <i class="fas fa-table text-primary"></i> All Classes Fee Overview
+            </h3>
+            <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 border-b">
+                            <tr class="text-left text-gray-600">
+                                <th class="px-4 py-3">#</th>
+                                <th class="px-4 py-3">Class</th>
+                                <th class="px-4 py-3">Monthly Fee (৳)</th>
+                                <th class="px-4 py-3">Fee Items</th>
+                                <th class="px-4 py-3">Status</th>
+                                <th class="px-4 py-3">Last Updated</th>
+                                <th class="px-4 py-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="overviewTableBody">
+                            <tr><td colspan="7" class="text-center py-10 text-gray-400"><i class="fas fa-spinner fa-spin text-xl"></i><p class="mt-2">Loading...</p></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, collection, query, getDocs, doc, updateDoc, deleteDoc, getDoc, where, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk", 
+            authDomain: "school-menejment.firebaseapp.com", 
+            projectId: "school-menejment", 
+            storageBucket: "school-menejment.firebasestorage.app", 
+            messagingSenderId: "348342436525", 
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24" 
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // ===== State =====
+        let allClasses = [];
+        let currentSession = "2025-2026";
+        let nextSession = "2026-2027";
+        let activeSession = "2025-2026";
+        let selectedClassId = null;
+        let classFeesData = {}; // { classId: { fees: [...], totalMonthly: 0, updatedAt: '...' } }
+        let deleteFeeIndex = null;
+        let editingFeeIndex = null;
+
+        // ===== Toast =====
+        function showToast(msg, type = "success") {
+            const toast = document.getElementById('toast');
+            const border = type === 'success' ? 'border-success' : type === 'warning' ? 'border-warning' : 'border-danger';
+            toast.querySelector('div').className = `bg-white rounded-xl shadow-xl px-5 py-3 flex items-center gap-3 border-l-4 ${border} min-w-[260px]`;
+            document.getElementById('toastText').innerText = msg;
+            const icon = document.getElementById('toastIcon');
+            icon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' : 
+                            type === 'warning' ? 'fas fa-exclamation-triangle text-warning text-lg' : 
+                            'fas fa-times-circle text-danger text-lg';
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+        window.hideToast = () => document.getElementById('toast').classList.add('hidden');
+
+        function escapeHtml(str) { 
+            if (!str) return ''; 
+            return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m])); 
+        }
+
+        // ===== Session Load =====
+        async function loadSessions() {
+            try {
+                const sdoc = await getDoc(doc(db, "config", "activeSession"));
+                if (sdoc.exists()) currentSession = sdoc.data().sessionName || currentSession;
+                const parts = currentSession.split('-');
+                nextSession = parts.length === 2 ? `${parseInt(parts[0]) + 1}-${parseInt(parts[1]) + 1}` : "2026-2027";
+            } catch (e) { console.error('Session load error:', e); }
+            activeSession = currentSession;
+            document.getElementById('selectedSessionLabel').innerText = activeSession;
+        }
+
+        // ===== Classes Load =====
+        async function loadClasses() {
+            const snap = await getDocs(query(collection(db, "classes"), orderBy("order")));
+            allClasses = snap.docs.map(d => ({ id: d.id, name: d.data().name }));
+            renderClassList();
+            renderOverviewTable();
+            updateStats();
+        }
+
+        // ===== Fee Data Load =====
+        async function loadAllFees() {
+            classFeesData = {};
+            try {
+                const snap = await getDocs(collection(db, "classFees"));
+                snap.forEach(d => {
+                    const data = d.data();
+                    // শুধু কারেন্ট সেশনের ডাটা দেখাবো
+                    if (data.session === activeSession) {
+                        classFeesData[data.classId] = {
+                            fees: data.fees || [],
+                            totalMonthly: data.totalMonthly || 0,
+                            updatedAt: data.updatedAt || '',
+                            session: data.session
+                        };
+                    }
+                });
+            } catch (e) { console.error('Fee load error:', e); }
+            renderClassList();
+            renderOverviewTable();
+            updateStats();
+            if (selectedClassId) renderFeeSetup();
+        }
+
+        async function loadFeeForClass(classId) {
+            try {
+                const feeDoc = await getDoc(doc(db, "classFees", `${classId}_${activeSession}`));
+                if (feeDoc.exists()) {
+                    const data = feeDoc.data();
+                    classFeesData[classId] = {
+                        fees: data.fees || [],
+                        totalMonthly: data.totalMonthly || 0,
+                        updatedAt: data.updatedAt || '',
+                        session: data.session
+                    };
+                } else {
+                    classFeesData[classId] = { fees: [], totalMonthly: 0, updatedAt: '', session: activeSession };
+                }
+            } catch (e) { 
+                console.error('Fee load error:', e);
+                classFeesData[classId] = { fees: [], totalMonthly: 0, updatedAt: '', session: activeSession };
+            }
+        }
+
+        // ===== Render Class List =====
+        function renderClassList() {
+            const container = document.getElementById('classListContainer');
+            const search = document.getElementById('classSearchInput').value.toLowerCase().trim();
+            const filtered = allClasses.filter(c => c.name.toLowerCase().includes(search));
+
+            if (!filtered.length) {
+                container.innerHTML = '<div class="text-center text-gray-400 text-sm py-6">No classes found</div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(c => {
+                const feeData = classFeesData[c.id];
+                const isConfigured = feeData && feeData.fees && feeData.fees.length > 0;
+                const isActive = selectedClassId === c.id;
+                const total = feeData?.totalMonthly || 0;
+
+                return `
+                    <button class="class-chip w-full text-left px-3 py-2.5 rounded-xl border flex items-center justify-between gap-2 transition
+                        ${isActive ? 'active border-primary' : 'border-gray-200 hover:border-primary/40 bg-white'}" 
+                        data-classid="${c.id}">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="w-2 h-2 rounded-full flex-shrink-0 ${isConfigured ? 'bg-success' : 'bg-accent'}"></span>
+                            <span class="font-medium text-sm truncate">${escapeHtml(c.name)}</span>
+                        </div>
+                        ${isConfigured ? `<span class="text-xs font-bold flex-shrink-0 ${isActive ? 'text-white/80' : 'text-primary'}">৳${total}</span>` : 
+                            `<span class="text-xs ${isActive ? 'text-white/60' : 'text-gray-400'}">Setup</span>`}
+                    </button>
+                `;
+            }).join('');
+
+            // ইভেন্ট লাগানো
+            container.querySelectorAll('.class-chip').forEach(btn => {
+                btn.addEventListener('click', () => selectClass(btn.dataset.classid));
+            });
+        }
+
+        // ===== Select Class =====
+        async function selectClass(classId) {
+            selectedClassId = classId;
+            const cls = allClasses.find(c => c.id === classId);
+            
+            document.getElementById('noClassSelected').classList.add('hidden');
+            document.getElementById('feeSetupPanel').classList.remove('hidden');
+            document.getElementById('selectedClassName').innerText = cls?.name || 'Unknown';
+            
+            if (!classFeesData[classId]) {
+                await loadFeeForClass(classId);
+            }
+            
+            renderClassList();
+            renderFeeSetup();
+        }
+
+        // ===== Render Fee Setup =====
+        function renderFeeSetup() {
+            if (!selectedClassId) return;
+            const feeData = classFeesData[selectedClassId] || { fees: [], totalMonthly: 0 };
+            const fees = feeData.fees || [];
+            const container = document.getElementById('feeItemsContainer');
+
+            // Status badge
+            const badge = document.getElementById('feeStatusBadge');
+            if (fees.length === 0) {
+                badge.className = 'px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700';
+                badge.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Not Configured';
+            } else {
+                badge.className = 'px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700';
+                badge.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Configured';
+            }
+
+            if (fees.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl shadow-md p-10 text-center border-2 border-dashed border-gray-200">
+                        <i class="fas fa-receipt text-5xl text-gray-200 mb-3"></i>
+                        <h4 class="text-gray-400 font-medium">No fee items configured</h4>
+                        <p class="text-gray-300 text-sm mt-1">Click "Add Fee Item" to start setting up monthly fees</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = fees.map((fee, index) => {
+                    const typeLabel = fee.type === 'monthly' ? 'Monthly' : fee.type === 'yearly' ? 'Yearly' : 'One Time';
+                    const typeBg = fee.type === 'monthly' ? 'bg-blue-100 text-blue-700' : fee.type === 'yearly' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700';
+                    const isEditing = editingFeeIndex === index;
+
+                    if (isEditing) {
+                        return `
+                            <div class="bg-white rounded-xl shadow-md p-4 border-2 border-primary/40 fade-in">
+                                <div class="grid md:grid-cols-12 gap-3 items-end">
+                                    <div class="md:col-span-5">
+                                        <label class="text-xs font-semibold text-gray-500">Fee Name</label>
+                                        <input type="text" id="editFeeName_${index}" value="${escapeHtml(fee.name)}" class="w-full border rounded-lg p-2 text-sm mt-1 focus:border-primary outline-none">
+                                    </div>
+                                    <div class="md:col-span-3">
+                                        <label class="text-xs font-semibold text-gray-500">Amount (৳)</label>
+                                        <input type="number" id="editFeeAmount_${index}" value="${fee.amount}" min="0" class="w-full border rounded-lg p-2 text-sm mt-1 focus:border-primary outline-none amount-input">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="text-xs font-semibold text-gray-500">Type</label>
+                                        <select id="editFeeType_${index}" class="w-full border rounded-lg p-2 text-sm mt-1 focus:border-primary outline-none">
+                                            <option value="monthly" ${fee.type === 'monthly' ? 'selected' : ''}>Monthly</option>
+                                            <option value="yearly" ${fee.type === 'yearly' ? 'selected' : ''}>Yearly</option>
+                                            <option value="one_time" ${fee.type === 'one_time' ? 'selected' : ''}>One Time</option>
+                                        </select>
+                                    </div>
+                                    <div class="md:col-span-2 flex gap-2">
+                                        <button class="saveEditFee bg-primary text-white px-3 py-2 rounded-lg text-sm flex-1 hover:bg-primaryDark transition" data-index="${index}">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="cancelEditFee border px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 transition" data-index="${index}">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="fee-card bg-white rounded-xl shadow-sm p-4 border border-gray-100 flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-10 h-10 rounded-lg bg-primaryLight flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-${fee.type === 'monthly' ? 'calendar-alt' : fee.type === 'yearly' ? 'calendar-check' : 'dot-circle'} text-primary"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="font-semibold text-gray-800 truncate">${escapeHtml(fee.name)}</div>
+                                    <span class="text-xs ${typeBg} px-2 py-0.5 rounded-full">${typeLabel}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 flex-shrink-0">
+                                <div class="text-right">
+                                    <div class="text-lg font-bold text-gray-800">৳ ${fee.amount.toLocaleString()}</div>
+                                    ${fee.type === 'monthly' ? '<div class="text-xs text-gray-400">per month</div>' : 
+                                      fee.type === 'yearly' ? '<div class="text-xs text-gray-400">per year</div>' : 
+                                      '<div class="text-xs text-gray-400">one time</div>'}
+                                </div>
+                                <div class="flex gap-1">
+                                    <button class="editFeeBtn p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-primary transition" data-index="${index}" title="Edit">
+                                        <i class="fas fa-pen text-xs"></i>
+                                    </button>
+                                    <button class="deleteFeeBtn p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-danger transition" data-index="${index}" title="Delete">
+                                        <i class="fas fa-trash-alt text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Totals আপডেট
+            updateTotals();
+            attachFeeItemEvents();
+        }
+
+        function updateTotals() {
+            const feeData = classFeesData[selectedClassId] || { fees: [] };
+            const fees = feeData.fees || [];
+            const totalMonthly = fees.filter(f => f.type === 'monthly').reduce((sum, f) => sum + (parseFloat(f.amount) || 0), 0);
+            const monthlyCount = fees.filter(f => f.type === 'monthly').length;
+            const yearlyCount = fees.filter(f => f.type === 'yearly').length;
+            const oneTimeCount = fees.filter(f => f.type === 'one_time').length;
+
+            document.getElementById('totalMonthlyFee').innerText = totalMonthly.toLocaleString();
+            document.getElementById('monthlyItemCount').innerText = monthlyCount;
+            document.getElementById('yearlyItemCount').innerText = yearlyCount;
+            document.getElementById('oneTimeItemCount').innerText = oneTimeCount;
+
+            feeData.totalMonthly = totalMonthly;
+        }
+
+        function attachFeeItemEvents() {
+            document.querySelectorAll('.editFeeBtn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    editingFeeIndex = parseInt(btn.dataset.index);
+                    renderFeeSetup();
+                });
+            });
+
+            document.querySelectorAll('.deleteFeeBtn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    deleteFeeIndex = parseInt(btn.dataset.index);
+                    const feeData = classFeesData[selectedClassId] || { fees: [] };
+                    const fee = feeData.fees[deleteFeeIndex];
+                    document.getElementById('deleteFeeName').innerText = fee?.name || 'this item';
+                    document.getElementById('deleteFeeModal').classList.remove('hidden');
+                });
+            });
+
+            document.querySelectorAll('.saveEditFee').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idx = parseInt(btn.dataset.index);
+                    const feeData = classFeesData[selectedClassId];
+                    const name = document.getElementById(`editFeeName_${idx}`).value.trim();
+                    const amount = parseFloat(document.getElementById(`editFeeAmount_${idx}`).value) || 0;
+                    const type = document.getElementById(`editFeeType_${idx}`).value;
+                    if (!name) { showToast('Fee name is required', 'error'); return; }
+                    feeData.fees[idx] = { name, amount, type };
+                    editingFeeIndex = null;
+                    renderFeeSetup();
+                    showToast('Fee item updated', 'success');
+                });
+            });
+
+            document.querySelectorAll('.cancelEditFee').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    editingFeeIndex = null;
+                    renderFeeSetup();
+                });
+            });
+        }
+
+        // ===== Overview Table =====
+        function renderOverviewTable() {
+            const tbody = document.getElementById('overviewTableBody');
+            if (!allClasses.length) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-gray-400">No classes found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = allClasses.map((c, i) => {
+                const feeData = classFeesData[c.id];
+                const isConfigured = feeData && feeData.fees && feeData.fees.length > 0;
+                const total = feeData?.totalMonthly || 0;
+                const itemCount = feeData?.fees?.length || 0;
+                const updatedAt = feeData?.updatedAt ? new Date(feeData.updatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+
+                return `
+                    <tr class="border-b hover:bg-green-50/30 transition">
+                        <td class="px-4 py-3 text-gray-400">${i + 1}</td>
+                        <td class="px-4 py-3 font-semibold text-gray-800">${escapeHtml(c.name)}</td>
+                        <td class="px-4 py-3 font-bold ${isConfigured ? 'text-primary' : 'text-gray-300'}">৳ ${isConfigured ? total.toLocaleString() : '—'}</td>
+                        <td class="px-4 py-3 text-gray-600">${itemCount > 0 ? `${itemCount} item${itemCount > 1 ? 's' : ''}` : '—'}</td>
+                        <td class="px-4 py-3">
+                            ${isConfigured 
+                                ? '<span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium"><i class="fas fa-check-circle mr-1"></i>Active</span>' 
+                                : '<span class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-medium"><i class="fas fa-clock mr-1"></i>Pending</span>'}
+                        </td>
+                        <td class="px-4 py-3 text-xs text-gray-400">${updatedAt}</td>
+                        <td class="px-4 py-3 text-center">
+                            <button class="goToClassBtn text-primary hover:bg-primary/10 px-3 py-1.5 rounded-lg text-xs font-medium transition" data-classid="${c.id}">
+                                <i class="fas fa-cog"></i> Setup
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            tbody.querySelectorAll('.goToClassBtn').forEach(btn => {
+                btn.addEventListener('click', () => selectClass(btn.dataset.classid));
+            });
+        }
+
+        // ===== Stats =====
+        function updateStats() {
+            const total = allClasses.length;
+            const configured = allClasses.filter(c => classFeesData[c.id]?.fees?.length > 0).length;
+            const notConfigured = total - configured;
+            const fees = Object.values(classFeesData).filter(fd => fd.fees?.length > 0);
+            const avgFee = fees.length > 0 ? Math.round(fees.reduce((s, fd) => s + (fd.totalMonthly || 0), 0) / fees.length) : 0;
+
+            document.getElementById('statTotalClasses').innerText = total;
+            document.getElementById('statConfigured').innerText = configured;
+            document.getElementById('statNotConfigured').innerText = notConfigured;
+            document.getElementById('statAvgFee').innerText = avgFee > 0 ? `৳${avgFee.toLocaleString()}` : '0';
+        }
+
+        // ===== Save Fee Config =====
+        async function saveFeeConfig() {
+            if (!selectedClassId) { showToast('Select a class first', 'error'); return; }
+            const feeData = classFeesData[selectedClassId];
+            if (!feeData || !feeData.fees || feeData.fees.length === 0) {
+                showToast('Add at least one fee item', 'warning');
+                return;
+            }
+
+            const saveBtn = document.getElementById('saveAllFeesBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
+
+            try {
+                const cls = allClasses.find(c => c.id === selectedClassId);
+                const docId = `${selectedClassId}_${activeSession}`;
+                
+                await setDoc(doc(db, "classFees", docId), {
+                    classId: selectedClassId,
+                    className: cls?.name || '',
+                    session: activeSession,
+                    fees: feeData.fees,
+                    totalMonthly: feeData.totalMonthly || 0,
+                    updatedAt: new Date().toISOString()
+                });
+
+                feeData.updatedAt = new Date().toISOString();
+                showToast('Fee configuration saved successfully!', 'success');
+                renderClassList();
+                renderOverviewTable();
+                updateStats();
+            } catch (e) {
+                console.error('Save error:', e);
+                showToast('Save failed: ' + e.message, 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Save Configuration';
+            }
+        }
+
+        // ===== Add Fee Item =====
+        function addFeeItem() {
+            const name = document.getElementById('newFeeName').value.trim();
+            const amount = parseFloat(document.getElementById('newFeeAmount').value) || 0;
+            const type = document.getElementById('newFeeType').value;
+
+            if (!name) { showToast('Fee name is required', 'error'); return; }
+            if (amount <= 0) { showToast('Amount must be greater than 0', 'error'); return; }
+
+            if (!classFeesData[selectedClassId]) {
+                classFeesData[selectedClassId] = { fees: [], totalMonthly: 0, updatedAt: '', session: activeSession };
+            }
+
+            // ডুপ্লিকেট চেক
+            const exists = classFeesData[selectedClassId].fees.some(f => f.name.toLowerCase() === name.toLowerCase());
+            if (exists) { showToast('Fee item already exists', 'warning'); return; }
+
+            classFeesData[selectedClassId].fees.push({ name, amount, type });
+            
+            // ফর্ম রিসেট
+            document.getElementById('newFeeName').value = '';
+            document.getElementById('newFeeAmount').value = '';
+            document.getElementById('newFeeType').value = 'monthly';
+            document.getElementById('addFeeForm').classList.add('hidden');
+
+            renderFeeSetup();
+            showToast(`"${name}" added successfully`, 'success');
+        }
+
+        // ===== Delete Fee Item =====
+        function confirmDeleteFee() {
+            if (deleteFeeIndex === null || !selectedClassId) return;
+            const feeData = classFeesData[selectedClassId];
+            if (feeData && feeData.fees) {
+                const removed = feeData.fees.splice(deleteFeeIndex, 1);
+                showToast(`"${removed[0]?.name}" removed`, 'success');
+            }
+            deleteFeeIndex = null;
+            document.getElementById('deleteFeeModal').classList.add('hidden');
+            renderFeeSetup();
+        }
+
+        // ===== Copy Fees =====
+        async function copyFeesFrom(sourceClassId) {
+            if (!sourceClassId || !selectedClassId) return;
+            if (sourceClassId === selectedClassId) { showToast('Cannot copy from same class', 'warning'); return; }
+
+            // সোর্স ক্লাসের ডাটা লোড (যদি না থাকে)
+            if (!classFeesData[sourceClassId]) {
+                await loadFeeForClass(sourceClassId);
+            }
+
+            const sourceFees = classFeesData[sourceClassId]?.fees;
+            if (!sourceFees || sourceFees.length === 0) {
+                showToast('Source class has no fee items', 'warning');
+                return;
+            }
+
+            classFeesData[selectedClassId] = {
+                fees: sourceFees.map(f => ({ ...f })),
+                totalMonthly: classFeesData[sourceClassId].totalMonthly || 0,
+                updatedAt: '',
+                session: activeSession
+            };
+
+            closeCopyModal();
+            renderFeeSetup();
+            showToast('Fee structure copied! Click Save to confirm.', 'success');
+        }
+
+        // ===== Modal Helpers =====
+        window.closeDeleteFeeModal = () => { document.getElementById('deleteFeeModal').classList.add('hidden'); deleteFeeIndex = null; };
+        window.closeCopyModal = () => document.getElementById('copyFeesModal').classList.add('hidden');
+
+        // ===== Event Bindings =====
+        document.getElementById('classSearchInput').addEventListener('input', () => renderClassList());
+        
+        document.getElementById('addFeeItemBtn').addEventListener('click', () => {
+            document.getElementById('addFeeForm').classList.toggle('hidden');
+            if (!document.getElementById('addFeeForm').classList.contains('hidden')) {
+                document.getElementById('newFeeName').focus();
+            }
+        });
+
+        document.getElementById('saveNewFeeBtn').addEventListener('click', addFeeItem);
+        document.getElementById('cancelNewFeeBtn').addEventListener('click', () => {
+            document.getElementById('addFeeForm').classList.add('hidden');
+        });
+
+        // Enter key দিয়ে ফি অ্যাড
+        document.getElementById('newFeeAmount').addEventListener('keydown', e => { if (e.key === 'Enter') addFeeItem(); });
+        document.getElementById('newFeeName').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('newFeeAmount').focus(); });
+
+        document.getElementById('saveAllFeesBtn').addEventListener('click', saveFeeConfig);
+        document.getElementById('confirmDeleteFee').addEventListener('click', confirmDeleteFee);
+
+        document.getElementById('copyFeesBtn').addEventListener('click', () => {
+            const select = document.getElementById('copySourceClass');
+            select.innerHTML = '<option value="">-- Select Class --</option>';
+            allClasses.filter(c => c.id !== selectedClassId).forEach(c => {
+                select.appendChild(new Option(c.name, c.id));
+            });
+            document.getElementById('copyFeesModal').classList.remove('hidden');
+        });
+
+        document.getElementById('confirmCopyFees').addEventListener('click', () => {
+            const sourceClassId = document.getElementById('copySourceClass').value;
+            if (!sourceClassId) { showToast('Select a source class', 'warning'); return; }
+            copyFeesFrom(sourceClassId);
+        });
+
+        document.getElementById('sessionView').addEventListener('change', async e => {
+            activeSession = e.target.value === 'next' ? nextSession : currentSession;
+            document.getElementById('selectedSessionLabel').innerText = activeSession;
+            selectedClassId = null;
+            document.getElementById('noClassSelected').classList.remove('hidden');
+            document.getElementById('feeSetupPanel').classList.add('hidden');
+            await loadAllFees();
+        });
+
+        document.getElementById('backToStudentBtn').addEventListener('click', () => {
+            window.location.href = 'student-manager.html';
+        });
+
+        // ===== Init =====
+        async function init() {
+            await loadSessions();
+            await Promise.all([loadClasses(), loadAllFees()]);
+        }
+
+        init();
+    </script>
+</body>
+</html>
