@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Smart Promotion | Parent Connection Fixed</title>
+    <title>Smart Promotion | Parent Connection & Photo Fixed</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script>
@@ -25,6 +25,71 @@
         .transition-smooth { transition: all 0.2s ease; }
         .modal-blur { backdrop-filter: blur(4px); background-color: rgba(0,0,0,0.5); }
         .latest-badge { background: linear-gradient(45deg, #10b981, #059669); color: white; font-size: 10px; padding: 2px 6px; border-radius: 9999px; margin-left: 6px; }
+
+        /* ছবি সহ student card styling */
+        .student-photo-sm {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+        .student-photo-placeholder {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6366f1;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+            border: 2px solid #e5e7eb;
+        }
+        .student-photo-md {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+        .student-photo-placeholder-md {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6366f1;
+            font-size: 14px;
+            font-weight: 700;
+            flex-shrink: 0;
+            border: 2px solid #e5e7eb;
+        }
+
+        /* Photo preserved badge */
+        .photo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 10px;
+            padding: 1px 6px;
+            border-radius: 9999px;
+            white-space: nowrap;
+        }
+        .photo-preserved {
+            background: #ecfdf5;
+            color: #059669;
+        }
+        .photo-missing {
+            background: #fef3c7;
+            color: #d97706;
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-6">
@@ -44,11 +109,22 @@
                 <button onclick="closePromotionModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
             </div>
             <div class="p-5 flex-1 overflow-y-auto">
+                <!-- Promotion direction info -->
                 <div class="bg-blue-50 p-4 rounded-xl mb-5 flex flex-wrap gap-3 justify-between items-center">
                     <div><span class="font-semibold">From:</span> <span id="confirmFromClass" class="text-primary font-bold"></span> - <span id="confirmFromSection"></span></div>
                     <i class="fas fa-arrow-right text-gray-500"></i>
                     <div><span class="font-semibold">To (Next Session):</span> <span id="confirmToClass" class="text-green-700 font-bold"></span> - <span id="confirmToSection"></span></div>
                 </div>
+
+                <!-- Photo preservation notice -->
+                <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl mb-4 flex items-center gap-3">
+                    <i class="fas fa-camera text-emerald-600 text-lg"></i>
+                    <div>
+                        <p class="text-sm font-semibold text-emerald-800">Student photos will be preserved automatically</p>
+                        <p class="text-xs text-emerald-600">Each student's existing photo will carry over to the next session without any change.</p>
+                    </div>
+                </div>
+
                 <div class="flex justify-between items-center mb-3">
                     <h4 class="font-bold text-gray-700"><i class="fas fa-list-ul mr-2"></i>Students to promote (<span id="selectedCountLabel">0</span>)</h4>
                     <button id="modalSelectAllBtn" class="text-sm text-primary hover:underline"><i class="fas fa-check-double"></i> Select All</button>
@@ -58,20 +134,27 @@
                         <thead class="bg-gray-100 sticky top-0">
                             <tr class="text-left text-gray-600">
                                 <th class="px-3 py-2 w-8"><input type="checkbox" id="promoSelectAllCheck"></th>
+                                <th class="px-3 py-2">Photo</th>
                                 <th class="px-3 py-2">Roll</th>
                                 <th class="px-3 py-2">Student Name</th>
                                 <th class="px-3 py-2">Current Class</th>
                                 <th class="px-3 py-2">Parent Linked</th>
-                                <th class="px-3 py-2">Status</th>
+                                <th class="px-3 py-2">Photo Status</th>
                              </tr>
                         </thead>
                         <tbody id="promoStudentsList"></tbody>
                     </table>
                 </div>
             </div>
-            <div class="p-5 border-t flex justify-end gap-3 bg-gray-50 rounded-b-2xl">
-                <button onclick="closePromotionModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-100">Cancel</button>
-                <button id="confirmPromoteBtn" class="px-6 py-2 bg-success text-white rounded-lg hover:bg-green-700 flex items-center gap-2"><i class="fas fa-arrow-up"></i> Promote Selected</button>
+            <div class="p-5 border-t flex justify-between items-center bg-gray-50 rounded-b-2xl">
+                <div class="flex items-center gap-2 text-xs text-gray-500">
+                    <i class="fas fa-shield-alt text-success"></i>
+                    <span>Photo & parent data preserved</span>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closePromotionModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-100">Cancel</button>
+                    <button id="confirmPromoteBtn" class="px-6 py-2 bg-success text-white rounded-lg hover:bg-green-700 flex items-center gap-2"><i class="fas fa-arrow-up"></i> Promote Selected</button>
+                </div>
             </div>
         </div>
     </div>
@@ -92,7 +175,7 @@
                             <div class="h-7 w-1.5 bg-primary rounded-full"></div>
                             <h2 class="text-xl font-bold">Move students from <span id="currentSessionDisplay" class="text-primary bg-primary/10 px-2 py-0.5 rounded-md">2025-2026</span> to <span id="nextSessionDisplay" class="text-success bg-green-100 px-2 py-0.5 rounded-md">2026-2027</span></h2>
                         </div>
-                        <p class="text-xs text-gray-400 mt-1 ml-2">✅ Parent connection preserved during promotion</p>
+                        <p class="text-xs text-gray-400 mt-1 ml-2">✅ Parent connection & 📸 Student photo preserved during promotion</p>
                     </div>
                 </div>
 
@@ -119,7 +202,7 @@
 
                 <div class="flex justify-between items-center mt-8 gap-4 flex-wrap">
                     <div class="text-sm text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
-                        <i class="fas fa-info-circle text-primary"></i> Parent connection will be preserved automatically
+                        <i class="fas fa-camera text-success"></i> Photo & parent connection preserved automatically
                     </div>
                     <button id="fetchStudentsBtn" class="bg-primary hover:bg-blue-700 text-white font-medium py-2.5 px-8 rounded-xl flex items-center gap-2 shadow transition">
                         <i class="fas fa-users"></i> Fetch & Preview Students
@@ -135,15 +218,17 @@
                         <table class="min-w-full text-sm">
                             <thead class="bg-gray-50">
                                 <tr class="text-gray-600">
+                                    <th class="px-4 py-2 text-left">Photo</th>
                                     <th class="px-4 py-2 text-left">Roll No</th>
                                     <th class="px-4 py-2 text-left">Student Name</th>
                                     <th class="px-4 py-2 text-left">Father Name</th>
                                     <th class="px-4 py-2 text-left">Parent Linked</th>
+                                    <th class="px-4 py-2 text-left">Photo</th>
                                     <th class="px-4 py-2 text-left">Status</th>
                                  </tr>
                             </thead>
                             <tbody id="eligibleTableBody">
-                                <tr><td colspan="5" class="text-center py-8 text-gray-400"><i class="fas fa-search mr-1"></i> Select class/section and click Fetch</td></tr>
+                                <tr><td colspan="7" class="text-center py-8 text-gray-400"><i class="fas fa-search mr-1"></i> Select class/section and click Fetch</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -189,6 +274,34 @@
         const nextSessionSpan = document.getElementById('nextSessionDisplay');
 
         function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+
+        /* =====================================================
+           🔥 PHOTO HELPER — বিভিন্ন field name থেকে photo বের করা
+           ===================================================== */
+        function getStudentPhoto(data) {
+            // সব সম্ভাব্য photo field name check করা হচ্ছে
+            if (!data) return '';
+            return data.photo || data.photoURL || data.profilePhoto || data.imageUrl || data.studentPhoto || data.image || data.avatar || data.photoUrl || '';
+        }
+
+        function renderPhotoHTML(photoUrl, fullName, size) {
+            const cls = size === 'md' ? 'student-photo-md' : 'student-photo-sm';
+            const placeholderCls = size === 'md' ? 'student-photo-placeholder-md' : 'student-photo-placeholder';
+            const initial = (fullName || '?').charAt(0).toUpperCase();
+
+            if (photoUrl && photoUrl.trim()) {
+                return `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(fullName)}" class="${cls}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <div class="${placeholderCls}" style="display:none;">${initial}</div>`;
+            }
+            return `<div class="${placeholderCls}">${initial}</div>`;
+        }
+
+        function photoStatusBadge(photoUrl) {
+            if (photoUrl && photoUrl.trim()) {
+                return `<span class="photo-badge photo-preserved"><i class="fas fa-check-circle"></i> Preserved</span>`;
+            }
+            return `<span class="photo-badge photo-missing"><i class="fas fa-exclamation-circle"></i> No photo</span>`;
+        }
 
         function showAlert(msg, type = 'success') {
             const toastDiv = document.getElementById('toastMsg');
@@ -254,7 +367,7 @@
             return sections;
         }
 
-        // 🔥 Get complete parent data
+        // Get complete parent data
         async function getCompleteParentData(parentId) {
             if (!parentId) return null;
             if (parentDataCache[parentId]) return parentDataCache[parentId];
@@ -290,12 +403,11 @@
                 return;
             }
 
-            showAlert("Loading students with parent data...", "success");
+            showAlert("Loading students with photo & parent data...", "success");
             
             const studentsList = [];
             
             try {
-                // Get session students
                 const sessionRef = collection(db, `current_session/${currentSession}/classes/${fromClassId}/students`);
                 const sessionSnap = await getDocs(sessionRef);
                 
@@ -306,7 +418,6 @@
                     if (data.promotedToNextSession === true) continue;
                     if (data.status === 'inactive' || data.status === 'Inactive') continue;
                     
-                    // Get complete parent data
                     let parentInfo = null;
                     let fatherName = data.fatherName || 'N/A';
                     
@@ -316,6 +427,9 @@
                             fatherName = parentInfo.fatherName || fatherName;
                         }
                     }
+
+                    // 🔥 Student-এর photo বের করা হচ্ছে সব সম্ভাব্য field থেকে
+                    const studentPhoto = getStudentPhoto(data);
                     
                     studentsList.push({
                         id: docSnap.id,
@@ -332,9 +446,11 @@
                         gender: data.gender || '',
                         parentID: data.parentID || '',
                         status: data.status || 'active',
+                        // 🔥 Photo URL store করা হচ্ছে
+                        photoUrl: studentPhoto,
                         // Store complete parent data for promotion
                         parentData: parentInfo,
-                        // Store all original data
+                        // 🔥 সম্পূর্ণ original data store (photo সহ সব field)
                         originalData: { ...data }
                     });
                 }
@@ -343,19 +459,20 @@
                 renderEligibleTable();
                 
                 if (eligibleStudents.length === 0) {
-                    showAlert(`⚠️ No eligible students found in ${fromClassSelect.options[fromClassSelect.selectedIndex]?.text} - ${fromSectionName}.`, "warning");
+                    showAlert(`No eligible students found in ${fromClassSelect.options[fromClassSelect.selectedIndex]?.text} - ${fromSectionName}.`, "warning");
                 } else {
-                    showAlert(`✅ Found ${eligibleStudents.length} eligible student(s) with parent connections`, "success");
+                    const withPhoto = eligibleStudents.filter(s => s.photoUrl).length;
+                    showAlert(`Found ${eligibleStudents.length} student(s) — ${withPhoto} with photo, parent connections preserved`, "success");
                 }
             } catch(e) {
                 console.error('Error fetching students:', e);
-                showAlert('Error loading students: ' + e.message, 'error');
+                showAlert('Error loading students: ' + e.message, "error");
             }
         }
 
         function renderEligibleTable() {
             if (!eligibleStudents.length) {
-                eligibleTbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400"><i class="fas fa-user-slash"></i> No eligible students</td></tr>';
+                eligibleTbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400"><i class="fas fa-user-slash"></i> No eligible students</td></tr>';
                 eligibleCountSpan.innerText = "0 students";
                 actionContainer.innerHTML = '';
                 return;
@@ -368,10 +485,12 @@
                     '<span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full"><i class="fas fa-unlink"></i> No Parent</span>';
                 
                 html += `<tr class="border-b hover:bg-gray-50">
+                    <td class="px-4 py-2">${renderPhotoHTML(stu.photoUrl, stu.fullName, 'sm')}</td>
                     <td class="px-4 py-2 font-mono text-xs">${escapeHtml(stu.rollNumber)}</td>
                     <td class="px-4 py-2 font-medium">${escapeHtml(stu.fullName)}</td>
                     <td class="px-4 py-2 text-gray-600">${escapeHtml(stu.fatherName)}</td>
                     <td class="px-4 py-2">${parentLinked}</td>
+                    <td class="px-4 py-2">${photoStatusBadge(stu.photoUrl)}</td>
                     <td class="px-4 py-2"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">Ready</span></td>
                 </tr>`;
             });
@@ -409,11 +528,12 @@
                 modalTbody.insertAdjacentHTML('beforeend', `
                     <tr class="border-b">
                         <td class="px-3 py-2"><input type="checkbox" class="promoStudentCheckbox" data-id="${stu.id}" checked></td>
+                        <td class="px-3 py-2">${renderPhotoHTML(stu.photoUrl, stu.fullName, 'sm')}</td>
                         <td class="px-3 py-2">${escapeHtml(stu.rollNumber)}</td>
                         <td class="px-3 py-2 font-medium">${escapeHtml(stu.fullName)}</td>
                         <td class="px-3 py-2">${escapeHtml(stu.className)}</td>
                         <td class="px-3 py-2 text-xs">${parentLinked}</td>
-                        <td class="px-3 py-2"><span class="text-success text-xs">Ready</span></td>
+                        <td class="px-3 py-2">${photoStatusBadge(stu.photoUrl)}</td>
                     </tr>
                 `);
             });
@@ -457,7 +577,7 @@
             }
             
             if (selectedPromoIds.size === 0) {
-                showAlert("⚠️ No student selected! Please select at least one student to promote.", "warning");
+                showAlert("No student selected! Please select at least one student to promote.", "warning");
                 return;
             }
 
@@ -467,47 +587,52 @@
                 return;
             }
 
+            // Confirm button disable করে দিচ্ছি promotion চলাকালীন
+            const confirmBtn = document.getElementById('confirmPromoteBtn');
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Promoting...';
+
             const batch = writeBatch(db);
             const toClassName = allClasses.find(c => c.id === toClassId)?.name || 'Promoted Class';
 
             for (const student of studentsToPromote) {
-                // 🔥 CRITICAL: Preserve parent connection
+                // 🔥 Get complete parent data
                 const parentData = student.parentData || await getCompleteParentData(student.parentID);
                 
-                // Create new student in next session with COMPLETE parent data
+                // Create new student document in next session
                 const newStudentRef = doc(collection(db, `current_session/${nextSession}/classes/${toClassId}/students`));
                 
+                /* =========================================================
+                   🔥🔥🔥 মূল পরিবর্তন — originalData spread করে 
+                   সব field (photo সহ) preserve করা হচ্ছে
+                   ========================================================= */
                 const newStudentData = {
-                    // Student basic info
-                    fullName: student.fullName,
-                    rollNumber: student.rollNumber,
-                    admissionNumber: student.admissionNumber,
-                    gender: student.gender,
-                    phone: student.phone,
-                    email: student.email,
-                    address: student.address,
-                    status: 'active',
-                    
-                    // 🔥 Parent connection - CRITICAL
+                    // 🔥 STEP 1: পুরো original data copy করা হচ্ছে 
+                    // এতে photo, photoURL, profilePhoto, imageUrl ইত্যাদি সব field আসবে
+                    ...student.originalData,
+
+                    // 🔥 STEP 2: Parent connection preserve (override if needed)
                     parentID: student.parentID || '',
+                    fatherName: parentData?.fatherName || student.fatherName || student.originalData.fatherName || '',
+                    motherName: parentData?.motherName || student.originalData.motherName || '',
+                    guardianName: parentData?.guardianName || student.originalData.guardianName || '',
+                    fatherPhone: parentData?.fatherPhone || student.originalData.fatherPhone || '',
+                    motherPhone: parentData?.motherPhone || student.originalData.motherPhone || '',
+                    guardianPhone: parentData?.guardianPhone || student.originalData.guardianPhone || '',
+                    parentLoginEmail: parentData?.loginEmail || student.originalData.parentLoginEmail || '',
+                    parentAddress: parentData?.address || student.originalData.parentAddress || '',
                     
-                    // 🔥 Parent details (backup in student record)
-                    fatherName: parentData?.fatherName || student.fatherName || '',
-                    motherName: parentData?.motherName || student.motherName || '',
-                    guardianName: parentData?.guardianName || student.guardianName || '',
-                    fatherPhone: parentData?.fatherPhone || student.fatherPhone || '',
-                    motherPhone: parentData?.motherPhone || student.motherPhone || '',
-                    guardianPhone: parentData?.guardianPhone || student.guardianPhone || '',
-                    parentLoginEmail: parentData?.loginEmail || '',
-                    parentAddress: parentData?.address || '',
+                    // 🔥 STEP 3: Photo explicitly ensure — 
+                    // originalData থেকে এটা আসার কথা কিন্তু নিশ্চিত করার জন্য আবার set করা হচ্ছে
+                    photo: getStudentPhoto(student.originalData) || '',
                     
-                    // Class info
+                    // 🔥 STEP 4: Class/session info update
                     section: toSectionName,
                     className: toClassName,
                     classId: toClassId,
                     session: nextSession,
                     
-                    // Promotion tracking
+                    // 🔥 STEP 5: Promotion tracking
                     promotedFromSession: currentSession,
                     promotedFromClassId: fromClassId,
                     promotedFromClass: allClasses.find(c => c.id === fromClassId)?.name,
@@ -519,7 +644,7 @@
                 
                 batch.set(newStudentRef, newStudentData);
                 
-                // Update original student as promoted (session data)
+                // Update original student as promoted
                 const originalSessionRef = doc(db, `current_session/${currentSession}/classes/${fromClassId}/students`, student.id);
                 batch.update(originalSessionRef, {
                     promotedToNextSession: true,
@@ -552,7 +677,7 @@
 
             try {
                 await batch.commit();
-                showAlert(`✅ Successfully promoted ${studentsToPromote.length} student(s) with parent connections preserved!`, 'success');
+                showAlert(`Successfully promoted ${studentsToPromote.length} student(s) — photos & parent connections preserved!`, 'success');
                 closePromotionModal();
                 
                 // Remove promoted students from list
@@ -563,6 +688,10 @@
             } catch (err) {
                 console.error('Promotion error:', err);
                 showAlert("Promotion failed: " + err.message, "error");
+            } finally {
+                // Button restore
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fas fa-arrow-up"></i> Promote Selected';
             }
         }
 
