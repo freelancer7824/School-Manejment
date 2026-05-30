@@ -181,7 +181,6 @@
         <div class="container mx-auto px-4 flex items-center overflow-hidden">
             <strong class="accent-bg text-black text-xs md:text-sm px-3 py-1 rounded-full flex-shrink-0 mr-4">নোটিশ:</strong>
             <div id="marquee-content" class="marquee text-sm">
-                <!-- Firebase থেকে ডেটা লোড হবে -->
                 আগামী ১০ই নভেম্বর থেকে শুরু হচ্ছে বার্ষিক পরীক্ষা। সকল শিক্ষার্থীকে সময়মতো উপস্থিত থাকার নির্দেশ দেওয়া হলো।
                 <span class="mx-6 text-yellow-300">• • •</span>
                 নতুন শিক্ষাবর্ষের ভর্তির আবেদন শুরু হবে ১লা ডিসেম্বর থেকে। বিস্তারিত তথ্য ওয়েবসাইটে পাওয়া যাবে।
@@ -257,7 +256,6 @@
                 <section>
                     <h3 class="text-3xl font-bold mb-6 text-gray-700 border-b pb-2">আমাদের শিক্ষণ প্রোগ্রাম</h3>
                     <div id="programs-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <!-- Firebase থেকে প্রোগ্রাম ডেটা লোড হবে -->
                         <div class="loader"></div>
                     </div>
                     <div class="text-center mt-8">
@@ -270,7 +268,6 @@
                 <div class="bg-white p-6 rounded-xl shadow-xl border-l-4 border-primary-color">
                     <h3 class="text-2xl font-bold mb-4 primary-text flex items-center"><i class="fas fa-bullhorn mr-3"></i> গুরুত্বপূর্ণ নোটিশ</h3>
                     <ul id="notices-list" class="space-y-4">
-                        <!-- Firebase থেকে নোটিশ ডেটা লোড হবে -->
                         <div class="loader"></div>
                     </ul>
                     <a href="all-notice.html" class="mt-4 inline-block font-semibold primary-text hover:underline text-sm">সকল নোটিশ দেখুন</a>
@@ -288,7 +285,6 @@
                 <div class="bg-white p-6 rounded-xl shadow-xl border-l-4 border-red-500">
                     <h3 class="text-2xl font-bold mb-4 text-red-600 flex items-center"><i class="fas fa-images mr-3"></i> গ্যালারি</h3>
                     <div id="gallery-container" class="grid grid-cols-3 gap-2">
-                        <!-- Firebase থেকে গ্যালারি ইমেজ লোড হবে -->
                         <div class="loader"></div>
                     </div>
                 </div>
@@ -319,7 +315,6 @@
             <div>
                 <h4 class="text-lg font-semibold mb-4 text-white">কুইক গ্যালারি</h4>
                 <div id="footer-gallery" class="grid grid-cols-3 gap-2">
-                    <!-- Firebase থেকে গ্যালারি ইমেজ লোড হবে -->
                     <div class="loader"></div>
                 </div>
             </div>
@@ -377,34 +372,24 @@
             database.ref('principal').once('value').then((snapshot) => {
                 const principalData = snapshot.val();
                 if (principalData) {
-                    // প্রধান শিক্ষকের ছবি
                     if (principalData.image) {
                         document.getElementById('principal-image').src = principalData.image;
                     }
-                    
-                    // প্রধান শিক্ষকের নাম
                     if (principalData.name) {
                         document.getElementById('principal-name').textContent = principalData.name;
                         document.getElementById('mobile-principal-name').textContent = principalData.name;
                     }
-                    
-                    // প্রধান শিক্ষকের পদবী
                     if (principalData.designation) {
                         document.getElementById('principal-designation').textContent = principalData.designation;
                         document.getElementById('mobile-principal-designation').textContent = principalData.designation;
                     }
-                    
-                    // প্রধান শিক্ষকের বার্তা
                     if (principalData.message) {
                         document.getElementById('welcome-message').textContent = principalData.message;
                     }
-                    
-                    // স্বাগতম টাইটেল
                     if (principalData.welcomeTitle) {
                         document.getElementById('welcome-title').textContent = principalData.welcomeTitle;
                     }
                     
-                    // Show principal info on image hover
                     const principalImage = document.getElementById('principal-image');
                     const principalInfo = document.querySelector('.principal-info');
                     
@@ -416,8 +401,7 @@
                         principalInfo.classList.add('hidden');
                     });
                 } else {
-                    // যদি Firebase-এ কোন ডেটা না থাকে, ডিফল্ট ডেটা ব্যবহার করুন
-                    console.log('Firebase-এ প্রধান শিক্ষকের কোন ডেটা পাওয়া যায়নি, ডিফল্ট ডেটা ব্যবহার করা হচ্ছে');
+                    console.log('Firebase-এ প্রধান শিক্ষকের কোন ডেটা পাওয়া যায়নি');
                 }
             });
 
@@ -474,7 +458,6 @@
                 if (noticesData) {
                     noticesList.innerHTML = '';
                     
-                    // Firebase থেকে পাওয়া ডেটাকে অ্যারে তে রূপান্তর এবং রিভার্স করা
                     const noticesArray = Object.entries(noticesData).map(([key, value]) => ({
                         id: key,
                         ...value
@@ -493,7 +476,6 @@
                         `;
                         noticesList.appendChild(noticeElement);
                         
-                        // নোটিশ ক্লিক ইভেন্ট যোগ
                         noticeElement.addEventListener('click', function() {
                             const noticeId = this.getAttribute('data-notice-id');
                             window.location.href = `notice-view.html?id=${noticeId}`;
@@ -511,16 +493,12 @@
                 const footerGallery = document.getElementById('footer-gallery');
                 
                 if (galleryData) {
-                    // Main Gallery Container
                     galleryContainer.innerHTML = '';
-                    
-                    // Firebase থেকে পাওয়া ডেটাকে অ্যারে তে রূপান্তর
                     const galleryArray = Object.entries(galleryData).map(([key, value]) => ({
                         id: key,
                         ...value
                     }));
                     
-                    // প্রথম ৬টি ইমেজ শো করানো
                     galleryArray.slice(0, 6).forEach((image, index) => {
                         const imgElement = document.createElement('img');
                         imgElement.src = image.url;
@@ -529,10 +507,7 @@
                         galleryContainer.appendChild(imgElement);
                     });
 
-                    // Footer Gallery Container
                     footerGallery.innerHTML = '';
-                    
-                    // প্রথম ৬টি ইমেজ শো করানো (Footer-এর জন্য)
                     galleryArray.slice(0, 6).forEach((image, index) => {
                         const imgElement = document.createElement('img');
                         imgElement.src = image.url;
@@ -541,7 +516,6 @@
                         footerGallery.appendChild(imgElement);
                     });
                 } else {
-                    // যদি Firebase-এ কোন গ্যালারি ডেটা না থাকে, তাহলে ডিফল্ট ইমেজ শো করানো
                     const defaultImages = [
                         'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event1.jpg',
                         'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event2.jpg',
@@ -551,7 +525,6 @@
                         'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event6.jpg'
                     ];
                     
-                    // Main Gallery Container
                     galleryContainer.innerHTML = '';
                     defaultImages.forEach((imageUrl, index) => {
                         const imgElement = document.createElement('img');
@@ -561,7 +534,6 @@
                         galleryContainer.appendChild(imgElement);
                     });
 
-                    // Footer Gallery Container
                     footerGallery.innerHTML = '';
                     defaultImages.slice(0, 6).forEach((imageUrl, index) => {
                         const imgElement = document.createElement('img');
@@ -582,17 +554,45 @@
             });
         }
 
-        // Cloudinary থেকে ইমেজ লোড করার ফাংশন
         function loadCloudinaryImages() {
-            // প্রধান শিক্ষকের ছবি লোড (ডিফল্ট হিসেবে)
             document.getElementById('principal-image').src = 'https://res.cloudinary.com/demo/image/upload/v1600000000/principal.jpg';
         }
 
-        // পেজ লোড হলে ডেটা লোড করুন
         document.addEventListener('DOMContentLoaded', function() {
             loadFirebaseData();
             loadCloudinaryImages();
         });
     </script>
+
+    <!-- Anti-Inspect & Security Script -->
+    <script>
+        // ১. ডান ক্লিক বন্ধ
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // ২. শর্টকাট কী বন্ধ
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) return false; // F12
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false;
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false;
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; // Ctrl+Shift+C (Element Selector)
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
+            if(e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) return false;
+        };
+
+        // ৩. ডেভেলপার টুলস ডিটেকশন (debugger এবং টাইম ডিফারেন্স পদ্ধতি)
+        setInterval(function(){
+            var start = new Date().getTime();
+            debugger;
+            var end = new Date().getTime();
+            // যদি ডিবাগার পজ করে (ডেভেলপার টুলস ওপেন থাকে), তাহলে সময় ১০০ মিলিসেকেন্ডের বেশি হবে
+            if(end - start > 100){
+                document.body.innerHTML = "<h1 style='text-align:center;margin-top:20%;color:red; font-size:50px;'>Access Denied!</h1>";
+                document.body.style.backgroundColor = "black";
+            }
+        }, 1000);
+    </script>
+
 </body>
 </html>
