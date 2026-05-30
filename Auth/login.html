@@ -608,5 +608,36 @@
             displayMessage('📞 Contact admin at support@school.com for assistance.', 'success');
         });
     </script>
+
+    <!-- Anti-Inspect & Security Script -->
+    <script>
+        // ১. ডান ক্লিক বন্ধ
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // ২. শর্টকাট কী বন্ধ
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) return false; // F12
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false;
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false;
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; // Ctrl+Shift+C
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
+            if(e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) return false;
+        };
+
+        // ৩. ডেভেলপার টুলস ডিটেকশন (debugger এবং টাইম ডিফারেন্স পদ্ধতি)
+        setInterval(function(){
+            var start = new Date().getTime();
+            debugger;
+            var end = new Date().getTime();
+            // যদি ডিবাগার পজ করে (ডেভেলপার টুলস ওপেন থাকে), তাহলে সময় ১০০ মিলিসেকেন্ডের বেশি হবে
+            if(end - start > 100){
+                document.body.innerHTML = "<h1 style='text-align:center;margin-top:20%;color:red; font-size:50px;'>Access Denied!</h1>";
+                document.body.style.backgroundColor = "black";
+            }
+        }, 1000);
+    </script>
+
 </body>
 </html>
