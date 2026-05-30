@@ -10,7 +10,7 @@
 
         :root {
             --sidebar-width: 250px;
-            --sidebar-collapsed-width: 60px; /* নতুন: কল্যাপসড অবস্থায় সাইডবারের প্রস্থ */
+            --sidebar-collapsed-width: 60px; 
             --header-height: 60px;
             --sidebar-bg: #2c3e50;
             --header-bg: #2c3e50; 
@@ -51,9 +51,8 @@
             flex-shrink: 0;
         }
         
-        /* নতুন: কল্যাপসড (হাইড) অবস্থায় */
         .sidebar.collapsed {
-            width: var(--sidebar-collapsed-width); /* শুধুমাত্র আইকনের জন্য ছোট হবে */
+            width: var(--sidebar-collapsed-width); 
         }
         
         .sidebar-header {
@@ -64,19 +63,18 @@
             position: relative; 
             transition: opacity 0.3s ease;
         }
-        /* কল্যাপসড অবস্থায় হেডার ইনফো হাইড */
+        
         .sidebar.collapsed .sidebar-header {
             padding-left: 10px;
             padding-right: 10px;
         }
         .sidebar.collapsed .sidebar-header .user-info,
         .sidebar.collapsed .sidebar-header img {
-             display: none;
-             
+             display: none; 
         }
 
         .sidebar.collapsed .nav-hide-icon {
-            transform: rotate(180deg); /* অ্যারো উল্টে যাবে */
+            transform: rotate(180deg); 
             left: 50%;
             transform: translateX(-50%);
             right: auto;
@@ -105,13 +103,11 @@
             cursor: pointer;
         }
         
-        /* নতুন: কল্যাপসড অবস্থায় মেনু আইটেম */
         .sidebar.collapsed .sidebar-menu a.menu-item {
             justify-content: center;
-            padding: 12px 0; /* প্যাডিং কমানো */
+            padding: 12px 0; 
         }
         
-        /* নতুন: মেনু টাইটেল হাইড */
         .menu-item span {
             margin-left: 15px;
             transition: opacity 0.3s ease;
@@ -123,13 +119,12 @@
             margin-left: 0;
         }
 
-        /* ড্রপডাউন/সাব-মেনু স্টাইল */
         .dropdown-toggle .arrow {
             margin-left: auto;
             transition: transform 0.3s ease;
         }
         .sidebar.collapsed .dropdown-toggle .arrow {
-            display: none; /* কল্যাপসড অবস্থায় ড্রপডাউন অ্যারো হাইড */
+            display: none; 
         }
 
         .dropdown-content {
@@ -141,7 +136,6 @@
             background-color: #233140;
         }
 
-        /* কল্যাপসড অবস্থায় সাব-মেনু সম্পূর্ণ হাইড, কারণ মিনি-সাইডবারে এটি সম্ভব না */
         .sidebar.collapsed .dropdown-content {
             display: none;
         }
@@ -158,7 +152,6 @@
             font-size: 13px;
         }
 
-
         /* --- প্রধান কন্টেন্ট এরিয়া --- */
         .main-content {
             flex-grow: 1;
@@ -169,19 +162,16 @@
             width: calc(100% - var(--sidebar-width)); 
         }
 
-        /* নতুন: কল্যাপসড অবস্থায় মার্জিন ও প্রস্থ অ্যাডজাস্ট */
         .main-content.collapsed-margin {
             margin-left: var(--sidebar-collapsed-width);
             width: calc(100% - var(--sidebar-collapsed-width));
         }
 
-        /* ছোট স্ক্রিনের জন্য ফুল-উইডথ */
         .main-content.full-width {
             margin-left: 0;
             width: 100%;
         }
         
-        /* হেডার (টপ নেভিগেশন বার - প্রফেশনাল ডিজাইন) */
         .header {
             background-color: var(--header-bg); 
             color: var(--header-text); 
@@ -219,7 +209,6 @@
             color: var(--header-text); 
         }
 
-        /* ... (header-right এবং user-dropdown-menu আগের মতো) ... */
         .header-right {
             display: flex;
             align-items: center;
@@ -360,15 +349,15 @@
             width: 70px;
             height: 45px;
             padding:2px;
-            margin-right: 10px;/* Creates a square container */
+            margin-right: 10px;
             border-radius: 50%;
-            overflow: hidden; /* Hides parts of the image that extend outside the circle */
+            overflow: hidden; 
         }
 
         .circular-container img {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Ensures the image covers the container without stretching, cropping if necessary */
+            object-fit: cover; 
         }
     </style>
 </head>
@@ -418,17 +407,16 @@
             
             <a href="#" class="menu-item" data-link="fees/payment_status"><i class="fas fa-wallet"></i> <span>ফি/পেমেন্ট</span></a>
             
-
             <a href="#" class="menu-item" data-link="account"><i class="fas fa-user-circle"></i> <span>আমার একাউন্ট</span></a>
-            
-            </nav>
+        </nav>
     </div>
 
     <div class="main-content" id="mainContent">
         <header class="header">
             <div class="header-left">
                 <i class="fas fa-bars menu-toggle" onclick="toggleSidebar()"></i>
-                <h3 id="display_school_name">ONNO ROKOM BIDDYANIKETON - অভিভাবক ড্যাশবোর্ড</h3> </div>
+                <h3 id="display_school_name">ONNO ROKOM BIDDYANIKETON - অভিভাবক ড্যাশবোর্ড</h3> 
+            </div>
             <div class="header-right">
                 <span class="session-info">Current Session: 2025-2026</span>
                 
@@ -447,7 +435,6 @@
 
         <div class="dashboard-body">
             <div class="content-container">
-                <!-- Sandboxed iframe to restrict inspection and cross-origin access -->
                 <iframe id="main-iframe" src="parent-dashboard" frameborder="0" sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
             </div>
         </div>
@@ -461,11 +448,9 @@
 
         function toggleSidebar() {
             if (window.innerWidth <= 768) {
-                // মোবাইল: সম্পূর্ণ হাইড/শো
                 sidebar.classList.toggle('open');
                 overlay.classList.toggle('active');
             } else {
-                // ডেস্কটপ: কল্যাপস (মিনি-সাইডবার) / এক্সপ্যান্ড
                 sidebar.classList.toggle('collapsed');
                 mainContent.classList.toggle('collapsed-margin');
             }
@@ -482,11 +467,9 @@
             }
         });
 
-        // ড্রপডাউন টগল ফাংশন
         function toggleDropdown(element) {
             const dropdownContent = element.nextElementSibling;
             
-            // যদি সাইডবার কল্যাপসড থাকে, তাহলে ড্রপডাউন কাজ করবে না
             if (sidebar.classList.contains('collapsed') && window.innerWidth > 768) {
                 return; 
             }
@@ -512,7 +495,6 @@
             links.forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
-
                     const url = this.getAttribute('data-link');
 
                     document.querySelectorAll('.sidebar-menu a.menu-item').forEach(item => {
@@ -521,6 +503,9 @@
 
                     this.classList.add('active');
                     iframe.src = url;
+
+                    // নতুন পেজ লোড হলে আবারও স্ক্রিপ্ট ইনজেক্ট করার জন্য ইভেন্ট লিসেনার
+                    iframe.onload = injectAntiInspectToIframe;
 
                     if (window.innerWidth <= 768) {
                         toggleSidebar();
@@ -534,7 +519,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
 <script>
-    // আপনার ফায়ারবেস কনফিগ
     const firebaseConfig = {
         apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
         authDomain: "school-menejment.firebaseapp.com",
@@ -549,7 +533,6 @@
     }
     const db = firebase.firestore();
     
-    // স্কুলের নাম দেখানোর লজিক
     db.collection("settings").doc("school_info")
         .onSnapshot((doc) => {
             const schoolNameSpan = document.getElementById("display_school_name");
@@ -560,68 +543,98 @@
             }
         });
     
-    
-    // Firestore থেকে রিয়েল-টাইম নাম আনা
     db.collection("settings").doc("school_info")
         .onSnapshot((doc) => {
             if (doc.exists) {
                 const newName = doc.data().school_name;
-                
-                // যেখানে যেখানে নাম দেখাতে চান, সেই ID গুলো এখানে দিন
                 const schoolDisplayName = document.getElementById("dynamicSchoolName");
-                if (schoolDisplayName) {
-                    schoolDisplayName.innerText = newName;
-                }
-                
-                // যদি আপনার ড্যাশবোর্ডের হেডারেও দেখাতে চান (আগের ID টি)
+                if (schoolDisplayName) schoolDisplayName.innerText = newName;
                 const headerName = document.getElementById("display_school_name");
-                if (headerName) {
-                    headerName.innerText = newName;
-                }
+                if (headerName) headerName.innerText = newName;
             }
         });
 </script>
 
-<!-- Anti-Inspect & Security Script -->
+<!-- Anti-Inspect & Security Script (Parent & Iframe Injection) -->
 <script>
-    // ১. ডান ক্লিক (Right Click) বন্ধ
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-    });
+    // এই ফাংশনটি মূল পেজ এবং আইফ্রেম উভয় ক্ষেত্রেই কাজ করবে
+    function antiInspectLogic() {
+        // ১. ডান ক্লিক বন্ধ
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
 
-    // ২. F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U শর্টকাট বন্ধ
-    document.onkeydown = function(e) {
-        if(e.keyCode == 123) { // F12
-            return false;
-        }
-        if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { // Ctrl+Shift+I
-            return false;
-        }
-        if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { // Ctrl+Shift+J
-            return false;
-        }
-        if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { // Ctrl+U
-            return false;
-        }
-        if(e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) { // Ctrl+S
-            return false;
+        // ২. শর্টকাট কী বন্ধ
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) return false; // F12
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false;
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false;
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; // Ctrl+Shift+C (Element Selector)
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
+            if(e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) return false;
+        };
+
+        // ৩. ডেভেলপার টুলস ডিটেকশন (debugger এবং টাইম ডিফারেন্স পদ্ধতি)
+        setInterval(function(){
+            var start = new Date().getTime();
+            debugger;
+            var end = new Date().getTime();
+            // যদি ডিবাগার পজ করে (ডেভেলপার টুলস ওপেন থাকে), তাহলে সময় ১০০ মিলিসেকেন্ডের বেশি হবে
+            if(end - start > 100){
+                document.body.innerHTML = "<h1 style='text-align:center;margin-top:20%;color:red; font-size:50px;'>Access Denied!</h1>";
+                document.body.style.backgroundColor = "black";
+            }
+        }, 1000);
+    }
+
+    // মূল পেজে স্ক্রিপ্টটি চালু করা
+    antiInspectLogic();
+
+
+    // আইফ্রেমে স্ক্রিপ্ট ইনজেক্ট করার ফাংশন
+    function injectAntiInspectToIframe() {
+        try {
+            const iframe = document.getElementById('main-iframe');
+            // সেম-অরিজিন পলিসি চেক (যদি একই ডোমেইনে থাকে তবেই ইনজেক্ট করবে)
+            const iframeDoc = iframe.contentWindow.document || iframe.contentDocument;
+            
+            // চেক করা যদি আগে থেকেই স্ক্রিপ্ট ঢুকে থাকে
+            if (iframeDoc.getElementById('injected-anti-inspect')) return;
+
+            const script = iframeDoc.createElement('script');
+            script.id = 'injected-anti-inspect';
+            script.textContent = `
+                ${antiInspectLogic.toString()}
+                antiInspectLogic();
+            `;
+            
+            // আইফ্রেমের বডিতে স্ক্রিপ্ট যোগ করা
+            if(iframeDoc.body) {
+                iframeDoc.body.appendChild(script);
+            } else {
+                // যদি বডি লোড হতে দেরি হয়
+                iframeDoc.addEventListener('DOMContentLoaded', function() {
+                    iframeDoc.body.appendChild(script);
+                });
+            }
+        } catch (e) {
+            console.warn("Cross-origin iframe: Cannot inject anti-inspect script automatically. Please add the script manually to the iframe source files.");
         }
     }
 
-    // ৩. ডেভেলপার টুলস ডিটেকশন (যদি কেউ অন্যভাবে টুলস ওপেন করে)
-    // টুলস ওপেন করলে পেজের কন্টেন্ট হাইড করে ফাঁকা করে দেবে
-    const element = new Image();
-    Object.defineProperty(element, 'id', {
-        get: function() {
-            document.body.innerHTML = "<h1 style='text-align:center;margin-top:20%;color:red;'>Access Denied!</h1>";
+    // পেজ লোড হলে প্রথম আইফ্রেমে স্ক্রিপ্ট ইনজেক্ট করার চেষ্টা
+    window.addEventListener('load', function() {
+        const iframe = document.getElementById('main-iframe');
+        if(iframe) {
+            iframe.onload = injectAntiInspectToIframe;
+            // যদি আইফ্রেম আগেই লোড হয়ে যায়
+            try {
+                if (iframe.contentWindow.document.readyState === 'complete') {
+                    injectAntiInspectToIframe();
+                }
+            } catch(e) {}
         }
     });
-    console.log(element); 
-    
-    // ৪. ডিবাগার ট্র্যাপ (কনসোল ওপেন করলে স্ক্রিপ্ট পজ হয়ে যাবে)
-    setInterval(function(){
-        (function() {return false;})();
-    }, 1000);
 
 </script>
 
