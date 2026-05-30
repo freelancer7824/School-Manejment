@@ -8,7 +8,7 @@
     
     <!-- Firebase Core App -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <!-- Firebase Auth (Login check করার জন্য যোগ করা হয়েছে) -->
+    <!-- Firebase Auth -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <!-- Firebase Firestore -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -472,16 +472,15 @@
                 </ul>
             </div>
 
-<div class="dropdown">
-    <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
-        <i class="fas fa-credit-card"></i> <span>Payment</span> <i class="fas fa-angle-right arrow"></i>
-    </a>
-    <ul class="dropdown-content">
-        <li><a href="#" data-link="../Payment/payment-management.html">পেমেন্ট ম্যানেজমেন্ট</a></li>
-        <li><a href="#" data-link="../Payment/payment.html">পেমেন্ট</a></li>
-    </ul>
-</div>
-
+            <div class="dropdown">
+                <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
+                    <i class="fas fa-credit-card"></i> <span>Payment</span> <i class="fas fa-angle-right arrow"></i>
+                </a>
+                <ul class="dropdown-content">
+                    <li><a href="#" data-link="../Payment/payment-management.html">পেমেন্ট ম্যানেজমেন্ট</a></li>
+                    <li><a href="#" data-link="../Payment/payment.html">পেমেন্ট</a></li>
+                </ul>
+            </div>
 
             <a href="#" class="menu-item" data-link="../Settings/settings.html"><i class="fas fa-sliders-h"></i> <span>Settings</span></a>
             <a href="#" class="menu-item" data-link="../Settings/my-account.html"><i class="fas fa-user-circle"></i> <span>My Account</span></a>
@@ -496,7 +495,6 @@
                 <h3 id="main_heading">Loading...</h3>
             </div>
             <div class="header-right">
-                <!-- এখানে আইডি দেওয়া হয়েছে ডাইনামিক সেশন শো করার জন্য -->
                 <span class="session-info" id="session-display">Current Session: Loading...</span>
                 
                 <div class="user-avatar-group" onclick="toggleUserDropdown(this)">
@@ -514,7 +512,8 @@
 
         <div class="dashboard-body">
             <div class="content-container">
-                <iframe id="main-iframe" src="../Dashboard/dashboard.html" frameborder="0"></iframe>
+                <!-- Sandboxed iframe added -->
+                <iframe id="main-iframe" src="../Dashboard/dashboard.html" frameborder="0" sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
             </div>
         </div>
     </div>
@@ -580,6 +579,8 @@
 
             if(iframe.getAttribute('src') !== currentLink) {
                 iframe.src = currentLink;
+                // নতুন পেজ লোড হলে আইফ্রেমে সিকিউরিটি স্ক্রিপ্ট ইনজেক্ট করা
+                iframe.onload = injectAntiInspectToIframe;
             }
             
             document.querySelectorAll('.sidebar-menu a, .user-dropdown-menu a').forEach(item => {
@@ -648,8 +649,6 @@
         // ১. Login Protection Check
         auth.onAuthStateChanged((user) => {
             if (!user) {
-                // ইউজার লগইন না থাকলে login.html পেজে রিডাইরেক্ট করা হচ্ছে
-                // আপনার লগইন পেজের লোকেশন অনুযায়ী পথ পরিবর্তন করে নিন
                 window.location.href = '../Auth/login.html'; 
             }
         });
@@ -670,7 +669,7 @@
             console.error("Firebase Error:", error);
         });
 
-        // ৩. Current Session Dynamic Fetch (আগের কোড অনুযায়ী)
+        // ৩. Current Session Dynamic Fetch
         db.collection("config").doc("activeSession").onSnapshot((doc) => {
             if (doc.exists) {
                 const sessionName = doc.data().sessionName || "Not Set";
@@ -683,5 +682,88 @@
             document.getElementById("session-display").innerText = "Current Session: Error";
         });
     </script>
+
+    <!-- Anti-Inspect & Security Script (Parent & Iframe Injection) -->
+    <script>
+        // এই ফাংশনটি মূল পেজ এবং আইফ্রেম উভয় ক্ষেত্রেই কাজ করবে
+        function antiInspectLogic() {
+            // ১. ডান ক্লিক বন্ধ
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
+
+            // ২. শর্টকাট কী বন্ধ
+            document.onkeydown = function(e) {
+                if(e.keyCode == 123) return false; // F12
+                if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false;
+                if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false;
+                if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; // Ctrl+Shift+C
+                if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
+                if(e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) return false;
+            };
+
+            // ৩. ডেভেলপার টুলস ডিটেকশন (debugger এবং টাইম ডিফারেন্স পদ্ধতি)
+            setInterval(function(){
+                var start = new Date().getTime();
+                debugger;
+                var end = new Date().getTime();
+                // যদি ডিবাগার পজ করে (ডেভেলপার টুলস ওপেন থাকে), তাহলে সময় ১০০ মিলিসেকেন্ডের বেশি হবে
+                if(end - start > 100){
+                    document.body.innerHTML = "<h1 style='text-align:center;margin-top:20%;color:red; font-size:50px;'>Access Denied!</h1>";
+                    document.body.style.backgroundColor = "black";
+                }
+            }, 1000);
+        }
+
+        // মূল পেজে স্ক্রিপ্টটি চালু করা
+        antiInspectLogic();
+
+
+        // আইফ্রেমে স্ক্রিপ্ট ইনজেক্ট করার ফাংশন
+        function injectAntiInspectToIframe() {
+            try {
+                const iframe = document.getElementById('main-iframe');
+                // সেম-অরিজিন পলিসি চেক (যদি একই ডোমেইনে থাকে তবেই ইনজেক্ট করবে)
+                const iframeDoc = iframe.contentWindow.document || iframe.contentDocument;
+                
+                // চেক করা যদি আগে থেকেই স্ক্রিপ্ট ঢুকে থাকে
+                if (iframeDoc.getElementById('injected-anti-inspect')) return;
+
+                const script = iframeDoc.createElement('script');
+                script.id = 'injected-anti-inspect';
+                script.textContent = `
+                    ${antiInspectLogic.toString()}
+                    antiInspectLogic();
+                `;
+                
+                // আইফ্রেমের বডিতে স্ক্রিপ্ট যোগ করা
+                if(iframeDoc.body) {
+                    iframeDoc.body.appendChild(script);
+                } else {
+                    // যদি বডি লোড হতে দেরি হয়
+                    iframeDoc.addEventListener('DOMContentLoaded', function() {
+                        iframeDoc.body.appendChild(script);
+                    });
+                }
+            } catch (e) {
+                console.warn("Cross-origin iframe: Cannot inject anti-inspect script automatically. Please add the script manually to the iframe source files.");
+            }
+        }
+
+        // পেজ লোড হলে প্রথম আইফ্রেমে স্ক্রিপ্ট ইনজেক্ট করার চেষ্টা
+        window.addEventListener('load', function() {
+            const iframe = document.getElementById('main-iframe');
+            if(iframe) {
+                iframe.onload = injectAntiInspectToIframe;
+                // যদি আইফ্রেম আগেই লোড হয়ে যায়
+                try {
+                    if (iframe.contentWindow.document.readyState === 'complete') {
+                        injectAntiInspectToIframe();
+                    }
+                } catch(e) {}
+            }
+        });
+    </script>
+
 </body>
 </html>
