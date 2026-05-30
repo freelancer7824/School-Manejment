@@ -447,7 +447,8 @@
 
         <div class="dashboard-body">
             <div class="content-container">
-                <iframe id="main-iframe" src="parent-dashboard" frameborder="0"></iframe>
+                <!-- Sandboxed iframe to restrict inspection and cross-origin access -->
+                <iframe id="main-iframe" src="parent-dashboard" frameborder="0" sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
             </div>
         </div>
     </div>
@@ -580,5 +581,49 @@
             }
         });
 </script>
+
+<!-- Anti-Inspect & Security Script -->
+<script>
+    // ১. ডান ক্লিক (Right Click) বন্ধ
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+
+    // ২. F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U শর্টকাট বন্ধ
+    document.onkeydown = function(e) {
+        if(e.keyCode == 123) { // F12
+            return false;
+        }
+        if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { // Ctrl+Shift+I
+            return false;
+        }
+        if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { // Ctrl+Shift+J
+            return false;
+        }
+        if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { // Ctrl+U
+            return false;
+        }
+        if(e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) { // Ctrl+S
+            return false;
+        }
+    }
+
+    // ৩. ডেভেলপার টুলস ডিটেকশন (যদি কেউ অন্যভাবে টুলস ওপেন করে)
+    // টুলস ওপেন করলে পেজের কন্টেন্ট হাইড করে ফাঁকা করে দেবে
+    const element = new Image();
+    Object.defineProperty(element, 'id', {
+        get: function() {
+            document.body.innerHTML = "<h1 style='text-align:center;margin-top:20%;color:red;'>Access Denied!</h1>";
+        }
+    });
+    console.log(element); 
+    
+    // ৪. ডিবাগার ট্র্যাপ (কনসোল ওপেন করলে স্ক্রিপ্ট পজ হয়ে যাবে)
+    setInterval(function(){
+        (function() {return false;})();
+    }, 1000);
+
+</script>
+
 </body>
 </html>
