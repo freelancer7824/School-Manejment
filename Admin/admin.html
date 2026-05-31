@@ -449,7 +449,16 @@
                 </ul>
             </div>
             
-            <a href="#" class="menu-item" data-link="../View/teacher-list"><i class="fas fa-users"></i> <span>Teachers</span></a>
+            <!-- Teachers Dropdown Updated -->
+            <div class="dropdown">
+                <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
+                    <i class="fas fa-users"></i> <span>Teachers</span> <i class="fas fa-angle-right arrow"></i>
+                </a>
+                <ul class="dropdown-content">
+                    <li><a href="#" data-link="../View/teacher-list">শিক্ষক তালিকা</a></li>
+                    <li><a href="#" data-link="../View/admission-teacher">ভর্তি শিক্ষক</a></li>
+                </ul>
+            </div>
             
             <a href="#" class="menu-item" data-link="../View/parents"><i class="fas fa-chalkboard"></i> <span>Parents</span></a>
             <a href="#" class="menu-item" data-link="dormitories"><i class="fas fa-building"></i> <span>Dormitories</span></a>
