@@ -7,6 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+    <!-- html2pdf.js for PDF Download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Hind+Siliguri:wght@400;700&display=swap');
         
@@ -17,9 +20,10 @@
             padding: 20px;
         }
         
+        /* Marksheet Container Styles */
         .marksheet-card {
-            width: 210mm;
-            min-height: 297mm;
+            width: 210mm; /* A4 Width */
+            min-height: 297mm; /* A4 Height */
             padding: 12mm;
             margin: 20px auto;
             background: white;
@@ -27,8 +31,22 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.2);
             color: #000;
             border-radius: 8px;
-            break-inside: avoid;
-            page-break-after: always;
+        }
+        
+        /* Responsive for mobile view */
+        @media screen and (max-width: 800px) {
+            .marksheet-card {
+                width: 100%;
+                min-height: auto;
+                padding: 5mm;
+                border-radius: 4px;
+            }
+            .marksheet-card table {
+                font-size: 9px;
+            }
+            .marksheet-card th, .marksheet-card td {
+                padding: 2px 1px;
+            }
         }
         
         .watermark {
@@ -75,12 +93,13 @@
             color: #9ca3af;
         }
         
+        /* Print Styles */
         @media print {
             .no-print {
                 display: none !important;
             }
             body {
-                background: white;
+                background: white !important;
                 margin: 0;
                 padding: 0;
             }
@@ -89,10 +108,11 @@
                 box-shadow: none;
                 border-radius: 0;
                 width: 100%;
-                page-break-after: avoid;
+                min-height: auto;
+                padding: 0;
             }
             @page {
-                size: portrait;
+                size: A4 portrait;
                 margin: 10mm;
             }
         }
@@ -100,7 +120,6 @@
         .result-card {
             transition: all 0.3s ease;
         }
-        
         .result-card:hover {
             transform: translateY(-5px);
         }
@@ -108,14 +127,13 @@
         .error-shake {
             animation: shake 0.5s ease-in-out;
         }
-        
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-10px); }
             75% { transform: translateX(10px); }
         }
 
-        /* Admin Panel Styles - Photo Management */
+        /* Admin Panel Styles */
         .admin-photo-panel {
             background: white;
             border-radius: 1rem;
@@ -187,8 +205,8 @@
             </div>
         </div>
 
-        <!-- Admin Photo Management Panel (For Teachers/Admins) -->
-        <div class="admin-photo-panel no-print" id="adminPanel" style="display: none;">
+        <!-- Admin Photo Management Panel -->
+        <div class="admin-photo-panel" id="adminPanel" style="display: none;">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                     <i class="fas fa-camera text-green-600"></i>
@@ -273,14 +291,19 @@
             </div>
         </div>
 
-        <div id="resultContainer" class="mt-8"></div>
-        
-        <div id="printBtnContainer" class="text-center mt-6 no-print hidden">
+        <!-- Action Buttons -->
+        <div id="actionBtnContainer" class="text-center mt-6 no-print hidden flex gap-4 justify-center flex-wrap">
             <button onclick="window.print()" class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg">
                 <i class="fas fa-print mr-2"></i> Print Marksheet
             </button>
+            <button onclick="downloadPDF()" class="bg-red-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg">
+                <i class="fas fa-file-pdf mr-2"></i> Download PDF
+            </button>
         </div>
     </div>
+
+    <!-- Result Render Area -->
+    <div id="resultContainer" class="mt-8"></div>
 
     <!-- Photo Edit Modal -->
     <div id="photoEditModal" class="photo-edit-modal hidden" style="display: none;">
@@ -457,7 +480,7 @@
                         section: data.section || "",
                         rollNumber: data.rollNumber || data.roll || "",
                         classId: classId,
-                        profileImage: data.profileImage || "",
+                        profileImage: data.profileImage || data.passportPhotoURL || "",
                         _sessionPath: `current_session/${sessionVal}/classes/${classId}/students`
                     });
                 }
@@ -562,19 +585,36 @@
                         rollNumber: studentRoll,
                         fullName: data.fullName || '',
                         admissionNo: data.admissionNumber || data.admissionNo || '',
-                        profileImage: data.profileImage || ''
+                        profileImage: data.profileImage || data.passportPhotoURL || ''
                     };
                 }
             }
             return null;
         }
 
+        // PDF Download Function
+        window.downloadPDF = async () => {
+            const element = document.getElementById('marksheetPrintArea');
+            if (!element) return;
+            
+            const opt = {
+                margin:       10,
+                filename:     'Student_Marksheet.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            showToastMessage("Generating PDF, please wait...", "success");
+            await html2pdf().set(opt).from(element).save();
+        };
+
         // Event Listeners
         document.getElementById('sessionSelect').addEventListener('change', async () => {
             if (getSelectedSession()) { await loadExams(); await loadAllStudentsForAdmin(); }
             document.getElementById('examSelect').disabled = false;
             document.getElementById('resultContainer').innerHTML = '';
-            document.getElementById('printBtnContainer').classList.add('hidden');
+            document.getElementById('actionBtnContainer').classList.add('hidden');
         });
         document.getElementById('examSelect').addEventListener('change', () => { if (document.getElementById('examSelect').value) loadClasses(); });
         document.getElementById('classSelect').addEventListener('change', (e) => { if (e.target.value) loadSections(e.target.value); });
@@ -592,22 +632,21 @@
             }
 
             const container = document.getElementById('resultContainer');
-            container.innerHTML = `<div class='text-center p-12 bg-white rounded-2xl shadow-lg'><i class='fas fa-spinner fa-spin text-4xl text-indigo-600 mb-4'></i><p>Loading...</p></div>`;
+            container.innerHTML = `<div class='text-center p-12 bg-white rounded-2xl shadow-lg no-print'><i class='fas fa-spinner fa-spin text-4xl text-indigo-600 mb-4'></i><p>Loading...</p></div>`;
 
             try {
                 const examName = allExamsCache.find(e => e.id === examId)?.name || examId;
                 const student = await getStudentData(sessionVal, classId, sectionName, rollNumber);
                 if (!student) {
-                    container.innerHTML = `<div class='text-center p-12 bg-white rounded-2xl shadow-lg'><i class='fas fa-user-graduate text-6xl text-red-400 mb-4'></i><h3 class='font-bold text-xl text-red-600'>Student Not Found!</h3></div>`;
-                    document.getElementById('printBtnContainer').classList.add('hidden');
+                    container.innerHTML = `<div class='text-center p-12 bg-white rounded-2xl shadow-lg no-print'><i class='fas fa-user-graduate text-6xl text-red-400 mb-4'></i><h3 class='font-bold text-xl text-red-600'>Student Not Found!</h3></div>`;
+                    document.getElementById('actionBtnContainer').classList.add('hidden');
                     return;
                 }
 
-                const studentPhoto = student.profileImage || `https://ui-avatars.com/api/?background=667eea&color=fff&name=${encodeURIComponent(student.fullName)}`;
+                const studentPhoto = student.profileImage || `https://ui-avatars.com/api/?background=3b82f6&color=fff&name=${encodeURIComponent(student.fullName)}&size=128`;
                 const subjects = allSubjectsCache.filter(sub => sub.classId === classId);
                 const marksData = allMarksCache.filter(m => m.studentId === student.id && m.examId === examId);
                 
-                // 🔥 ফোর্থ সাবজেক্ট ও বোনাস জিপিএ ক্যালকুলেশন ভ্যারিয়েবল
                 let totalObtained = 0, totalFullMarks = 0, totalGP = 0, isFailed = false, rows = "";
                 let mandatorySubCount = 0, fourthSubGP = 0, fourthSubBonus = 0;
 
@@ -616,11 +655,10 @@
                     const studentAdditional = student.additionalSubjects || [];
                     const isStudentFourthSub = subType === 'optional' && studentAdditional.includes(sub.name);
                     
-                    // যে অপশনাল সাবজেক্ট সে পরেনি, সেটি ধূসর করে দেখাবে কিন্তু মার্কশীটে থাকবে
                     if (subType === 'optional' && !isStudentFourthSub) {
                         rows += `<tr class="not-enrolled">
                             <td>${String(index+1).padStart(2,'0')}</td>
-                            <td class="text-left font-bold uppercase">${escapeHtml(sub.name)} <span class="text-[8px] font-normal italic">(Not Enrolled)</span></td>
+                            <td class="text-left font-bold uppercase">${escapeHtml(sub.name)} <span class="text-[8px] font-normal italic">(N/E)</span></td>
                             <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
                             <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
                         </tr>`;
@@ -643,7 +681,6 @@
                     totalObtained += rowTotal; 
                     totalFullMarks += rowFull;
                     
-                    // ফোর্থ সাবজেক্ট হলে আলাদা ভাবে গ্রেড ক্যালকুলেট ও ফেইল চেক
                     if (isStudentFourthSub) {
                         fourthSubGP = grade.gp;
                         if (grade.lg === "F") isFailed = true;
@@ -654,7 +691,7 @@
                     }
 
                     let displaySubName = escapeHtml(sub.name);
-                    if (isStudentFourthSub) displaySubName += ` <span class="text-[8px] text-indigo-700 font-normal">(4th Sub)</span>`;
+                    if (isStudentFourthSub) displaySubName += ` <span class="text-[8px] text-indigo-700 font-normal">(4th)</span>`;
 
                     rows += `<tr>
                         <td>${String(index+1).padStart(2,'0')}</td>
@@ -666,13 +703,12 @@
                     </tr>`;
                 });
 
-                // শিক্ষাবোর্ড নিয়ম: 4th Subject এ 2.00 এর বেশি হলে বোনাস পয়েন্ট যোগ হবে
                 fourthSubBonus = Math.max(0, fourthSubGP - 2.00);
                 const finalGPA = isFailed ? 0.00 : ((totalGP + fourthSubBonus) / (mandatorySubCount || 1));
                 const finalGrade = isFailed ? "F" : calculateGrade(totalObtained, totalFullMarks).lg;
 
                 const marksheetHTML = `
-                <div class="marksheet-card">
+                <div class="marksheet-card" id="marksheetPrintArea">
                     <div class="content-wrap">
                         <div class="flex justify-between items-center border-b-2 border-black pb-2">
                             <div class="w-20 h-20 bg-gray-200 flex items-center justify-center text-gray-400 text-xs">LOGO</div>
@@ -681,10 +717,11 @@
                                 <p class="text-[10px] font-bold mt-1 uppercase">${escapeHtml(currentSchoolAddress)}</p>
                                 <div class="mt-2 bg-black text-white px-4 py-1 text-[12px] font-bold rounded-full">Academic Transcript: ${escapeHtml(examName)}</div>
                             </div>
-                            <div class="w-24 h-28 border-2 border-black flex items-center justify-center overflow-hidden">
-                                <img src="${escapeHtml(studentPhoto)}" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?background=667eea&color=fff&name=${encodeURIComponent(student.fullName)}'">
+                            <div class="w-24 h-28 border-2 border-black flex items-center justify-center overflow-hidden bg-gray-50">
+                                <img src="${escapeHtml(studentPhoto)}" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?background=3b82f6&color=fff&name=${encodeURIComponent(student.fullName)}'">
                             </div>
                         </div>
+                        
                         <div class="grid grid-cols-3 gap-2 mt-4 text-[11px] font-bold uppercase">
                             <div class="border-b pb-1">STUDENT NAME: <span class="font-normal">${escapeHtml(student.fullName)}</span></div>
                             <div class="border-b pb-1">CLASS: <span class="font-normal">${escapeHtml(student.className)}</span></div>
@@ -693,26 +730,63 @@
                             <div class="border-b pb-1">STUDENT ID: <span class="font-normal">${escapeHtml(student.admissionNo)}</span></div>
                             <div class="border-b pb-1">SESSION: <span class="font-normal">${escapeHtml(sessionVal)}</span></div>
                         </div>
-                        <table class="mt-4"><thead class="bg-gray-100"><tr><th rowspan="2">SL</th><th rowspan="2">SUBJECT</th><th colspan="2">WRITTEN</th><th colspan="2">MCQ</th><th colspan="2">PRAC.</th><th colspan="2">TOTAL</th><th rowspan="2">LG</th><th rowspan="2">GP</th><th rowspan="2">HI</th><th rowspan="2">POS</th></tr><tr class="text-[9px]"><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th></tr></thead>
-                        <tbody>${rows}</tbody>
-                        <tfoot class="bg-gray-50 font-bold">
-                            <tr>
-                                <td colspan="2" class="text-left py-2 px-2">Total: ${totalObtained} / ${totalFullMarks}</td>
-                                <td colspan="4">GPA: ${finalGPA.toFixed(2)} ${fourthSubBonus > 0 ? `<span class="text-[8px] text-green-700">(+${fourthSubBonus.toFixed(2)} Bonus)</span>` : ''}</td>
-                                <td colspan="4">LETTER GRADE: ${finalGrade}</td>
-                                <td colspan="4">RESULT: <span class="${isFailed ? 'text-red-600' : 'text-emerald-700'}">${isFailed ? 'FAILED' : 'PASSED'}</span></td>
-                            </tr>
-                        </tfoot>
+                        
+                        <table class="mt-4">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th rowspan="2">SL</th><th rowspan="2">SUBJECT</th><th colspan="2">WRITTEN</th><th colspan="2">MCQ</th><th colspan="2">PRAC.</th><th colspan="2">TOTAL</th><th rowspan="2">LG</th><th rowspan="2">GP</th><th rowspan="2">HI</th><th rowspan="2">POS</th>
+                                </tr>
+                                <tr class="text-[9px]">
+                                    <th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                            <tfoot class="bg-gray-50 font-bold">
+                                <tr>
+                                    <td colspan="2" class="text-left py-2 px-2">Total: ${totalObtained} / ${totalFullMarks}</td>
+                                    <td colspan="4">GPA: ${finalGPA.toFixed(2)} ${fourthSubBonus > 0 ? `<span class="text-[8px] text-green-700">(+${fourthSubBonus.toFixed(2)} Bonus)</span>` : ''}</td>
+                                    <td colspan="4">LETTER GRADE: ${finalGrade}</td>
+                                    <td colspan="4">RESULT: <span class="${isFailed ? 'text-red-600' : 'text-emerald-700'}">${isFailed ? 'FAILED' : 'PASSED'}</span></td>
+                                </tr>
+                            </tfoot>
                         </table>
-                        <div class="grid grid-cols-2 gap-4 mt-4"><div><table class="grade-table w-full"><tr class="bg-gray-100"><th>Personal Traits</th><th>Rating</th></tr><tr><td class="text-left">Attendance</td><td>_______</td></tr><tr><td class="text-left">Behavior</td><td>_______</td></tr></table></div><div><table class="grade-table w-full"><tr class="bg-gray-100"><th>Range</th><th>Grade</th><th>GPA</th></tr><tr><td>80-100</td><td>A+</td><td>5.00</td></tr><tr><td>70-79</td><td>A</td><td>4.00</td></tr><tr><td>60-69</td><td>A-</td><td>3.50</td></tr><tr><td>33-39</td><td>D</td><td>1.00</td></tr></table></div></div>
-                        <div class="mt-6 border border-black p-2 text-[10px]"><div class="flex border-b pb-1"><span class="font-bold w-40">CLASS TEACHER'S REMARK:</span><span class="flex-1"></span></div><div class="flex pt-1"><span class="font-bold w-40">PRINCIPAL'S REMARK:</span><span class="flex-1"></span></div></div>
-                        <div class="mt-12 flex justify-between"><div class="text-center border-t pt-1 w-40 text-[10px]">Class Teacher</div><div class="text-center border-t pt-1 w-40 text-[10px]">Guardian</div><div class="text-center border-t pt-1 w-40 text-[10px]">Principal</div></div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <table class="grade-table w-full">
+                                    <tr class="bg-gray-100"><th>Personal Traits</th><th>Rating</th></tr>
+                                    <tr><td class="text-left">Attendance</td><td>_______</td></tr>
+                                    <tr><td class="text-left">Behavior</td><td>_______</td></tr>
+                                </table>
+                            </div>
+                            <div>
+                                <table class="grade-table w-full">
+                                    <tr class="bg-gray-100"><th>Range</th><th>Grade</th><th>GPA</th></tr>
+                                    <tr><td>80-100</td><td>A+</td><td>5.00</td></tr>
+                                    <tr><td>70-79</td><td>A</td><td>4.00</td></tr>
+                                    <tr><td>60-69</td><td>A-</td><td>3.50</td></tr>
+                                    <tr><td>33-39</td><td>D</td><td>1.00</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 border border-black p-2 text-[10px]">
+                            <div class="flex border-b pb-1"><span class="font-bold w-40">CLASS TEACHER'S REMARK:</span><span class="flex-1"></span></div>
+                            <div class="flex pt-1"><span class="font-bold w-40">PRINCIPAL'S REMARK:</span><span class="flex-1"></span></div>
+                        </div>
+                        
+                        <div class="mt-12 flex justify-between">
+                            <div class="text-center border-t pt-1 w-40 text-[10px]">Class Teacher</div>
+                            <div class="text-center border-t pt-1 w-40 text-[10px]">Guardian</div>
+                            <div class="text-center border-t pt-1 w-40 text-[10px]">Principal</div>
+                        </div>
                     </div>
                 </div>`;
+                
                 container.innerHTML = marksheetHTML;
-                document.getElementById('printBtnContainer').classList.remove('hidden');
+                document.getElementById('actionBtnContainer').classList.remove('hidden');
             } catch (error) {
-                container.innerHTML = `<div class='text-center p-12 bg-white rounded-2xl shadow-lg'><i class='fas fa-exclamation-triangle text-6xl text-red-400'></i><p class='mt-2'>Error: ${error.message}</p></div>`;
+                container.innerHTML = `<div class='text-center p-12 bg-white rounded-2xl shadow-lg no-print'><i class='fas fa-exclamation-triangle text-6xl text-red-400'></i><p class='mt-2'>Error: ${error.message}</p></div>`;
             }
         };
 
