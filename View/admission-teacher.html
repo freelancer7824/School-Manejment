@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>শিক্ষক সাইনআপ | নতুন একাউন্ট তৈরি করুন</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { bengali: ['"Noto Sans Bengali"', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        primary: '#3b82f6',
+                        'primary-dark': '#2563eb',
+                        'primary-light': '#93bbfd',
+                        secondary: '#6b7280',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Noto Sans Bengali', system-ui, sans-serif;
+            background: #f1f5f9;
+            min-height: 100vh;
+        }
+
+        /* হেডার গ্র্যাডিয়েন্ট */
+        .header-bg {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+        }
+
+        /* স্টেপ ইন্ডিকেটর */
+        .step-circle {
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 14px;
+            border: 2.5px solid #cbd5e1; color: #94a3b8;
+            background: #fff; transition: all 0.35s ease; position: relative; z-index: 2;
+        }
+        .step-circle.active {
+            border-color: #3b82f6; color: #fff; background: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59,130,246,0.2);
+        }
+        .step-circle.done {
+            border-color: #10b981; color: #fff; background: #10b981;
+            box-shadow: 0 0 0 4px rgba(16,185,129,0.15);
+        }
+        .step-connector {
+            height: 3px; flex: 1; background: #e2e8f0; border-radius: 2px;
+            transition: background 0.4s ease; position: relative; z-index: 1;
+        }
+        .step-connector.active { background: #3b82f6; }
+        .step-connector.done { background: #10b981; }
+
+        /* স্টেপ প্যানেল */
+        .step-panel { display: none; }
+        .step-panel.active { display: block; animation: fadeSlideUp 0.3s ease; }
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ইনপুট ফিল্ড */
+        .form-input {
+            width: 100%; padding: 10px 12px; border: 1.5px solid #e2e8f0;
+            border-radius: 10px; font-size: 14px; color: #1e293b;
+            background: #fff; transition: all 0.25s ease; outline: none;
+            font-family: 'Noto Sans Bengali', system-ui, sans-serif;
+        }
+        .form-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
+        .form-input::placeholder { color: #94a3b8; }
+        .form-input.error { border-color: #ef4444; background: #fef2f2; box-shadow: 0 0 0 3px rgba(239,68,68,0.08); }
+        .form-input.success { border-color: #10b981; }
+        .form-input:disabled { background: #f8fafc; color: #94a3b8; cursor: not-allowed; }
+
+        /* লেবেল */
+        .form-label {
+            display: block; font-size: 13px; font-weight: 600;
+            color: #334155; margin-bottom: 4px;
+        }
+        .form-label .required { color: #ef4444; margin-left: 2px; }
+
+        /* এরর টেক্সট */
+        .field-error { font-size: 11px; color: #ef4444; margin-top: 3px; display: none; }
+        .field-error.show { display: block; }
+
+        /* বাটন */
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #fff; font-weight: 700; padding: 12px 28px;
+            border-radius: 12px; border: none; cursor: pointer;
+            transition: all 0.25s ease; font-size: 14px;
+            box-shadow: 0 4px 14px rgba(59,130,246,0.3);
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,0.4); }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .btn-outline {
+            background: #fff; color: #475569; font-weight: 600;
+            padding: 12px 24px; border-radius: 12px;
+            border: 1.5px solid #e2e8f0; cursor: pointer;
+            transition: all 0.2s ease; font-size: 14px;
+        }
+        .btn-outline:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff; font-weight: 700; padding: 12px 28px;
+            border-radius: 12px; border: none; cursor: pointer;
+            transition: all 0.25s ease; font-size: 14px;
+            box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+        }
+        .btn-success:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
+
+        /* টোস্ট */
+        .toast-box {
+            position: fixed; top: 16px; right: 16px; z-index: 9999;
+            max-width: 380px; padding: 14px 18px; border-radius: 12px;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            animation: toastSlide 0.3s ease-out;
+            font-size: 13px; font-weight: 500;
+        }
+        .toast-box.success { background: #ecfdf5; border-left: 4px solid #10b981; color: #065f46; }
+        .toast-box.error { background: #fef2f2; border-left: 4px solid #ef4444; color: #991b1b; }
+        .toast-box.info { background: #eff6ff; border-left: 4px solid #3b82f6; color: #1e40af; }
+        @keyframes toastSlide { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(110%); opacity: 0; } }
+
+        /* পাসওয়ার্ড শক্তি */
+        .pw-bar { height: 4px; border-radius: 2px; transition: all 0.3s ease; background: #e2e8f0; }
+
+        /* কার্ড */
+        .card {
+            background: #fff; border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+        }
+
+        /* সাকসেস এনিমেশন */
+        .success-bounce { animation: bounceIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275); }
+        @keyframes bounceIn { 0% { transform: scale(0); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+        /* পালস */
+        .pulse-ring {
+            animation: pulseRing 1.5s ease-out infinite;
+        }
+        @keyframes pulseRing {
+            0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.3); }
+            100% { box-shadow: 0 0 0 20px rgba(16,185,129,0); }
+        }
+
+        /* সেকশন টাইটেল */
+        .section-title {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 15px; font-weight: 700; color: #1e293b;
+            padding-bottom: 10px; margin-bottom: 16px;
+            border-bottom: 1.5px solid #f1f5f9;
+        }
+        .section-icon {
+            width: 30px; height: 30px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+        }
+
+        /* স্ক্রলবার */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- টোস্ট কন্টেইনার -->
+    <div id="toastContainer"></div>
+
+    <!-- হেডার -->
+    <div class="header-bg px-4 pt-4 pb-20 relative">
+        <div class="max-w-lg mx-auto">
+            <!-- টপ বার -->
+            <div class="flex items-center justify-between mb-5">
+                <a href="#" class="w-9 h-9 bg-white/20 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-white/30 transition">
+                    <i class="fas fa-arrow-left text-sm"></i>
+                </a>
+                <div class="bg-white/20 backdrop-blur px-3 py-1.5 rounded-full text-xs font-semibold text-white flex items-center gap-1.5">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="sessionBadge">২০২৬-২০২৭</span>
+                </div>
+            </div>
+            <!-- টাইটেল -->
+            <div class="text-white text-center">
+                <div class="inline-flex items-center justify-center w-14 h-14 bg-white/20 backdrop-blur rounded-2xl mb-3">
+                    <i class="fas fa-chalkboard-teacher text-2xl text-white"></i>
+                </div>
+                <h1 class="text-xl font-extrabold tracking-tight">শিক্ষক সাইনআপ</h1>
+                <p class="text-blue-100 text-xs mt-1">নতুন শিক্ষক একাউন্ট তৈরি করুন</p>
+            </div>
+        </div>
+        <!-- বটম কার্ভ -->
+        <div class="absolute bottom-0 left-0 right-0 h-6 bg-slate-100 rounded-t-3xl"></div>
+    </div>
+
+    <!-- মেইন কন্টেন্ট -->
+    <div class="max-w-lg mx-auto px-4 -mt-10 pb-8 relative z-10">
+
+        <!-- স্টেপ ইন্ডিকেটর -->
+        <div class="card p-4 mb-4">
+            <div class="flex items-center gap-0">
+                <div class="flex flex-col items-center" style="min-width:50px">
+                    <div class="step-circle active" id="stepCircle1">১</div>
+                    <span class="text-[10px] font-semibold mt-1 text-primary" id="stepLabel1">ব্যক্তিগত</span>
+                </div>
+                <div class="step-connector" id="connector1"></div>
+                <div class="flex flex-col items-center" style="min-width:50px">
+                    <div class="step-circle" id="stepCircle2">২</div>
+                    <span class="text-[10px] font-semibold mt-1 text-slate-400" id="stepLabel2">পেশাগত</span>
+                </div>
+                <div class="step-connector" id="connector2"></div>
+                <div class="flex flex-col items-center" style="min-width:50px">
+                    <div class="step-circle" id="stepCircle3">৩</div>
+                    <span class="text-[10px] font-semibold mt-1 text-slate-400" id="stepLabel3">একাউন্ট</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ফর্ম কার্ড -->
+        <div class="card overflow-hidden" id="formCard">
+
+            <!-- ===== স্টেপ ১: ব্যক্তিগত তথ্য ===== -->
+            <div class="step-panel active p-5" id="step1">
+                <div class="section-title">
+                    <div class="section-icon bg-blue-50 text-primary"><i class="fas fa-user"></i></div>
+                    ব্যক্তিগত তথ্য
+                </div>
+
+                <div class="space-y-4">
+                    <!-- পূর্ণ নাম -->
+                    <div>
+                        <label class="form-label">পূর্ণ নাম <span class="required">*</span></label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-primary text-sm"><i class="fas fa-user"></i></span>
+                            <input type="text" id="fullName" class="form-input pl-9" placeholder="শিক্ষকের পূর্ণ নাম লিখুন">
+                        </div>
+                        <div class="field-error" id="fullNameError">পূর্ণ নাম আবশ্যক</div>
+                    </div>
+
+                    <!-- পিতার/স্বামীর নাম -->
+                    <div>
+                        <label class="form-label">পিতা/স্বামীর নাম</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><i class="fas fa-user-tie"></i></span>
+                            <input type="text" id="fatherName" class="form-input pl-9" placeholder="পিতা বা স্বামীর নাম">
+                        </div>
+                    </div>
+
+                    <!-- মোবাইল নম্বর -->
+                    <div>
+                        <label class="form-label">মোবাইল নম্বর <span class="required">*</span></label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-primary text-sm"><i class="fas fa-phone-alt"></i></span>
+                            <input type="tel" id="phone" class="form-input pl-9" placeholder="01XXXXXXXXX" maxlength="11">
+                        </div>
+                        <div class="field-error" id="phoneError">সঠিক বাংলাদেশী মোবাইল নম্বর দিন</div>
+                    </div>
+
+                    <!-- ইমেইল -->
+                    <div>
+                        <label class="form-label">ইমেইল</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><i class="fas fa-envelope"></i></span>
+                            <input type="email" id="email" class="form-input pl-9" placeholder="teacher@school.com">
+                        </div>
+                        <div class="field-error" id="emailError">সঠিক ইমেইল ফরম্যাট দিন</div>
+                    </div>
+
+                    <!-- লিঙ্গ ও জন্ম তারিখ -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="form-label">লিঙ্গ</label>
+                            <select id="gender" class="form-input">
+                                <option value="">নির্বাচন</option>
+                                <option value="Male">পুরুষ</option>
+                                <option value="Female">মহিলা</option>
+                                <option value="Other">অন্যান্য</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">জন্ম তারিখ</label>
+                            <input type="date" id="dob" class="form-input">
+                        </div>
+                    </div>
+
+                    <!-- ঠিকানা -->
+                    <div>
+                        <label class="form-label">ঠিকানা</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-3 text-slate-400 text-sm"><i class="fas fa-map-marker-alt"></i></span>
+                            <textarea id="address" class="form-input pl-9 resize-none" rows="2" placeholder="বর্তমান ঠিকানা লিখুন"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- বাটন -->
+                <div class="flex justify-end mt-6 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="goToStep(2)" class="btn-primary">
+                        পরবর্তী ধাপ <i class="fas fa-arrow-right ml-1.5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ===== স্টেপ ২: পেশাগত তথ্য ===== -->
+            <div class="step-panel p-5" id="step2">
+                <div class="section-title">
+                    <div class="section-icon bg-amber-50 text-amber-500"><i class="fas fa-graduation-cap"></i></div>
+                    পেশাগত তথ্য
+                </div>
+
+                <div class="space-y-4">
+                    <!-- শিক্ষক আইডি -->
+                    <div>
+                        <label class="form-label">শিক্ষক আইডি</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 text-sm"><i class="fas fa-id-badge"></i></span>
+                            <input type="text" id="employeeId" class="form-input pl-9" placeholder="TCH-001">
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-1">প্রতিষ্ঠান কর্তৃক প্রদত্ত আইডি (ঐচ্ছিক)</div>
+                    </div>
+
+                    <!-- বিভাগ -->
+                    <div>
+                        <label class="form-label">বিভাগ <span class="required">*</span></label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 text-sm"><i class="fas fa-book"></i></span>
+                            <input type="text" id="department" class="form-input pl-9" placeholder="বিজ্ঞান, গণিত, বাংলা...">
+                        </div>
+                        <div class="field-error" id="departmentError">বিভাগের নাম আবশ্যক</div>
+                    </div>
+
+                    <!-- শিক্ষাগত যোগ্যতা -->
+                    <div>
+                        <label class="form-label">শিক্ষাগত যোগ্যতা <span class="required">*</span></label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 text-sm"><i class="fas fa-award"></i></span>
+                            <input type="text" id="qualification" class="form-input pl-9" placeholder="এম.এসসি, বি.এড">
+                        </div>
+                        <div class="field-error" id="qualificationError">শিক্ষাগত যোগ্যতা আবশ্যক</div>
+                    </div>
+
+                    <!-- বিষয়/বিষয়সমূহ -->
+                    <div>
+                        <label class="form-label">পড়ানোর বিষয়</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 text-sm"><i class="fas fa-book-open"></i></span>
+                            <input type="text" id="subjects" class="form-input pl-9" placeholder="গণিত, পদার্থবিজ্ঞান...">
+                        </div>
+                    </div>
+
+                    <!-- যোগদানের তারিখ -->
+                    <div>
+                        <label class="form-label">যোগদানের তারিখ</label>
+                        <input type="date" id="joiningDate" class="form-input">
+                    </div>
+
+                    <!-- বেতন -->
+                    <div>
+                        <label class="form-label">মাসিক বেতন</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">৳</span>
+                            <input type="number" id="salary" class="form-input pl-9" placeholder="০">
+                        </div>
+                    </div>
+
+                    <!-- রক্তের গ্রুপ -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="form-label">রক্তের গ্রুপ</label>
+                            <select id="bloodGroup" class="form-input">
+                                <option value="">নির্বাচন</option>
+                                <option>A+</option><option>A-</option>
+                                <option>B+</option><option>B-</option>
+                                <option>AB+</option><option>AB-</option>
+                                <option>O+</option><option>O-</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">জাতীয়তা</label>
+                            <input type="text" id="nationality" class="form-input" placeholder="বাংলাদেশী" value="বাংলাদেশী">
+                        </div>
+                    </div>
+
+                    <!-- এনআইডি -->
+                    <div>
+                        <label class="form-label">জাতীয় পরিচয়পত্র নম্বর</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><i class="fas fa-id-card"></i></span>
+                            <input type="text" id="nid" class="form-input pl-9" placeholder="NID নম্বর">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- বাটন -->
+                <div class="flex justify-between mt-6 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="goToStep(1)" class="btn-outline">
+                        <i class="fas fa-arrow-left mr-1.5"></i> পূর্ববর্তী
+                    </button>
+                    <button type="button" onclick="goToStep(3)" class="btn-primary">
+                        পরবর্তী ধাপ <i class="fas fa-arrow-right ml-1.5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ===== স্টেপ ৩: একাউন্ট সেটআপ ===== -->
+            <div class="step-panel p-5" id="step3">
+                <div class="section-title">
+                    <div class="section-icon bg-emerald-50 text-emerald-500"><i class="fas fa-lock"></i></div>
+                    একাউন্ট সেটআপ
+                </div>
+
+                <div class="space-y-4">
+                    <!-- লগইন তথ্য প্রিভিউ -->
+                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                        <div class="text-xs font-bold text-primary mb-2"><i class="fas fa-info-circle mr-1"></i> লগইন তথ্য প্রিভিউ</div>
+                        <div class="space-y-1.5 text-sm">
+                            <div class="flex items-center gap-2">
+                                <span class="text-slate-500 w-16">ইমেইল:</span>
+                                <span class="font-mono font-semibold text-slate-800" id="previewEmail">—</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-slate-500 w-16">মোবাইল:</span>
+                                <span class="font-mono font-semibold text-slate-800" id="previewPhone">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- পাসওয়ার্ড -->
+                    <div>
+                        <label class="form-label">পাসওয়ার্ড <span class="required">*</span></label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 text-sm"><i class="fas fa-key"></i></span>
+                            <input type="password" id="password" class="form-input pl-9 pr-10" placeholder="কমপক্ষে ৬ অক্ষর">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 cursor-pointer hover:text-slate-600" onclick="togglePw('password', this)">
+                                <i class="fas fa-eye text-sm"></i>
+                            </span>
+                        </div>
+                        <!-- পাসওয়ার্ড শক্তি -->
+                        <div class="flex gap-1.5 mt-2">
+                            <div class="pw-bar flex-1" id="pw1"></div>
+                            <div class="pw-bar flex-1" id="pw2"></div>
+                            <div class="pw-bar flex-1" id="pw3"></div>
+                            <div class="pw-bar flex-1" id="pw4"></div>
+                        </div>
+                        <div class="flex justify-between mt-1">
+                            <span class="text-[10px] text-slate-400">পাসওয়ার্ড শক্তি</span>
+                            <span class="text-[10px] font-semibold" id="pwStrengthText" style="color:#94a3b8">—</span>
+                        </div>
+                        <div class="field-error" id="passwordError">পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে</div>
+                    </div>
+
+                    <!-- পাসওয়ার্ড কনফার্ম -->
+                    <div>
+                        <label class="form-label">পাসওয়ার্ড নিশ্চিত করুন <span class="required">*</span></label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 text-sm"><i class="fas fa-lock"></i></span>
+                            <input type="password" id="confirmPassword" class="form-input pl-9 pr-10" placeholder="পুনরায় পাসওয়ার্ড লিখুন">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 cursor-pointer hover:text-slate-600" onclick="togglePw('confirmPassword', this)">
+                                <i class="fas fa-eye text-sm"></i>
+                            </span>
+                        </div>
+                        <div class="field-error" id="confirmPasswordError">পাসওয়ার্ড মিলছে না</div>
+                    </div>
+
+                    <!-- শর্তাবলী -->
+                    <label class="flex items-start gap-2.5 cursor-pointer select-none mt-3">
+                        <input type="checkbox" id="agreeTerms" class="mt-0.5 w-4 h-4 accent-blue-500 rounded">
+                        <span class="text-xs text-slate-500 leading-relaxed">
+                            আমি <span class="text-primary font-semibold underline">শর্তাবলী</span> পড়েছি এবং সম্মত আছি। আমার দেওয়া তথ্য সঠিক।
+                        </span>
+                    </label>
+                    <div class="field-error" id="agreeError">শর্তাবলীতে সম্মতি আবশ্যক</div>
+                </div>
+
+                <!-- বাটন -->
+                <div class="flex justify-between mt-6 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="goToStep(2)" class="btn-outline">
+                        <i class="fas fa-arrow-left mr-1.5"></i> পূর্ববর্তী
+                    </button>
+                    <button type="button" id="submitBtn" onclick="submitForm()" class="btn-success">
+                        <i class="fas fa-user-plus mr-1.5"></i> একাউন্ট তৈরি করুন
+                    </button>
+                </div>
+            </div>
+
+            <!-- ===== সাকসেস স্ক্রিন ===== -->
+            <div class="step-panel p-6 text-center" id="successScreen">
+                <div class="success-bounce inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 mb-5 pulse-ring">
+                    <i class="fas fa-check text-3xl text-white"></i>
+                </div>
+                <h2 class="text-xl font-extrabold text-slate-800 mb-1">একাউন্ট তৈরি সফল!</h2>
+                <p class="text-xs text-slate-500 mb-5">আপনার শিক্ষক একাউন্ট সফলভাবে তৈরি হয়েছে</p>
+
+                <!-- তথ্য কার্ড -->
+                <div class="bg-slate-50 rounded-xl p-4 text-left text-sm space-y-2.5 mb-5 border border-slate-100">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">নাম</span>
+                        <span class="font-bold text-slate-800" id="successName">—</span>
+                    </div>
+                    <div class="border-t border-dashed border-slate-200"></div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">লগইন ইমেইল</span>
+                        <span class="font-mono text-xs font-semibold text-primary" id="successEmail">—</span>
+                    </div>
+                    <div class="border-t border-dashed border-slate-200"></div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">বিভাগ</span>
+                        <span class="font-semibold text-slate-800" id="successDept">—</span>
+                    </div>
+                    <div class="border-t border-dashed border-slate-200"></div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">শিক্ষক আইডি</span>
+                        <span class="font-mono font-semibold text-slate-800" id="successId">—</span>
+                    </div>
+                </div>
+
+                <!-- সতর্কতা -->
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-5 text-left">
+                    <p class="text-[11px] text-amber-700 leading-relaxed">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        এই তথ্য সংরক্ষণ করুন। লগইন করতে উপরের ইমেইল ও আপনার পাসওয়ার্ড ব্যবহার করুন।
+                    </p>
+                </div>
+
+                <button type="button" onclick="resetForm()" class="btn-primary w-full">
+                    <i class="fas fa-redo mr-1.5"></i> আরেকটি একাউন্ট তৈরি করুন
+                </button>
+            </div>
+        </div>
+
+        <!-- ফুটার -->
+        <div class="text-center mt-5 text-xs text-slate-400">
+            <p>ইতিমধ্যে একাউন্ট আছে? <a href="#" class="text-primary font-semibold hover:underline">লগইন করুন</a></p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getFirestore, collection, serverTimestamp, doc, setDoc, query, where, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            databaseURL: "https://school-menejment-default-rtdb.firebaseio.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24",
+            measurementId: "G-SQT1N4PVD3"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentStep = 1;
+
+        // ===== সেশন লোড =====
+        async function loadSession() {
+            try {
+                const snap = await getDoc(doc(db, "config", "activeSession"));
+                if (snap.exists()) {
+                    document.getElementById('sessionBadge').textContent = snap.data().sessionName || '২০২৬-২০২৭';
+                }
+            } catch(e) {}
+        }
+        loadSession();
+
+        // ===== টোস্ট =====
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const icons = { success: 'fa-check-circle text-emerald-500', error: 'fa-exclamation-circle text-red-500', info: 'fa-info-circle text-blue-500' };
+            toast.className = `toast-box ${type}`;
+            toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'toastOut 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 4500);
+        }
+
+        // ===== স্টেপ নেভিগেশন =====
+        window.goToStep = function(step) {
+            if (step > currentStep && !validateStep(currentStep)) return;
+            currentStep = step;
+            updateStepUI();
+        };
+
+        function updateStepUI() {
+            // প্যানেল
+            document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+            const panel = document.getElementById('step' + currentStep);
+            if (panel) panel.classList.add('active');
+
+            // সার্কেল ও লেবেল
+            for (let i = 1; i <= 3; i++) {
+                const circle = document.getElementById('stepCircle' + i);
+                const label = document.getElementById('stepLabel' + i);
+                circle.classList.remove('active', 'done');
+                if (i < currentStep) {
+                    circle.classList.add('done');
+                    circle.innerHTML = '<i class="fas fa-check text-xs"></i>';
+                    label.className = 'text-[10px] font-semibold mt-1 text-emerald-500';
+                } else if (i === currentStep) {
+                    circle.classList.add('active');
+                    circle.textContent = i === 1 ? '১' : i === 2 ? '২' : '৩';
+                    label.className = 'text-[10px] font-semibold mt-1 text-primary';
+                } else {
+                    circle.textContent = i === 1 ? '১' : i === 2 ? '২' : '৩';
+                    label.className = 'text-[10px] font-semibold mt-1 text-slate-400';
+                }
+            }
+
+            // কানেক্টর
+            for (let i = 1; i <= 2; i++) {
+                const conn = document.getElementById('connector' + i);
+                conn.classList.remove('active', 'done');
+                if (i < currentStep) conn.classList.add('done');
+                else if (i === currentStep) conn.classList.add('active');
+            }
+
+            // স্টেপ ৩ হলে প্রিভিউ আপডেট
+            if (currentStep === 3) updatePreview();
+
+            // কার্ডে স্ক্রল
+            document.getElementById('formCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function updatePreview() {
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            document.getElementById('previewEmail').textContent = email || generateEmail(phone, 'teacher');
+            document.getElementById('previewPhone').textContent = phone || '—';
+        }
+
+        // ===== ভ্যালিডেশন =====
+        function showErr(id, msg) {
+            const field = document.getElementById(id);
+            const err = document.getElementById(id + 'Error');
+            if (field) field.classList.add('error');
+            if (err) { err.textContent = msg; err.classList.add('show'); }
+        }
+        function clearErr(id) {
+            const field = document.getElementById(id);
+            const err = document.getElementById(id + 'Error');
+            if (field) field.classList.remove('error');
+            if (err) err.classList.remove('show');
+        }
+        function markOk(id) {
+            const field = document.getElementById(id);
+            if (field) { field.classList.remove('error'); field.classList.add('success'); }
+            clearErr(id);
+        }
+
+        function validateStep(step) {
+            let ok = true;
+            if (step === 1) {
+                const name = document.getElementById('fullName').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+                const email = document.getElementById('email').value.trim();
+
+                if (!name) { showErr('fullName', 'পূর্ণ নাম আবশ্যক'); ok = false; } else markOk('fullName');
+
+                if (!phone) { showErr('phone', 'মোবাইল নম্বর আবশ্যক'); ok = false; }
+                else if (!/^01[3-9]\d{8}$/.test(phone)) { showErr('phone', 'সঠিক বাংলাদেশী নম্বর দিন (01XXXXXXXXX)'); ok = false; }
+                else markOk('phone');
+
+                if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('email', 'সঠিক ইমেইল ফরম্যাট দিন'); ok = false; }
+                else if (email) markOk('email'); else clearErr('email');
+            }
+            if (step === 2) {
+                const dept = document.getElementById('department').value.trim();
+                const qual = document.getElementById('qualification').value.trim();
+                if (!dept) { showErr('department', 'বিভাগের নাম আবশ্যক'); ok = false; } else markOk('department');
+                if (!qual) { showErr('qualification', 'শিক্ষাগত যোগ্যতা আবশ্যক'); ok = false; } else markOk('qualification');
+            }
+            if (!ok) showToast('অনুগ্রহ করে আবশ্যক তথ্য পূরণ করুন', 'error');
+            return ok;
+        }
+
+        // ইনপুটে টাইপ করলে এরর ক্লিয়ার
+        ['fullName','phone','email','department','qualification','password','confirmPassword'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', () => clearErr(id));
+        });
+
+        // ===== পাসওয়ার্ড শক্তি =====
+        document.getElementById('password').addEventListener('input', function() {
+            const v = this.value;
+            let s = 0;
+            if (v.length >= 6) s++;
+            if (v.length >= 10) s++;
+            if (/[A-Z]/.test(v) && /[a-z]/.test(v)) s++;
+            if (/\d/.test(v) && /[^A-Za-z0-9]/.test(v)) s++;
+            const colors = ['#e2e8f0', '#ef4444', '#f59e0b', '#3b82f6', '#10b981'];
+            const labels = ['—', 'দুর্বল', 'মাঝারি', 'ভালো', 'শক্তিশালী'];
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById('pw' + i).style.background = i <= s ? colors[s] : '#e2e8f0';
+            }
+            const txt = document.getElementById('pwStrengthText');
+            txt.textContent = v ? labels[s] : '—';
+            txt.style.color = v ? colors[s] : '#94a3b8';
+            clearErr('password');
+        });
+
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            const pw = document.getElementById('password').value;
+            if (this.value && this.value !== pw) showErr('confirmPassword', 'পাসওয়ার্ড মিলছে না');
+            else if (this.value && this.value === pw) markOk('confirmPassword');
+            else clearErr('confirmPassword');
+        });
+
+        // ===== পাসওয়ার্ড টগল =====
+        window.togglePw = function(fieldId, el) {
+            const f = document.getElementById(fieldId);
+            const icon = el.querySelector('i');
+            if (f.type === 'password') { f.type = 'text'; icon.className = 'fas fa-eye-slash text-sm'; }
+            else { f.type = 'password'; icon.className = 'fas fa-eye text-sm'; }
+        };
+
+        // ===== ইমেইল জেনারেটর =====
+        function generateEmail(phone, role) {
+            const c = phone.replace(/\D/g, '');
+            return `${role}_${c.slice(-10)}@schoolapp.com`;
+        }
+
+        // ===== ডুপ্লিকেট চেক =====
+        async function isPhoneUsed(phone) {
+            try {
+                const q = query(collection(db, 'users'), where('phone', '==', phone));
+                const snap = await getDocs(q);
+                return !snap.empty;
+            } catch(e) { return false; }
+        }
+
+        // ===== ফর্ম সাবমিট =====
+        window.submitForm = async function() {
+            if (!validateStep(1) || !validateStep(2)) return;
+
+            const pw = document.getElementById('password').value;
+            const cpw = document.getElementById('confirmPassword').value;
+            const agree = document.getElementById('agreeTerms').checked;
+
+            if (!pw || pw.length < 6) { showErr('password', 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে'); return; }
+            else markOk('password');
+
+            if (pw !== cpw) { showErr('confirmPassword', 'পাসওয়ার্ড মিলছে না'); return; }
+            else markOk('confirmPassword');
+
+            if (!agree) { document.getElementById('agreeError').classList.add('show'); return; }
+            else document.getElementById('agreeError').classList.remove('show');
+
+            // ডাটা সংগ্রহ
+            const fullName = document.getElementById('fullName').value.trim();
+            const fatherName = document.getElementById('fatherName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const emailVal = document.getElementById('email').value.trim();
+            const gender = document.getElementById('gender').value;
+            const dob = document.getElementById('dob').value;
+            const address = document.getElementById('address').value.trim();
+            const employeeId = document.getElementById('employeeId').value.trim() || `TCH-${phone.slice(-4)}`;
+            const department = document.getElementById('department').value.trim();
+            const qualification = document.getElementById('qualification').value.trim();
+            const subjects = document.getElementById('subjects').value.trim();
+            const joiningDate = document.getElementById('joiningDate').value || new Date().toISOString().split('T')[0];
+            const salary = document.getElementById('salary').value.trim();
+            const bloodGroup = document.getElementById('bloodGroup').value;
+            const nationality = document.getElementById('nationality').value.trim();
+            const nid = document.getElementById('nid').value.trim();
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> তৈরি হচ্ছে...';
+
+            try {
+                // ডুপ্লিকেট চেক
+                if (await isPhoneUsed(phone)) {
+                    showErr('phone', 'এই মোবাইল নম্বর দিয়ে আগেই একাউন্ট আছে');
+                    goToStep(1);
+                    return;
+                }
+
+                const userEmail = emailVal || generateEmail(phone, 'teacher');
+                const cred = await createUserWithEmailAndPassword(auth, userEmail, pw);
+                const uid = cred.user.uid;
+
+                // users কালেকশন
+                const userData = {
+                    uid, name: fullName, fatherName: fatherName || null,
+                    email: userEmail, phone, role: 'teacher',
+                    gender: gender || null, dateOfBirth: dob || null,
+                    address: address || null, employeeId, department,
+                    qualification, subjects: subjects || null,
+                    joiningDate, salary: salary || null,
+                    bloodGroup: bloodGroup || null,
+                    nationality: nationality || null, nid: nid || null,
+                    status: 'active',
+                    createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+                };
+                await setDoc(doc(db, 'users', uid), userData);
+
+                // teachers কালেকশন সিঙ্ক
+                await setDoc(doc(db, 'teachers', uid), {
+                    name: fullName, phone, email: userEmail,
+                    employeeId, department, qualification,
+                    subjects: subjects || null,
+                    joiningDate, salary: salary || null,
+                    bloodGroup: bloodGroup || null,
+                    nationality: nationality || null, nid: nid || null,
+                    uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+                }, { merge: true });
+
+                // সাকসেস স্ক্রিন
+                document.getElementById('successName').textContent = fullName;
+                document.getElementById('successEmail').textContent = userEmail;
+                document.getElementById('successDept').textContent = department;
+                document.getElementById('successId').textContent = employeeId;
+
+                document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+                document.getElementById('successScreen').classList.add('active');
+
+                // সব স্টেপ সবুজ
+                for (let i = 1; i <= 3; i++) {
+                    const c = document.getElementById('stepCircle' + i);
+                    c.classList.remove('active'); c.classList.add('done');
+                    c.innerHTML = '<i class="fas fa-check text-xs"></i>';
+                    document.getElementById('stepLabel' + i).className = 'text-[10px] font-semibold mt-1 text-emerald-500';
+                }
+                document.getElementById('connector1').classList.remove('active'); document.getElementById('connector1').classList.add('done');
+                document.getElementById('connector2').classList.remove('active'); document.getElementById('connector2').classList.add('done');
+
+                showToast('শিক্ষক একাউন্ট সফলভাবে তৈরি হয়েছে!', 'success');
+
+            } catch (error) {
+                console.error(error);
+                let msg = 'একাউন্ট তৈরিতে সমস্যা হয়েছে';
+                if (error.code === 'auth/email-already-in-use') msg = 'এই ইমেইল/ফোন দিয়ে আগেই একাউন্ট আছে';
+                else if (error.code === 'auth/weak-password') msg = 'পাসওয়ার্ড খুব দুর্বল';
+                else if (error.code === 'auth/invalid-email') msg = 'ইমেইল ফরম্যাট সঠিক নয়';
+                else msg = error.message;
+                showToast(msg, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-plus mr-1.5"></i> একাউন্ট তৈরি করুন';
+            }
+        };
+
+        // ===== রিসেট =====
+        window.resetForm = function() {
+            document.querySelectorAll('.form-input').forEach(el => {
+                el.value = ''; el.classList.remove('error', 'success');
+            });
+            document.getElementById('agreeTerms').checked = false;
+            document.querySelectorAll('.field-error').forEach(e => e.classList.remove('show'));
+            for (let i = 1; i <= 4; i++) document.getElementById('pw' + i).style.background = '#e2e8f0';
+            document.getElementById('pwStrengthText').textContent = '—';
+            document.getElementById('pwStrengthText').style.color = '#94a3b8';
+            document.getElementById('nationality').value = 'বাংলাদেশী';
+            currentStep = 1;
+            updateStepUI();
+        };
+
+        // ===== কীবোর্ড =====
+        document.addEventListener('keydown', function(e) {
+            if (e.key !== 'Enter') return;
+            const active = document.querySelector('.step-panel.active');
+            if (!active) return;
+            const id = active.id;
+            if (id === 'step1') goToStep(2);
+            else if (id === 'step2') goToStep(3);
+            else if (id === 'step3') submitForm();
+        });
+    </script>
+</body>
+</html>
