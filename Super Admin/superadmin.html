@@ -252,6 +252,17 @@
             color: var(--header-text); 
         }
 
+        /* Header Profile Image Style */
+        .header-profile-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-left: 5px;
+            border: 2px solid #ecf0f1;
+            display: none; /* Hidden by default until image loads */
+        }
+
         .user-dropdown-menu {
             position: absolute;
             top: var(--header-height);
@@ -356,20 +367,26 @@
                 display: block; 
             }
         }
+
+       /* Fixed Circular Container for Perfect Circle */
        .circular-container {
-          width: 70px;
+          width: 45px; /* Changed from 70px */
           height: 45px;
-          padding:2px;
+          padding: 2px;
           margin-right: 10px;
           border-radius: 50%;
           overflow: hidden; 
+          background-color: #3e5163; /* Fallback bg color */
+          flex-shrink: 0;
         }
 
         .circular-container img {
           width: 100%;
           height: 100%;
           object-fit: cover; 
+          border-radius: 50%;
         }
+
         .sidebar-menu a.menu-item.active {
             background-color: #34495e;
             border-left: 4px solid #3498db;
@@ -400,11 +417,12 @@
 
         <div class="sidebar-header">
             <div class="circular-container">
-                <img src="profile.jpg" alt="Description">
+                <!-- Added referrerpolicy and onerror fallback -->
+                <img id="sidebar-admin-img" src="https://ui-avatars.com/api/?name=SA&background=3b82f6&color=fff" alt="Profile" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=SA&background=3b82f6&color=fff';">
             </div>
            <div class="user-info">
                 <strong id="school_name">Loading...</strong>
-                <small>Super Admin</small>
+                <small id="dynamic-admin-name">Super Admin</small>
             </div>
         </div>
         
@@ -521,7 +539,9 @@
                 <span class="session-info" id="session-display">Current Session: Loading...</span>
                 
                 <div class="user-avatar-group" onclick="toggleUserDropdown(this)">
-                    <i class="fas fa-user-circle user-icon"></i>
+                    <!-- Dynamic Header Profile Image -->
+                    <img id="header-admin-img" src="https://ui-avatars.com/api/?name=SA&background=3b82f6&color=fff" alt="Profile" class="header-profile-img" referrerpolicy="no-referrer" onerror="this.style.display='none'; document.getElementById('header-fallback-icon').style.display='inline-block';">
+                    <i id="header-fallback-icon" class="fas fa-user-circle user-icon" style="margin-left:5px;"></i>
                     <i class="fas fa-caret-down user-icon" style="font-size: 18px; margin-left: 0;"></i>
                 </div>
 
@@ -535,16 +555,6 @@
 
         <div class="dashboard-body">
             <div class="content-container">
-                <!-- 
-                    sandbox attributes explained:
-                    allow-scripts         → JS চালাতে দেয়
-                    allow-forms           → Form submit করতে দেয়
-                    allow-same-origin     → Same-origin API access
-                    allow-popups          → window.print() কাজ করে
-                    allow-modals          → alert/confirm/prompt কাজ করে
-                    allow-downloads       → File download কাজ করে
-                    allow-top-navigation  → Top-level navigation (needed for some PDF libs)
-                -->
                 <iframe id="main-iframe" src="../Dashboard/dashboard" frameborder="0" 
                     sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals allow-downloads allow-top-navigation"></iframe>
             </div>
@@ -677,12 +687,49 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
+        // ১. Login Protection Check & Load Logged In Admin Data
         auth.onAuthStateChanged((user) => {
-            if (!user) {
+            if (user) {
+                // User is signed in, fetch user data from Firestore
+                db.collection("users").doc(user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        const photoURL = userData.photoURL || null;
+                        const adminName = userData.name || "Super Admin";
+                        
+                        // Update Sidebar Image
+                        const sidebarImg = document.getElementById('sidebar-admin-img');
+                        if(photoURL) {
+                            sidebarImg.src = photoURL;
+                        } else {
+                            sidebarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(adminName)}&background=3b82f6&color=fff`;
+                        }
+
+                        // Update Header Image
+                        const headerImg = document.getElementById('header-admin-img');
+                        const headerFallbackIcon = document.getElementById('header-fallback-icon');
+                        if(photoURL) {
+                            headerImg.src = photoURL;
+                            headerImg.style.display = "inline-block";
+                            headerFallbackIcon.style.display = "none";
+                        } else {
+                            headerImg.style.display = "none";
+                            headerFallbackIcon.style.display = "inline-block";
+                        }
+
+                        // Update dynamic name
+                        document.getElementById('dynamic-admin-name').innerText = adminName;
+                    }
+                }).catch((error) => {
+                    console.error("Error fetching user data:", error);
+                });
+            } else {
+                // User is signed out
                 window.location.href = '../Auth/login'; 
             }
         });
 
+        // ২. School Info Fetch
         db.collection("settings").doc("school_info").onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
@@ -696,6 +743,7 @@
             console.error("Firebase Error:", error);
         });
 
+        // ৩. Current Session Dynamic Fetch
         db.collection("config").doc("activeSession").onSnapshot((doc) => {
             if (doc.exists) {
                 const sessionName = doc.data().sessionName || "Not Set";
