@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admit Card Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { primary: '#1a237e', accent: '#ffd54f', success: '#10b981', danger: '#ef4444', warning: '#f59e0b' } } } };
+    </script>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; }
+
+        /* ===== TOAST ===== */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+        .toast-item { background: #fff; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); padding: 12px 18px; display: flex; align-items: center; gap: 10px; margin-bottom: 8px; min-width: 260px; border-left: 4px solid #10b981; animation: slideIn 0.3s ease; }
+        .toast-item.error { border-left-color: #ef4444; }
+        .toast-item.warning { border-left-color: #f59e0b; }
+        @keyframes slideIn { from { opacity:0; transform:translateX(50px); } to { opacity:1; transform:translateX(0); } }
+
+        /* ===== ADMIT PAGE ===== */
+        .admit-page {
+            width: 210mm; height: 297mm;
+            background: #fff; padding: 6mm 8mm;
+            display: flex; flex-direction: column;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            margin: 0 auto 24px; overflow: hidden;
+        }
+
+        /* ===== CUT LINE ===== */
+        .cut-line {
+            flex: none; height: 8mm;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 20mm; gap: 8px;
+        }
+        .cut-line::before, .cut-line::after { content: ''; flex: 1; border-top: 2px dashed #bbb; }
+        .cut-line span { font-size: 8px; letter-spacing: 2px; text-transform: uppercase; color: #bbb; font-weight: 700; }
+        .cut-scissors { font-size: 13px; color: #bbb; }
+
+        /* ===== ADMIT CARD ===== */
+        .admit-card {
+            flex: 1 1 0; min-height: 0;
+            border: 2.5px solid #1a237e;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* -- Header (School Name Only) -- */
+        .card-header {
+            background: #1a237e; color: #fff;
+            padding: 7px 14px 5px; text-align: center;
+            flex-shrink: 0;
+        }
+        .header-school-name {
+            font-size: 15px; font-weight: 800;
+            letter-spacing: 1px; text-transform: uppercase;
+            line-height: 1.3;
+        }
+        .header-school-address {
+            font-size: 9px; font-weight: 400;
+            opacity: 0.85; letter-spacing: 0.3px;
+            margin-top: 1px;
+        }
+
+        /* -- Title Bar -- */
+        .card-title-bar {
+            background: #ffd54f; color: #1a237e;
+            padding: 2.5px 0; text-align: center;
+            font-size: 11px; font-weight: 800;
+            letter-spacing: 3px; text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        /* -- Logo + Photo Row: FULL WIDTH, space-between -- */
+        .logo-photo-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 8px 14px 4px;
+            flex-shrink: 0;
+            gap: 0;
+        }
+        .card-logo {
+            width: 58px; height: 58px;
+            border-radius: 50%;
+            border: 2px solid #1a237e;
+            display: flex; align-items: center; justify-content: center;
+            background: #f0f0fa;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .card-logo img { width: 100%; height: 100%; object-fit: cover; }
+        .card-logo svg { width: 34px; height: 34px; fill: none; stroke: #1a237e; stroke-width: 1.5; }
+
+        .card-photo {
+            width: 74px; height: 92px;
+            border: 2px solid #1a237e;
+            background: #f5f5f5;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .card-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-placeholder { color: #bbb; font-size: 7px; text-align: center; line-height: 1.2; }
+        .photo-placeholder svg { width: 22px; height: 22px; margin-bottom: 1px; opacity: 0.35; }
+
+        /* -- Info Section (Two Column Justified) -- */
+        .info-section {
+            padding: 4px 14px 4px;
+            flex: 1 1 0; min-height: 0;
+            flex-shrink: 0;
+        }
+        .info-grid {
+            width: 100%; border-collapse: collapse;
+            table-layout: fixed;
+        }
+        .info-grid tr { border-bottom: 1px solid #e8e8e8; }
+        .info-grid tr:last-child { border-bottom: none; }
+        .info-grid td {
+            padding: 2.5px 2px;
+            font-size: 9.5px;
+            vertical-align: middle;
+            line-height: 1.35;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* Left Column */
+        .info-grid .ll {
+            font-weight: 700; color: #1a237e;
+            font-size: 8.5px; white-space: nowrap;
+            padding-right: 4px; width: auto;
+        }
+        .info-grid .ls {
+            width: 8px; font-weight: 700; color: #1a237e;
+            font-size: 8.5px; text-align: center; padding: 2.5px 2px;
+        }
+        .info-grid .lv {
+            font-weight: 500; color: #222;
+            font-size: 9.5px;
+        }
+        /* Middle Spacer */
+        .info-grid .ms {
+            width: 24px;
+        }
+        /* Right Column */
+        .info-grid .rl {
+            font-weight: 700; color: #1a237e;
+            font-size: 8.5px; white-space: nowrap;
+            padding-right: 4px; width: auto;
+        }
+        .info-grid .rs {
+            width: 8px; font-weight: 700; color: #1a237e;
+            font-size: 8.5px; text-align: center; padding: 2.5px 2px;
+        }
+        .info-grid .rv {
+            font-weight: 500; color: #222;
+            font-size: 9.5px;
+        }
+
+        /* -- Exam Bar -- */
+        .exam-bar { display: flex; border-top: 1.5px solid #1a237e; border-bottom: 1.5px solid #1a237e; flex-shrink: 0; }
+        .exam-bar-item { flex: 1; padding: 3.5px 12px; font-size: 9px; display: flex; align-items: center; gap: 4px; }
+        .exam-bar-item .bl { font-weight: 700; color: #1a237e; font-size: 8.5px; }
+        .exam-bar-item .bl::after { content: ':'; }
+        .exam-bar-item .bv { font-weight: 600; color: #222; font-size: 9px; }
+        .exam-bar-item + .exam-bar-item { border-left: 1.5px solid #1a237e; }
+
+        /* -- Instructions -- */
+        .card-instructions { padding: 4px 12px 3px; background: #fffde7; border-top: 1px solid #e0e0e0; flex-shrink: 0; }
+        .instructions-title { font-size: 7.5px; font-weight: 800; color: #c62828; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1px; }
+        .instructions-list { list-style: none; padding: 0; }
+        .instructions-list li { font-size: 7.5px; color: #333; line-height: 1.4; display: flex; align-items: flex-start; gap: 3px; }
+        .instructions-list li .num { background: #c62828; color: #fff; min-width: 11px; height: 11px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 6px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+        /* -- Footer -- */
+        .card-footer { display: flex; justify-content: space-between; align-items: flex-end; padding: 3px 14px 5px; flex-shrink: 0; }
+        .sig-block { text-align: center; }
+        .sig-line { width: 85px; border-bottom: 1px dotted #555; height: 14px; }
+        .sig-text { font-size: 6px; color: #777; font-weight: 600; margin-top: 1px; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 800px) {
+            .admit-page { width: 100%; height: auto; min-height: auto; padding: 4mm; }
+            .logo-photo-row { padding: 6px 8px 4px; }
+        }
+
+        /* ===== PRINT ===== */
+        @media print {
+            @page { size: A4; margin: 5mm; }
+            html, body { width: 210mm; margin: 0; padding: 0; background: #fff !important; }
+            .no-print { display: none !important; }
+            .admit-page {
+                width: 200mm; height: 287mm;
+                margin: 0; padding: 4mm 6mm;
+                box-shadow: none; page-break-after: always; overflow: hidden;
+            }
+            .admit-page:last-child { page-break-after: avoid; }
+            .admit-card {
+                flex: none;
+                height: calc((287mm - 8mm - 8mm) / 2);
+                overflow: hidden; page-break-inside: avoid;
+            }
+            .cut-line { flex: none; height: 8mm; margin: 0; padding: 0 25mm; }
+            .cut-line::before, .cut-line::after { border-top: 2px dashed #999 !important; }
+            .cut-line span, .cut-line .cut-scissors { color: #999 !important; }
+            .card-header { background: #1a237e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .card-title-bar { background: #ffd54f !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .card-instructions { background: #fffde7 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .instructions-list li .num { background: #c62828 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .card-logo { background: #f0f0fa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .card-photo { background: #f5f5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .exam-bar { border-color: #1a237e !important; }
+            .exam-bar-item + .exam-bar-item { border-left-color: #1a237e !important; }
+        }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: #94a3b8; }
+        .empty-state i { font-size: 48px; margin-bottom: 12px; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
+
+    <div id="toastContainer" class="toast-container no-print"></div>
+
+    <!-- ===== CONTROL PANEL ===== -->
+    <div class="no-print max-w-5xl mx-auto mb-6">
+        <div class="flex justify-between items-center mb-5 flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+                <span class="bg-primary text-white p-2.5 rounded-xl shadow-lg"><i class="fas fa-id-card text-xl"></i></span>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Admit Card Generator</h1>
+                    <p class="text-xs text-gray-500" id="schoolSubheading">Loading school info...</p>
+                </div>
+            </div>
+            <div class="bg-white px-4 py-2 rounded-full shadow text-sm font-medium">
+                <i class="fas fa-calendar-alt text-primary mr-1"></i>
+                Session: <span id="sessionBadge" class="font-bold text-primary">2025-2026</span>
+            </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-md p-5">
+            <div class="flex flex-wrap gap-4 items-end">
+                <div class="flex-1 min-w-[140px]">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1"><i class="fas fa-calendar-check text-primary mr-1"></i> Session</label>
+                    <select id="filterSession" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+                        <option value="current">Current Session</option>
+                        <option value="next">Next Session</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[140px]">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1"><i class="fas fa-file-alt text-primary mr-1"></i> Exam Type *</label>
+                    <select id="filterExam" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+                        <option value="">-- Select Exam --</option>
+                        <option value="Annual Exam">Annual Exam</option>
+                        <option value="Half Yearly Exam">Half Yearly Exam</option>
+                        <option value="Quarterly Exam">Quarterly Exam</option>
+                        <option value="Test Exam">Test Exam</option>
+                        <option value="Model Test">Model Test</option>
+                        <option value="Pre-Test Exam">Pre-Test Exam</option>
+                        <option value="Final Exam">Final Exam</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[130px]">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1"><i class="fas fa-chalkboard text-primary mr-1"></i> Class *</label>
+                    <select id="filterClass" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+                        <option value="">-- Select Class --</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[130px]">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1"><i class="fas fa-layer-group text-primary mr-1"></i> Section</label>
+                    <select id="filterSection" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" disabled>
+                        <option value="">All Sections</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[150px]">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1"><i class="fas fa-calendar text-primary mr-1"></i> Exam Date</label>
+                    <input type="date" id="filterExamDate" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+                </div>
+                <div class="flex gap-2">
+                    <button id="generateBtn" class="bg-primary hover:bg-indigo-900 text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-md transition flex items-center gap-2">
+                        <i class="fas fa-magic"></i> Generate
+                    </button>
+                    <button id="printBtn" class="bg-success hover:bg-green-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold shadow-md transition flex items-center gap-2 hidden">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                </div>
+            </div>
+            <div class="mt-3 flex justify-between items-center text-sm">
+                <span class="text-gray-500"><i class="fas fa-info-circle text-primary"></i> Select Exam & Class, then click Generate</span>
+                <span id="studentCountInfo" class="text-xs bg-blue-100 px-3 py-1 rounded-full font-medium text-primary hidden">
+                    <i class="fas fa-users"></i> <span id="studentCountNum">0</span> students found
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ADMIT CARDS CONTAINER ===== -->
+    <div id="admitCardsContainer">
+        <div class="empty-state no-print">
+            <i class="fas fa-id-card-alt block"></i>
+            <p class="text-lg font-semibold">No Admit Cards Generated Yet</p>
+            <p class="text-sm mt-1">Select Exam, Class & Section above, then click <strong>Generate</strong></p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, collection, query, getDocs, doc, getDoc, where, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let schoolData = { name: 'ONNO ROKOM BIDDYANIKETON', address: 'Poranpur, Kazipur, Sirajganj', logo: '' };
+        let allClasses = [], allParents = [], parentsMap = {};
+        let currentSession = '2025-2026', nextSession = '2026-2027';
+        let sectionsCache = {};
+
+        function esc(str) { if (!str) return ''; return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m])); }
+        function getField(data, ...fields) { for (const f of fields) { if (data[f]) return data[f]; } return ''; }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const div = document.createElement('div');
+            div.className = `toast-item ${type === 'error' ? 'error' : type === 'warning' ? 'warning' : ''}`;
+            const iconClass = type === 'success' ? 'fa-check-circle text-success' : type === 'warning' ? 'fa-exclamation-triangle text-warning' : 'fa-times-circle text-danger';
+            div.innerHTML = `<i class="fas ${iconClass}"></i><span class="text-sm font-medium text-gray-700">${esc(msg)}</span>`;
+            container.appendChild(div);
+            setTimeout(() => { div.style.opacity = '0'; div.style.transition = 'opacity 0.3s'; setTimeout(() => div.remove(), 300); }, 3000);
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            try { return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }); }
+            catch { return dateStr; }
+        }
+
+        async function loadSchoolData() {
+            try {
+                const snap = await getDoc(doc(db, "settings", "school_info"));
+                if (snap.exists()) {
+                    const d = snap.data();
+                    schoolData.name = getField(d, 'school_name', 'schoolName', 'name') || schoolData.name;
+                    schoolData.address = getField(d, 'address', 'schoolAddress') || schoolData.address;
+                    schoolData.logo = getField(d, 'school_logo', 'logo', 'emblem') || '';
+                }
+            } catch (e) { console.warn('Could not load settings/school_info:', e); }
+            document.getElementById('schoolSubheading').innerText = schoolData.name;
+        }
+
+        async function loadSessions() {
+            try {
+                const sdoc = await getDoc(doc(db, "config", "activeSession"));
+                if (sdoc.exists()) currentSession = sdoc.data().sessionName || currentSession;
+                const p = currentSession.split('-');
+                nextSession = p.length === 2 ? `${parseInt(p[0])+1}-${parseInt(p[1])+1}` : '2026-2027';
+            } catch (e) {}
+            document.getElementById('sessionBadge').innerText = currentSession;
+        }
+
+        async function loadClasses() {
+            const snap = await getDocs(query(collection(db, "classes"), orderBy("order")));
+            allClasses = snap.docs.map(d => ({ id: d.id, name: d.data().name }));
+            const sel = document.getElementById('filterClass');
+            sel.innerHTML = '<option value="">-- Select Class --</option>';
+            allClasses.forEach(c => sel.appendChild(new Option(c.name, c.id)));
+        }
+
+        async function getSections(classId) {
+            if (!classId) return [];
+            if (sectionsCache[classId]) return sectionsCache[classId];
+            const snap = await getDocs(query(collection(db, "sections"), where("classId", "==", classId)));
+            const secs = snap.docs.map(d => ({ id: d.id, name: d.data().name }));
+            sectionsCache[classId] = secs;
+            return secs;
+        }
+
+        async function loadAllParents() {
+            const snap = await getDocs(collection(db, "parents"));
+            allParents = []; parentsMap = {};
+            snap.forEach(d => { const obj = { id: d.id, data: d.data() }; allParents.push(obj); parentsMap[d.id] = obj; });
+        }
+
+        function getParentInfo(parentId) {
+            if (!parentId || !parentsMap[parentId]) return { father: '', mother: '', guardian: '', fPhone: '', mPhone: '', gPhone: '' };
+            const d = parentsMap[parentId].data;
+            return { father: d.fatherName || '', mother: d.motherName || '', guardian: d.guardianName || '', fPhone: d.fatherPhone || '', mPhone: d.motherPhone || '', gPhone: d.guardianPhone || '' };
+        }
+
+        async function loadStudents(classId, section, targetSession) {
+            if (!classId) return [];
+            const classMap = Object.fromEntries(allClasses.map(c => [c.id, c.name]));
+            const className = classMap[classId] || '';
+            const studSnap = await getDocs(collection(db, `current_session/${targetSession}/classes/${classId}/students`));
+            const students = [];
+            studSnap.forEach(docSnap => {
+                const data = docSnap.data();
+                if (section && data.section !== section) return;
+                if (data.promotedToNextSession === true) return;
+                students.push({ id: docSnap.id, ...data, classId: data.classId || classId, className: data.className || className, _session: targetSession });
+            });
+            students.sort((a, b) => (parseFloat(a.rollNumber) || 0) - (parseFloat(b.rollNumber) || 0));
+            return students;
+        }
+
+        const emblemSVG = `<svg viewBox="0 0 48 48"><circle cx="24" cy="18" r="8" stroke-width="1.5"/><path d="M10 42c0-7.7 6.3-14 14-14s14 6.3 14 14" stroke-width="1.5"/><path d="M24 4v4M16 8l2 3M32 8l-2 3M12 16l3 2M36 16l-3 2" stroke-width="1.2"/><path d="M18 32l6 6 6-6" stroke-width="1.5"/></svg>`;
+
+        // ===== BUILD ADMIT CARD =====
+        function buildAdmitCard(student, examType, examDate, year, session) {
+            const parent = getParentInfo(student.parentID);
+            const imageUrl = student.profileImage || student.passportPhotoURL;
+            const avatarFallback = `https://ui-avatars.com/api/?background=1a237e&color=fff&name=${encodeURIComponent(student.fullName || 'S')}&size=100`;
+            const logoHTML = schoolData.logo
+                ? `<img src="${esc(schoolData.logo)}" alt="Logo">`
+                : emblemSVG;
+
+            const fatherDisplay = parent.father || student.fatherName || '—';
+            const motherDisplay = parent.mother || student.motherName || '—';
+            const guardianDisplay = parent.guardian || student.guardianName || '—';
+            const phoneDisplay = student.phone || parent.gPhone || parent.fPhone || '—';
+
+            const examDateFormatted = examDate ? formatDate(examDate) : '';
+            const examBarItems = [
+                `<div class="exam-bar-item"><span class="bl">Exam</span><span class="bv">${esc(examType || 'N/A')}</span></div>`,
+                `<div class="exam-bar-item"><span class="bl">Year</span><span class="bv">${esc(year || new Date().getFullYear())}</span></div>`,
+                examDateFormatted
+                    ? `<div class="exam-bar-item"><span class="bl">Date</span><span class="bv">${esc(examDateFormatted)}</span></div>`
+                    : `<div class="exam-bar-item"><span class="bl">Session</span><span class="bv">${esc(session)}</span></div>`
+            ].join('');
+
+            return `
+                <div class="admit-card">
+                    <!-- School Name Header -->
+                    <div class="card-header">
+                        <div class="header-school-name">${esc(schoolData.name)}</div>
+                        <div class="header-school-address">${esc(schoolData.address)}</div>
+                    </div>
+
+                    <!-- Admit Card Title -->
+                    <div class="card-title-bar">Admit Card</div>
+
+                    <!-- Logo LEFT Corner + Photo RIGHT Corner (space-between) -->
+                    <div class="logo-photo-row">
+                        <div class="card-logo">${logoHTML}</div>
+                        <div class="card-photo">
+                            ${imageUrl
+                                ? `<img src="${esc(imageUrl)}" onerror="this.src='${avatarFallback}'">`
+                                : `<div class="photo-placeholder"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>Photo</div>`
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Info Grid: Two Columns Justified -->
+                    <div class="info-section">
+                        <table class="info-grid">
+                            <tr>
+                                <td class="ll">Student Name</td><td class="ls">:</td><td class="lv">${esc(student.fullName || '—')}</td>
+                                <td class="ms"></td>
+                                <td class="rl">Class</td><td class="rs">:</td><td class="rv">${esc(student.className || '—')}</td>
+                            </tr>
+                            <tr>
+                                <td class="ll">Roll No</td><td class="ls">:</td><td class="lv">${esc(student.rollNumber || '—')}</td>
+                                <td class="ms"></td>
+                                <td class="rl">Section</td><td class="rs">:</td><td class="rv">${esc(student.section || '—')}</td>
+                            </tr>
+                            <tr>
+                                <td class="ll">Father's Name</td><td class="ls">:</td><td class="lv">${esc(fatherDisplay)}</td>
+                                <td class="ms"></td>
+                                <td class="rl">Mobile No</td><td class="rs">:</td><td class="rv">${esc(phoneDisplay)}</td>
+                            </tr>
+                            <tr>
+                                <td class="ll">Mother's Name</td><td class="ls">:</td><td class="lv">${esc(motherDisplay)}</td>
+                                <td class="ms"></td>
+                                <td class="rl">Guardian</td><td class="rs">:</td><td class="rv">${esc(guardianDisplay)}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- Exam Bar -->
+                    <div class="exam-bar">${examBarItems}</div>
+
+                    <!-- Instructions -->
+                    <div class="card-instructions">
+                        <div class="instructions-title">Exam Instructions</div>
+                        <ul class="instructions-list">
+                            <li><span class="num">1</span> Any kind of cheating in the examination hall is strictly prohibited.</li>
+                            <li><span class="num">2</span> No extra paper or unauthorized material is allowed in the exam hall.</li>
+                            <li><span class="num">3</span> Must enter the examination hall at least 15 minutes before the exam starts.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Signature Footer -->
+                    <div class="card-footer">
+                        <div class="sig-block"><div class="sig-line"></div><div class="sig-text">Student's Signature</div></div>
+                        <div class="sig-block"><div class="sig-line"></div><div class="sig-text">Guardian's Signature</div></div>
+                        <div class="sig-block"><div class="sig-line"></div><div class="sig-text">Headmaster's Signature</div></div>
+                    </div>
+                </div>`;
+        }
+
+        async function generateAdmitCards() {
+            const examType = document.getElementById('filterExam').value;
+            const classId = document.getElementById('filterClass').value;
+            const section = document.getElementById('filterSection').value;
+            const examDate = document.getElementById('filterExamDate').value;
+            const sessionVal = document.getElementById('filterSession').value;
+            const targetSession = sessionVal === 'next' ? nextSession : currentSession;
+            const year = targetSession.split('-')[0];
+
+            if (!examType) { showToast('Please select an Exam Type', 'warning'); return; }
+            if (!classId) { showToast('Please select a Class', 'warning'); return; }
+
+            const container = document.getElementById('admitCardsContainer');
+            container.innerHTML = `<div class="no-print text-center py-16"><i class="fas fa-spinner fa-spin text-4xl text-primary"></i><p class="mt-3 text-gray-500 font-medium">Loading students & generating admit cards...</p></div>`;
+
+            try {
+                const students = await loadStudents(classId, section, targetSession);
+                if (!students.length) {
+                    container.innerHTML = `<div class="empty-state no-print"><i class="fas fa-user-slash block text-gray-300"></i><p class="text-lg font-semibold text-gray-400">No Students Found</p><p class="text-sm text-gray-400 mt-1">Try a different class or section</p></div>`;
+                    showToast('No students found', 'warning'); return;
+                }
+
+                document.getElementById('studentCountInfo').classList.remove('hidden');
+                document.getElementById('studentCountNum').innerText = students.length;
+
+                let pagesHTML = '';
+                for (let i = 0; i < students.length; i += 2) {
+                    const s1 = students[i], s2 = students[i + 1];
+                    const card1 = buildAdmitCard(s1, examType, examDate, year, targetSession);
+                    const card2 = s2 ? buildAdmitCard(s2, examType, examDate, year, targetSession) : '';
+                    const cutLine = `<div class="cut-line"><span class="cut-scissors">✂</span><span>Cut Here</span><span class="cut-scissors">✂</span></div>`;
+                    const spacer = !s2 ? `<div style="flex:1;"></div>` : '';
+                    pagesHTML += `<div class="admit-page">${card1}${cutLine}${card2}${spacer}</div>`;
+                }
+
+                container.innerHTML = pagesHTML;
+                document.getElementById('printBtn').classList.remove('hidden');
+                showToast(`✅ ${students.length} admit cards generated!`, 'success');
+            } catch (e) {
+                console.error('Generate error:', e);
+                container.innerHTML = `<div class="empty-state no-print"><i class="fas fa-exclamation-triangle block text-red-300"></i><p class="text-lg font-semibold text-red-400">Error</p><p class="text-sm text-gray-400 mt-1">${esc(e.message)}</p></div>`;
+                showToast('Failed: ' + e.message, 'error');
+            }
+        }
+
+        document.getElementById('filterClass').addEventListener('change', async (e) => {
+            const classId = e.target.value;
+            const secSelect = document.getElementById('filterSection');
+            if (!classId) { secSelect.disabled = true; secSelect.innerHTML = '<option value="">All Sections</option>'; return; }
+            secSelect.disabled = false;
+            secSelect.innerHTML = '<option value="">All Sections</option><option value="loading">Loading...</option>';
+            const secs = await getSections(classId);
+            secSelect.innerHTML = '<option value="">All Sections</option>';
+            secs.forEach(sec => secSelect.appendChild(new Option(sec.name, sec.name)));
+        });
+
+        document.getElementById('generateBtn').addEventListener('click', generateAdmitCards);
+        document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+        async function init() {
+            document.getElementById('schoolSubheading').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            await Promise.all([loadSchoolData(), loadSessions(), loadClasses(), loadAllParents()]);
+            document.getElementById('schoolSubheading').innerText = schoolData.name;
+            showToast('✅ School data loaded from Firebase', 'success');
+        }
+
+        init();
+    </script>
+</body>
+</html>
