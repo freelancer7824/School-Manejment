@@ -91,7 +91,7 @@
             <!-- Teacher List Container -->
             <div id="teachersListContainer" class="divide-y divide-gray-100">
                 <!-- Loading State -->
-                <div class="flex justify-center items-center py-16">
+                <div id="initialLoader" class="flex justify-center items-center py-16">
                     <div class="text-center">
                         <i class="fas fa-spinner fa-pulse text-primary text-3xl mb-3"></i>
                         <p class="text-gray-400 text-sm">Loading teachers data...</p>
@@ -110,7 +110,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         
         // Firebase Config
         const firebaseConfig = {
@@ -129,13 +129,19 @@
         
         // Global data
         let allTeachers = [];           
-        let teacherStatsList = [];      // { teacherId, teacherName, totalClasses, totalSubjects }
+        let teacherStatsList = [];      
         let totalAssignmentsAcrossAll = 0;
+
+        const CACHE_KEY = 'teacherStatsCache_v1';
         
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             const toastText = document.getElementById('toast-text');
             if (!toast) return;
+            const icon = toast.querySelector('i');
+            if(type === 'error') icon.className = 'fas fa-exclamation-circle text-danger text-lg';
+            else icon.className = 'fas fa-check-circle text-success text-lg';
+            
             toastText.innerText = message;
             toast.classList.remove('hidden');
             toast.style.display = 'flex';
@@ -158,60 +164,59 @@
                 return m;
             });
         }
+
+        // ===== Local Storage Functions =====
+        function loadFromCache() {
+            try {
+                const cached = localStorage.getItem(CACHE_KEY);
+                if (cached) {
+                    const data = JSON.parse(cached);
+                    teacherStatsList = data.stats || [];
+                    totalAssignmentsAcrossAll = data.totalAssignments || 0;
+                    return true;
+                }
+            } catch (e) { console.error("Cache read error", e); }
+            return false;
+        }
+
+        function saveToCache() {
+            try {
+                const data = {
+                    stats: teacherStatsList,
+                    totalAssignments: totalAssignmentsAcrossAll
+                };
+                localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+            } catch (e) { console.error("Cache save error", e); }
+        }
         
-        // Load all teachers from 'teachers' collection (create sample if empty)
+        // Load all teachers from 'teachers' collection (NO DEMO DATA)
         async function loadTeachersFromDB() {
             try {
                 const teachersSnap = await getDocs(collection(db, "teachers"));
-                if (teachersSnap.empty) {
-                    // Sample teachers data for demo
-                    const sampleNames = [
-                        "Dr. Sarah Johnson", "Prof. Michael Chen", "Ms. Emily Davis", 
-                        "Mr. Robert Wilson", "Mrs. Priya Sharma", "Mr. James Carter", 
-                        "Ms. Olivia Brown", "Dr. Ahmed Khan", "Prof. Lisa Wong", "Mr. David Miller"
-                    ];
-                    for (let name of sampleNames) {
-                        await addDoc(collection(db, "teachers"), { name, createdAt: serverTimestamp() });
-                    }
-                    const newSnap = await getDocs(collection(db, "teachers"));
-                    return newSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name }));
-                } else {
-                    return teachersSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name }));
-                }
+                return teachersSnap.docs.map(doc => ({ 
+                    id: doc.id, 
+                    name: doc.data().name,
+                    photoURL: doc.data().photoURL || null
+                }));
             } catch (error) {
                 console.error("Error loading teachers:", error);
-                // Fallback demo data if firebase fails
-                return [
-                    { id: "fallback1", name: "Dr. Sarah Johnson" },
-                    { id: "fallback2", name: "Prof. Michael Chen" },
-                    { id: "fallback3", name: "Ms. Emily Davis" },
-                    { id: "fallback4", name: "Mr. Robert Wilson" },
-                    { id: "fallback5", name: "Mrs. Priya Sharma" }
-                ];
+                return []; // Return empty on failure
             }
         }
         
         // Compute total classes AND total subjects per teacher
-        // teacher_subject collection contains: teacherId, subjectId, classId
-        // For each teacher:
-        //   - totalClasses = unique classIds count
-        //   - totalSubjects = total number of subject assignments (each record = one subject assigned)
         async function computeTeacherStats(teachers) {
             try {
-                // Fetch all teacher_subject assignments
                 const assignmentsSnap = await getDocs(collection(db, "teacher_subject"));
                 
-                // Maps
-                const teacherClassSet = new Map();     // teacherId -> Set of classIds
-                const teacherSubjectCount = new Map(); // teacherId -> total subject assignments count
+                const teacherClassSet = new Map();     
+                const teacherSubjectCount = new Map(); 
                 
-                // Initialize for each teacher
                 teachers.forEach(teacher => {
                     teacherClassSet.set(teacher.id, new Set());
                     teacherSubjectCount.set(teacher.id, 0);
                 });
                 
-                // Process each assignment
                 assignmentsSnap.forEach(doc => {
                     const data = doc.data();
                     const teacherId = data.teacherId;
@@ -219,21 +224,12 @@
                     const subjectId = data.subjectId;
                     
                     if (teacherId && teacherClassSet.has(teacherId)) {
-                        // Count unique classes
-                        if (classId) {
-                            teacherClassSet.get(teacherId).add(classId);
-                        }
-                        // Count each subject assignment (total subjects assigned)
-                        if (subjectId) {
-                            teacherSubjectCount.set(teacherId, (teacherSubjectCount.get(teacherId) || 0) + 1);
-                        } else {
-                            // If subjectId not present, still count as one assignment if data exists
-                            teacherSubjectCount.set(teacherId, (teacherSubjectCount.get(teacherId) || 0) + 1);
-                        }
+                        if (classId) teacherClassSet.get(teacherId).add(classId);
+                        if (subjectId) teacherSubjectCount.set(teacherId, (teacherSubjectCount.get(teacherId) || 0) + 1);
+                        else teacherSubjectCount.set(teacherId, (teacherSubjectCount.get(teacherId) || 0) + 1);
                     }
                 });
                 
-                // Build result array
                 let totalSubjSum = 0;
                 const result = teachers.map(teacher => {
                     const totalClasses = teacherClassSet.get(teacher.id)?.size || 0;
@@ -242,6 +238,7 @@
                     return {
                         teacherId: teacher.id,
                         teacherName: teacher.name,
+                        photoURL: teacher.photoURL,
                         totalClasses: totalClasses,
                         totalSubjects: totalSubjects
                     };
@@ -249,7 +246,6 @@
                 
                 totalAssignmentsAcrossAll = totalSubjSum;
                 
-                // Sort by totalSubjects desc, then by totalClasses, then by name
                 result.sort((a, b) => {
                     if (a.totalSubjects !== b.totalSubjects) return b.totalSubjects - a.totalSubjects;
                     if (a.totalClasses !== b.totalClasses) return b.totalClasses - a.totalClasses;
@@ -259,29 +255,27 @@
                 return result;
             } catch (error) {
                 console.error("Error computing teacher stats:", error);
-                // Return zeros if error
                 return teachers.map(teacher => ({
                     teacherId: teacher.id,
                     teacherName: teacher.name,
+                    photoURL: teacher.photoURL,
                     totalClasses: 0,
                     totalSubjects: 0
                 }));
             }
         }
         
-        // Render Teacher List - Shows: Teacher Name | Total Classes | Total Subjects
+        // Render Teacher List
         function renderTeacherList(teacherStats, searchTerm = "") {
             const container = document.getElementById('teachersListContainer');
             if (!container) return;
             
-            // Filter by search term
             let filteredData = teacherStats;
             if (searchTerm.trim() !== "") {
                 const term = searchTerm.toLowerCase();
                 filteredData = teacherStats.filter(item => item.teacherName.toLowerCase().includes(term));
             }
             
-            // Update header stats
             document.getElementById('totalTeacherCount').innerText = filteredData.length;
             document.getElementById('totalAssignmentsCount').innerText = totalAssignmentsAcrossAll;
             
@@ -290,13 +284,12 @@
                     <div class="flex flex-col items-center justify-center py-16 text-gray-400">
                         <i class="fas fa-user-graduate text-5xl mb-3 opacity-40"></i>
                         <p class="text-sm font-medium">No teachers found</p>
-                        <p class="text-xs mt-1">Try a different search term</p>
+                        <p class="text-xs mt-1">Add teachers or try a different search term</p>
                     </div>
                 `;
                 return;
             }
             
-            // Build the teacher list table
             let html = `
                 <div class="overflow-x-auto">
                     <table class="min-w-full">
@@ -313,49 +306,32 @@
             
             filteredData.forEach((item, idx) => {
                 const serial = idx + 1;
+                const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.teacherName || 'T')}&background=3b82f6&color=fff`;
+                const imgSrc = item.photoURL || defaultImg;
                 
-                // Class badge color based on count
                 let classBadgeColor = "bg-gray-100 text-gray-700";
                 let classIcon = "fa-building";
-                if (item.totalClasses === 0) {
-                    classBadgeColor = "bg-gray-100 text-gray-400";
-                    classIcon = "fa-ban";
-                } else if (item.totalClasses <= 2) {
-                    classBadgeColor = "bg-blue-100 text-blue-700";
-                    classIcon = "fa-layer-group";
-                } else if (item.totalClasses <= 4) {
-                    classBadgeColor = "bg-green-100 text-green-700";
-                    classIcon = "fa-chalkboard";
-                } else {
-                    classBadgeColor = "bg-indigo-100 text-indigo-700";
-                    classIcon = "fa-school";
-                }
+                if (item.totalClasses === 0) { classBadgeColor = "bg-gray-100 text-gray-400"; classIcon = "fa-ban"; }
+                else if (item.totalClasses <= 2) { classBadgeColor = "bg-blue-100 text-blue-700"; classIcon = "fa-layer-group"; }
+                else if (item.totalClasses <= 4) { classBadgeColor = "bg-green-100 text-green-700"; classIcon = "fa-chalkboard"; }
+                else { classBadgeColor = "bg-indigo-100 text-indigo-700"; classIcon = "fa-school"; }
                 
-                // Subject badge color based on count
                 let subjectBadgeColor = "bg-gray-100 text-gray-700";
                 let subjectIcon = "fa-book";
-                if (item.totalSubjects === 0) {
-                    subjectBadgeColor = "bg-gray-100 text-gray-400";
-                    subjectIcon = "fa-book-open";
-                } else if (item.totalSubjects <= 3) {
-                    subjectBadgeColor = "bg-purple-100 text-purple-700";
-                    subjectIcon = "fa-book";
-                } else if (item.totalSubjects <= 6) {
-                    subjectBadgeColor = "bg-amber-100 text-amber-700";
-                    subjectIcon = "fa-books";
-                } else {
-                    subjectBadgeColor = "bg-rose-100 text-rose-700";
-                    subjectIcon = "fa-graduation-cap";
-                }
+                if (item.totalSubjects === 0) { subjectBadgeColor = "bg-gray-100 text-gray-400"; subjectIcon = "fa-book-open"; }
+                else if (item.totalSubjects <= 3) { subjectBadgeColor = "bg-purple-100 text-purple-700"; subjectIcon = "fa-book"; }
+                else if (item.totalSubjects <= 6) { subjectBadgeColor = "bg-amber-100 text-amber-700"; subjectIcon = "fa-books"; }
+                else { subjectBadgeColor = "bg-rose-100 text-rose-700"; subjectIcon = "fa-graduation-cap"; }
                 
                 html += `
                     <tr class="teacher-list-item hover:bg-yellow-50/40 transition animate-item">
                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">${serial}</td>
                         <td class="px-4 py-4">
                             <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                    <i class="fas fa-user-tie text-sm"></i>
-                                </div>
+                                <img src="${imgSrc}" alt="${escapeHtml(item.teacherName)}" 
+                                     class="w-9 h-9 rounded-full object-cover border-2 border-gray-200 shadow-sm bg-blue-50" 
+                                     referrerpolicy="no-referrer" 
+                                     onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=T&background=3b82f6&color=fff';">
                                 <span class="font-semibold text-gray-800">${escapeHtml(item.teacherName)}</span>
                             </div>
                         </td>
@@ -393,74 +369,76 @@
             
             container.innerHTML = html;
         }
-        
-        // Main load function
-        async function loadAndDisplay() {
-            const container = document.getElementById('teachersListContainer');
-            if (container) {
-                container.innerHTML = `
-                    <div class="flex justify-center items-center py-16">
-                        <div class="text-center">
-                            <i class="fas fa-spinner fa-pulse text-primary text-3xl mb-3"></i>
-                            <p class="text-gray-400 text-sm">Loading teacher data...</p>
-                        </div>
-                    </div>
-                `;
-            }
-            
+
+        // Fetch Fresh Data from Firebase
+        async function fetchFreshData() {
             try {
-                // Step 1: Load teachers
                 const teachers = await loadTeachersFromDB();
                 allTeachers = teachers;
-                
-                // Step 2: Compute stats (totalClasses & totalSubjects)
                 const stats = await computeTeacherStats(teachers);
                 teacherStatsList = stats;
                 
-                // Step 3: Render the list
-                renderTeacherList(teacherStatsList, "");
+                saveToCache(); // Save to local storage for next time
                 
-                // Step 4: Setup search functionality
                 const searchInput = document.getElementById('searchTeacherInput');
-                if (searchInput) {
-                    const newSearch = searchInput.cloneNode(true);
-                    searchInput.parentNode.replaceChild(newSearch, searchInput);
-                    newSearch.addEventListener('input', (e) => {
-                        renderTeacherList(teacherStatsList, e.target.value);
-                    });
-                }
+                const searchTerm = searchInput ? searchInput.value : "";
+                renderTeacherList(teacherStatsList, searchTerm);
                 
-                if (teacherStatsList.length === 0) {
-                    showToast("No teachers found. Add teachers to see list.", "info");
-                } else {
-                    const totalAssign = teacherStatsList.reduce((sum, t) => sum + t.totalSubjects, 0);
-                    if (totalAssign === 0) {
-                        showToast("No subject assignments yet. Assign teachers to subjects from Class Manager.", "info");
-                    }
-                }
             } catch (error) {
                 console.error("Load error:", error);
-                if (container) {
+                const container = document.getElementById('teachersListContainer');
+                if (container && teacherStatsList.length === 0) {
                     container.innerHTML = `
                         <div class="text-center py-12 text-red-500">
                             <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
                             <p class="text-sm">Failed to load data. Please refresh.</p>
-                            <button id="retryBtn" class="mt-3 px-4 py-1.5 bg-primary text-white rounded-lg text-sm">Retry</button>
                         </div>
                     `;
-                    const retryBtn = document.getElementById('retryBtn');
-                    if (retryBtn) retryBtn.addEventListener('click', () => loadAndDisplay());
                 }
-                showToast("Error loading teacher data", "error");
+                showToast("Error updating data from server", "error");
+            }
+        }
+        
+        // Main load function
+        async function loadAndDisplay() {
+            const hasCache = loadFromCache();
+            
+            if (hasCache) {
+                // If cache exists, render immediately without showing loader
+                const searchInput = document.getElementById('searchTeacherInput');
+                const searchTerm = searchInput ? searchInput.value : "";
+                renderTeacherList(teacherStatsList, searchTerm);
+            }
+            
+            // Then fetch fresh data from Firebase in the background
+            await fetchFreshData();
+            
+            // Setup search functionality once on initial load
+            const searchInput = document.getElementById('searchTeacherInput');
+            if (searchInput && !searchInput.dataset.listenerAdded) {
+                searchInput.addEventListener('input', (e) => {
+                    renderTeacherList(teacherStatsList, e.target.value);
+                });
+                searchInput.dataset.listenerAdded = "true";
             }
         }
         
         // Refresh button handler
         const refreshBtn = document.getElementById('refreshBtn');
         if (refreshBtn) {
-            refreshBtn.addEventListener('click', () => {
-                loadAndDisplay();
-                showToast("Refreshing teacher data...", "success");
+            refreshBtn.addEventListener('click', async () => {
+                localStorage.removeItem(CACHE_KEY); // Clear cache to force refresh
+                const container = document.getElementById('teachersListContainer');
+                container.innerHTML = `
+                    <div id="initialLoader" class="flex justify-center items-center py-16">
+                        <div class="text-center">
+                            <i class="fas fa-spinner fa-pulse text-primary text-3xl mb-3"></i>
+                            <p class="text-gray-400 text-sm">Refreshing data...</p>
+                        </div>
+                    </div>
+                `;
+                await fetchFreshData();
+                showToast("Teacher data refreshed!", "success");
             });
         }
         
