@@ -359,6 +359,20 @@
             height: 100%;
             object-fit: cover; 
         }
+
+        /* ===== Parent Print Style — Ctrl+P তে iframe এর কন্টেন্ট প্রিন্ট ===== */
+        @media print {
+            .sidebar, .header, .overlay { display: none !important; }
+            .main-content { margin-left: 0 !important; width: 100% !important; }
+            .dashboard-body { padding: 0 !important; }
+            .content-container { overflow: visible !important; }
+            #main-iframe {
+                width: 100% !important;
+                height: auto !important;
+                min-height: 100vh !important;
+                border: none !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -435,7 +449,18 @@
 
         <div class="dashboard-body">
             <div class="content-container">
-                <iframe id="main-iframe" src="parent-dashboard" frameborder="0" sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
+                <!-- 
+                    sandbox attributes explained:
+                    allow-scripts           → JS চালাতে দেয়
+                    allow-forms             → Form submit করতে দেয়  
+                    allow-same-origin       → Same-origin API access
+                    allow-popups            → window.print(), window.open() কাজ করে
+                    allow-modals            → alert/confirm/prompt কাজ করে
+                    allow-downloads         → File download কাজ করে
+                    allow-top-navigation    → Top-level navigation (PDF library দরকার করতে পারে)
+                -->
+                <iframe id="main-iframe" src="parent-dashboard" frameborder="0" 
+                    sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals allow-downloads allow-top-navigation"></iframe>
             </div>
         </div>
     </div>
@@ -555,31 +580,41 @@
         });
 </script>
 
-<!-- Anti-Inspect & Security Script (Parent & Iframe Injection) -->
+<!-- ===================================================================== -->
+<!-- Anti-Inspect & Security + Iframe Print/Download Communication Script  -->
+<!-- ===================================================================== -->
 <script>
-    // এই ফাংশনটি মূল পেজ এবং আইফ্রেম উভয় ক্ষেত্রেই কাজ করবে
+    // এই ফাংশনটি মূল পেজ এবং আইফ্রেম উভয় ক্ষেত্রেই কাজ করবে
     function antiInspectLogic() {
         // ১. ডান ক্লিক বন্ধ
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
         });
 
-        // ২. শর্টকাট কী বন্ধ
-        document.onkeydown = function(e) {
-            if(e.keyCode == 123) return false; // F12
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false;
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false;
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; // Ctrl+Shift+C (Element Selector)
-            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
-            if(e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) return false;
-        };
+        // ২. শর্টকাট কী বন্ধ (কিন্তু Ctrl+P allow করা হচ্ছে)
+        document.addEventListener('keydown', function(e) {
+            // F12 বন্ধ
+            if(e.keyCode === 123) { e.preventDefault(); return false; }
+            // Ctrl+Shift+I বন্ধ
+            if(e.ctrlKey && e.shiftKey && e.keyCode === 'I'.charCodeAt(0)) { e.preventDefault(); return false; }
+            // Ctrl+Shift+J বন্ধ
+            if(e.ctrlKey && e.shiftKey && e.keyCode === 'J'.charCodeAt(0)) { e.preventDefault(); return false; }
+            // Ctrl+Shift+C বন্ধ
+            if(e.ctrlKey && e.shiftKey && e.keyCode === 'C'.charCodeAt(0)) { e.preventDefault(); return false; }
+            // Ctrl+U বন্ধ
+            if(e.ctrlKey && e.keyCode === 'U'.charCodeAt(0)) { e.preventDefault(); return false; }
+            // Ctrl+S বন্ধ
+            if(e.ctrlKey && e.keyCode === 'S'.charCodeAt(0)) { e.preventDefault(); return false; }
+            
+            // ★ Ctrl+P ব্লক করা হচ্ছে না — প্রিন্ট কাজ করবে ★
+        });
 
         // ৩. ডেভেলপার টুলস ডিটেকশন (debugger এবং টাইম ডিফারেন্স পদ্ধতি)
         setInterval(function(){
             var start = new Date().getTime();
             debugger;
             var end = new Date().getTime();
-            // যদি ডিবাগার পজ করে (ডেভেলপার টুলস ওপেন থাকে), তাহলে সময় ১০০ মিলিসেকেন্ডের বেশি হবে
+            // যদি ডিবাগার পজ করে (ডেভেলপার টুলস ওপেন থাকে), তাহলে সময় ১০০ মিলিসেকেন্ডের বেশি হবে
             if(end - start > 100){
                 document.body.innerHTML = "<h1 style='text-align:center;margin-top:20%;color:red; font-size:50px;'>Access Denied!</h1>";
                 document.body.style.backgroundColor = "black";
@@ -595,7 +630,6 @@
     function injectAntiInspectToIframe() {
         try {
             const iframe = document.getElementById('main-iframe');
-            // সেম-অরিজিন পলিসি চেক (যদি একই ডোমেইনে থাকে তবেই ইনজেক্ট করবে)
             const iframeDoc = iframe.contentWindow.document || iframe.contentDocument;
             
             // চেক করা যদি আগে থেকেই স্ক্রিপ্ট ঢুকে থাকে
@@ -612,7 +646,7 @@
             if(iframeDoc.body) {
                 iframeDoc.body.appendChild(script);
             } else {
-                // যদি বডি লোড হতে দেরি হয়
+                // যদি বডি লোড হতে দেরি হয়
                 iframeDoc.addEventListener('DOMContentLoaded', function() {
                     iframeDoc.body.appendChild(script);
                 });
@@ -627,7 +661,7 @@
         const iframe = document.getElementById('main-iframe');
         if(iframe) {
             iframe.onload = injectAntiInspectToIframe;
-            // যদি আইফ্রেম আগেই লোড হয়ে যায়
+            // যদি আইফ্রেম আগেই লোড হয়ে যায়
             try {
                 if (iframe.contentWindow.document.readyState === 'complete') {
                     injectAntiInspectToIframe();
@@ -636,6 +670,74 @@
         }
     });
 
+
+    /* ==================================================================
+       ★★★ আইফ্রেম থেকে Print ও Download Request গ্রহণ করা ★★★
+       ================================================================== */
+    window.addEventListener('message', function(event) {
+        // নিরাপত্তা: শুধু same-origin থেকে আসা message গ্রহণ করো
+        if (event.origin !== window.location.origin && event.origin !== 'null') return;
+        
+        if (!event.data || !event.data.type) return;
+
+        const iframe = document.getElementById('main-iframe');
+
+        /* ----- PRINT REQUEST ----- */
+        if (event.data.type === 'REQUEST_PRINT') {
+            try {
+                if (iframe && iframe.contentWindow) {
+                    // iframe এ focus দাও তারপর print কল করো
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                }
+            } catch(e) {
+                // Fallback: parent থেকে print
+                window.print();
+            }
+        }
+
+        /* ----- PDF/DOWNLOAD REQUEST ----- */
+        if (event.data.type === 'REQUEST_DOWNLOAD') {
+            try {
+                const dataUrl = event.data.dataUrl;
+                const filename = event.data.filename || 'download.pdf';
+                
+                if (!dataUrl) return;
+
+                const a = document.createElement('a');
+                a.href = dataUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            } catch(e) {
+                console.error('Download failed:', e);
+            }
+        }
+    });
+
+
+    /* ==================================================================
+       ★★★ Parent এ Ctrl+P চাপলে iframe এর কন্টেন্ট প্রিন্ট হবে ★★★
+       ================================================================== */
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.keyCode === 80)) {
+            // Shift চাপা নেই (Ctrl+Shift+P হলে ব্রাউজারের ডিফল্ট হবে)
+            if (e.shiftKey) return;
+
+            e.preventDefault();
+            
+            try {
+                const iframe = document.getElementById('main-iframe');
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                }
+            } catch(ex) {
+                window.print();
+            }
+        }
+    }, true); // ★ capture phase — অন্য কোনো handler আগে ক্যাচ করবে
 </script>
 
 </body>
