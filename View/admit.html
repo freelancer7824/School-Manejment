@@ -47,7 +47,7 @@
             overflow: hidden;
         }
 
-        /* -- Header -- */
+        /* -- Header (School Name Only) -- */
         .card-header {
             background: #1a237e; color: #fff;
             padding: 7px 14px 5px; text-align: center;
@@ -73,48 +73,92 @@
             flex-shrink: 0;
         }
 
-        /* -- Logo + Photo Row -- */
+        /* -- Logo + Photo Row: FULL WIDTH, space-between -- */
         .logo-photo-row {
-            display: flex; align-items: center;
+            display: flex;
+            align-items: center;
             justify-content: space-between;
-            width: 100%; padding: 8px 14px 4px;
-            flex-shrink: 0; gap: 0;
+            width: 100%;
+            padding: 8px 14px 4px;
+            flex-shrink: 0;
+            gap: 0;
         }
         .card-logo {
             width: 58px; height: 58px;
-            border-radius: 50%; border: 2px solid #1a237e;
+            border-radius: 50%;
+            border: 2px solid #1a237e;
             display: flex; align-items: center; justify-content: center;
-            background: #f0f0fa; flex-shrink: 0; overflow: hidden;
+            background: #f0f0fa;
+            flex-shrink: 0;
+            overflow: hidden;
         }
         .card-logo img { width: 100%; height: 100%; object-fit: cover; }
         .card-logo svg { width: 34px; height: 34px; fill: none; stroke: #1a237e; stroke-width: 1.5; }
 
         .card-photo {
             width: 74px; height: 92px;
-            border: 2px solid #1a237e; background: #f5f5f5;
+            border: 2px solid #1a237e;
+            background: #f5f5f5;
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden; flex-shrink: 0;
+            overflow: hidden;
+            flex-shrink: 0;
         }
         .card-photo img { width: 100%; height: 100%; object-fit: cover; }
         .photo-placeholder { color: #bbb; font-size: 7px; text-align: center; line-height: 1.2; }
         .photo-placeholder svg { width: 22px; height: 22px; margin-bottom: 1px; opacity: 0.35; }
 
-        /* -- Info Section -- */
+        /* -- Info Section (Two Column Justified) -- */
         .info-section {
             padding: 4px 14px 4px;
-            flex: 1 1 0; min-height: 0; flex-shrink: 0;
+            flex: 1 1 0; min-height: 0;
+            flex-shrink: 0;
         }
-        .info-grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .info-grid {
+            width: 100%; border-collapse: collapse;
+            table-layout: fixed;
+        }
         .info-grid tr { border-bottom: 1px solid #e8e8e8; }
         .info-grid tr:last-child { border-bottom: none; }
-        .info-grid td { padding: 2.5px 2px; font-size: 9.5px; vertical-align: middle; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; }
-        .info-grid .ll { font-weight: 700; color: #1a237e; font-size: 8.5px; white-space: nowrap; padding-right: 4px; width: auto; }
-        .info-grid .ls { width: 8px; font-weight: 700; color: #1a237e; font-size: 8.5px; text-align: center; padding: 2.5px 2px; }
-        .info-grid .lv { font-weight: 500; color: #222; font-size: 9.5px; }
-        .info-grid .ms { width: 24px; }
-        .info-grid .rl { font-weight: 700; color: #1a237e; font-size: 8.5px; white-space: nowrap; padding-right: 4px; width: auto; }
-        .info-grid .rs { width: 8px; font-weight: 700; color: #1a237e; font-size: 8.5px; text-align: center; padding: 2.5px 2px; }
-        .info-grid .rv { font-weight: 500; color: #222; font-size: 9.5px; }
+        .info-grid td {
+            padding: 2.5px 2px;
+            font-size: 9.5px;
+            vertical-align: middle;
+            line-height: 1.35;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* Left Column */
+        .info-grid .ll {
+            font-weight: 700; color: #1a237e;
+            font-size: 8.5px; white-space: nowrap;
+            padding-right: 4px; width: auto;
+        }
+        .info-grid .ls {
+            width: 8px; font-weight: 700; color: #1a237e;
+            font-size: 8.5px; text-align: center; padding: 2.5px 2px;
+        }
+        .info-grid .lv {
+            font-weight: 500; color: #222;
+            font-size: 9.5px;
+        }
+        /* Middle Spacer */
+        .info-grid .ms {
+            width: 24px;
+        }
+        /* Right Column */
+        .info-grid .rl {
+            font-weight: 700; color: #1a237e;
+            font-size: 8.5px; white-space: nowrap;
+            padding-right: 4px; width: auto;
+        }
+        .info-grid .rs {
+            width: 8px; font-weight: 700; color: #1a237e;
+            font-size: 8.5px; text-align: center; padding: 2.5px 2px;
+        }
+        .info-grid .rv {
+            font-weight: 500; color: #222;
+            font-size: 9.5px;
+        }
 
         /* -- Exam Bar -- */
         .exam-bar { display: flex; border-top: 1.5px solid #1a237e; border-bottom: 1.5px solid #1a237e; flex-shrink: 0; }
@@ -143,73 +187,72 @@
             .logo-photo-row { padding: 6px 8px 4px; }
         }
 
-        /* ===== PRINT — শুধু Admit Card প্রিন্ট হবে ===== */
+        /* ===== PRINT — শুধু Admit Card ই প্রিন্ট হবে ===== */
         @media print {
             @page { size: A4; margin: 5mm; }
 
-            /* সব রঙ ঠিকমতো প্রিন্ট হবে */
-            *, *::before, *::after {
+            /* পুরো body সাদা, কোনো background নেই */
+            html, body {
+                width: 210mm;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #fff !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
 
-            /* Body থেকে Tailwind padding/margin সম্পূর্ণ সরানো */
-            html {
-                width: 210mm !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-            body {
-                width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                background: #fff !important;
-                min-height: auto !important;
-                max-width: none !important;
+            /* no-print ক্লাস সম্পূর্ণ লুকাও — কন্ট্রোল প্যানেল, টোস্ট, ইত্যাদি */
+            .no-print {
+                display: none !important;
             }
 
-            /* no-print ক্লাসযুক্ত সব এলিমেন্ট লুকানো */
-            .no-print { display: none !important; }
+            /* যেসব element admit card এর বাইরে থাকতে পারে তাও লুকাও */
+            #toastContainer,
+            .control-panel,
+            .empty-state,
+            .toast-container {
+                display: none !important;
+            }
 
-            /* Container */
+            /* Admit Cards Container — শুধু এটাই দেখাবে */
             #admitCardsContainer {
                 margin: 0 !important;
                 padding: 0 !important;
-                width: 100% !important;
             }
 
-            /* প্রতিটি admit page */
             .admit-page {
                 width: 200mm !important;
                 height: 287mm !important;
-                margin: 0 auto !important;
+                margin: 0 !important;
                 padding: 4mm 6mm !important;
                 box-shadow: none !important;
                 page-break-after: always;
                 overflow: hidden;
             }
-            .admit-page:last-child { page-break-after: avoid; }
+            .admit-page:last-child {
+                page-break-after: avoid;
+            }
 
-            /* প্রতিটি admit card — নির্দিষ্ট উচ্চতা */
             .admit-card {
-                flex: none !important;
-                height: calc((287mm - 16mm) / 2) !important;
-                overflow: hidden !important;
+                flex: none;
+                height: calc((287mm - 8mm - 8mm) / 2);
+                overflow: hidden;
                 page-break-inside: avoid;
             }
 
-            /* Cut line */
-            .cut-line { flex: none !important; height: 8mm !important; padding: 0 25mm !important; }
+            .cut-line {
+                flex: none; height: 8mm; margin: 0; padding: 0 25mm;
+            }
             .cut-line::before, .cut-line::after { border-top: 2px dashed #999 !important; }
             .cut-line span, .cut-line .cut-scissors { color: #999 !important; }
 
-            /* রঙ জোর করে প্রিন্ট */
-            .card-header { background: #1a237e !important; color: #fff !important; }
-            .card-title-bar { background: #ffd54f !important; color: #1a237e !important; }
-            .card-instructions { background: #fffde7 !important; }
-            .instructions-list li .num { background: #c62828 !important; color: #fff !important; }
-            .card-logo { background: #f0f0fa !important; }
-            .card-photo { background: #f5f5f5 !important; }
+            /* Color accuracy for print */
+            .card-header { background: #1a237e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .card-title-bar { background: #ffd54f !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .card-instructions { background: #fffde7 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .instructions-list li .num { background: #c62828 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .card-logo { background: #f0f0fa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .card-photo { background: #f5f5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .exam-bar { border-color: #1a237e !important; }
             .exam-bar-item + .exam-bar-item { border-left-color: #1a237e !important; }
         }
@@ -220,10 +263,11 @@
 </head>
 <body class="min-h-screen p-4 md:p-6">
 
+    <!-- Toast Container -->
     <div id="toastContainer" class="toast-container no-print"></div>
 
     <!-- ===== CONTROL PANEL ===== -->
-    <div class="no-print max-w-5xl mx-auto mb-6">
+    <div id="controlPanel" class="no-print control-panel max-w-5xl mx-auto mb-6">
         <div class="flex justify-between items-center mb-5 flex-wrap gap-3">
             <div class="flex items-center gap-3">
                 <span class="bg-primary text-white p-2.5 rounded-xl shadow-lg"><i class="fas fa-id-card text-xl"></i></span>
@@ -276,10 +320,10 @@
                     <input type="date" id="filterExamDate" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
                 </div>
                 <div class="flex gap-2">
-                    <button id="generateBtn" class="bg-primary hover:bg-indigo-900 text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-md transition flex items-center gap-2">
+                    <button id="generateBtn" type="button" class="bg-primary hover:bg-indigo-900 text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-md transition flex items-center gap-2">
                         <i class="fas fa-magic"></i> Generate
                     </button>
-                    <button id="printBtn" class="bg-success hover:bg-green-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold shadow-md transition flex items-center gap-2 hidden">
+                    <button id="printBtn" type="button" class="bg-success hover:bg-green-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold shadow-md transition flex items-center gap-2" style="display:none;">
                         <i class="fas fa-print"></i> Print
                     </button>
                 </div>
@@ -322,7 +366,6 @@
         let allClasses = [], allParents = [], parentsMap = {};
         let currentSession = '2025-2026', nextSession = '2026-2027';
         let sectionsCache = {};
-        let admitCardsGenerated = false; // ট্র্যাক করবে কার্ড তৈরি হয়েছে কিনা
 
         function esc(str) { if (!str) return ''; return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m])); }
         function getField(data, ...fields) { for (const f of fields) { if (data[f]) return data[f]; } return ''; }
@@ -512,10 +555,7 @@
                 const students = await loadStudents(classId, section, targetSession);
                 if (!students.length) {
                     container.innerHTML = `<div class="empty-state no-print"><i class="fas fa-user-slash block text-gray-300"></i><p class="text-lg font-semibold text-gray-400">No Students Found</p><p class="text-sm text-gray-400 mt-1">Try a different class or section</p></div>`;
-                    admitCardsGenerated = false;
-                    document.getElementById('printBtn').classList.add('hidden');
-                    showToast('No students found', 'warning');
-                    return;
+                    showToast('No students found', 'warning'); return;
                 }
 
                 document.getElementById('studentCountInfo').classList.remove('hidden');
@@ -532,34 +572,32 @@
                 }
 
                 container.innerHTML = pagesHTML;
-                admitCardsGenerated = true;
-                document.getElementById('printBtn').classList.remove('hidden');
+
+                /* ===== Print Button দেখাও ===== */
+                const printBtn = document.getElementById('printBtn');
+                printBtn.style.display = 'flex';
+
                 showToast(`✅ ${students.length} admit cards generated!`, 'success');
             } catch (e) {
                 console.error('Generate error:', e);
                 container.innerHTML = `<div class="empty-state no-print"><i class="fas fa-exclamation-triangle block text-red-300"></i><p class="text-lg font-semibold text-red-400">Error</p><p class="text-sm text-gray-400 mt-1">${esc(e.message)}</p></div>`;
-                admitCardsGenerated = false;
                 showToast('Failed: ' + e.message, 'error');
             }
         }
 
-        // ===== PRINT FUNCTION — নির্ভরযোগ্য প্রিন্ট =====
+        /* ===== Print ফাংশন — নিশ্চিত করে যে শুধু Admit Card ই প্রিন্ট হবে ===== */
         function printAdmitCards() {
-            if (!admitCardsGenerated) {
-                showToast('Please generate admit cards first!', 'warning');
+            const container = document.getElementById('admitCardsContainer');
+            const pages = container.querySelectorAll('.admit-page');
+
+            if (!pages.length) {
+                showToast('No admit cards to print. Generate first!', 'warning');
                 return;
             }
-            // প্রিন্ট ডায়ালগ খোলা
+
+            /* পুরো body এর সব লুকিয়ে শুধু admit cards দেখিয়ে print করা হচ্ছে */
             window.print();
         }
-
-        // ===== Ctrl+P তে যদি কার্ড না থাকে, তাহলে বাধা দেওয়া =====
-        window.addEventListener('beforeprint', function(e) {
-            if (!admitCardsGenerated) {
-                // কার্ড না থাকলে প্রিন্ট হতে দেবে না — তবে beforeprint থামানো যায় না
-                // তাই CSS দিয়েই সব হ্যান্ডেল করা হচ্ছে — no-print ক্লাস দিয়ে সব লুকানো হবে
-            }
-        });
 
         document.getElementById('filterClass').addEventListener('change', async (e) => {
             const classId = e.target.value;
@@ -574,11 +612,14 @@
 
         document.getElementById('generateBtn').addEventListener('click', generateAdmitCards);
 
-        // Print বাটন — addEventListener দিয়ে
-        document.getElementById('printBtn').addEventListener('click', printAdmitCards);
+        /* ===== Print Button — type="button" + direct event ===== */
+        document.getElementById('printBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            printAdmitCards();
+        });
 
-        // ===== গ্লোবাল অ্যাক্সেস — inline onclick এর জন্য =====
-        window.printAdmitCards = printAdmitCards;
+        /* ===== Ctrl+P তে শুধু admit card ই প্রিন্ট হবে — @media print CSS দেখছে ===== */
 
         async function init() {
             document.getElementById('schoolSubheading').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
