@@ -173,6 +173,14 @@
             font-size: 13px;
         }
 
+        /* প্রোফাইল ছবি আপলোড */
+        .upload-btn {
+            transition: all 0.3s ease;
+        }
+        .upload-btn:hover {
+            transform: scale(1.1);
+        }
+
         /* স্ক্রলবার */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
@@ -245,6 +253,18 @@
                 <div class="section-title">
                     <div class="section-icon bg-blue-50 text-primary"><i class="fas fa-user"></i></div>
                     ব্যক্তিগত তথ্য
+                </div>
+
+                <!-- প্রোফাইল ছবি আপলোড -->
+                <div class="flex flex-col items-center mb-5">
+                    <div class="relative w-28 h-28 mb-2">
+                        <img id="profilePreview" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="w-28 h-28 rounded-full object-cover border-4 border-white shadow-md" alt="Profile">
+                        <label for="profileImage" class="upload-btn absolute bottom-1 right-1 w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-primary-dark transition">
+                            <i class="fas fa-camera text-sm"></i>
+                        </label>
+                        <input type="file" id="profileImage" class="hidden" accept="image/*" onchange="previewAndUploadImage(event)">
+                    </div>
+                    <div id="uploadStatus" class="text-[11px] text-slate-400 mt-1">প্রোফাইল ছবি নির্বাচন করুন (ঐচ্ছিক)</div>
                 </div>
 
                 <div class="space-y-4">
@@ -575,7 +595,13 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // ===== ক্লাউডিনারি কনফিগারেশন =====
+        // আপনার Cloudinary ড্যাশবোর্ড থেকে Cloud Name এবং Unsigned Upload Preset এখানে বসান
+        const CLOUDINARY_CLOUD_NAME = 'dhvtgzy5x'; 
+        const CLOUDINARY_UPLOAD_PRESET = 'Rosenews'; 
+
         let currentStep = 1;
+        let profileImageUrl = null; // আপলোড হওয়া ছবির URL সংরক্ষণের জন্য
 
         // ===== সেশন লোড =====
         async function loadSession() {
@@ -601,6 +627,51 @@
                 setTimeout(() => toast.remove(), 300);
             }, 4500);
         }
+
+        // ===== ইমেজ আপলোড ফাংশন (Cloudinary) =====
+        window.previewAndUploadImage = async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // প্রিভিউ দেখানো
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('profilePreview').src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+
+            // আপলোড স্ট্যাটাস আপডেট
+            const statusEl = document.getElementById('uploadStatus');
+            statusEl.textContent = 'ছবি আপলোড হচ্ছে...';
+            statusEl.className = 'text-xs text-amber-500 mt-1 font-semibold';
+
+            // Cloudinary তে আপলোড
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+            try {
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.secure_url) {
+                    profileImageUrl = data.secure_url;
+                    statusEl.textContent = 'আপলোড সফল!';
+                    statusEl.className = 'text-xs text-emerald-500 mt-1 font-semibold';
+                    showToast('প্রোফাইল ছবি সফলভাবে আপলোড হয়েছে', 'success');
+                } else {
+                    throw new Error('Cloudinary upload failed');
+                }
+            } catch (error) {
+                console.error('Cloudinary upload error:', error);
+                statusEl.textContent = 'আপলোড ব্যর্থ, আবার চেষ্টা করুন';
+                statusEl.className = 'text-xs text-red-500 mt-1 font-semibold';
+                showToast('ছবি আপলোডে সমস্যা হয়েছে', 'error');
+            }
+        };
 
         // ===== স্টেপ নেভিগেশন =====
         window.goToStep = function(step) {
@@ -811,6 +882,7 @@
                 const userData = {
                     uid, name: fullName, fatherName: fatherName || null,
                     email: userEmail, phone, role: 'teacher',
+                    photoURL: profileImageUrl || null, // ক্লাউডিনারি থেকে পাওয়া ছবির URL
                     gender: gender || null, dateOfBirth: dob || null,
                     address: address || null, employeeId, department,
                     qualification, subjects: subjects || null,
@@ -825,6 +897,7 @@
                 // teachers কালেকশন সিঙ্ক
                 await setDoc(doc(db, 'teachers', uid), {
                     name: fullName, phone, email: userEmail,
+                    photoURL: profileImageUrl || null, // ক্লাউডিনারি থেকে পাওয়া ছবির URL
                     employeeId, department, qualification,
                     subjects: subjects || null,
                     joiningDate, salary: salary || null,
@@ -879,6 +952,14 @@
             document.getElementById('pwStrengthText').textContent = '—';
             document.getElementById('pwStrengthText').style.color = '#94a3b8';
             document.getElementById('nationality').value = 'বাংলাদেশী';
+            
+            // ইমেজ রিসেট
+            profileImageUrl = null;
+            document.getElementById('profileImage').value = '';
+            document.getElementById('profilePreview').src = 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png';
+            document.getElementById('uploadStatus').textContent = 'প্রোফাইল ছবি নির্বাচন করুন (ঐচ্ছিক)';
+            document.getElementById('uploadStatus').className = 'text-[11px] text-slate-400 mt-1';
+            
             currentStep = 1;
             updateStepUI();
         };
