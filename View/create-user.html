@@ -76,6 +76,16 @@
             <form id="editUserForm" class="p-5 space-y-4">
                 <input type="hidden" id="editUserId">
                 <input type="hidden" id="editUserRole">
+                
+                <!-- Image Upload in Edit Modal -->
+                <div class="flex flex-col items-center mb-4">
+                    <img id="editImagePreview" src="https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff" class="w-24 h-24 rounded-full object-cover border-4 border-gray-100 shadow-sm mb-3 bg-blue-50" alt="Preview" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff';">
+                    <label class="bg-primary text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-700 transition text-sm">
+                        <i class="fas fa-camera mr-1"></i> ছবি পরিবর্তন করুন
+                        <input type="file" id="editImageFile" accept="image/*" class="hidden">
+                    </label>
+                </div>
+
                 <div class="grid grid-cols-1 gap-4">
                     <div><label class="block text-sm font-semibold text-gray-700">পূর্ণ নাম *</label><input type="text" id="editFullName" class="w-full border border-gray-300 rounded-lg p-2.5" required></div>
                     <div><label class="block text-sm font-semibold text-gray-700">মোবাইল নম্বর *</label><input type="tel" id="editPhone" class="w-full border border-gray-300 rounded-lg p-2.5" required></div>
@@ -86,7 +96,7 @@
                 </div>
                 <div class="flex justify-end gap-3 pt-3 border-t">
                     <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition">বাতিল</button>
-                    <button type="submit" class="px-5 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition"><i class="fas fa-save mr-1"></i> হালনাগাদ করুন</button>
+                    <button type="submit" id="editSubmitBtn" class="px-5 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition"><i class="fas fa-save mr-1"></i> হালনাগাদ করুন</button>
                 </div>
             </form>
         </div>
@@ -126,6 +136,15 @@
                 <form id="userForm" class="space-y-6">
                     <input type="hidden" id="selectedRole" value="admin">
                     
+                    <!-- Image Upload Section -->
+                    <div class="flex flex-col items-center mb-5">
+                        <img id="createImagePreview" src="https://ui-avatars.com/api/?name=New&background=3b82f6&color=fff" class="w-24 h-24 rounded-full object-cover border-4 border-gray-100 shadow-sm mb-2 bg-blue-50" alt="Preview" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=New&background=3b82f6&color=fff';">
+                        <label class="bg-primary text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-700 transition text-sm">
+                            <i class="fas fa-camera mr-1"></i> ছবি নির্বাচন করুন
+                            <input type="file" id="createImageFile" accept="image/*" class="hidden">
+                        </label>
+                    </div>
+
                     <!-- Basic Information -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
@@ -207,7 +226,7 @@
             </div>
         </div>
 
-        <!-- Users List Table (প্রশাসক ও শিক্ষক একসাথে) -->
+        <!-- Users List Table -->
         <div class="bg-white rounded-2xl shadow-md overflow-hidden">
             <div class="p-5 border-b bg-gray-50 flex justify-between items-center flex-wrap gap-2">
                 <h3 class="font-bold text-gray-800"><i class="fas fa-users text-primary mr-2"></i> সকল ব্যবহারকারী (অ্যাডমিন ও শিক্ষক)</h3>
@@ -218,6 +237,7 @@
                     <thead class="bg-gray-100">
                         <tr class="text-left text-sm font-semibold text-gray-600">
                             <th class="px-5 py-3 w-12">#</th>
+                            <th class="px-5 py-3 w-16">ছবি</th>
                             <th class="px-5 py-3">নাম</th>
                             <th class="px-5 py-3">মোবাইল</th>
                             <th class="px-5 py-3">ইমেইল</th>
@@ -227,20 +247,19 @@
                          </tr>
                     </thead>
                     <tbody id="usersTableBody">
-                        <tr><td colspan="7" class="text-center py-10 text-gray-400"><i class="fas fa-spinner fa-spin text-2xl"></i> ডাটা লোড হচ্ছে...</td></tr>
+                        <tr><td colspan="8" class="text-center py-10 text-gray-400"><i class="fas fa-spinner fa-spin text-2xl"></i> ডাটা লোড হচ্ছে...</td></tr>
                     </tbody>
                  </table>
             </div>
         </div>
         
-        <!-- সহায়ক তথ্য: শিক্ষক সিঙ্ক নোট -->
         <div class="mt-4 text-xs text-gray-400 text-center border-t pt-4">✅ যে কোনো শিক্ষক তৈরি হলে স্বয়ংক্রিয়ভাবে টিচার তালিকায় যুক্ত হবে এবং অন্যত্র সার্চে পাওয়া যাবে।</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, updatePassword, deleteUser, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, getDocs, doc, setDoc, updateDoc, deleteDoc, where, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getFirestore, collection, serverTimestamp, query, orderBy, getDocs, doc, setDoc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         
         const firebaseConfig = {
             apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
@@ -256,6 +275,10 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+
+        // ===== CLOUDINARY CONFIG =====
+        const CLOUD_NAME = "dhvtgzy5x"; 
+        const UPLOAD_PRESET = "Rosenews"; 
         
         let allUsers = [];
         let currentRole = 'admin';
@@ -278,21 +301,63 @@
         
         window.hideToast = () => document.getElementById('toast').classList.add('hidden');
         
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+
+        // Cloudinary Image Upload Function
+        async function uploadImageToCloudinary(file) {
+            if (!file) return null;
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", UPLOAD_PRESET);
+            
+            try {
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await response.json();
+                return data.secure_url;
+            } catch (error) {
+                console.error("Cloudinary Upload Error:", error);
+                showToast("ছবি আপলোডে ব্যর্থ হয়েছে!", 'error');
+                return null;
+            }
+        }
+
+        // Preview Image for Create Form
+        document.getElementById('createImageFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => document.getElementById('createImagePreview').src = e.target.result;
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Preview Image for Edit Form
+        document.getElementById('editImageFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => document.getElementById('editImagePreview').src = e.target.result;
+                reader.readAsDataURL(file);
+            }
+        });
+
         function generateEmailFromPhone(phone, role) {
             const cleanPhone = phone.replace(/[^0-9]/g, '');
             const lastDigits = cleanPhone.slice(-10);
             return `${role}_${lastDigits}@schoolapp.com`;
         }
         
-        // শিক্ষক তৈরি হলে ALWAYS teachers কালেকশনেও সেভ করবো - যাতে অন্যত্র (subject assign) সার্চে পাওয়া যায়।
         async function syncTeacherToTeachersCollection(teacherData, uid) {
             try {
-                // teacherData = { name, phone, email, employeeId, department, qualification, joiningDate, uid, role }
                 const teacherRef = doc(db, "teachers", uid);
                 await setDoc(teacherRef, {
                     name: teacherData.name,
                     phone: teacherData.phone,
                     email: teacherData.email || "",
+                    photoURL: teacherData.photoURL || null, // sync photoURL
                     employeeId: teacherData.employeeId || "",
                     department: teacherData.department || "",
                     qualification: teacherData.qualification || "",
@@ -301,13 +366,12 @@
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp()
                 }, { merge: true });
-                console.log("✅ শিক্ষক সিঙ্ক done in teachers collection:", teacherData.name);
             } catch (err) {
                 console.warn("teachers collection sync error:", err);
             }
         }
         
-        // অ্যাডমিন/শিক্ষক তৈরি ফাংশন
+        // Form Submit for Creating User
         document.getElementById('userForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -319,6 +383,7 @@
             const dob = document.getElementById('dob').value;
             const address = document.getElementById('address').value;
             const role = currentRole;
+            const imageFile = document.getElementById('createImageFile').files[0];
             
             if (!fullName) { showToast('পূর্ণ নাম লিখুন', 'error'); return; }
             if (!phone) { showToast('মোবাইল নম্বর লিখুন', 'error'); return; }
@@ -332,12 +397,19 @@
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> তৈরি হচ্ছে...';
             
             try {
+                // Upload image to Cloudinary first
+                let photoURL = null;
+                if (imageFile) {
+                    photoURL = await uploadImageToCloudinary(imageFile);
+                }
+
                 const userEmail = email || generateEmailFromPhone(phone, role);
                 const userCredential = await createUserWithEmailAndPassword(auth, userEmail, password);
                 const authUid = userCredential.user.uid;
                 
                 const userData = {
                     uid: authUid, name: fullName, email: userEmail, phone: phone, role: role,
+                    photoURL: photoURL, // Save image URL
                     gender: gender || null, dateOfBirth: dob || null, address: address || null,
                     status: 'active', createdAt: serverTimestamp(), updatedAt: serverTimestamp()
                 };
@@ -353,18 +425,10 @@
                     userData.joiningDate = joiningDate;
                     
                     await setDoc(doc(db, 'users', authUid), userData);
-                    
-                    // 🔥 শিক্ষক কালেকশনে সিঙ্ক করা হচ্ছে - যাতে subject assign এ সার্চ রেজাল্ট আসে
                     await syncTeacherToTeachersCollection({
-                        name: fullName,
-                        phone: phone,
-                        email: userEmail,
-                        employeeId: employeeId,
-                        department: department,
-                        qualification: qualification,
-                        joiningDate: joiningDate,
-                        uid: authUid,
-                        role: 'teacher'
+                        name: fullName, phone: phone, email: userEmail, photoURL: photoURL,
+                        employeeId: employeeId, department: department, qualification: qualification,
+                        joiningDate: joiningDate, uid: authUid, role: 'teacher'
                     }, authUid);
                     
                     showToast(`🎉 শিক্ষক তৈরি! ইমেইল: ${userEmail} | পাস: ${password}`, 'success');
@@ -379,6 +443,7 @@
                 }
                 
                 document.getElementById('userForm').reset();
+                document.getElementById('createImagePreview').src = `https://ui-avatars.com/api/?name=New&background=3b82f6&color=fff`;
                 document.getElementById('adminType').value = 'admin';
                 document.getElementById('accessLevel').value = 'full';
                 await loadAllUsers();
@@ -393,40 +458,32 @@
             }
         });
         
-        // সকল ব্যবহারকারী + শিক্ষক collection sync (double check)
         async function loadAllUsers() {
             try {
                 const usersSnapshot = await getDocs(query(collection(db, 'users'), orderBy('createdAt', 'desc')));
                 allUsers = [];
                 usersSnapshot.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
                 renderUsersTable();
-                // পাশাপাশি শিক্ষক লিস্ট সিঙ্ক নিশ্চিতকরণ: teachers collection এ অভাব থাকলে যোগ করি
                 await ensureAllTeachersInCollection();
             } catch (error) {
                 console.error('Error loading users:', error);
-                document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="7" class="text-center py-10 text-red-400">লোড করতে ব্যর্থ হয়েছে</td></tr>';
+                document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="8" class="text-center py-10 text-red-400">লোড করতে ব্যর্থ হয়েছে</td></tr>';
             }
         }
         
-        // Background sync: যাতে পূর্বের তৈরি শিক্ষকরা teachers collection এ থাকে
         async function ensureAllTeachersInCollection() {
-            const teachersFromUsers = allUsers.filter(u => u.role === 'teacher' || u.role === 'superadmin' && u.role === 'teacher');
+            const teachersFromUsers = allUsers.filter(u => u.role === 'teacher');
             for (const teacher of teachersFromUsers) {
                 const teacherDocRef = doc(db, "teachers", teacher.id);
                 const snap = await getDoc(teacherDocRef);
                 if (!snap.exists()) {
                     await syncTeacherToTeachersCollection({
-                        name: teacher.name,
-                        phone: teacher.phone,
-                        email: teacher.email,
+                        name: teacher.name, phone: teacher.phone, email: teacher.email,
+                        photoURL: teacher.photoURL || null,
                         employeeId: teacher.employeeId || `TCH-${teacher.phone?.slice(-4)}`,
-                        department: teacher.department || '',
-                        qualification: teacher.qualification || '',
-                        joiningDate: teacher.joiningDate || '',
-                        uid: teacher.id,
-                        role: 'teacher'
+                        department: teacher.department || '', qualification: teacher.qualification || '',
+                        joiningDate: teacher.joiningDate || '', uid: teacher.id, role: 'teacher'
                     }, teacher.id);
-                    console.log("মিসিং টিচার পুনরুদ্ধার:", teacher.name);
                 }
             }
         }
@@ -434,7 +491,7 @@
         function renderUsersTable() {
             const tbody = document.getElementById('usersTableBody');
             if (allUsers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-gray-400">কোন ব্যবহারকারী নেই</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-10 text-gray-400">কোন ব্যবহারকারী নেই</td></tr>';
                 return;
             }
             
@@ -446,10 +503,17 @@
                 const statusColor = user.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600';
                 const roleDisplay = user.role === 'teacher' ? 'শিক্ষক' : (user.role === 'superadmin' ? 'সুপার অ্যাডমিন' : 'অ্যাডমিন');
                 
+                // Image handling with fallback
+                const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=3b82f6&color=fff`;
+                const imgSrc = user.photoURL || defaultImg;
+                
                 const row = document.createElement('tr');
                 row.className = 'user-row border-b border-gray-100 hover:bg-gray-50';
                 row.innerHTML = `
                     <td class="px-5 py-3 text-sm text-gray-500">${index + 1}</td>
+                    <td class="px-5 py-3">
+                        <img src="${imgSrc}" alt="${escapeHtml(user.name)}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 shadow-sm bg-blue-50" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=U&background=3b82f6&color=fff';">
+                    </td>
                     <td class="px-5 py-3"><div class="font-semibold text-gray-800">${escapeHtml(user.name || 'N/A')}</div></td>
                     <td class="px-5 py-3 text-sm">${escapeHtml(user.phone || 'N/A')}</td>
                     <td class="px-5 py-3 text-sm text-gray-500">${escapeHtml(user.email || 'N/A')}</td>
@@ -467,6 +531,7 @@
         async function openEditModal(userId, authUid, role) {
             const user = allUsers.find(u => u.id === userId);
             if (!user) return;
+            
             document.getElementById('editUserId').value = userId;
             document.getElementById('editUserRole').value = role;
             document.getElementById('editFullName').value = user.name || '';
@@ -475,6 +540,11 @@
             document.getElementById('editGender').value = user.gender || '';
             document.getElementById('editAddress').value = user.address || '';
             document.getElementById('editStatus').value = user.status || 'active';
+            
+            const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=3b82f6&color=fff`;
+            document.getElementById('editImagePreview').src = user.photoURL || defaultImg;
+            document.getElementById('editImageFile').value = ''; // clear file input
+            
             document.getElementById('editModal').classList.remove('hidden');
         }
         
@@ -482,7 +552,14 @@
         
         document.getElementById('editUserForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const editBtn = document.getElementById('editSubmitBtn');
+            editBtn.disabled = true;
+            editBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> আপডেট হচ্ছে...';
+
             const userId = document.getElementById('editUserId').value;
+            const userRole = document.getElementById('editUserRole').value;
+            const file = document.getElementById('editImageFile').files[0];
+
             const updateData = {
                 name: document.getElementById('editFullName').value,
                 phone: document.getElementById('editPhone').value,
@@ -492,23 +569,34 @@
                 status: document.getElementById('editStatus').value,
                 updatedAt: serverTimestamp()
             };
+
             try {
+                // Upload new image if selected
+                if (file) {
+                    const imageUrl = await uploadImageToCloudinary(file);
+                    if (imageUrl) updateData.photoURL = imageUrl;
+                }
+
                 await updateDoc(doc(db, 'users', userId), updateData);
-                // শিক্ষক কালেকশনও আপডেট করি যদি শিক্ষক হয়
-                const userRole = document.getElementById('editUserRole').value;
+                
                 if (userRole === 'teacher') {
                     await setDoc(doc(db, 'teachers', userId), {
                         name: updateData.name,
                         phone: updateData.phone,
                         email: updateData.email,
+                        ...(updateData.photoURL && { photoURL: updateData.photoURL }), // sync photoURL
                         updatedAt: serverTimestamp()
                     }, { merge: true });
                 }
+
                 showToast('তথ্য হালনাগাদ হয়েছে!');
                 closeEditModal();
                 await loadAllUsers();
             } catch (error) {
                 showToast('ত্রুটি: ' + error.message, 'error');
+            } finally {
+                editBtn.disabled = false;
+                editBtn.innerHTML = '<i class="fas fa-save mr-1"></i> হালনাগাদ করুন';
             }
         });
         
@@ -528,7 +616,6 @@
         document.getElementById('confirmDelete').onclick = async () => {
             if (pendingDeleteId) {
                 try {
-                    // ডিলিট: teachers collection থেকেও মুছুন
                     await deleteDoc(doc(db, 'users', pendingDeleteId));
                     await deleteDoc(doc(db, 'teachers', pendingDeleteId)).catch(()=>{});
                     showToast('ব্যবহারকারী মুছে ফেলা হয়েছে');
@@ -542,8 +629,6 @@
                 }
             }
         };
-        
-        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
         
         // Role Tab switching
         document.getElementById('roleAdminBtn').addEventListener('click', () => {
