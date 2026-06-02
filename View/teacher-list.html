@@ -80,7 +80,8 @@
                 
                 <!-- Image Upload in Modal -->
                 <div class="flex flex-col items-center mb-4">
-                    <img id="editImagePreview" src="https://ui-avatars.com/api/?name=Teacher&background=3b82f6&color=fff" class="w-24 h-24 rounded-full object-cover border-4 border-gray-100 shadow-sm mb-3" alt="Preview">
+                    <!-- Added referrerpolicy="no-referrer" and onerror fallback -->
+                    <img id="editImagePreview" src="https://ui-avatars.com/api/?name=Teacher&background=3b82f6&color=fff" referrerpolicy="no-referrer" class="w-24 h-24 rounded-full object-cover border-4 border-gray-100 shadow-sm mb-3 bg-blue-50" alt="Preview" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Teacher&background=3b82f6&color=fff';">
                     <label class="bg-primary text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-700 transition text-sm">
                         <i class="fas fa-camera mr-1"></i> ছবি পরিবর্তন করুন
                         <input type="file" id="editImageFile" accept="image/*" class="hidden">
@@ -173,8 +174,8 @@
         const db = getFirestore(app);
 
         // ===== CLOUDINARY CONFIG =====
-        const CLOUD_NAME = "dhvtgzy5x"; // আপনার Cloudinary Cloud Name দিন
-        const UPLOAD_PRESET = "Rosenews"; // Cloudinary থেকে Unsigned Upload Preset দিন
+        const CLOUD_NAME = "dhvtgzy5x"; 
+        const UPLOAD_PRESET = "Rosenews"; 
         
         let allTeachers = [];
         let pendingDeleteId = null;
@@ -251,7 +252,8 @@
                 row.innerHTML = `
                     <td class="px-5 py-3 text-sm text-gray-500 font-medium">${index + 1}</td>
                     <td class="px-5 py-3">
-                        <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(teacher.name)}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 shadow-sm">
+                        <!-- Added referrerpolicy="no-referrer", onerror fallback and bg color -->
+                        <img src="${imgSrc}" alt="${escapeHtml(teacher.name)}" referrerpolicy="no-referrer" class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 shadow-sm bg-blue-50" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=T&background=3b82f6&color=fff';">
                     </td>
                     <td class="px-5 py-3">
                         <div class="font-semibold text-gray-800">${escapeHtml(teacher.name || 'N/A')}</div>
