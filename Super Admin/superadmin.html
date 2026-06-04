@@ -6,11 +6,8 @@
     <title>সম্পূর্ণ অ্যাডমিন ড্যাশবোর্ড</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
-    <!-- Firebase Core App -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <!-- Firebase Auth -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <!-- Firebase Firestore -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     
     <style>
@@ -37,12 +34,8 @@
             background-color: var(--main-bg);
             color: #333;
             line-height: 1.6;
-            overflow: hidden; 
-        }
-
-        .dashboard-container {
-            display: flex;
-            height: 100vh;
+            overflow: hidden;
+            height: 100vh; /* পুরো স্ক্রিন উচ্চতা */
         }
 
         /* --- সাইডবার স্টাইল --- */
@@ -166,12 +159,12 @@
 
         /* --- প্রধান কন্টেন্ট এরিয়া --- */
         .main-content {
-            flex-grow: 1;
             margin-left: var(--sidebar-width);
             transition: margin-left 0.3s ease, width 0.3s ease;
             display: flex;
             flex-direction: column;
-            width: calc(100% - var(--sidebar-width)); 
+            width: calc(100% - var(--sidebar-width));
+            height: 100vh; /* ★ এটি অবশ্যই লাগবে যাতে পুরো স্ক্রিন নেয় */
         }
 
         .main-content.collapsed-margin {
@@ -193,10 +186,8 @@
             justify-content: space-between;
             align-items: center;
             height: var(--header-height);
-            position: sticky;
-            top: 0;
+            flex-shrink: 0; /* হেডার ছোট হবে না */
             z-index: 999;
-            flex-shrink: 0;
         }
 
         .header-left {
@@ -252,7 +243,6 @@
             color: var(--header-text); 
         }
 
-        /* Header Profile Image Style */
         .header-profile-img {
             width: 32px;
             height: 32px;
@@ -260,7 +250,7 @@
             object-fit: cover;
             margin-left: 5px;
             border: 2px solid #ecf0f1;
-            display: none; /* Hidden by default until image loads */
+            display: none;
         }
 
         .user-dropdown-menu {
@@ -300,6 +290,7 @@
             padding: 0; 
             flex-grow: 1;
             display: flex;
+            min-height: 0; /* ★ Flexbox স্ক্রল ফিক্স */
             overflow: hidden; 
         }
 
@@ -308,12 +299,11 @@
             height: 100%; 
             background-color: #fff;
             overflow: hidden;
-            display: flex;
         }
 
         #main-iframe {
             width: 100%;
-            height: 100vh; 
+            height: 100%; /* ★ 100vh এর বদলে 100% — হেডার বাদে বাকি জায়গা নিবে */
             border: none;
             background-color: var(--main-bg); 
         }
@@ -368,15 +358,14 @@
             }
         }
 
-       /* Fixed Circular Container for Perfect Circle */
        .circular-container {
-          width: 45px; /* Changed from 70px */
+          width: 45px;
           height: 45px;
           padding: 2px;
           margin-right: 10px;
           border-radius: 50%;
           overflow: hidden; 
-          background-color: #3e5163; /* Fallback bg color */
+          background-color: #3e5163;
           flex-shrink: 0;
         }
 
@@ -392,11 +381,9 @@
             border-left: 4px solid #3498db;
         }
 
-        /* ===== Parent Print Style — যখন parent থেকে Ctrl+P হবে ===== */
         @media print {
-            /* Parent page এর সব লুকাও */
             .sidebar, .header, .overlay { display: none !important; }
-            .main-content { margin-left: 0 !important; width: 100% !important; }
+            .main-content { margin-left: 0 !important; width: 100% !important; height: auto !important; }
             .dashboard-body { padding: 0 !important; }
             .content-container { overflow: visible !important; }
             #main-iframe {
@@ -417,7 +404,6 @@
 
         <div class="sidebar-header">
             <div class="circular-container">
-                <!-- Added referrerpolicy and onerror fallback -->
                 <img id="sidebar-admin-img" src="https://ui-avatars.com/api/?name=SA&background=3b82f6&color=fff" alt="Profile" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=SA&background=3b82f6&color=fff';">
             </div>
            <div class="user-info">
@@ -539,7 +525,6 @@
                 <span class="session-info" id="session-display">Current Session: Loading...</span>
                 
                 <div class="user-avatar-group" onclick="toggleUserDropdown(this)">
-                    <!-- Dynamic Header Profile Image -->
                     <img id="header-admin-img" src="https://ui-avatars.com/api/?name=SA&background=3b82f6&color=fff" alt="Profile" class="header-profile-img" referrerpolicy="no-referrer" onerror="this.style.display='none'; document.getElementById('header-fallback-icon').style.display='inline-block';">
                     <i id="header-fallback-icon" class="fas fa-user-circle user-icon" style="margin-left:5px;"></i>
                     <i class="fas fa-caret-down user-icon" style="font-size: 18px; margin-left: 0;"></i>
@@ -670,7 +655,6 @@
     </script>
     
     <script> 
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
             authDomain: "school-menejment.firebaseapp.com",
@@ -687,17 +671,14 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // ১. Login Protection Check & Load Logged In Admin Data
         auth.onAuthStateChanged((user) => {
             if (user) {
-                // User is signed in, fetch user data from Firestore
                 db.collection("users").doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         const userData = doc.data();
                         const photoURL = userData.photoURL || null;
                         const adminName = userData.name || "Super Admin";
                         
-                        // Update Sidebar Image
                         const sidebarImg = document.getElementById('sidebar-admin-img');
                         if(photoURL) {
                             sidebarImg.src = photoURL;
@@ -705,7 +686,6 @@
                             sidebarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(adminName)}&background=3b82f6&color=fff`;
                         }
 
-                        // Update Header Image
                         const headerImg = document.getElementById('header-admin-img');
                         const headerFallbackIcon = document.getElementById('header-fallback-icon');
                         if(photoURL) {
@@ -717,33 +697,27 @@
                             headerFallbackIcon.style.display = "inline-block";
                         }
 
-                        // Update dynamic name
                         document.getElementById('dynamic-admin-name').innerText = adminName;
                     }
                 }).catch((error) => {
                     console.error("Error fetching user data:", error);
                 });
             } else {
-                // User is signed out
                 window.location.href = '../Auth/login'; 
             }
         });
 
-        // ২. School Info Fetch
         db.collection("settings").doc("school_info").onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
                 const fetchedName = data.name || data.school_name || "Name Not Set";
                 document.getElementById("school_name").innerText = fetchedName;
                 document.getElementById("main_heading").innerText = fetchedName;
-            } else {
-                console.log("Document not found!");
             }
         }, (error) => {
             console.error("Firebase Error:", error);
         });
 
-        // ৩. Current Session Dynamic Fetch
         db.collection("config").doc("activeSession").onSnapshot((doc) => {
             if (doc.exists) {
                 const sessionName = doc.data().sessionName || "Not Set";
@@ -757,35 +731,21 @@
         });
     </script>
 
-    <!-- ===================================================================== -->
-    <!-- Anti-Inspect & Security + Iframe Print/Download Communication Script  -->
-    <!-- ===================================================================== -->
     <script>
         function antiInspectLogic() {
-            // ১. ডান ক্লিক বন্ধ
             document.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
             });
 
-            // ২. শর্টকাট কী বন্ধ (কিন্তু Ctrl+P, Ctrl+Shift+P আলাদা করে আনব)
             document.addEventListener('keydown', function(e) {
-                // F12 বন্ধ
                 if(e.keyCode === 123) { e.preventDefault(); return false; }
-                // Ctrl+Shift+I বন্ধ
                 if(e.ctrlKey && e.shiftKey && e.keyCode === 'I'.charCodeAt(0)) { e.preventDefault(); return false; }
-                // Ctrl+Shift+J বন্ধ
                 if(e.ctrlKey && e.shiftKey && e.keyCode === 'J'.charCodeAt(0)) { e.preventDefault(); return false; }
-                // Ctrl+Shift+C বন্ধ
                 if(e.ctrlKey && e.shiftKey && e.keyCode === 'C'.charCodeAt(0)) { e.preventDefault(); return false; }
-                // Ctrl+U বন্ধ
                 if(e.ctrlKey && e.keyCode === 'U'.charCodeAt(0)) { e.preventDefault(); return false; }
-                // Ctrl+S বন্ধ
                 if(e.ctrlKey && e.keyCode === 'S'.charCodeAt(0)) { e.preventDefault(); return false; }
-                
-                // ★ Ctrl+P ব্লক করা হচ্ছে না — প্রিন্ট কাজ করবে ★
             });
 
-            // ৩. ডেভেলপার টুলস ডিটেকশন
             setInterval(function(){
                 var start = new Date().getTime();
                 debugger;
@@ -797,11 +757,8 @@
             }, 1000);
         }
 
-        // মূল পেজে স্ক্রিপ্টটি চালু করা
         antiInspectLogic();
 
-
-        // আইফ্রেমে স্ক্রিপ্ট ইনজেক্ট করার ফাংশন
         function injectAntiInspectToIframe() {
             try {
                 const iframe = document.getElementById('main-iframe');
@@ -840,33 +797,24 @@
             }
         });
 
-
-        /* ==================================================================
-           ★★★ আইফ্রেম থেকে Print ও Download Request গ্রহণ করা ★★★
-           ================================================================== */
         window.addEventListener('message', function(event) {
-            // নিরাপত্তা: শুধু same-origin থেকে আসা message গ্রহণ করো
             if (event.origin !== window.location.origin && event.origin !== 'null') return;
             
             if (!event.data || !event.data.type) return;
 
             const iframe = document.getElementById('main-iframe');
 
-            /* ----- PRINT REQUEST ----- */
             if (event.data.type === 'REQUEST_PRINT') {
                 try {
                     if (iframe && iframe.contentWindow) {
-                        // iframe এ focus দাও তারপর print কাল করো
                         iframe.contentWindow.focus();
                         iframe.contentWindow.print();
                     }
                 } catch(e) {
-                    // Fallback: parent থেকে print
                     window.print();
                 }
             }
 
-            /* ----- PDF/DOWNLOAD REQUEST ----- */
             if (event.data.type === 'REQUEST_DOWNLOAD') {
                 try {
                     const dataUrl = event.data.dataUrl;
@@ -886,17 +834,10 @@
             }
         });
 
-
-        /* ==================================================================
-           ★★★ Parent এ Ctrl+P চাপলে iframe এর কন্টেন্ট প্রিন্ট হবে ★★★
-           ================================================================== */
         document.addEventListener('keydown', function(e) {
             if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.keyCode === 80)) {
-                // Shift চাপা নেই (Ctrl+Shift+P হলে ব্রাউজারের ডিফল্ট হবি)
                 if (e.shiftKey) return;
-
                 e.preventDefault();
-                
                 try {
                     const iframe = document.getElementById('main-iframe');
                     if (iframe && iframe.contentWindow) {
@@ -907,7 +848,7 @@
                     window.print();
                 }
             }
-        }, true); // ★ capture phase — অন্য কোনো handler আগে ক্যাচ করবে
+        }, true); 
     </script>
 
 </body>
