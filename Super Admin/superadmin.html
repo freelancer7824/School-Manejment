@@ -164,7 +164,7 @@
             display: flex;
             flex-direction: column;
             width: calc(100% - var(--sidebar-width));
-            height: 100vh; /* ★ এটি অবশ্যই লাগবে যাতে পুরো স্ক্রিন নেয় */
+            height: 100vh; 
         }
 
         .main-content.collapsed-margin {
@@ -290,20 +290,23 @@
             padding: 0; 
             flex-grow: 1;
             display: flex;
+            flex-direction: column; /* ★ কলাম ডিরেকশন যোগ করা হয়েছে */
             min-height: 0; /* ★ Flexbox স্ক্রল ফিক্স */
             overflow: hidden; 
         }
 
         .content-container {
             width: 100%;
-            height: 100%; 
+            flex: 1; /* ★ height: 100% এর বদলে flex: 1 ব্যবহার করা হয়েছে */
+            min-height: 0; /* ★ কনটেন্ট যাতে বাউন্ডারি না ছাড়ে */
             background-color: #fff;
             overflow: hidden;
         }
 
         #main-iframe {
+            display: block; /* ★★★ সবচেয়ে জরুরি! নিচের গ্যাপ/কাটা যাওয়া বন্ধ করবে ★★★ */
             width: 100%;
-            height: 100%; /* ★ 100vh এর বদলে 100% — হেডার বাদে বাকি জায়গা নিবে */
+            height: 100%; 
             border: none;
             background-color: var(--main-bg); 
         }
