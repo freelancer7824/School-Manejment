@@ -39,17 +39,13 @@
         }
         .loading-spinner {
             display: inline-block;
-            width: 24px;
-            height: 24px;
+            width: 24px; height: 24px;
             border: 3px solid #f3f3f3;
             border-top: 3px solid #3b82f6;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .session-badge {
             background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: white;
@@ -57,46 +53,45 @@
             border-radius: 20px;
             font-size: 12px;
         }
+        .student-avatar {
+            width: 44px; height: 44px;
+            border-radius: 50%; object-fit: cover;
+            background: #e2e8f0;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .student-avatar-sm {
+            width: 36px; height: 36px;
+            border-radius: 50%; object-fit: cover;
+            background: #e2e8f0;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        }
         .photo-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.75);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            cursor: pointer;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 200; cursor: pointer;
             animation: fadeIn 0.2s ease;
         }
         .photo-modal img {
-            max-width: 90vw;
-            max-height: 85vh;
+            max-width: 90vw; max-height: 85vh;
             border-radius: 16px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.5);
             animation: zoomIn 0.25s ease;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes zoomIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        .student-photo-cell {
-            cursor: pointer;
-            transition: transform 0.15s;
-        }
-        .student-photo-cell:hover {
-            transform: scale(1.15);
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-6">
 
     <!-- Photo Modal -->
     <div id="photoModal" class="photo-modal hidden" onclick="this.classList.add('hidden')">
-        <img id="photoModalImg" src="" alt="Student Photo">
+        <div class="text-center">
+            <img id="photoModalImg" src="" alt="Student Photo">
+            <p class="text-white/70 text-sm mt-3"><i class="fas fa-times mr-1"></i> Click anywhere to close</p>
+        </div>
     </div>
 
     <div id="toast" class="fixed top-20 right-4 left-4 md:left-auto z-50 hidden transition-all duration-300 max-w-sm shadow-2xl">
@@ -219,9 +214,8 @@
                     <thead id="tableHead" class="sticky top-0 bg-gray-50 z-10 border-b">
                         <tr class="text-left text-sm font-semibold text-gray-600">
                             <th class="px-4 py-3">#</th>
-                            <th class="px-4 py-3">Photo</th>
+                            <th class="px-4 py-3">Student</th>
                             <th class="px-4 py-3">Date</th>
-                            <th class="px-4 py-3">Student Name</th>
                             <th class="px-4 py-3">Class - Section</th>
                             <th class="px-4 py-3">Roll No</th>
                             <th class="px-4 py-3 text-center">Status</th>
@@ -229,7 +223,7 @@
                         </tr>
                     </thead>
                     <tbody id="recordsTableBody">
-                        <tr><td colspan="9" class="text-center py-16 text-gray-400">
+                        <tr><td colspan="7" class="text-center py-16 text-gray-400">
                             <i class="fas fa-filter text-4xl mb-3 block text-primary/30"></i>
                             <p class="text-base font-medium text-gray-500">Select filters and click "View Records"</p>
                             <p class="text-xs text-gray-400 mt-1">Choose session, class, date range then press View Records</p>
@@ -242,8 +236,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-        import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
+        import { getFirestore, collection, getDocs, query, where, doc, getDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
@@ -256,7 +249,6 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const storage = getStorage(app);
 
         let allClasses = [];
         let sectionsCache = {};
@@ -268,134 +260,140 @@
         let currentSession = "2025-2026";
         let nextSession = "2026-2027";
 
-        function showToast(msg, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastText = document.getElementById('toast-text');
-            const toastIcon = document.getElementById('toast-icon');
-            const borderDiv = toast.querySelector('div');
-            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' : type === 'error' ? 'fas fa-exclamation-circle text-danger text-lg' : 'fas fa-info-circle text-primary text-lg';
+        // ===== Toast =====
+        function showToast(msg, type) {
+            type = type || 'success';
+            var toast = document.getElementById('toast');
+            var toastText = document.getElementById('toast-text');
+            var toastIcon = document.getElementById('toast-icon');
+            var borderDiv = toast.querySelector('div');
+            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' :
+                                  type === 'error' ? 'fas fa-exclamation-circle text-danger text-lg' :
+                                  'fas fa-info-circle text-primary text-lg';
             borderDiv.className = borderDiv.className.replace(/border-\w+/g, '');
             borderDiv.classList.add(type === 'error' ? 'border-danger' : type === 'info' ? 'border-primary' : 'border-success');
             toastText.innerText = msg;
             toast.classList.remove('hidden');
             toast.style.display = 'flex';
-            setTimeout(() => {
+            setTimeout(function() {
                 toast.classList.add('hidden');
-                setTimeout(() => { toast.style.display = 'none'; }, 300);
+                setTimeout(function() { toast.style.display = 'none'; }, 300);
             }, 2800);
         }
-        window.hideToast = () => document.getElementById('toast').classList.add('hidden');
+        window.hideToast = function() { document.getElementById('toast').classList.add('hidden'); };
 
+        // ===== Helpers =====
         function escapeHtml(str) {
             if (!str) return '';
-            return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[m]));
+            return String(str).replace(/[&<>"']/g, function(m) {
+                return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[m];
+            });
         }
 
         function getViewingSession() {
             return document.getElementById('sessionSelect').value === 'current' ? currentSession : nextSession;
         }
 
-        function getPhotoHTML(studentId, studentName) {
-            const photo = studentPhotoCache[studentId] || '';
-            const initial = (studentName || '?')[0].toUpperCase();
-            const colors = ['bg-blue-500','bg-emerald-500','bg-purple-500','bg-amber-500','bg-pink-500','bg-teal-500','bg-indigo-500','bg-rose-500'];
-            const colorIdx = Math.abs((studentId || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % colors.length;
-            const bgColor = colors[colorIdx];
-
-            if (photo && (photo.startsWith('http://') || photo.startsWith('https://'))) {
-                return `<img src="${escapeHtml(photo)}" data-fallback-initial="${initial}" data-fallback-color="${bgColor}" class="student-photo-cell w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm" alt="${escapeHtml(studentName)}" onclick="openPhotoModal(this.src)">`;
-            }
-            return `<div class="w-9 h-9 rounded-full ${bgColor} text-white font-bold text-xs flex items-center justify-center shadow-sm flex-shrink-0">${initial}</div>`;
-        }
-
+        // ===== Photo Modal =====
         window.openPhotoModal = function(src) {
             if (!src) return;
-            const modal = document.getElementById('photoModal');
-            const img = document.getElementById('photoModalImg');
+            var modal = document.getElementById('photoModal');
+            var img = document.getElementById('photoModalImg');
             img.src = src;
             modal.classList.remove('hidden');
         };
 
-        // Image error handler — fallback to initials
-        document.addEventListener('error', function(e) {
-            if (e.target.classList && e.target.classList.contains('student-photo-cell')) {
-                const initial = e.target.getAttribute('data-fallback-initial') || '?';
-                const bgColor = e.target.getAttribute('data-fallback-color') || 'bg-blue-500';
-                const div = document.createElement('div');
-                div.className = `w-9 h-9 rounded-full ${bgColor} text-white font-bold text-xs flex items-center justify-center shadow-sm flex-shrink-0`;
-                div.textContent = initial;
-                e.target.replaceWith(div);
-            }
-        }, true);
+        // ===== Photo HTML Builder (Student Manager Pattern) =====
+        function getPhotoHTML(studentId, studentName, sizeClass) {
+            var cached = studentPhotoCache[studentId];
+            var imageUrl = cached ? cached.photo : '';
+            var displayName = cached ? cached.name : (studentName || 'S');
+            var avatarFallback = 'https://ui-avatars.com/api/?background=3b82f6&color=fff&name=' + encodeURIComponent(displayName) + '&size=128';
+            var avatarClass = sizeClass === 'sm' ? 'student-avatar-sm' : 'student-avatar';
 
+            if (imageUrl) {
+                return '<img src="' + escapeHtml(imageUrl) + '" ' +
+                       'class="' + avatarClass + ' cursor-pointer hover:shadow-lg transition" ' +
+                       'data-fallback="' + escapeHtml(avatarFallback) + '" ' +
+                       'onerror="this.onerror=null;this.src=this.dataset.fallback;this.classList.remove(\'cursor-pointer\');this.onclick=null;" ' +
+                       'onclick="openPhotoModal(this.src)">';
+            }
+            return '<img src="' + avatarFallback + '" class="' + avatarClass + '">';
+        }
+
+        // ===== Table Head Dynamic =====
         function updateTableHead(reportType) {
-            const thead = document.getElementById('tableHead');
+            var thead = document.getElementById('tableHead');
             if (reportType === 'summary') {
-                thead.innerHTML = `<tr class="text-left text-sm font-semibold text-gray-600">
-                    <th class="px-4 py-3">#</th>
-                    <th class="px-4 py-3">Photo</th>
-                    <th class="px-4 py-3">Student Name</th>
-                    <th class="px-4 py-3">Class - Section</th>
-                    <th class="px-4 py-3">Roll No</th>
-                    <th class="px-4 py-3 text-center">Present</th>
-                    <th class="px-4 py-3 text-center">Absent</th>
-                    <th class="px-4 py-3 text-center">Late</th>
-                    <th class="px-4 py-3 text-center">%</th>
-                </tr>`;
+                thead.innerHTML = '<tr class="text-left text-sm font-semibold text-gray-600">' +
+                    '<th class="px-4 py-3 w-10">#</th>' +
+                    '<th class="px-4 py-3">Student</th>' +
+                    '<th class="px-4 py-3">Class - Section</th>' +
+                    '<th class="px-4 py-3">Roll No</th>' +
+                    '<th class="px-4 py-3 text-center">Present</th>' +
+                    '<th class="px-4 py-3 text-center">Absent</th>' +
+                    '<th class="px-4 py-3 text-center">Late</th>' +
+                    '<th class="px-4 py-3 text-center">%</th>' +
+                '</tr>';
             } else {
-                thead.innerHTML = `<tr class="text-left text-sm font-semibold text-gray-600">
-                    <th class="px-4 py-3">#</th>
-                    <th class="px-4 py-3">Photo</th>
-                    <th class="px-4 py-3">Date</th>
-                    <th class="px-4 py-3">Student Name</th>
-                    <th class="px-4 py-3">Class - Section</th>
-                    <th class="px-4 py-3">Roll No</th>
-                    <th class="px-4 py-3 text-center">Status</th>
-                    <th class="px-4 py-3">Remark</th>
-                </tr>`;
+                thead.innerHTML = '<tr class="text-left text-sm font-semibold text-gray-600">' +
+                    '<th class="px-4 py-3 w-10">#</th>' +
+                    '<th class="px-4 py-3">Student</th>' +
+                    '<th class="px-4 py-3">Date</th>' +
+                    '<th class="px-4 py-3">Class - Section</th>' +
+                    '<th class="px-4 py-3">Roll No</th>' +
+                    '<th class="px-4 py-3 text-center">Status</th>' +
+                    '<th class="px-4 py-3">Remark</th>' +
+                '</tr>';
             }
         }
 
+        // ===== Session Load =====
         async function loadSession() {
             try {
-                const snap = await getDoc(doc(db, "config", "activeSession"));
+                var snap = await getDoc(doc(db, "config", "activeSession"));
                 if (snap.exists()) {
                     currentSession = snap.data().sessionName || currentSession;
                 }
-                const parts = currentSession.split('-');
-                nextSession = parts.length === 2 ? `${parseInt(parts[0]) + 1}-${parseInt(parts[1]) + 1}` : "2026-2027";
-                document.getElementById('sessionBadge').innerHTML = `<span class="session-badge"><i class="fas fa-database mr-1"></i> ${currentSession}</span>`;
+                var parts = currentSession.split('-');
+                nextSession = parts.length === 2 ? (parseInt(parts[0]) + 1) + '-' + (parseInt(parts[1]) + 1) : "2026-2027";
+                document.getElementById('sessionBadge').innerHTML = '<span class="session-badge"><i class="fas fa-database mr-1"></i> ' + currentSession + '</span>';
             } catch (e) {
-                document.getElementById('sessionBadge').innerHTML = `<span class="session-badge">${currentSession}</span>`;
+                document.getElementById('sessionBadge').innerHTML = '<span class="session-badge">' + currentSession + '</span>';
             }
         }
 
+        // ===== Classes Load =====
         async function loadClasses() {
             try {
-                const snap = await getDocs(collection(db, "classes"));
+                var snap = await getDocs(query(collection(db, "classes"), orderBy("order")));
                 allClasses = [];
                 classOptionsMap = {};
-                const select = document.getElementById('classSelect');
+                var select = document.getElementById('classSelect');
                 select.innerHTML = '<option value="">All Classes</option>';
-                snap.forEach(docSnap => {
-                    const cls = { id: docSnap.id, name: docSnap.data().name };
+                for (var i = 0; i < snap.docs.length; i++) {
+                    var docSnap = snap.docs[i];
+                    var cls = { id: docSnap.id, name: docSnap.data().name };
                     allClasses.push(cls);
                     classOptionsMap[cls.id] = cls.name;
                     select.appendChild(new Option(cls.name, cls.id));
-                });
+                }
             } catch (err) {
                 console.error(err);
                 showToast("Error loading classes", "error");
             }
         }
 
+        // ===== Sections =====
         async function getSections(classId) {
             if (!classId) return [];
             if (sectionsCache[classId]) return sectionsCache[classId];
             try {
-                const snap = await getDocs(query(collection(db, "sections"), where("classId", "==", classId)));
-                const sections = [];
-                snap.forEach(docSnap => sections.push(docSnap.data().name));
+                var snap = await getDocs(query(collection(db, "sections"), where("classId", "==", classId)));
+                var sections = [];
+                for (var i = 0; i < snap.docs.length; i++) {
+                    sections.push(snap.docs[i].data().name);
+                }
                 sectionsCache[classId] = sections;
                 return sections;
             } catch (err) {
@@ -405,74 +403,118 @@
         }
 
         async function updateSectionDropdown(classId) {
-            const sectionSelect = document.getElementById('sectionSelect');
+            var sectionSelect = document.getElementById('sectionSelect');
             if (!classId) {
                 sectionSelect.innerHTML = '<option value="">All Sections</option>';
                 sectionSelect.disabled = false;
                 return;
             }
-            const sections = await getSections(classId);
+            var sections = await getSections(classId);
             sectionSelect.disabled = false;
             sectionSelect.innerHTML = '<option value="">All Sections</option>';
-            sections.forEach(sec => sectionSelect.appendChild(new Option(sec, sec)));
+            for (var i = 0; i < sections.length; i++) {
+                sectionSelect.appendChild(new Option(sections[i], sections[i]));
+            }
         }
 
+        // ===== Load Session Students — Student Manager Pattern =====
         async function loadSessionStudents(sessionVal, classId, sectionName) {
-            const students = [];
-            const targetSession = sessionVal === 'next' ? nextSession : currentSession;
+            var students = [];
+            var targetSession = sessionVal === 'next' ? nextSession : currentSession;
+            var classMap = {};
+            for (var i = 0; i < allClasses.length; i++) {
+                classMap[allClasses[i].id] = allClasses[i].name;
+            }
 
             try {
                 if (classId) {
-                    const studRef = collection(db, `current_session/${targetSession}/classes/${classId}/students`);
-                    const studSnap = await getDocs(studRef);
+                    var studRef = collection(db, 'current_session/' + targetSession + '/classes/' + classId + '/students');
+                    var studSnap = await getDocs(studRef);
 
-                    for (const docSnap of studSnap.docs) {
-                        const data = docSnap.data();
-                        const studentSection = data.section || "";
+                    for (var j = 0; j < studSnap.docs.length; j++) {
+                        var docSnap = studSnap.docs[j];
+                        var data = docSnap.data();
+                        var studentSection = data.section || "";
 
                         if (sectionName && studentSection !== sectionName) continue;
                         if (sessionVal === 'current' && data.promotedToNextSession === true) continue;
 
-                        students.push({
+                        var studentObj = {
                             id: docSnap.id,
                             name: data.fullName || data.name || "Unknown",
                             classId: classId,
                             section: studentSection,
                             roll: data.rollNumber || data.roll || "N/A",
-                            className: classOptionsMap[classId] || data.className || '',
-                            photo: data.photo || data.photoURL || data.photoUrl || data.profilePhoto || data.imageUrl || data.image || data.avatar || ''
-                        });
+                            className: classMap[classId] || data.className || '',
+                            photo: data.profileImage || data.passportPhotoURL || data.photo || data.photoURL || data.photoUrl || data.profilePhoto || data.imageUrl || data.image || data.avatar || '',
+                            gender: data.gender || '',
+                            phone: data.phone || '',
+                            status: data.status || 'active'
+                        };
+                        students.push(studentObj);
+
+                        studentPhotoCache[docSnap.id] = {
+                            photo: studentObj.photo,
+                            name: studentObj.name,
+                            className: studentObj.className,
+                            section: studentObj.section,
+                            roll: studentObj.roll
+                        };
                     }
                 } else {
-                    const classesSnap = await getDocs(collection(db, "classes"));
-                    for (const classDoc of classesSnap.docs) {
-                        const cid = classDoc.id;
-                        const studRef = collection(db, `current_session/${targetSession}/classes/${cid}/students`);
-                        const studSnap = await getDocs(studRef);
+                    var classesSnap = await getDocs(collection(db, "classes"));
+                    var studentPromises = classesSnap.docs.map(async function(classDoc) {
+                        var cid = classDoc.id;
+                        var className = classDoc.data().name || classMap[cid] || '';
+                        var studRef2 = collection(db, 'current_session/' + targetSession + '/classes/' + cid + '/students');
+                        var studSnap2 = await getDocs(studRef2);
 
-                        for (const docSnap of studSnap.docs) {
-                            const data = docSnap.data();
-                            const studentSection = data.section || "";
+                        var classStudents = [];
+                        for (var k = 0; k < studSnap2.docs.length; k++) {
+                            var ds = studSnap2.docs[k];
+                            var d = ds.data();
+                            var sSec = d.section || "";
 
-                            if (sectionName && studentSection !== sectionName) continue;
-                            if (sessionVal === 'current' && data.promotedToNextSession === true) continue;
+                            if (sectionName && sSec !== sectionName) continue;
+                            if (sessionVal === 'current' && d.promotedToNextSession === true) continue;
 
-                            students.push({
-                                id: docSnap.id,
-                                name: data.fullName || data.name || "Unknown",
+                            var sObj = {
+                                id: ds.id,
+                                name: d.fullName || d.name || "Unknown",
                                 classId: cid,
-                                section: studentSection,
-                                roll: data.rollNumber || data.roll || "N/A",
-                                className: classOptionsMap[cid] || data.className || classDoc.data().name,
-                                photo: data.photo || data.photoURL || data.photoUrl || data.profilePhoto || data.imageUrl || data.image || data.avatar || ''
-                            });
+                                section: sSec,
+                                roll: d.rollNumber || d.roll || "N/A",
+                                className: classMap[cid] || d.className || className,
+                                photo: d.profileImage || d.passportPhotoURL || d.photo || d.photoURL || d.photoUrl || d.profilePhoto || d.imageUrl || d.image || d.avatar || '',
+                                gender: d.gender || '',
+                                phone: d.phone || '',
+                                status: d.status || 'active'
+                            };
+                            classStudents.push(sObj);
+
+                            studentPhotoCache[ds.id] = {
+                                photo: sObj.photo,
+                                name: sObj.name,
+                                className: sObj.className,
+                                section: sObj.section,
+                                roll: sObj.roll
+                            };
+                        }
+                        return classStudents;
+                    });
+
+                    var results = await Promise.all(studentPromises);
+                    for (var r = 0; r < results.length; r++) {
+                        var arr = results[r];
+                        for (var a = 0; a < arr.length; a++) {
+                            students.push(arr[a]);
                         }
                     }
                 }
 
-                students.sort((a, b) => {
-                    const ar = parseInt(a.roll) || 0;
-                    const br = parseInt(b.roll) || 0;
+                students.sort(function(a, b) {
+                    var ar = parseInt(a.roll) || 0;
+                    var br = parseInt(b.roll) || 0;
                     return ar - br;
                 });
 
@@ -484,215 +526,356 @@
         }
 
         async function updateStudentDropdown(classId, section) {
-            const studentSelect = document.getElementById('studentSelect');
-            const sessionVal = document.getElementById('sessionSelect').value;
+            var studentSelect = document.getElementById('studentSelect');
+            var sessionVal = document.getElementById('sessionSelect').value;
 
-            let filtered = await loadSessionStudents(sessionVal, classId || null, section || null);
+            var filtered = await loadSessionStudents(sessionVal, classId || null, section || null);
             studentsCache = filtered;
 
             studentSelect.disabled = false;
             studentSelect.innerHTML = '<option value="">All Students</option>';
-            filtered.forEach(s => studentSelect.appendChild(new Option(`${s.name} (${s.roll})`, s.id)));
+            for (var i = 0; i < filtered.length; i++) {
+                studentSelect.appendChild(new Option(filtered[i].name + ' (' + filtered[i].roll + ')', filtered[i].id));
+            }
         }
 
+        // ===== SESSION PATH থেকে Attendance লোড — Root Collection না =====
+        async function loadSessionAttendance(sessionVal, filterClassId, filterSection, filterStudentId, fromDate, toDate, reportType) {
+            var targetSession = sessionVal === 'next' ? nextSession : currentSession;
+            var classMap = {};
+            for (var i = 0; i < allClasses.length; i++) {
+                classMap[allClasses[i].id] = allClasses[i].name;
+            }
+
+            var allRecords = [];
+
+            try {
+                // কোন ক্লাসগুলো কুয়েরি করতে হবে তা নির্ধারণ
+                var classesToQuery = [];
+                if (filterClassId) {
+                    classesToQuery = [{ id: filterClassId, name: classMap[filterClassId] || '' }];
+                } else {
+                    var classesSnap = await getDocs(collection(db, "classes"));
+                    for (var c = 0; c < classesSnap.docs.length; c++) {
+                        var cd = classesSnap.docs[c];
+                        classesToQuery.push({ id: cd.id, name: cd.data().name || classMap[cd.id] || '' });
+                    }
+                }
+
+                // সব ক্লাসের attendance প্যারালালে লোড (Student Manager Pattern)
+                var attendancePromises = classesToQuery.map(async function(classInfo) {
+                    var cid = classInfo.id;
+                    var className = classInfo.name;
+                    var attRef = collection(db, 'current_session/' + targetSession + '/classes/' + cid + '/attendance');
+                    var attSnap = await getDocs(attRef);
+                    var records = [];
+
+                    for (var d = 0; d < attSnap.docs.length; d++) {
+                        var docSnap = attSnap.docs[d];
+                        var data = docSnap.data();
+
+                        // Pattern 1: Date-based document with embedded records map
+                        if (data.records && typeof data.records === 'object' && !Array.isArray(data.records)) {
+                            var docDate = data.date || docSnap.id;
+
+                            if (fromDate && docDate < fromDate) continue;
+                            if (toDate && docDate > toDate) continue;
+
+                            var recEntries = Object.entries(data.records);
+                            for (var e = 0; e < recEntries.length; e++) {
+                                var sId = recEntries[e][0];
+                                var status = recEntries[e][1];
+
+                                if (reportType === 'student' && filterStudentId && sId !== filterStudentId) continue;
+                                if (filterSection && data.section && data.section !== filterSection) continue;
+
+                                var sCached = studentPhotoCache[sId];
+                                records.push({
+                                    id: docSnap.id + '_' + sId,
+                                    date: docDate,
+                                    studentId: sId,
+                                    studentName: sCached ? sCached.name : (data.studentNames ? (data.studentNames[sId] || 'Unknown') : 'Unknown'),
+                                    classId: cid,
+                                    className: classMap[cid] || data.className || className,
+                                    section: data.section || '',
+                                    roll: sCached ? sCached.roll : (data.rolls ? (data.rolls[sId] || 'N/A') : 'N/A'),
+                                    status: status,
+                                    remark: data.remarks ? (data.remarks[sId] || '') : '',
+                                    sessionName: targetSession
+                                });
+                            }
+                        }
+                        // Pattern 2: Individual record document (one student per doc)
+                        else {
+                            var docDate2 = data.date || '';
+
+                            if (fromDate && docDate2 < fromDate) continue;
+                            if (toDate && docDate2 > toDate) continue;
+                            if (filterSection && data.section && data.section !== filterSection) continue;
+                            if (reportType === 'student' && filterStudentId && data.studentId && data.studentId !== filterStudentId) continue;
+
+                            var sCached2 = studentPhotoCache[data.studentId];
+                            records.push({
+                                id: docSnap.id,
+                                date: docDate2,
+                                studentId: data.studentId || '',
+                                studentName: sCached2 ? sCached2.name : (data.studentName || 'Unknown'),
+                                classId: data.classId || cid,
+                                className: classMap[data.classId || cid] || data.className || className,
+                                section: data.section || '',
+                                roll: sCached2 ? sCached2.roll : (data.roll || 'N/A'),
+                                status: data.status || '',
+                                remark: data.remark || '',
+                                sessionName: targetSession
+                            });
+                        }
+                    }
+                    return records;
+                });
+
+                var results = await Promise.all(attendancePromises);
+                for (var r = 0; r < results.length; r++) {
+                    var arr = results[r];
+                    for (var a = 0; a < arr.length; a++) {
+                        allRecords.push(arr[a]);
+                    }
+                }
+
+                // সর্ট
+                allRecords.sort(function(a, b) {
+                    return (b.date || '').localeCompare(a.date || '');
+                });
+
+            } catch (e) {
+                console.error('Error loading session attendance:', e);
+            }
+
+            return allRecords;
+        }
+
+        // ===== Main Fetch — শুধু View Records ক্লিকে চলবে =====
         async function fetchAttendanceRecords() {
             if (isLoading) return;
 
-            const sessionVal = document.getElementById('sessionSelect').value;
-            const classId = document.getElementById('classSelect').value;
-            const section = document.getElementById('sectionSelect').value;
-            const studentId = document.getElementById('studentSelect').value;
-            const fromDate = document.getElementById('fromDate').value;
-            const toDate = document.getElementById('toDate').value;
-            const reportType = document.querySelector('input[name="reportType"]:checked').value;
-            const viewingSession = getViewingSession();
+            var sessionVal = document.getElementById('sessionSelect').value;
+            var classId = document.getElementById('classSelect').value;
+            var section = document.getElementById('sectionSelect').value;
+            var studentId = document.getElementById('studentSelect').value;
+            var fromDate = document.getElementById('fromDate').value;
+            var toDate = document.getElementById('toDate').value;
+            var reportType = document.querySelector('input[name="reportType"]:checked').value;
 
             isLoading = true;
-            const tbody = document.getElementById('recordsTableBody');
-            const maxCol = reportType === 'summary' ? 9 : 8;
-            tbody.innerHTML = `<tr><td colspan="${maxCol}" class="text-center py-12"><div class="loading-spinner mx-auto"></div><p class="text-gray-400 mt-3">Loading records...</p></td></tr>`;
+            var tbody = document.getElementById('recordsTableBody');
+            var maxCol = reportType === 'summary' ? 8 : 7;
+            tbody.innerHTML = '<tr><td colspan="' + maxCol + '" class="text-center py-12">' +
+                '<div class="loading-spinner mx-auto"></div>' +
+                '<p class="text-gray-400 mt-3 text-sm">Loading session data & attendance records...</p>' +
+            '</td></tr>';
 
             try {
-                // Load students for photo cache
-                const sessionStudents = await loadSessionStudents(sessionVal, classId || null, section || null);
+                // ১. প্রথমে session students লোড করে photo cache তৈরি
                 studentPhotoCache = {};
-                for (const s of sessionStudents) {
-                    if (s.photo) studentPhotoCache[s.id] = s.photo;
-                }
+                await loadSessionStudents(sessionVal, classId || null, section || null);
 
-                // Resolve gs:// Firebase Storage URLs to HTTPS download URLs
-                const resolvePromises = Object.entries(studentPhotoCache).map(async ([id, photo]) => {
-                    if (photo && photo.startsWith('gs://')) {
-                        try {
-                            studentPhotoCache[id] = await getDownloadURL(ref(storage, photo));
-                        } catch {
-                            studentPhotoCache[id] = '';
-                        }
-                    }
-                });
-                await Promise.all(resolvePromises);
-
-                // Fetch attendance records
-                const snapshot = await getDocs(collection(db, "attendance"));
-                let allRecords = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-
-                // Filter by session
-                allRecords = allRecords.filter(r => r.sessionName === viewingSession);
-
-                if (classId && reportType !== 'student') allRecords = allRecords.filter(r => r.classId === classId);
-                if (section && reportType !== 'student') allRecords = allRecords.filter(r => r.section === section);
-                if (studentId && reportType === 'student') allRecords = allRecords.filter(r => r.studentId === studentId);
-                if (fromDate) allRecords = allRecords.filter(r => (r.date || '') >= fromDate);
-                if (toDate) allRecords = allRecords.filter(r => (r.date || '') <= toDate);
-
-                allRecords.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+                // ২. Session path থেকে attendance লোড (root collection না)
+                var allRecords = await loadSessionAttendance(sessionVal, classId || null, section || null, studentId || null, fromDate, toDate, reportType);
 
                 currentRecords = allRecords;
                 renderRecords(allRecords, reportType);
                 updateStatistics(allRecords);
 
-                if (allRecords.length === 0) showToast("No records found for the selected filters", "info");
-                else showToast(`Found ${allRecords.length} record(s) for ${viewingSession} session`, "success");
+                var viewingSession = getViewingSession();
+                if (allRecords.length === 0) {
+                    showToast("No records found for the selected filters", "info");
+                } else {
+                    showToast('Found ' + allRecords.length + ' record(s) from session path [' + viewingSession + ']', "success");
+                }
             } catch (err) {
                 console.error("Error fetching attendance:", err);
                 showToast("Error loading records: " + err.message, "error");
-                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-12 text-red-500"><i class="fas fa-exclamation-triangle text-3xl mb-2 block"></i>Error loading records. Please try again.</td></tr>`;
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-12 text-red-500"><i class="fas fa-exclamation-triangle text-3xl mb-2 block"></i>Error loading records. Please try again.</td></tr>';
             } finally {
                 isLoading = false;
             }
         }
 
+        // ===== Render Records =====
         function renderRecords(records, reportType) {
-            const tbody = document.getElementById('recordsTableBody');
-            const recordInfo = document.getElementById('recordInfo');
+            var tbody = document.getElementById('recordsTableBody');
+            var recordInfo = document.getElementById('recordInfo');
 
             updateTableHead(reportType);
 
             if (records.length === 0) {
-                const colSpan = reportType === 'summary' ? 9 : 8;
-                tbody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-16 text-gray-400"><i class="fas fa-database text-4xl mb-3 block text-primary/30"></i><p class="text-base font-medium text-gray-500">No attendance records found</p><p class="text-xs text-gray-400 mt-1">Try changing the filters and date range</p></td></tr>`;
-                recordInfo.innerText = `No records found`;
+                var colSpan = reportType === 'summary' ? 8 : 7;
+                tbody.innerHTML = '<tr><td colspan="' + colSpan + '" class="text-center py-16 text-gray-400">' +
+                    '<i class="fas fa-database text-4xl mb-3 block text-primary/30"></i>' +
+                    '<p class="text-base font-medium text-gray-500">No attendance records found</p>' +
+                    '<p class="text-xs text-gray-400 mt-1">Try changing the filters and date range</p>' +
+                '</td></tr>';
+                recordInfo.innerText = 'No records found';
                 return;
             }
 
-            recordInfo.innerText = `Showing ${records.length} attendance record(s) | Session: ${getViewingSession()}`;
+            recordInfo.innerText = 'Showing ' + records.length + ' record(s) | Session: ' + getViewingSession();
 
             if (reportType === 'summary') {
-                const studentSummary = {};
-                records.forEach(rec => {
-                    const key = rec.studentId;
-                    if (!studentSummary[key]) {
-                        studentSummary[key] = {
-                            studentId: rec.studentId,
-                            studentName: rec.studentName || "Unknown",
-                            roll: rec.roll || "N/A",
-                            className: rec.className || "N/A",
-                            section: rec.section || "N/A",
-                            present: 0,
-                            absent: 0,
-                            late: 0,
-                            total: 0
-                        };
-                    }
-                    if (rec.status === 'present') studentSummary[key].present++;
-                    else if (rec.status === 'late') studentSummary[key].late++;
-                    else studentSummary[key].absent++;
-                    studentSummary[key].total++;
-                });
+                renderSummaryReport(records);
+            } else {
+                renderDetailedReport(records);
+            }
+        }
 
-                let html = '';
-                let idx = 1;
-                for (const summary of Object.values(studentSummary)) {
-                    const presentPercent = summary.total > 0 ? ((summary.present / summary.total) * 100).toFixed(1) : 0;
-                    const percentColor = presentPercent >= 75 ? 'text-success' : presentPercent >= 50 ? 'text-warning' : 'text-danger';
-                    html += `
-                        <tr class="border-b border-gray-100 hover:bg-blue-50/40 transition-colors">
-                            <td class="px-4 py-3 text-sm text-gray-500">${idx++}</td>
-                            <td class="px-4 py-3">${getPhotoHTML(summary.studentId, summary.studentName)}</td>
-                            <td class="px-4 py-3 text-sm font-semibold text-gray-800">${escapeHtml(summary.studentName)}</td>
-                            <td class="px-4 py-3 text-sm text-gray-600">${escapeHtml(summary.className)} - ${escapeHtml(summary.section)}</td>
-                            <td class="px-4 py-3 text-sm">${escapeHtml(summary.roll)}</td>
-                            <td class="px-4 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-full text-xs bg-success/15 text-success font-semibold">P: ${summary.present}</span></td>
-                            <td class="px-4 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-full text-xs bg-danger/15 text-danger font-semibold">A: ${summary.absent}</span></td>
-                            <td class="px-4 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-full text-xs bg-warning/15 text-warning font-semibold">L: ${summary.late}</span></td>
-                            <td class="px-4 py-3 text-center"><span class="font-bold ${percentColor}">${presentPercent}%</span></td>
-                        </tr>
-                    `;
+        function renderSummaryReport(records) {
+            var tbody = document.getElementById('recordsTableBody');
+            var studentSummary = {};
+
+            for (var i = 0; i < records.length; i++) {
+                var rec = records[i];
+                var key = rec.studentId;
+                if (!studentSummary[key]) {
+                    var cached = studentPhotoCache[key];
+                    studentSummary[key] = {
+                        studentId: rec.studentId,
+                        studentName: cached ? cached.name : (rec.studentName || "Unknown"),
+                        roll: cached ? cached.roll : (rec.roll || "N/A"),
+                        className: cached ? cached.className : (rec.className || "N/A"),
+                        section: cached ? cached.section : (rec.section || "N/A"),
+                        present: 0, absent: 0, late: 0, total: 0
+                    };
                 }
-                tbody.innerHTML = html;
-                return;
+                if (rec.status === 'present') studentSummary[key].present++;
+                else if (rec.status === 'late') studentSummary[key].late++;
+                else studentSummary[key].absent++;
+                studentSummary[key].total++;
             }
 
-            let html = '';
-            records.forEach((rec, idx) => {
-                const statusColor = rec.status === 'present' ? 'bg-success/15 text-success' : (rec.status === 'late' ? 'bg-warning/15 text-warning' : 'bg-danger/15 text-danger');
-                const statusIcon = rec.status === 'present' ? 'fa-check-circle' : (rec.status === 'late' ? 'fa-clock' : 'fa-times-circle');
-                const statusText = rec.status === 'present' ? 'Present' : (rec.status === 'late' ? 'Late' : 'Absent');
+            var html = '';
+            var idx = 1;
+            var vals = Object.values(studentSummary);
+            for (var v = 0; v < vals.length; v++) {
+                var summary = vals[v];
+                var presentPercent = summary.total > 0 ? ((summary.present / summary.total) * 100).toFixed(1) : 0;
+                var percentColor = presentPercent >= 75 ? 'text-success' : presentPercent >= 50 ? 'text-warning' : 'text-danger';
+                var photoHTML = getPhotoHTML(summary.studentId, summary.studentName, 'sm');
+                var statusBadge = summary.studentName !== 'Unknown' ?
+                    '<span class="bg-green-50 text-green-700 px-1.5 py-0.5 rounded-full text-[10px]">active</span>' : '';
 
-                html += `
-                    <tr class="border-b border-gray-100 hover:bg-blue-50/40 transition-colors">
-                        <td class="px-4 py-3 text-sm text-gray-500">${idx + 1}</td>
-                        <td class="px-4 py-3">${getPhotoHTML(rec.studentId, rec.studentName)}</td>
-                        <td class="px-4 py-3 text-sm whitespace-nowrap text-gray-600">${escapeHtml(rec.date || 'N/A')}</td>
-                        <td class="px-4 py-3 text-sm font-semibold text-gray-800">${escapeHtml(rec.studentName || 'Unknown')}</td>
-                        <td class="px-4 py-3 text-sm text-gray-600">${escapeHtml(rec.className || rec.classId || 'N/A')} - ${escapeHtml(rec.section || 'N/A')}</td>
-                        <td class="px-4 py-3 text-sm">${escapeHtml(rec.roll || 'N/A')}</td>
-                        <td class="px-4 py-3 text-center">
-                            <span class="status-badge inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${statusColor}">
-                                <i class="fas ${statusIcon}"></i> ${statusText}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">${escapeHtml(rec.remark || '—')}</td>
-                    </tr>
-                `;
-            });
+                html += '<tr class="border-b border-gray-100 hover:bg-blue-50/40 transition-colors">' +
+                    '<td class="px-4 py-3 text-sm text-gray-500">' + (idx++) + '</td>' +
+                    '<td class="px-4 py-3"><div class="flex items-center gap-3">' +
+                        photoHTML +
+                        '<div>' +
+                            '<div class="font-semibold text-gray-800">' + escapeHtml(summary.studentName) + '</div>' +
+                            '<div class="text-[10px] text-gray-400 mt-0.5">' +
+                                statusBadge +
+                                ' <span class="session-badge px-1.5 py-0.5 rounded-full text-[10px] ml-1">' + escapeHtml(getViewingSession()) + '</span>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div></td>' +
+                    '<td class="px-4 py-3 text-sm text-gray-600">' + escapeHtml(summary.className) + ' - ' + escapeHtml(summary.section) + '</td>' +
+                    '<td class="px-4 py-3 text-sm">' + escapeHtml(summary.roll) + '</td>' +
+                    '<td class="px-4 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-full text-xs bg-success/15 text-success font-semibold">P: ' + summary.present + '</span></td>' +
+                    '<td class="px-4 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-full text-xs bg-danger/15 text-danger font-semibold">A: ' + summary.absent + '</span></td>' +
+                    '<td class="px-4 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-full text-xs bg-warning/15 text-warning font-semibold">L: ' + summary.late + '</span></td>' +
+                    '<td class="px-4 py-3 text-center"><span class="font-bold ' + percentColor + '">' + presentPercent + '%</span></td>' +
+                '</tr>';
+            }
             tbody.innerHTML = html;
         }
 
+        function renderDetailedReport(records) {
+            var tbody = document.getElementById('recordsTableBody');
+            var html = '';
+            for (var i = 0; i < records.length; i++) {
+                var rec = records[i];
+                var statusColor = rec.status === 'present' ? 'bg-success/15 text-success' : (rec.status === 'late' ? 'bg-warning/15 text-warning' : 'bg-danger/15 text-danger');
+                var statusIcon = rec.status === 'present' ? 'fa-check-circle' : (rec.status === 'late' ? 'fa-clock' : 'fa-times-circle');
+                var statusText = rec.status === 'present' ? 'Present' : (rec.status === 'late' ? 'Late' : 'Absent');
+                var photoHTML = getPhotoHTML(rec.studentId, rec.studentName, 'sm');
+                var cached = studentPhotoCache[rec.studentId];
+                var displayName = cached ? cached.name : (rec.studentName || 'Unknown');
+
+                html += '<tr class="border-b border-gray-100 hover:bg-blue-50/40 transition-colors">' +
+                    '<td class="px-4 py-3 text-sm text-gray-500">' + (i + 1) + '</td>' +
+                    '<td class="px-4 py-3"><div class="flex items-center gap-3">' +
+                        photoHTML +
+                        '<div>' +
+                            '<div class="font-semibold text-gray-800 text-sm">' + escapeHtml(displayName) + '</div>' +
+                            '<div class="text-[10px] text-gray-400 mt-0.5">' +
+                                '<span class="session-badge px-1.5 py-0.5 rounded-full text-[10px]">' + escapeHtml(getViewingSession()) + '</span>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div></td>' +
+                    '<td class="px-4 py-3 text-sm whitespace-nowrap text-gray-600">' + escapeHtml(rec.date || 'N/A') + '</td>' +
+                    '<td class="px-4 py-3 text-sm text-gray-600">' + escapeHtml(rec.className || rec.classId || 'N/A') + ' - ' + escapeHtml(rec.section || 'N/A') + '</td>' +
+                    '<td class="px-4 py-3 text-sm">' + escapeHtml(rec.roll || 'N/A') + '</td>' +
+                    '<td class="px-4 py-3 text-center">' +
+                        '<span class="status-badge inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ' + statusColor + '">' +
+                            '<i class="fas ' + statusIcon + '"></i> ' + statusText +
+                        '</span>' +
+                    '</td>' +
+                    '<td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">' + escapeHtml(rec.remark || '\u2014') + '</td>' +
+                '</tr>';
+            }
+            tbody.innerHTML = html;
+        }
+
+        // ===== Statistics =====
         function updateStatistics(records) {
-            const total = records.length;
-            let present = 0, absent = 0, late = 0;
-            records.forEach(rec => {
-                if (rec.status === 'present') present++;
-                else if (rec.status === 'late') late++;
+            var total = records.length;
+            var present = 0, absent = 0, late = 0;
+            for (var i = 0; i < records.length; i++) {
+                if (records[i].status === 'present') present++;
+                else if (records[i].status === 'late') late++;
                 else absent++;
-            });
+            }
             document.getElementById('totalRecords').innerText = total;
             document.getElementById('totalPresent').innerText = present;
             document.getElementById('totalAbsent').innerText = absent;
             document.getElementById('totalLate').innerText = late;
-            document.getElementById('attPercent').innerText = `${total > 0 ? ((present / total) * 100).toFixed(1) : 0}%`;
+            document.getElementById('attPercent').innerText = (total > 0 ? ((present / total) * 100).toFixed(1) : 0) + '%';
         }
 
+        // ===== Reset View =====
         function resetView() {
             currentRecords = [];
             studentPhotoCache = {};
-            document.getElementById('recordsTableBody').innerHTML = `<tr><td colspan="9" class="text-center py-16 text-gray-400"><i class="fas fa-filter text-4xl mb-3 block text-primary/30"></i><p class="text-base font-medium text-gray-500">Select filters and click "View Records"</p><p class="text-xs text-gray-400 mt-1">Choose session, class, date range then press View Records</p></td></tr>`;
+            document.getElementById('recordsTableBody').innerHTML = '<tr><td colspan="7" class="text-center py-16 text-gray-400">' +
+                '<i class="fas fa-filter text-4xl mb-3 block text-primary/30"></i>' +
+                '<p class="text-base font-medium text-gray-500">Select filters and click "View Records"</p>' +
+                '<p class="text-xs text-gray-400 mt-1">Choose session, class, date range then press View Records</p>' +
+            '</td></tr>';
             document.getElementById('recordInfo').innerText = 'Select filters and click View Records';
             updateStatistics([]);
+            updateTableHead('detailed');
         }
 
+        // ===== Print & Export =====
         function printReport() { window.print(); }
 
         function exportToCSV() {
-            const reportType = document.querySelector('input[name="reportType"]:checked').value;
+            var reportType = document.querySelector('input[name="reportType"]:checked').value;
             if (currentRecords.length === 0) {
                 showToast("No records to export", "error");
                 return;
             }
 
-            let csvRows = [];
+            var csvRows = [];
             if (reportType === 'summary') {
                 csvRows.push(['Student Name', 'Class', 'Section', 'Roll No', 'Present', 'Absent', 'Late', 'Attendance %']);
-                const studentSummary = {};
-                currentRecords.forEach(rec => {
-                    const key = rec.studentId;
+                var studentSummary = {};
+                for (var i = 0; i < currentRecords.length; i++) {
+                    var rec = currentRecords[i];
+                    var key = rec.studentId;
                     if (!studentSummary[key]) {
+                        var cached = studentPhotoCache[key];
                         studentSummary[key] = {
-                            studentName: rec.studentName || "Unknown",
-                            roll: rec.roll || "N/A",
-                            className: rec.className || "N/A",
-                            section: rec.section || "N/A",
+                            studentName: cached ? cached.name : (rec.studentName || "Unknown"),
+                            roll: cached ? cached.roll : (rec.roll || "N/A"),
+                            className: cached ? cached.className : (rec.className || "N/A"),
+                            section: cached ? cached.section : (rec.section || "N/A"),
                             present: 0, absent: 0, late: 0, total: 0
                         };
                     }
@@ -700,24 +883,30 @@
                     else if (rec.status === 'late') studentSummary[key].late++;
                     else studentSummary[key].absent++;
                     studentSummary[key].total++;
-                });
-                for (const summary of Object.values(studentSummary)) {
-                    const percent = summary.total > 0 ? ((summary.present / summary.total) * 100).toFixed(1) : 0;
+                }
+                var vals = Object.values(studentSummary);
+                for (var v = 0; v < vals.length; v++) {
+                    var summary = vals[v];
+                    var percent = summary.total > 0 ? ((summary.present / summary.total) * 100).toFixed(1) : 0;
                     csvRows.push([summary.studentName, summary.className, summary.section, summary.roll, summary.present, summary.absent, summary.late, percent + '%']);
                 }
             } else {
                 csvRows.push(['Date', 'Student Name', 'Class', 'Section', 'Roll No', 'Status', 'Remark']);
-                currentRecords.forEach(rec => {
-                    csvRows.push([rec.date || '', rec.studentName || '', rec.className || '', rec.section || '', rec.roll || '', rec.status || '', rec.remark || '']);
-                });
+                for (var i2 = 0; i2 < currentRecords.length; i2++) {
+                    var r = currentRecords[i2];
+                    var cached2 = studentPhotoCache[r.studentId];
+                    csvRows.push([r.date || '', cached2 ? cached2.name : (r.studentName || ''), r.className || '', r.section || '', r.roll || '', r.status || '', r.remark || '']);
+                }
             }
 
-            const csvContent = csvRows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
-            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
+            var csvContent = csvRows.map(function(row) {
+                return row.map(function(cell) { return '"' + String(cell).replace(/"/g, '""') + '"'; }).join(',');
+            }).join('\n');
+            var blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            var url = URL.createObjectURL(blob);
             link.href = url;
-            link.setAttribute('download', `attendance_report_${getViewingSession()}_${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute('download', 'attendance_report_' + getViewingSession() + '_' + new Date().toISOString().split('T')[0] + '.csv');
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -725,9 +914,10 @@
             showToast("Export complete", "success");
         }
 
-        // Event Listeners
-        document.getElementById('sessionSelect').addEventListener('change', async () => {
+        // ===== Event Listeners =====
+        document.getElementById('sessionSelect').addEventListener('change', function() {
             sectionsCache = {};
+            studentPhotoCache = {};
             document.getElementById('classSelect').value = '';
             document.getElementById('sectionSelect').innerHTML = '<option value="">All Sections</option>';
             document.getElementById('sectionSelect').disabled = true;
@@ -736,14 +926,14 @@
             resetView();
         });
 
-        document.getElementById('classSelect').addEventListener('change', async (e) => {
+        document.getElementById('classSelect').addEventListener('change', async function(e) {
             await updateSectionDropdown(e.target.value);
             await updateStudentDropdown(e.target.value, '');
         });
 
-        document.getElementById('sectionSelect').addEventListener('change', async () => {
-            const classId = document.getElementById('classSelect').value;
-            const section = document.getElementById('sectionSelect').value;
+        document.getElementById('sectionSelect').addEventListener('change', async function() {
+            var classId = document.getElementById('classSelect').value;
+            var section = document.getElementById('sectionSelect').value;
             await updateStudentDropdown(classId, section);
         });
 
@@ -751,18 +941,19 @@
         document.getElementById('printBtn').addEventListener('click', printReport);
         document.getElementById('exportBtn').addEventListener('click', exportToCSV);
 
-        // Set default dates
-        const today = new Date();
-        const thirtyDaysAgo = new Date();
+        // ===== Default Dates =====
+        var today = new Date();
+        var thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(today.getDate() - 30);
         document.getElementById('fromDate').value = thirtyDaysAgo.toISOString().split('T')[0];
         document.getElementById('toDate').value = today.toISOString().split('T')[0];
 
-        // Initialize — NO auto-fetch, user must click "View Records"
+        // ===== Initialize — NO auto-fetch =====
         await loadSession();
         await loadClasses();
         await updateStudentDropdown('', '');
         document.getElementById('studentSelect').disabled = false;
+        updateTableHead('detailed');
     </script>
 </body>
 </html>
