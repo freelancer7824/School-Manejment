@@ -32,9 +32,46 @@
         .student-row:hover { background-color: #fefce8; }
         .date-picker::-webkit-calendar-picker-indicator { cursor: pointer; }
         .session-badge { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .student-avatar {
+            width: 40px; height: 40px;
+            border-radius: 50%; object-fit: cover;
+            background: #e2e8f0;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .student-avatar-sm {
+            width: 34px; height: 34px;
+            border-radius: 50%; object-fit: cover;
+            background: #e2e8f0;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        }
+        .photo-modal {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 200; cursor: pointer;
+            animation: fadeIn 0.2s ease;
+        }
+        .photo-modal img {
+            max-width: 90vw; max-height: 85vh;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            animation: zoomIn 0.25s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-6">
+
+    <!-- Photo Modal -->
+    <div id="photoModal" class="photo-modal hidden" onclick="this.classList.add('hidden')">
+        <div class="text-center">
+            <img id="photoModalImg" src="" alt="Student Photo">
+            <p class="text-white/70 text-sm mt-3"><i class="fas fa-times mr-1"></i> Click anywhere to close</p>
+        </div>
+    </div>
 
     <div id="toast" class="fixed top-20 right-4 left-4 md:left-auto z-50 hidden transition-all duration-300 max-w-sm shadow-2xl">
         <div class="bg-white rounded-xl shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success">
@@ -97,10 +134,14 @@
                     </select>
                 </div>
                 <div class="flex gap-2">
-                    <button id="loadStudentsBtn" class="flex-1 bg-primary text-white py-2.5 rounded-xl hover:bg-blue-700 transition font-medium">
+                    <button id="loadStudentsBtn" class="flex-1 bg-primary text-white py-2.5 rounded-xl hover:bg-blue-700 transition font-medium shadow-lg shadow-primary/25">
                         <i class="fas fa-users mr-1"></i> Load
                     </button>
                 </div>
+            </div>
+            <div class="mt-3 flex justify-between items-center text-sm">
+                <span class="text-gray-500">Students: <span id="totalCountSpan" class="font-bold text-primary">0</span></span>
+                <span class="text-xs bg-blue-100 px-2 py-1 rounded-full"><i class="fas fa-database mr-1"></i> Session Data Path</span>
             </div>
         </div>
 
@@ -145,7 +186,7 @@
                     <thead class="sticky top-0 bg-gray-50 z-10 border-b">
                         <tr class="text-left text-sm font-semibold text-gray-600">
                             <th class="px-4 py-3 w-12">#</th>
-                            <th class="px-4 py-3">Student Name</th>
+                            <th class="px-4 py-3">Student</th>
                             <th class="px-4 py-3">Roll No</th>
                             <th class="px-4 py-3 text-center">Attendance Status</th>
                             <th class="px-4 py-3">Remark</th>
@@ -161,7 +202,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, collection, query, getDocs, doc, setDoc, where, orderBy, getDoc, writeBatch, Timestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getFirestore, collection, query, getDocs, doc, setDoc, where, orderBy, getDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
@@ -179,6 +220,7 @@
         let sectionsCache = {};
         let classOptionsMap = {};
         let currentStudents = [];
+        let studentPhotoCache = {};
         let attendanceRecords = {};
         let currentClassId = null;
         let currentSection = null;
@@ -186,72 +228,112 @@
         let currentSession = "2025-2026";
         let nextSession = "2026-2027";
 
-        function showToast(msg, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastText = document.getElementById('toast-text');
-            const toastIcon = document.getElementById('toast-icon');
-            toastIcon.className = type === 'success'
-                ? 'fas fa-check-circle text-success text-lg'
-                : 'fas fa-exclamation-circle text-danger text-lg';
+        // ===== Toast =====
+        function showToast(msg, type) {
+            type = type || 'success';
+            var toast = document.getElementById('toast');
+            var toastText = document.getElementById('toast-text');
+            var toastIcon = document.getElementById('toast-icon');
+            var borderDiv = toast.querySelector('div');
+            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' :
+                                  type === 'error' ? 'fas fa-exclamation-circle text-danger text-lg' :
+                                  'fas fa-info-circle text-primary text-lg';
+            borderDiv.className = borderDiv.className.replace(/border-\w+/g, '');
+            borderDiv.classList.add(type === 'error' ? 'border-danger' : type === 'info' ? 'border-primary' : 'border-success');
             toastText.innerText = msg;
             toast.classList.remove('hidden');
             toast.style.display = 'flex';
-            setTimeout(() => {
+            setTimeout(function() {
                 toast.classList.add('hidden');
-                setTimeout(() => { toast.style.display = 'none'; }, 300);
+                setTimeout(function() { toast.style.display = 'none'; }, 300);
             }, 2800);
         }
-        window.hideToast = () => document.getElementById('toast').classList.add('hidden');
+        window.hideToast = function() { document.getElementById('toast').classList.add('hidden'); };
 
+        // ===== Helpers =====
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
-            return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m]));
+            return String(str).replace(/[&<>"']/g, function(m) {
+                return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[m];
+            });
         }
 
         function getViewingSession() {
             return document.getElementById('sessionSelect').value === 'current' ? currentSession : nextSession;
         }
 
+        // ===== Photo Modal =====
+        window.openPhotoModal = function(src) {
+            if (!src) return;
+            var modal = document.getElementById('photoModal');
+            var img = document.getElementById('photoModalImg');
+            img.src = src;
+            modal.classList.remove('hidden');
+        };
+
+        // ===== Photo HTML Builder (Student Manager Pattern) =====
+        function getPhotoHTML(studentId, studentName) {
+            var cached = studentPhotoCache[studentId];
+            var imageUrl = cached ? cached.photo : '';
+            var displayName = cached ? cached.name : (studentName || 'S');
+            var avatarFallback = 'https://ui-avatars.com/api/?background=3b82f6&color=fff&name=' + encodeURIComponent(displayName) + '&size=128';
+
+            if (imageUrl) {
+                return '<img src="' + escapeHtml(imageUrl) + '" ' +
+                       'class="student-avatar cursor-pointer hover:shadow-lg transition" ' +
+                       'data-fallback="' + escapeHtml(avatarFallback) + '" ' +
+                       'onerror="this.onerror=null;this.src=this.dataset.fallback;this.classList.remove(\'cursor-pointer\');this.onclick=null;" ' +
+                       'onclick="openPhotoModal(this.src)">';
+            }
+            return '<img src="' + avatarFallback + '" class="student-avatar">';
+        }
+
+        // ===== Session Load =====
         async function loadSession() {
             try {
-                const s = await getDoc(doc(db, "config", "activeSession"));
+                var s = await getDoc(doc(db, "config", "activeSession"));
                 if (s.exists()) {
                     currentSession = s.data().sessionName || currentSession;
                 }
-                const parts = currentSession.split('-');
-                nextSession = parts.length === 2 ? `${parseInt(parts[0]) + 1}-${parseInt(parts[1]) + 1}` : "2026-2027";
-                document.getElementById('session_badge').innerHTML = `<span class="session-badge"><i class="fas fa-database mr-1"></i> ${currentSession}</span>`;
-            } catch(e) {
-                document.getElementById('session_badge').innerHTML = `<span class="session-badge">${currentSession}</span>`;
+                var parts = currentSession.split('-');
+                nextSession = parts.length === 2 ? (parseInt(parts[0]) + 1) + '-' + (parseInt(parts[1]) + 1) : "2026-2027";
+                document.getElementById('session_badge').innerHTML = '<span class="session-badge"><i class="fas fa-database mr-1"></i> ' + currentSession + '</span>';
+            } catch (e) {
+                document.getElementById('session_badge').innerHTML = '<span class="session-badge">' + currentSession + '</span>';
             }
         }
 
+        // ===== Classes Load =====
         async function loadClasses() {
             try {
-                const q = query(collection(db, "classes"), orderBy("order", "asc"));
-                const snap = await getDocs(q);
-                const select = document.getElementById('classSelect');
+                var q = query(collection(db, "classes"), orderBy("order", "asc"));
+                var snap = await getDocs(q);
+                var select = document.getElementById('classSelect');
                 select.innerHTML = '<option value="">-- Select Class --</option>';
                 allClasses = [];
-                snap.forEach(docSnap => {
-                    const cls = { id: docSnap.id, name: docSnap.data().name };
+                for (var i = 0; i < snap.docs.length; i++) {
+                    var docSnap = snap.docs[i];
+                    var cls = { id: docSnap.id, name: docSnap.data().name };
                     allClasses.push(cls);
                     classOptionsMap[cls.id] = cls.name;
                     select.appendChild(new Option(cls.name, cls.id));
-                });
+                }
             } catch (err) {
                 console.error(err);
                 showToast("Error loading classes", "error");
             }
         }
 
+        // ===== Sections =====
         async function getSections(classId) {
             if (!classId) return [];
             if (sectionsCache[classId]) return sectionsCache[classId];
             try {
-                const snap = await getDocs(query(collection(db, "sections"), where("classId", "==", classId)));
-                const sections = [];
-                snap.forEach(docSnap => sections.push({ id: docSnap.id, name: docSnap.data().name }));
+                var snap = await getDocs(query(collection(db, "sections"), where("classId", "==", classId)));
+                var sections = [];
+                for (var i = 0; i < snap.docs.length; i++) {
+                    sections.push({ id: snap.docs[i].id, name: snap.docs[i].data().name });
+                }
                 sectionsCache[classId] = sections;
                 return sections;
             } catch (err) {
@@ -261,168 +343,254 @@
         }
 
         async function updateSectionDropdown(classId) {
-            const sectionSelect = document.getElementById('sectionSelect');
+            var sectionSelect = document.getElementById('sectionSelect');
             if (!classId) {
                 sectionSelect.innerHTML = '<option value="">First select class</option>';
                 sectionSelect.disabled = true;
                 return;
             }
-            const sections = await getSections(classId);
+            var sections = await getSections(classId);
             sectionSelect.disabled = false;
             sectionSelect.innerHTML = '<option value="">-- Select Section --</option>';
-            sections.forEach(sec => sectionSelect.appendChild(new Option(sec.name, sec.name)));
+            for (var i = 0; i < sections.length; i++) {
+                sectionSelect.appendChild(new Option(sections[i].name, sections[i].name));
+            }
         }
 
-        // 🔥 Load students from SESSION DATA only
+        // ===== Load Students from SESSION DATA only (Student Manager Pattern) =====
         async function loadStudentsByClassSection(classId, sectionName) {
-            const students = [];
-            const targetSession = getViewingSession();
-            
+            var students = [];
+            var targetSession = getViewingSession();
+            var sessionVal = document.getElementById('sessionSelect').value;
+            var classMap = {};
+            for (var i = 0; i < allClasses.length; i++) {
+                classMap[allClasses[i].id] = allClasses[i].name;
+            }
+
             try {
-                const studRef = collection(db, `current_session/${targetSession}/classes/${classId}/students`);
-                const studSnap = await getDocs(studRef);
-                
-                for (const docSnap of studSnap.docs) {
-                    const data = docSnap.data();
-                    const studentSection = data.section || "";
-                    
+                var studRef = collection(db, 'current_session/' + targetSession + '/classes/' + classId + '/students');
+                var studSnap = await getDocs(studRef);
+
+                for (var j = 0; j < studSnap.docs.length; j++) {
+                    var docSnap = studSnap.docs[j];
+                    var data = docSnap.data();
+                    var studentSection = data.section || "";
+
                     if (sectionName && studentSection !== sectionName) continue;
-                    if (document.getElementById('sessionSelect').value === 'current' && data.promotedToNextSession === true) continue;
-                    
-                    students.push({
+                    if (sessionVal === 'current' && data.promotedToNextSession === true) continue;
+
+                    var studentObj = {
                         id: docSnap.id,
                         name: data.fullName || data.name || "Unnamed",
                         roll: data.rollNumber || data.roll || "N/A",
                         section: studentSection,
                         classId: classId,
-                        className: classOptionsMap[classId] || data.className || "Class"
-                    });
+                        className: classMap[classId] || data.className || "Class",
+                        photo: data.profileImage || data.passportPhotoURL || data.photo || data.photoURL || data.photoUrl || data.profilePhoto || data.imageUrl || data.image || data.avatar || '',
+                        gender: data.gender || '',
+                        phone: data.phone || '',
+                        status: data.status || 'active'
+                    };
+                    students.push(studentObj);
+
+                    // Photo cache আপডেট
+                    studentPhotoCache[docSnap.id] = {
+                        photo: studentObj.photo,
+                        name: studentObj.name,
+                        className: studentObj.className,
+                        section: studentObj.section,
+                        roll: studentObj.roll
+                    };
                 }
-                
-                students.sort((a, b) => (parseInt(a.roll) || 0) - (parseInt(b.roll) || 0));
-                
+
+                students.sort(function(a, b) { return (parseInt(a.roll) || 0) - (parseInt(b.roll) || 0); });
+
             } catch (err) {
                 console.error("Error loading students from session:", err);
             }
-            
+
             return students;
         }
 
+        // ===== Load Existing Attendance from SESSION PATH (root collection না) =====
         async function loadExistingAttendance(dateStr, classId, section) {
+            var targetSession = getViewingSession();
+            var records = {};
+
             try {
-                const targetSession = getViewingSession();
-                const q = query(
-                    collection(db, "attendance"),
-                    where("date", "==", dateStr),
-                    where("classId", "==", classId),
-                    where("section", "==", section),
-                    where("sessionName", "==", targetSession)
-                );
-                const snap = await getDocs(q);
-                const records = {};
-                snap.forEach(docSnap => {
-                    const data = docSnap.data();
-                    records[data.studentId] = {
-                        status: data.status || 'absent',
-                        remark: data.remark || '',
-                        attendanceId: docSnap.id
-                    };
-                });
-                return records;
+                // Session path: current_session/{session}/classes/{classId}/attendance/{date}
+                var attDocRef = doc(db, 'current_session/' + targetSession + '/classes/' + classId + '/attendance/' + dateStr);
+                var attDoc = await getDoc(attDocRef);
+
+                if (attDoc.exists()) {
+                    var data = attDoc.data();
+
+                    // Pattern 1: Date-based document with embedded records map
+                    if (data.records && typeof data.records === 'object') {
+                        var entries = Object.entries(data.records);
+                        for (var e = 0; e < entries.length; e++) {
+                            var sId = entries[e][0];
+                            var status = entries[e][1];
+
+                            // Section ফিল্টার
+                            if (section && data.section && data.section !== section) continue;
+
+                            records[sId] = {
+                                status: status || 'absent',
+                                remark: data.remarks ? (data.remarks[sId] || '') : '',
+                                attendanceId: attDoc.id
+                            };
+                        }
+                    }
+                }
+
+                // Pattern 2: Individual record documents in attendance subcollection
+                var attColRef = collection(db, 'current_session/' + targetSession + '/classes/' + classId + '/attendance');
+                var attQuery = query(attColRef, where("date", "==", dateStr));
+                var attSnap = await getDocs(attQuery);
+
+                for (var k = 0; k < attSnap.docs.length; k++) {
+                    var aDoc = attSnap.docs[k];
+                    var aData = aDoc.data();
+
+                    // Date-based doc আগেই হ্যান্ডেল করা হয়েছে, স্কিপ
+                    if (aData.records && typeof aData.records === 'object') continue;
+
+                    if (section && aData.section && aData.section !== section) continue;
+
+                    var sId2 = aData.studentId;
+                    if (sId2) {
+                        records[sId2] = {
+                            status: aData.status || 'absent',
+                            remark: aData.remark || '',
+                            attendanceId: aDoc.id
+                        };
+                    }
+                }
+
             } catch (err) {
-                console.warn(err);
-                return {};
+                console.warn('Error loading session attendance:', err);
             }
+
+            return records;
         }
 
+        // ===== Summary Update =====
         function updateSummary(students, records) {
-            const total = students.length;
-            let present = 0, absent = 0, late = 0;
-            students.forEach(s => {
-                const status = records[s.id]?.status || 'absent';
+            var total = students.length;
+            var present = 0, absent = 0, late = 0;
+            for (var i = 0; i < students.length; i++) {
+                var status = records[students[i].id] ? records[students[i].id].status : 'absent';
                 if (status === 'present') present++;
                 else if (status === 'late') late++;
                 else absent++;
-            });
+            }
             document.getElementById('totalStudentsCount').innerText = total;
             document.getElementById('presentCount').innerText = present;
             document.getElementById('absentCount').innerText = absent;
             document.getElementById('lateCount').innerText = late;
+            document.getElementById('totalCountSpan').innerText = total;
         }
 
-        function renderAttendanceTable(students, records, statusFilter = 'all') {
-            const tbody = document.getElementById('attendanceTableBody');
+        // ===== Render Attendance Table =====
+        function renderAttendanceTable(students, records, statusFilter) {
+            statusFilter = statusFilter || 'all';
+            var tbody = document.getElementById('attendanceTableBody');
+
             if (!students.length) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-gray-400"><i class="fas fa-user-graduate text-4xl mb-2 block"></i>No students found</td></tr>`;
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-12 text-gray-400"><i class="fas fa-user-graduate text-4xl mb-2 block"></i>No students found</td></tr>';
                 updateSummary(students, records);
                 return;
             }
 
-            let filtered = [...students];
-            if (statusFilter !== 'all') {
-                filtered = students.filter(s => (records[s.id]?.status || 'absent') === statusFilter);
+            var filtered = [];
+            for (var i = 0; i < students.length; i++) {
+                var s = students[i];
+                var st = records[s.id] ? records[s.id].status : 'absent';
+                if (statusFilter !== 'all' && st !== statusFilter) continue;
+                filtered.push(s);
             }
 
-            let html = '';
-            filtered.forEach((student, idx) => {
-                const rec = records[student.id];
-                const currentStatus = rec?.status || 'absent';
-                const currentRemark = rec?.remark || '';
-                const statusColors = {
+            var html = '';
+            for (var idx = 0; idx < filtered.length; idx++) {
+                var student = filtered[idx];
+                var rec = records[student.id];
+                var currentStatus = rec ? rec.status : 'absent';
+                var currentRemark = rec ? rec.remark : '';
+
+                var statusColors = {
                     present: 'bg-success/20 text-success border-success',
                     absent: 'bg-danger/20 text-danger border-danger',
                     late: 'bg-warning/20 text-warning border-warning'
                 };
 
-                html += `
-                    <tr class="student-row border-b border-gray-100 hover:bg-yellow-50/40 transition">
-                        <td class="px-4 py-3 text-sm text-gray-500 font-medium">${idx + 1}</td>
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">${escapeHtml((student.name || 'U').charAt(0))}</div>
-                                <span class="font-medium text-gray-800">${escapeHtml(student.name)}</span>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3 text-sm text-gray-600">${escapeHtml(student.roll)}</td>
-                        <td class="px-4 py-3">
-                            <div class="flex flex-wrap gap-2 justify-center">
-                                <button class="status-btn px-3 py-1.5 rounded-full text-xs font-medium border ${currentStatus === 'present' ? statusColors.present + ' active shadow-sm' : 'bg-gray-100 text-gray-600 border-gray-200'}" data-student="${student.id}" data-status="present"><i class="fas fa-check-circle mr-1"></i> Present</button>
-                                <button class="status-btn px-3 py-1.5 rounded-full text-xs font-medium border ${currentStatus === 'absent' ? statusColors.absent + ' active shadow-sm' : 'bg-gray-100 text-gray-600 border-gray-200'}" data-student="${student.id}" data-status="absent"><i class="fas fa-times-circle mr-1"></i> Absent</button>
-                                <button class="status-btn px-3 py-1.5 rounded-full text-xs font-medium border ${currentStatus === 'late' ? statusColors.late + ' active shadow-sm' : 'bg-gray-100 text-gray-600 border-gray-200'}" data-student="${student.id}" data-status="late"><i class="fas fa-clock mr-1"></i> Late</button>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <input type="text" class="remark-input w-full text-xs border border-gray-200 rounded-lg p-1.5 focus:ring-1 focus:ring-primary" placeholder="Optional remark" data-student="${student.id}" value="${escapeHtml(currentRemark)}">
-                        </td>
-                    </tr>
-                `;
-            });
+                var photoHTML = getPhotoHTML(student.id, student.name);
+                var cachedName = studentPhotoCache[student.id] ? studentPhotoCache[student.id].name : student.name;
+
+                html += '<tr class="student-row border-b border-gray-100 hover:bg-yellow-50/40 transition">' +
+                    '<td class="px-4 py-3 text-sm text-gray-500 font-medium">' + (idx + 1) + '</td>' +
+                    '<td class="px-4 py-3">' +
+                        '<div class="flex items-center gap-3">' +
+                            photoHTML +
+                            '<div>' +
+                                '<span class="font-medium text-gray-800">' + escapeHtml(cachedName || student.name) + '</span>' +
+                                '<div class="text-[10px] text-gray-400 mt-0.5">' +
+                                    '<span class="session-badge px-1.5 py-0.5 rounded-full text-[10px]">' + escapeHtml(getViewingSession()) + '</span>' +
+                                    (student.gender ? ' <span class="ml-1 text-gray-400">' + escapeHtml(student.gender) + '</span>' : '') +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="px-4 py-3 text-sm text-gray-600 font-medium">' + escapeHtml(student.roll) + '</td>' +
+                    '<td class="px-4 py-3">' +
+                        '<div class="flex flex-wrap gap-2 justify-center">' +
+                            '<button class="status-btn px-3 py-1.5 rounded-full text-xs font-medium border ' +
+                                (currentStatus === 'present' ? statusColors.present + ' active shadow-sm' : 'bg-gray-100 text-gray-600 border-gray-200') +
+                                '" data-student="' + student.id + '" data-status="present"><i class="fas fa-check-circle mr-1"></i> Present</button>' +
+                            '<button class="status-btn px-3 py-1.5 rounded-full text-xs font-medium border ' +
+                                (currentStatus === 'absent' ? statusColors.absent + ' active shadow-sm' : 'bg-gray-100 text-gray-600 border-gray-200') +
+                                '" data-student="' + student.id + '" data-status="absent"><i class="fas fa-times-circle mr-1"></i> Absent</button>' +
+                            '<button class="status-btn px-3 py-1.5 rounded-full text-xs font-medium border ' +
+                                (currentStatus === 'late' ? statusColors.late + ' active shadow-sm' : 'bg-gray-100 text-gray-600 border-gray-200') +
+                                '" data-student="' + student.id + '" data-status="late"><i class="fas fa-clock mr-1"></i> Late</button>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="px-4 py-3">' +
+                        '<input type="text" class="remark-input w-full text-xs border border-gray-200 rounded-lg p-1.5 focus:ring-1 focus:ring-primary" placeholder="Optional remark" data-student="' + student.id + '" value="' + escapeHtml(currentRemark) + '">' +
+                    '</td>' +
+                '</tr>';
+            }
 
             tbody.innerHTML = html;
 
-            document.querySelectorAll('.status-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const studentId = btn.dataset.student;
-                    const newStatus = btn.dataset.status;
+            // Status button events
+            var statusBtns = document.querySelectorAll('.status-btn');
+            for (var b = 0; b < statusBtns.length; b++) {
+                statusBtns[b].addEventListener('click', function() {
+                    var studentId = this.dataset.student;
+                    var newStatus = this.dataset.status;
                     if (!attendanceRecords[studentId]) attendanceRecords[studentId] = { status: 'absent', remark: '' };
                     attendanceRecords[studentId].status = newStatus;
-                    const remarkInput = document.querySelector(`.remark-input[data-student="${studentId}"]`);
+                    var remarkInput = document.querySelector('.remark-input[data-student="' + studentId + '"]');
                     if (remarkInput) attendanceRecords[studentId].remark = remarkInput.value;
                     renderAttendanceTable(currentStudents, attendanceRecords, document.getElementById('statusFilter').value);
                 });
-            });
+            }
 
-            document.querySelectorAll('.remark-input').forEach(input => {
-                input.addEventListener('change', () => {
-                    const studentId = input.dataset.student;
+            // Remark input events
+            var remarkInputs = document.querySelectorAll('.remark-input');
+            for (var r = 0; r < remarkInputs.length; r++) {
+                remarkInputs[r].addEventListener('change', function() {
+                    var studentId = this.dataset.student;
                     if (!attendanceRecords[studentId]) attendanceRecords[studentId] = { status: 'absent', remark: '' };
-                    attendanceRecords[studentId].remark = input.value;
+                    attendanceRecords[studentId].remark = this.value;
                 });
-            });
+            }
 
             updateSummary(students, records);
         }
 
+        // ===== Save Attendance to SESSION PATH (root collection না) =====
         async function saveAttendance() {
             if (!currentClassId || !currentSection || !currentDate) {
                 showToast("Please select class, section and date first", "error");
@@ -433,38 +601,52 @@
                 return;
             }
 
-            const targetSession = getViewingSession();
-            const saveBtn = document.getElementById('saveAttendanceBtn');
+            var targetSession = getViewingSession();
+            var saveBtn = document.getElementById('saveAttendanceBtn');
             saveBtn.disabled = true;
             saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Saving...';
 
             try {
-                const batch = writeBatch(db);
-                const attendanceCol = collection(db, "attendance");
-
-                for (const student of currentStudents) {
-                    const record = attendanceRecords[student.id];
-                    if (!record) continue;
-
-                    const docId = `${targetSession}_${currentDate}_${student.id}`;
-                    const docRef = doc(attendanceCol, docId);
-                    batch.set(docRef, {
-                        studentId: student.id,
-                        studentName: student.name,
-                        roll: student.roll,
-                        classId: currentClassId,
-                        className: student.className,
-                        section: currentSection,
-                        date: currentDate,
-                        status: record.status,
-                        remark: record.remark || '',
-                        sessionName: targetSession,
-                        updatedAt: Timestamp.now()
-                    }, { merge: true });
+                var classMap = {};
+                for (var i = 0; i < allClasses.length; i++) {
+                    classMap[allClasses[i].id] = allClasses[i].name;
                 }
 
-                await batch.commit();
-                showToast(`Attendance saved (${currentStudents.length} students) for ${currentDate} (${targetSession})`, "success");
+                // Session path: current_session/{session}/classes/{classId}/attendance/{date}
+                var attDocPath = 'current_session/' + targetSession + '/classes/' + currentClassId + '/attendance/' + currentDate;
+                var attDocRef = doc(db, attDocPath);
+
+                // Date-based document ফরম্যাটে সেভ
+                var recordsMap = {};
+                var studentNamesMap = {};
+                var rollsMap = {};
+                var remarksMap = {};
+
+                for (var j = 0; j < currentStudents.length; j++) {
+                    var student = currentStudents[j];
+                    var record = attendanceRecords[student.id];
+                    if (!record) continue;
+
+                    recordsMap[student.id] = record.status;
+                    studentNamesMap[student.id] = student.name;
+                    rollsMap[student.id] = student.roll;
+                    remarksMap[student.id] = record.remark || '';
+                }
+
+                await setDoc(attDocRef, {
+                    date: currentDate,
+                    section: currentSection,
+                    classId: currentClassId,
+                    className: classMap[currentClassId] || currentStudents[0].className || '',
+                    records: recordsMap,
+                    studentNames: studentNamesMap,
+                    rolls: rollsMap,
+                    remarks: remarksMap,
+                    sessionName: targetSession,
+                    updatedAt: Timestamp.now()
+                }, { merge: true });
+
+                showToast('Attendance saved (' + currentStudents.length + ' students) for ' + currentDate + ' [' + targetSession + ']', "success");
             } catch (err) {
                 console.error(err);
                 showToast("Error: " + err.message, "error");
@@ -474,20 +656,23 @@
             }
         }
 
+        // ===== Mark All Present =====
         function markAllPresent() {
             if (currentStudents.length === 0) return;
-            currentStudents.forEach(s => {
+            for (var i = 0; i < currentStudents.length; i++) {
+                var s = currentStudents[i];
                 if (!attendanceRecords[s.id]) attendanceRecords[s.id] = { status: 'absent', remark: '' };
                 attendanceRecords[s.id].status = 'present';
-            });
+            }
             renderAttendanceTable(currentStudents, attendanceRecords, document.getElementById('statusFilter').value);
             showToast("All students marked as Present", "success");
         }
 
+        // ===== Load Attendance Data =====
         async function loadAttendanceData() {
-            const classId = document.getElementById('classSelect').value;
-            const section = document.getElementById('sectionSelect').value;
-            const date = document.getElementById('attendanceDate').value;
+            var classId = document.getElementById('classSelect').value;
+            var section = document.getElementById('sectionSelect').value;
+            var date = document.getElementById('attendanceDate').value;
 
             if (!classId || !section || !date) {
                 showToast("Please select Class, Section and Date", "error");
@@ -498,45 +683,51 @@
             currentSection = section;
             currentDate = date;
 
-            const tbody = document.getElementById('attendanceTableBody');
-            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12"><i class="fas fa-spinner fa-pulse text-primary text-2xl"></i><br>Loading...</td></tr>`;
+            var tbody = document.getElementById('attendanceTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-12"><i class="fas fa-spinner fa-pulse text-primary text-2xl"></i><br><span class="text-gray-400 text-sm mt-2 block">Loading session data...</span></td></tr>';
 
             try {
-                const students = await loadStudentsByClassSection(classId, section);
+                // Photo cache রিসেট ও লোড
+                studentPhotoCache = {};
+                var students = await loadStudentsByClassSection(classId, section);
                 currentStudents = students;
-                const existing = await loadExistingAttendance(date, classId, section);
+
+                // Session path থেকে existing attendance লোড
+                var existing = await loadExistingAttendance(date, classId, section);
 
                 attendanceRecords = {};
-                students.forEach(s => {
+                for (var i = 0; i < students.length; i++) {
+                    var s = students[i];
                     attendanceRecords[s.id] = existing[s.id]
                         ? { status: existing[s.id].status, remark: existing[s.id].remark || '' }
                         : { status: 'absent', remark: '' };
-                });
+                }
 
                 renderAttendanceTable(students, attendanceRecords, document.getElementById('statusFilter').value);
-                showToast(`Loaded ${students.length} students from ${getViewingSession()} session`, "success");
+                showToast('Loaded ' + students.length + ' students from session path [' + getViewingSession() + ']', "success");
             } catch (err) {
                 console.error(err);
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-red-500">Error loading data</td></tr>`;
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-12 text-red-500">Error loading data</td></tr>';
             }
         }
 
-        // Event Listeners
-        document.getElementById('sessionSelect').addEventListener('change', () => {
+        // ===== Event Listeners =====
+        document.getElementById('sessionSelect').addEventListener('change', function() {
             sectionsCache = {};
+            studentPhotoCache = {};
             document.getElementById('classSelect').value = '';
             document.getElementById('sectionSelect').innerHTML = '<option value="">First select class</option>';
             document.getElementById('sectionSelect').disabled = true;
-            document.getElementById('attendanceTableBody').innerHTML = `<tr><td colspan="5" class="text-center py-12 text-gray-400">Select class, section & date then click Load</td></tr>`;
+            document.getElementById('attendanceTableBody').innerHTML = '<tr><td colspan="5" class="text-center py-12 text-gray-400"><i class="fas fa-hand-pointer text-3xl mb-2 block"></i>Select class, section & date, then click Load</td></tr>';
             currentStudents = [];
             attendanceRecords = {};
             updateSummary([], {});
         });
 
-        document.getElementById('classSelect').addEventListener('change', async (e) => {
+        document.getElementById('classSelect').addEventListener('change', async function(e) {
             await updateSectionDropdown(e.target.value);
             document.getElementById('sectionSelect').value = '';
-            document.getElementById('attendanceTableBody').innerHTML = `<tr><td colspan="5" class="text-center py-12 text-gray-400">Select section & date then click Load</td></tr>`;
+            document.getElementById('attendanceTableBody').innerHTML = '<tr><td colspan="5" class="text-center py-12 text-gray-400">Select section & date then click Load</td></tr>';
             currentStudents = [];
             attendanceRecords = {};
             updateSummary([], {});
@@ -545,17 +736,17 @@
         document.getElementById('loadStudentsBtn').addEventListener('click', loadAttendanceData);
         document.getElementById('saveAttendanceBtn').addEventListener('click', saveAttendance);
         document.getElementById('markAllPresent').addEventListener('click', markAllPresent);
-        document.getElementById('statusFilter').addEventListener('change', () => {
+        document.getElementById('statusFilter').addEventListener('change', function() {
             if (currentStudents.length > 0) {
                 renderAttendanceTable(currentStudents, attendanceRecords, document.getElementById('statusFilter').value);
             }
         });
 
-        // Set default date to today
-        const today = new Date().toISOString().split('T')[0];
+        // ===== Default Date =====
+        var today = new Date().toISOString().split('T')[0];
         document.getElementById('attendanceDate').value = today;
 
-        // Initialize
+        // ===== Initialize =====
         await loadSession();
         await loadClasses();
     </script>
