@@ -50,10 +50,8 @@
         
         .fullscreen-modal {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: white;
             z-index: 1000;
             overflow-y: auto;
@@ -76,13 +74,10 @@
             min-height: calc(100% - 70px);
         }
         
-        /* Edit Profile Modal Styles */
         .edit-profile-modal {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0,0,0,0.6);
             backdrop-filter: blur(4px);
             z-index: 1100;
@@ -99,20 +94,40 @@
             overflow: hidden;
         }
         .student-avatar-large {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
+            width: 100px; height: 100px;
+            border-radius: 50%; object-fit: cover;
             border: 3px solid #3b82f6;
             background: #e2e8f0;
         }
-        .image-preview-sm {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #ddd;
+        .student-avatar {
+            width: 44px; height: 44px;
+            border-radius: 50%; object-fit: cover;
+            background: #e2e8f0;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
+        .student-avatar-sm {
+            width: 36px; height: 36px;
+            border-radius: 50%; object-fit: cover;
+            background: #e2e8f0;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        }
+        .photo-modal {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2000; cursor: pointer;
+            animation: fadeIn 0.2s ease;
+        }
+        .photo-modal img {
+            max-width: 90vw; max-height: 85vh;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            animation: zoomIn 0.25s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
         @media print {
             body { background: white; margin: 0; padding: 0; }
@@ -127,12 +142,9 @@
         
         .toast-notification {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #333;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
+            bottom: 20px; right: 20px;
+            background: #333; color: white;
+            padding: 12px 20px; border-radius: 8px;
             z-index: 9999;
             animation: slideIn 0.3s ease;
         }
@@ -143,6 +155,14 @@
     </style>
 </head>
 <body class="p-4 md:p-6">
+
+<!-- Photo Modal -->
+<div id="photoModal" class="photo-modal hidden" onclick="this.classList.add('hidden')">
+    <div class="text-center">
+        <img id="photoModalImg" src="" alt="Student Photo">
+        <p class="text-white/70 text-sm mt-3"><i class="fas fa-times mr-1"></i> Click anywhere to close</p>
+    </div>
+</div>
 
 <div class="max-w-6xl mx-auto no-print">
     <div class="bg-white rounded-xl shadow p-4 mb-5 flex justify-between items-center flex-wrap gap-3">
@@ -183,8 +203,7 @@
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 text-gray-600">
                     <tr>
-                        <th class="px-4 py-3 text-left">Photo</th>
-                        <th class="px-4 py-3 text-left">Student Name</th>
+                        <th class="px-4 py-3 text-left">Student</th>
                         <th class="px-4 py-3 text-left">Class & Section</th>
                         <th class="px-4 py-3 text-left">Roll No</th>
                         <th class="px-4 py-3 text-left">Admission ID</th>
@@ -199,7 +218,7 @@
         </div>
     </div>
     <div class="mt-6 text-center text-xs text-gray-400">
-        <i class="fas fa-link text-blue-400 mr-1"></i> Click buttons to view marksheet or attendance records | Click on profile icon to edit/delete student photo
+        <i class="fas fa-link text-blue-400 mr-1"></i> Click buttons to view marksheet or attendance records | Click on photo to view full size
     </div>
 </div>
 
@@ -225,7 +244,7 @@
     <div id="attendanceContent" class="modal-content"></div>
 </div>
 
-<!-- Edit Profile Modal (with Cloudinary upload) -->
+<!-- Edit Profile Modal -->
 <div id="editProfileModal" class="edit-profile-modal hidden" style="display: none;">
     <div class="edit-profile-card">
         <div class="bg-blue-50 px-6 py-4 border-b flex justify-between items-center">
@@ -236,7 +255,7 @@
             <div class="flex flex-col items-center gap-3 mb-5">
                 <img id="editStudentAvatar" src="" class="student-avatar-large">
                 <div class="flex gap-3 mt-2">
-                    <button id="uploadPhotoBtn" class="bg-primary bg-blue-600 text-white px-4 py-2 rounded-lg text-sm shadow"><i class="fas fa-camera"></i> Upload New Photo</button>
+                    <button id="uploadPhotoBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm shadow"><i class="fas fa-camera"></i> Upload New Photo</button>
                     <button id="deletePhotoBtn" class="border border-red-300 text-red-600 px-4 py-2 rounded-lg text-sm"><i class="fas fa-trash-alt"></i> Remove Photo</button>
                 </div>
                 <p class="text-xs text-gray-400 mt-1">JPG, PNG up to 2MB (Cloudinary)</p>
@@ -265,7 +284,7 @@
 
 <script type="module">
     import { initializeApp } from "firebase/app";
-    import { getFirestore, collection, query, where, getDocs, getDoc, doc, updateDoc, deleteDoc, setDoc } from "firebase/firestore";
+    import { getFirestore, collection, query, where, getDocs, getDoc, doc, updateDoc, setDoc } from "firebase/firestore";
     import { getAuth, onAuthStateChanged } from "firebase/auth";
 
     const firebaseConfig = {
@@ -288,6 +307,7 @@
     let currentSession = "2025-2026";
     let nextSession = "2026-2027";
     let allStudents = [];
+    let studentPhotoCache = {};
     let classOptionsMap = {};
     let schoolName = "ONNO ROKOM BIDDYANIKETON";
     let schoolAddress = "PORANPUR, KAZIPUR, SIRAJGANJ";
@@ -296,15 +316,297 @@
     let tempNewPhotoUrl = "";
     let cloudinaryWidget = null;
 
-    function showMessage(msg, type = "info") {
-        const toast = document.createElement('div');
+    // ===== Toast Messages =====
+    function showMessage(msg, type) {
+        type = type || "info";
+        var toast = document.createElement('div');
         toast.className = 'toast-notification';
         toast.style.background = type === 'error' ? '#dc2626' : (type === 'success' ? '#10b981' : '#3b82f6');
-        toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-triangle' : (type === 'success' ? 'fa-check-circle' : 'fa-info-circle')} mr-2"></i>${msg}`;
+        toast.innerHTML = '<i class="fas ' + (type === 'error' ? 'fa-exclamation-triangle' : (type === 'success' ? 'fa-check-circle' : 'fa-info-circle')) + ' mr-2"></i>' + msg;
         document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 4000);
+        setTimeout(function() { toast.remove(); }, 4000);
     }
 
+    function showToastMessage(msg, type) {
+        type = type || "success";
+        var toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.style.background = type === 'error' ? '#dc2626' : '#10b981';
+        toast.innerHTML = '<i class="fas ' + (type === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle') + ' mr-2"></i>' + msg;
+        document.body.appendChild(toast);
+        setTimeout(function() { toast.remove(); }, 3000);
+    }
+
+    // ===== Helpers =====
+    function escapeHtml(str) { 
+        if (!str) return ""; 
+        return String(str).replace(/[&<>"']/g, function(m) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m];
+        }); 
+    }
+
+    // ===== Photo Modal =====
+    window.openPhotoModal = function(src) {
+        if (!src) return;
+        var modal = document.getElementById('photoModal');
+        var img = document.getElementById('photoModalImg');
+        img.src = src;
+        modal.classList.remove('hidden');
+    };
+
+    // ===== Photo HTML Builder (Student Manager Pattern) =====
+    function getPhotoHTML(studentId, studentName, sizeClass) {
+        var cached = studentPhotoCache[studentId];
+        var imageUrl = cached ? cached.photo : '';
+        var displayName = cached ? cached.name : (studentName || 'S');
+        var avatarFallback = 'https://ui-avatars.com/api/?background=3b82f6&color=fff&name=' + encodeURIComponent(displayName) + '&size=128';
+        var avatarClass = sizeClass === 'sm' ? 'student-avatar-sm' : 'student-avatar';
+
+        if (imageUrl) {
+            return '<img src="' + escapeHtml(imageUrl) + '" ' +
+                   'class="' + avatarClass + ' cursor-pointer hover:shadow-lg transition" ' +
+                   'data-fallback="' + escapeHtml(avatarFallback) + '" ' +
+                   'onerror="this.onerror=null;this.src=this.dataset.fallback;this.classList.remove(\'cursor-pointer\');this.onclick=null;" ' +
+                   'onclick="openPhotoModal(this.src)">';
+        }
+        return '<img src="' + avatarFallback + '" class="' + avatarClass + '">';
+    }
+
+    function calculateGrade(obt, full) {
+        if (!full || full <= 0) return { lg: "-", gp: 0 };
+        var p = (obt / full) * 100;
+        if (p >= 80) return { lg: "A+", gp: 5.00 };
+        if (p >= 70) return { lg: "A", gp: 4.00 };
+        if (p >= 60) return { lg: "A-", gp: 3.50 };
+        if (p >= 50) return { lg: "B", gp: 3.00 };
+        if (p >= 40) return { lg: "C", gp: 2.00 };
+        if (p >= 33) return { lg: "D", gp: 1.00 };
+        return { lg: "F", gp: 0.00 };
+    }
+
+    function safeNum(v) { var n = parseFloat(v); return Number.isFinite(n) ? n : 0; }
+
+    // ===== Session Load =====
+    async function getSession() {
+        try {
+            var sessionDoc = await getDoc(doc(db, "config", "activeSession"));
+            if (sessionDoc.exists()) { currentSession = sessionDoc.data().sessionName || "2025-2026"; }
+            var parts = currentSession.split('-');
+            nextSession = parts.length === 2 ? (parseInt(parts[0]) + 1) + '-' + (parseInt(parts[1]) + 1) : "2026-2027";
+            document.getElementById("sessionBadge").innerHTML = '<i class="fas fa-database mr-1"></i> ' + currentSession;
+        } catch (e) { console.log("Session error:", e); }
+    }
+    
+    async function getSchoolInfo() {
+        try {
+            var infoDoc = await getDoc(doc(db, "settings", "school_info"));
+            if (infoDoc.exists()) {
+                var data = infoDoc.data();
+                schoolName = data.school_name || schoolName;
+                schoolAddress = data.contact_address || schoolAddress;
+            }
+        } catch (e) { console.log(e); }
+    }
+
+    async function loadClasses() {
+        try {
+            var snap = await getDocs(collection(db, "classes"));
+            classOptionsMap = {};
+            for (var i = 0; i < snap.docs.length; i++) {
+                classOptionsMap[snap.docs[i].id] = snap.docs[i].data().name;
+            }
+            return snap;
+        } catch (e) { console.error("Classes load error:", e); return { docs: [] }; }
+    }
+
+    async function loadParentData(user) {
+        if (!user) return null;
+        try {
+            var q = query(collection(db, "parents"), where("authUserId", "==", user.uid));
+            var snap = await getDocs(q);
+            if (!snap.empty) {
+                var parentDoc = snap.docs[0];
+                var data = parentDoc.data();
+                currentParentId = parentDoc.id;
+                document.getElementById("parentName").innerText = data.guardianName || data.fatherName || "Parent";
+                document.getElementById("parentPhone").innerText = data.guardianPhone || data.fatherPhone || "-";
+                return currentParentId;
+            } else {
+                document.getElementById("parentName").innerHTML = '<span class="text-red-500">Parent profile not found</span>';
+                return null;
+            }
+        } catch (err) { console.error(err); return null; }
+    }
+
+    // ===== Load Students from SESSION PATH (Student Manager Pattern) =====
+    async function loadStudents(parentId) {
+        var tbody = document.getElementById("studentTableBody");
+        if (!parentId) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-gray-400">Parent account not linked</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-blue-500"><i class="fas fa-spinner fa-pulse mr-2"></i> Fetching students data...</td></tr>';
+        
+        try {
+            var classesSnap = await loadClasses();
+            allStudents = [];
+            studentPhotoCache = {};
+            
+            // Parallel loading (Student Manager Pattern)
+            var studentFetchPromises = classesSnap.docs.map(function(classDoc) {
+                var classId = classDoc.id;
+                var studRef = collection(db, 'current_session/' + currentSession + '/classes/' + classId + '/students');
+                return getDocs(studRef);
+            });
+
+            var studentSnaps = await Promise.all(studentFetchPromises);
+            
+            for (var idx = 0; idx < studentSnaps.length; idx++) {
+                var studSnap = studentSnaps[idx];
+                var classId = classesSnap.docs[idx].id;
+                var className = classesSnap.docs[idx].data().name || classOptionsMap[classId] || '';
+
+                for (var j = 0; j < studSnap.docs.length; j++) {
+                    var docSnap = studSnap.docs[j];
+                    var data = docSnap.data();
+                    if (data.parentID === parentId) {
+                        var photo = data.profileImage || data.passportPhotoURL || data.photo || data.photoURL || data.photoUrl || data.profilePhoto || data.imageUrl || data.image || data.avatar || '';
+
+                        var studentObj = {
+                            id: docSnap.id,
+                            fullName: data.fullName || data.name || "-",
+                            className: className || classOptionsMap[classId] || data.className || "-",
+                            section: data.section || "",
+                            rollNumber: data.rollNumber || data.roll || "-",
+                            admissionNumber: data.admissionNumber || data.admissionNo || "-",
+                            phone: data.phone || "-",
+                            classId: classId,
+                            profileImage: photo,
+                            additionalSubjects: data.additionalSubjects || [],
+                            gender: data.gender || '',
+                            _sessionPath: 'current_session/' + currentSession + '/classes/' + classId + '/students'
+                        };
+                        allStudents.push(studentObj);
+
+                        studentPhotoCache[docSnap.id] = {
+                            photo: photo,
+                            name: studentObj.fullName,
+                            className: studentObj.className,
+                            section: studentObj.section,
+                            roll: studentObj.rollNumber
+                        };
+                    }
+                }
+            }
+            
+            if (allStudents.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-gray-400">No students admitted under your account yet.</td></tr>';
+                return;
+            }
+            
+            var html = '';
+            for (var i = 0; i < allStudents.length; i++) {
+                var s = allStudents[i];
+                var photoHTML = getPhotoHTML(s.id, s.fullName, '');
+                var cached = studentPhotoCache[s.id];
+                var displayName = cached ? cached.name : s.fullName;
+
+                html += '<tr class="border-t hover:bg-gray-50 transition">' +
+                    '<td class="px-4 py-3">' +
+                        '<div class="flex items-center gap-3">' +
+                            photoHTML +
+                            '<div>' +
+                                '<div class="font-medium text-gray-800">' + escapeHtml(displayName) + '</div>' +
+                                '<div class="text-[10px] text-gray-400 mt-0.5">' +
+                                    (s.gender ? '<span class="bg-gray-100 px-1.5 py-0.5 rounded-full">' + escapeHtml(s.gender) + '</span> ' : '') +
+                                    '<span class="session-badge px-1.5 py-0.5 rounded-full text-[10px]">' + escapeHtml(currentSession) + '</span>' +
+                                '</div>' +
+                                '<button onclick="openEditProfile(\'' + s.id + '\')" class="text-blue-500 text-xs hover:text-blue-700 mt-0.5"><i class="fas fa-user-edit"></i> Edit</button>' +
+                            '</div>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="px-4 py-3">' + escapeHtml(s.className) + (s.section ? ' (' + escapeHtml(s.section) + ')' : '') + '</td>' +
+                    '<td class="px-4 py-3">' + escapeHtml(s.rollNumber) + '</td>' +
+                    '<td class="px-4 py-3 text-xs font-mono">' + escapeHtml(s.admissionNumber) + '</td>' +
+                    '<td class="px-4 py-3">' + escapeHtml(s.phone) + '</td>' +
+                    '<td class="px-4 py-3 text-center"><button onclick="viewMarksheet(\'' + s.id + '\')" class="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-blue-600 transition"><i class="fas fa-chart-line mr-1"></i> Marksheet</button></td>' +
+                    '<td class="px-4 py-3 text-center"><button onclick="viewAttendance(\'' + s.id + '\')" class="bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-indigo-600 transition"><i class="fas fa-calendar-check mr-1"></i> Attendance</button></td>' +
+                '</tr>';
+            }
+            tbody.innerHTML = html;
+        } catch (err) { 
+            console.error(err);
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-red-400">Error loading students: ' + err.message + '</td></tr>';
+            showMessage("Error loading students", "error");
+        }
+    }
+
+    // ===== Edit Profile =====
+    window.openEditProfile = async function(studentId) {
+        var student = null;
+        for (var i = 0; i < allStudents.length; i++) {
+            if (allStudents[i].id === studentId) { student = allStudents[i]; break; }
+        }
+        if (!student) { showMessage("Student data not found", "error"); return; }
+        currentEditingStudent = student;
+        tempNewPhotoUrl = student.profileImage || "";
+        var avatarFallback = 'https://ui-avatars.com/api/?background=3b82f6&color=fff&name=' + encodeURIComponent(student.fullName);
+        document.getElementById('editStudentAvatar').src = student.profileImage || avatarFallback;
+        document.getElementById('editStudentAvatar').onerror = function() { this.src = avatarFallback; };
+        document.getElementById('editStudentName').innerText = student.fullName;
+        document.getElementById('editStudentClass').innerText = student.className + ' - ' + student.section;
+        document.getElementById('editProfileModal').style.display = 'flex';
+        document.getElementById('editProfileModal').classList.remove('hidden');
+    };
+
+    window.closeEditProfileModal = function() {
+        document.getElementById('editProfileModal').classList.add('hidden');
+        document.getElementById('editProfileModal').style.display = 'none';
+        currentEditingStudent = null;
+        tempNewPhotoUrl = "";
+    };
+
+    async function saveStudentPhoto() {
+        if (!currentEditingStudent) return;
+        var newPhoto = tempNewPhotoUrl || "";
+        try {
+            var studentRef = doc(db, currentEditingStudent._sessionPath, currentEditingStudent.id);
+            await updateDoc(studentRef, { profileImage: newPhoto });
+            var idx = -1;
+            for (var i = 0; i < allStudents.length; i++) {
+                if (allStudents[i].id === currentEditingStudent.id) { idx = i; break; }
+            }
+            if (idx !== -1) allStudents[idx].profileImage = newPhoto;
+            if (studentPhotoCache[currentEditingStudent.id]) studentPhotoCache[currentEditingStudent.id].photo = newPhoto;
+            showToastMessage("Student photo updated successfully!", "success");
+            closeEditProfileModal();
+            await loadStudents(currentParentId);
+        } catch (err) {
+            console.error("Update error:", err);
+            showMessage("Failed to update photo: " + err.message, "error");
+        }
+    }
+
+    async function deleteStudentPhoto() {
+        if (!currentEditingStudent) return;
+        try {
+            var studentRef = doc(db, currentEditingStudent._sessionPath, currentEditingStudent.id);
+            await updateDoc(studentRef, { profileImage: "" });
+            var idx = -1;
+            for (var i = 0; i < allStudents.length; i++) {
+                if (allStudents[i].id === currentEditingStudent.id) { idx = i; break; }
+            }
+            if (idx !== -1) allStudents[idx].profileImage = "";
+            if (studentPhotoCache[currentEditingStudent.id]) studentPhotoCache[currentEditingStudent.id].photo = '';
+            var avatarFallback = 'https://ui-avatars.com/api/?background=3b82f6&color=fff&name=' + encodeURIComponent(currentEditingStudent.fullName);
+            document.getElementById('editStudentAvatar').src = avatarFallback;
+            tempNewPhotoUrl = "";
+            showToastMessage("Photo removed. Click Save to confirm.", "success");
+        } catch (err) { showMessage("Delete failed", "error"); }
+    }
+
+    // ===== Cloudinary Widget =====
     function initCloudinaryWidget() {
         if (!window.cloudinary) return;
         cloudinaryWidget = window.cloudinary.createUploadWidget({
@@ -315,306 +617,142 @@
             maxFileSize: 2000000,
             clientAllowedFormats: ['jpg', 'jpeg', 'png'],
             maxImageFileSize: 2000000
-        }, (error, result) => {
+        }, function(error, result) {
             if (!error && result && result.event === "success") {
                 tempNewPhotoUrl = result.info.secure_url;
                 document.getElementById('editStudentAvatar').src = tempNewPhotoUrl;
-                showToastMessage('Photo uploaded successfully! Click Save to update.', 'success');
+                showToastMessage('Photo uploaded! Click Save to update.', 'success');
             } else if (error) {
                 showToastMessage('Upload failed: ' + (error.message || 'Max 2MB'), 'error');
             }
         });
     }
 
-    function showToastMessage(msg, type = "success") {
-        const toast = document.createElement('div');
-        toast.className = 'toast-notification';
-        toast.style.background = type === 'error' ? '#dc2626' : '#10b981';
-        toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle'} mr-2"></i>${msg}`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    }
+    document.getElementById('uploadPhotoBtn').addEventListener('click', function() {
+        if (cloudinaryWidget) cloudinaryWidget.open();
+        else showMessage("Cloudinary not ready", "error");
+    });
+    document.getElementById('deletePhotoBtn').addEventListener('click', deleteStudentPhoto);
+    document.getElementById('savePhotoChanges').addEventListener('click', saveStudentPhoto);
 
-    function escapeHtml(str) { 
-        if (!str) return ""; 
-        return String(str).replace(/[&<>"]/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': '&quot;' }[m])); 
-    }
-
-    function calculateGrade(obt, full) {
-        if (!full || full <= 0) return { lg: "-", gp: 0 };
-        const p = (obt / full) * 100;
-        if (p >= 80) return { lg: "A+", gp: 5.00 };
-        if (p >= 70) return { lg: "A", gp: 4.00 };
-        if (p >= 60) return { lg: "A-", gp: 3.50 };
-        if (p >= 50) return { lg: "B", gp: 3.00 };
-        if (p >= 40) return { lg: "C", gp: 2.00 };
-        if (p >= 33) return { lg: "D", gp: 1.00 };
-        return { lg: "F", gp: 0.00 };
-    }
-
-    function safeNum(v) { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; }
-
-    async function getSession() {
-        try {
-            const sessionDoc = await getDoc(doc(db, "config", "activeSession"));
-            if (sessionDoc.exists()) { currentSession = sessionDoc.data().sessionName || "2025-2026"; }
-            const parts = currentSession.split('-');
-            nextSession = parts.length === 2 ? `${parseInt(parts[0]) + 1}-${parseInt(parts[1]) + 1}` : "2026-2027";
-            document.getElementById("sessionBadge").innerHTML = `<i class="fas fa-database mr-1"></i> ${currentSession}`;
-        } catch(e) { console.log("Session error:", e); }
-    }
-    
-    async function getSchoolInfo() {
-        try {
-            const infoDoc = await getDoc(doc(db, "settings", "school_info"));
-            if (infoDoc.exists()) {
-                const data = infoDoc.data();
-                schoolName = data.school_name || schoolName;
-                schoolAddress = data.contact_address || schoolAddress;
-            }
-        } catch(e) { console.log(e); }
-    }
-
-    async function loadClasses() {
-        try {
-            const snap = await getDocs(collection(db, "classes"));
-            classOptionsMap = {};
-            snap.forEach(docSnap => { classOptionsMap[docSnap.id] = docSnap.data().name; });
-            return snap; // Return for parallel processing
-        } catch(e) { console.error("Classes load error:", e); return { docs: [] }; }
-    }
-
-    async function loadParentData(user) {
-        if (!user) return null;
-        try {
-            const q = query(collection(db, "parents"), where("authUserId", "==", user.uid));
-            const snap = await getDocs(q);
-            if (!snap.empty) {
-                const parentDoc = snap.docs[0];
-                const data = parentDoc.data();
-                currentParentId = parentDoc.id;
-                document.getElementById("parentName").innerText = data.guardianName || data.fatherName || "Parent";
-                document.getElementById("parentPhone").innerText = data.guardianPhone || data.fatherPhone || "-";
-                return currentParentId;
-            } else {
-                document.getElementById("parentName").innerHTML = '<span class="text-red-500">Parent profile not found</span>';
-                return null;
-            }
-        } catch(err) { console.error(err); return null; }
-    }
-
-    // 🔥 FAST LOADING: Using Promise.all to load all class students in parallel
-    async function loadStudents(parentId) {
-        const tbody = document.getElementById("studentTableBody");
-        if (!parentId) { tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-400">Parent account not linked</td></tr>`; return; }
-        
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-blue-500"><i class="fas fa-spinner fa-pulse mr-2"></i> Fetching students data fast...</td></tr>`;
-        
-        try {
-            const classesSnap = await loadClasses();
-            allStudents = [];
-            
-            // Create an array of promises for fetching students of each class simultaneously
-            const studentFetchPromises = classesSnap.docs.map(classDoc => {
-                const classId = classDoc.id;
-                const studRef = collection(db, `current_session/${currentSession}/classes/${classId}/students`);
-                return getDocs(studRef);
-            });
-
-            // Wait for all queries to finish at the same time (MUCH FASTER)
-            const studentSnaps = await Promise.all(studentFetchPromises);
-            
-            // Process the results
-            studentSnaps.forEach((studSnap, index) => {
-                const classId = classesSnap.docs[index].id;
-                for (const docSnap of studSnap.docs) {
-                    const data = docSnap.data();
-                    if (data.parentID === parentId) {
-                        allStudents.push({
-                            id: docSnap.id,
-                            fullName: data.fullName || data.name || "-",
-                            className: classOptionsMap[classId] || data.className || "-",
-                            section: data.section || "",
-                            rollNumber: data.rollNumber || data.roll || "-",
-                            admissionNumber: data.admissionNumber || data.admissionNo || "-",
-                            phone: data.phone || "-",
-                            classId: classId,
-                            profileImage: data.profileImage || data.passportPhotoURL || null,
-                            additionalSubjects: data.additionalSubjects || [], // Needed for marksheet logic
-                            _sessionPath: `current_session/${currentSession}/classes/${classId}/students`
-                        });
-                    }
-                }
-            });
-            
-            if (allStudents.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-400">No students admitted under your account yet.</td></tr>`;
-                return;
-            }
-            
-            tbody.innerHTML = allStudents.map((s) => {
-                const avatarUrl = s.profileImage || `https://ui-avatars.com/api/?background=3b82f6&color=fff&name=${encodeURIComponent(s.fullName)}`;
-                return `
-                <tr class="border-t hover:bg-gray-50">
-                    <td class="px-2 py-2">
-                        <img src="${escapeHtml(avatarUrl)}" class="w-10 h-10 rounded-full object-cover border border-gray-200" onerror="this.src='https://ui-avatars.com/api/?background=3b82f6&color=fff&name=${encodeURIComponent(s.fullName)}'">
-                    </td>
-                    <td class="px-4 py-3 font-medium">
-                        ${escapeHtml(s.fullName)}
-                        <button onclick='openEditProfile("${s.id}")' class="ml-2 text-blue-500 text-xs hover:text-blue-700"><i class="fas fa-user-edit"></i> Edit Profile</button>
-                    </td>
-                    <td class="px-4 py-3">${escapeHtml(s.className)} ${s.section ? `(${escapeHtml(s.section)})` : ""}</td>
-                    <td class="px-4 py-3">${escapeHtml(s.rollNumber)}</td>
-                    <td class="px-4 py-3 text-xs font-mono">${escapeHtml(s.admissionNumber)}</td>
-                    <td class="px-4 py-3">${escapeHtml(s.phone)}</td>
-                    <td class="px-4 py-3 text-center"><button onclick='viewMarksheet("${s.id}", "${escapeHtml(s.fullName)}", "${escapeHtml(s.className)}", "${escapeHtml(s.section)}", "${escapeHtml(s.rollNumber)}", "${escapeHtml(s.admissionNumber)}", "${s.classId}", "${escapeHtml(avatarUrl)}")' class="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-blue-600"><i class="fas fa-chart-line mr-1"></i> Marksheet</button></td>
-                    <td class="px-4 py-3 text-center"><button onclick='viewAttendance("${s.id}", "${escapeHtml(s.fullName)}", "${escapeHtml(s.className)}", "${escapeHtml(s.section)}", "${escapeHtml(s.rollNumber)}")' class="bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-indigo-600"><i class="fas fa-calendar-check mr-1"></i> Attendance</button></td>
-                </tr>`;
-            }).join("");
-        } catch(err) { 
-            console.error(err);
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-red-400">Error loading students: ${err.message}</td></tr>`;
-            showMessage("শিক্ষার্থীদের তথ্য লোড করতে সমস্যা হয়েছে", "error");
+    // ===== Marksheet =====
+    window.viewMarksheet = async function(studentId) {
+        var student = null;
+        for (var i = 0; i < allStudents.length; i++) {
+            if (allStudents[i].id === studentId) { student = allStudents[i]; break; }
         }
-    }
+        if (!student) { showMessage("Student not found", "error"); return; }
 
-    window.openEditProfile = async (studentId) => {
-        const student = allStudents.find(s => s.id === studentId);
-        if (!student) { showMessage("Student data not found", "error"); return; }
-        currentEditingStudent = student;
-        tempNewPhotoUrl = student.profileImage || "";
-        document.getElementById('editStudentAvatar').src = student.profileImage || `https://ui-avatars.com/api/?background=3b82f6&color=fff&name=${encodeURIComponent(student.fullName)}`;
-        document.getElementById('editStudentName').innerText = student.fullName;
-        document.getElementById('editStudentClass').innerText = `${student.className} - ${student.section}`;
-        document.getElementById('editProfileModal').style.display = 'flex';
-        document.getElementById('editProfileModal').classList.remove('hidden');
-    };
+        var studentName = student.fullName;
+        var className = student.className;
+        var section = student.section;
+        var rollNumber = student.rollNumber;
+        var admissionNumber = student.admissionNumber;
+        var classId = student.classId;
+        var cached = studentPhotoCache[studentId];
+        var photoUrl = cached ? cached.photo : '';
 
-    window.closeEditProfileModal = () => {
-        document.getElementById('editProfileModal').classList.add('hidden');
-        document.getElementById('editProfileModal').style.display = 'none';
-        currentEditingStudent = null;
-        tempNewPhotoUrl = "";
-    };
-
-    async function saveStudentPhoto() {
-        if (!currentEditingStudent) return;
-        const newPhoto = tempNewPhotoUrl || "";
-        try {
-            const studentRef = doc(db, currentEditingStudent._sessionPath, currentEditingStudent.id);
-            await updateDoc(studentRef, { profileImage: newPhoto });
-            const idx = allStudents.findIndex(s => s.id === currentEditingStudent.id);
-            if (idx !== -1) allStudents[idx].profileImage = newPhoto;
-            showToastMessage("Student photo updated successfully!", "success");
-            closeEditProfileModal();
-            await loadStudents(currentParentId); 
-        } catch(err) {
-            console.error("Update error:", err);
-            showMessage("Failed to update photo: " + err.message, "error");
-        }
-    }
-
-    async function deleteStudentPhoto() {
-        if (!currentEditingStudent) return;
-        try {
-            const studentRef = doc(db, currentEditingStudent._sessionPath, currentEditingStudent.id);
-            await updateDoc(studentRef, { profileImage: "" });
-            const idx = allStudents.findIndex(s => s.id === currentEditingStudent.id);
-            if (idx !== -1) allStudents[idx].profileImage = "";
-            document.getElementById('editStudentAvatar').src = `https://ui-avatars.com/api/?background=3b82f6&color=fff&name=${encodeURIComponent(currentEditingStudent.fullName)}`;
-            tempNewPhotoUrl = "";
-            showToastMessage("Photo removed successfully! Click Save.", "success");
-        } catch(err) { showMessage("Delete failed", "error"); }
-    }
-
-    document.getElementById('uploadPhotoBtn')?.addEventListener('click', () => { if (cloudinaryWidget) cloudinaryWidget.open(); else showMessage("Cloudinary not ready", "error"); });
-    document.getElementById('deletePhotoBtn')?.addEventListener('click', deleteStudentPhoto);
-    document.getElementById('savePhotoChanges')?.addEventListener('click', saveStudentPhoto);
-
-    // 🔥 Updated Marksheet Logic (With Optional/Fourth Subject & GPA Bonus)
-    window.viewMarksheet = async (studentId, studentName, className, section, rollNumber, admissionNumber, classId, studentPhotoUrl) => {
-        const modal = document.getElementById('marksheetModal');
-        const contentDiv = document.getElementById('marksheetContent');
+        var modal = document.getElementById('marksheetModal');
+        var contentDiv = document.getElementById('marksheetContent');
         modal.classList.remove('hidden');
         modal.style.display = 'block';
         contentDiv.innerHTML = '<div class="flex justify-center items-center py-32"><i class="fas fa-spinner fa-pulse text-4xl text-blue-500"></i><p class="mt-4 text-gray-600">Loading marksheet...</p></div>';
         
         try {
             await getSchoolInfo();
-            const studentObj = allStudents.find(s => s.id === studentId);
-            const studentAdditional = studentObj ? (studentObj.additionalSubjects || []) : [];
+            var studentAdditional = student.additionalSubjects || [];
 
-            const [examsSnap, marksSnap, subjectsSnap, setupSnap] = await Promise.all([
-                getDocs(collection(db, "exams")).catch(e => ({ docs: [] })),
-                getDocs(query(collection(db, "marks"), where("session", "==", currentSession))).catch(e => ({ docs: [] })),
-                getDocs(query(collection(db, "subjects"), where("classId", "==", classId))).catch(e => ({ docs: [] })),
-                getDocs(collection(db, "mark_setup")).catch(e => ({ docs: [] }))
+            var results = await Promise.all([
+                getDocs(collection(db, "exams")).catch(function(e) { return { docs: [] }; }),
+                getDocs(query(collection(db, "marks"), where("session", "==", currentSession))).catch(function(e) { return { docs: [] }; }),
+                getDocs(query(collection(db, "subjects"), where("classId", "==", classId))).catch(function(e) { return { docs: [] }; }),
+                getDocs(collection(db, "mark_setup")).catch(function(e) { return { docs: [] }; })
             ]);
+
+            var examsSnap = results[0];
+            var marksSnap = results[1];
+            var subjectsSnap = results[2];
+            var setupSnap = results[3];
             
-            const exams = [];
-            examsSnap.forEach(d => { const examData = d.data(); if (examData.status !== "draft" && examData.session === currentSession) exams.push({ id: d.id, name: examData.name }); });
-            exams.sort((a,b)=> a.name.localeCompare(b.name));
+            var exams = [];
+            for (var ei = 0; ei < examsSnap.docs.length; ei++) {
+                var examData = examsSnap.docs[ei].data();
+                if (examData.status !== "draft" && examData.session === currentSession) {
+                    exams.push({ id: examsSnap.docs[ei].id, name: examData.name });
+                }
+            }
+            exams.sort(function(a, b) { return a.name.localeCompare(b.name); });
+
             if (exams.length === 0) {
                 contentDiv.innerHTML = '<div class="text-center py-20 text-amber-600 bg-white rounded-xl shadow max-w-2xl mx-auto mt-10 p-8"><i class="fas fa-info-circle text-4xl mb-3"></i><p class="text-lg">No published marksheet available.</p></div>';
                 return;
             }
             
-            const marksByExam = {};
-            marksSnap.forEach(d => { const data = d.data(); if (data.studentId === studentId) { if (!marksByExam[data.examId]) marksByExam[data.examId] = []; marksByExam[data.examId].push(data); } });
+            var marksByExam = {};
+            for (var mi = 0; mi < marksSnap.docs.length; mi++) {
+                var md = marksSnap.docs[mi].data();
+                if (md.studentId === studentId) {
+                    if (!marksByExam[md.examId]) marksByExam[md.examId] = [];
+                    marksByExam[md.examId].push(md);
+                }
+            }
             
-            // Fetching Subject Type (mandatory/optional)
-            const subjects = {};
-            subjectsSnap.forEach(d => {
-                const data = d.data();
-                subjects[d.id] = { name: data.name, type: data.type || 'mandatory' };
-            });
+            var subjects = {};
+            for (var si = 0; si < subjectsSnap.docs.length; si++) {
+                var sd = subjectsSnap.docs[si].data();
+                subjects[subjectsSnap.docs[si].id] = { name: sd.name, type: sd.type || 'mandatory' };
+            }
 
-            const setupMap = {};
-            setupSnap.forEach(d => setupMap[d.id] = d.data().marks);
+            var setupMap = {};
+            for (var sti = 0; sti < setupSnap.docs.length; sti++) {
+                setupMap[setupSnap.docs[sti].id] = setupSnap.docs[sti].data().marks;
+            }
             
-            let allMarksheetsHTML = '';
-            const photoToShow = studentPhotoUrl || `https://ui-avatars.com/api/?background=3b82f6&color=fff&name=${encodeURIComponent(studentName)}`;
+            var allMarksheetsHTML = '';
+            var photoToShow = photoUrl || 'https://ui-avatars.com/api/?background=3b82f6&color=fff&name=' + encodeURIComponent(studentName);
             
-            for (const exam of exams) {
-                const examMarks = marksByExam[exam.id] || [];
-                let totalObtained = 0, totalFullMarks = 0, totalGP = 0, isFailed = false, rows = "";
-                let mandatorySubCount = 0, fourthSubGP = 0, fourthSubBonus = 0;
-                const studentSection = section || "";
-                const subjectEntries = Object.entries(subjects);
+            for (var ex = 0; ex < exams.length; ex++) {
+                var exam = exams[ex];
+                var examMarks = marksByExam[exam.id] || [];
+                var totalObtained = 0, totalFullMarks = 0, totalGP = 0, isFailed = false, rows = "";
+                var mandatorySubCount = 0, fourthSubGP = 0, fourthSubBonus = 0;
+                var studentSection = section || "";
+                var subjectEntries = Object.entries(subjects);
 
-                for (let idx = 0; idx < subjectEntries.length; idx++) {
-                    const [subId, subData] = subjectEntries[idx];
-                    const subName = subData.name;
-                    const subType = subData.type;
-                    const isStudentFourthSub = subType === 'optional' && studentAdditional.includes(subName);
+                for (var idx2 = 0; idx2 < subjectEntries.length; idx2++) {
+                    var subEntry = subjectEntries[idx2];
+                    var subId = subEntry[0];
+                    var subData = subEntry[1];
+                    var subName = subData.name;
+                    var subType = subData.type;
+                    var isStudentFourthSub = subType === 'optional' && studentAdditional.includes(subName);
 
-                    // Check if subject is optional and NOT taken by student
                     if (subType === 'optional' && !isStudentFourthSub) {
-                        rows += `<tr class="not-enrolled">
-                            <td class="text-center">${String(idx+1).padStart(2,'0')}</td>
-                            <td class="text-left font-bold uppercase">${escapeHtml(subName)} <span class="text-[8px] font-normal italic">(Not Enrolled)</span></td>
-                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                        </tr>`;
-                        continue; 
+                        rows += '<tr class="not-enrolled"><td class="text-center">' + String(idx2 + 1).padStart(2, '0') + '</td><td class="text-left font-bold uppercase">' + escapeHtml(subName) + ' <span class="text-[8px] font-normal italic">(Not Enrolled)</span></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>';
+                        continue;
                     }
 
-                    const m = examMarks.find(x => x.subjectId === subId) || { marks: {} };
-                    const setupId = `${exam.id}_${classId}_${studentSection}_${subId}_${currentSession}`;
-                    const setup = setupMap[setupId] || {};
+                    var m = null;
+                    for (var mm = 0; mm < examMarks.length; mm++) {
+                        if (examMarks[mm].subjectId === subId) { m = examMarks[mm]; break; }
+                    }
+                    if (!m) m = { marks: {} };
+
+                    var setupId = exam.id + '_' + classId + '_' + studentSection + '_' + subId + '_' + currentSession;
+                    var setup = setupMap[setupId] || {};
                     
-                    const wF = setup.written?.enabled ? safeNum(setup.written.full) : 0;
-                    const mF = setup.mcq?.enabled ? safeNum(setup.mcq.full) : 0;
-                    const pF = setup.practical?.enabled ? safeNum(setup.practical.full) : 0;
-                    const wO = safeNum(m.marks?.written); 
-                    const mO = safeNum(m.marks?.mcq); 
-                    const pO = safeNum(m.marks?.practical);
+                    var wF = setup.written && setup.written.enabled ? safeNum(setup.written.full) : 0;
+                    var mF = setup.mcq && setup.mcq.enabled ? safeNum(setup.mcq.full) : 0;
+                    var pF = setup.practical && setup.practical.enabled ? safeNum(setup.practical.full) : 0;
+                    var wO = safeNum(m.marks ? m.marks.written : 0);
+                    var mO = safeNum(m.marks ? m.marks.mcq : 0);
+                    var pO = safeNum(m.marks ? m.marks.practical : 0);
                     
-                    const rowTotal = wO + mO + pO;
-                    const rowFull = wF + mF + pF;
-                    const grade = calculateGrade(rowTotal, rowFull);
+                    var rowTotal = wO + mO + pO;
+                    var rowFull = wF + mF + pF;
+                    var grade = calculateGrade(rowTotal, rowFull);
                     
-                    totalObtained += rowTotal; 
+                    totalObtained += rowTotal;
                     totalFullMarks += rowFull;
                     
                     if (isStudentFourthSub) {
@@ -626,88 +764,232 @@
                         if (grade.lg === "F") isFailed = true;
                     }
 
-                    let displaySubName = escapeHtml(subName);
-                    if (isStudentFourthSub) displaySubName += ` <span class="text-[8px] text-indigo-700 font-normal">(4th Sub)</span>`;
+                    var displaySubName = escapeHtml(subName);
+                    if (isStudentFourthSub) displaySubName += ' <span class="text-[8px] text-indigo-700 font-normal">(4th Sub)</span>';
 
-                    rows += `<tr>
-                        <td class="text-center">${String(idx+1).padStart(2,'0')}</td>
-                        <td class="text-left font-bold uppercase">${displaySubName}</td>
-                        <td class="text-center">${wF||'-'}</td><td class="text-center">${wF?wO:'-'}</td>
-                        <td class="text-center">${mF||'-'}</td><td class="text-center">${mF?mO:'-'}</td>
-                        <td class="text-center">${pF||'-'}</td><td class="text-center">${pF?pO:'-'}</td>
-                        <td class="text-center font-bold">${rowFull||'-'}</td><td class="text-center font-bold">${rowTotal}</td>
-                        <td class="text-center font-black">${grade.lg}</td><td class="text-center">${grade.gp.toFixed(2)}</td>
-                        <td class="text-center">-</td><td class="text-center">-</td>
-                    </tr>`;
+                    rows += '<tr>' +
+                        '<td class="text-center">' + String(idx2 + 1).padStart(2, '0') + '</td>' +
+                        '<td class="text-left font-bold uppercase">' + displaySubName + '</td>' +
+                        '<td class="text-center">' + (wF || '-') + '</td><td class="text-center">' + (wF ? wO : '-') + '</td>' +
+                        '<td class="text-center">' + (mF || '-') + '</td><td class="text-center">' + (mF ? mO : '-') + '</td>' +
+                        '<td class="text-center">' + (pF || '-') + '</td><td class="text-center">' + (pF ? pO : '-') + '</td>' +
+                        '<td class="text-center font-bold">' + (rowFull || '-') + '</td><td class="text-center font-bold">' + rowTotal + '</td>' +
+                        '<td class="text-center font-black">' + grade.lg + '</td><td class="text-center">' + grade.gp.toFixed(2) + '</td>' +
+                        '<td class="text-center">-</td><td class="text-center">-</td>' +
+                    '</tr>';
                 }
 
-                // Education Board Rule: 4th Subject Bonus Calculation
                 fourthSubBonus = Math.max(0, fourthSubGP - 2.00);
-                const finalGPA = isFailed ? 0.00 : ((totalGP + fourthSubBonus) / (mandatorySubCount || 1));
-                const finalGrade = isFailed ? "F" : calculateGrade(totalObtained, totalFullMarks).lg;
-                const resultText = isFailed ? 'FAILED' : 'PASSED';
-                const resultColor = isFailed ? 'text-red-600' : 'text-emerald-700';
+                var finalGPA = isFailed ? 0.00 : ((totalGP + fourthSubBonus) / (mandatorySubCount || 1));
+                var finalGrade = isFailed ? "F" : calculateGrade(totalObtained, totalFullMarks).lg;
+                var resultText = isFailed ? 'FAILED' : 'PASSED';
+                var resultColor = isFailed ? 'text-red-600' : 'text-emerald-700';
                 
-                allMarksheetsHTML += `
-                <div class="marksheet-card">
-                    <div class="watermark"><i class="fas fa-school fa-8x"></i></div>
-                    <div class="content-wrap">
-                        <div class="flex justify-between items-center border-b-2 border-black pb-2">
-                            <div class="w-20 h-20 bg-gray-200 flex items-center justify-center text-gray-400 text-xs">LOGO</div>
-                            <div class="text-center">
-                                <h1 class="text-2xl font-black text-indigo-900 leading-none uppercase">${escapeHtml(schoolName)}</h1>
-                                <p class="text-[10px] font-bold tracking-widest mt-1 uppercase">${escapeHtml(schoolAddress)}</p>
-                                <div class="mt-2 bg-black text-white px-4 py-1 text-[12px] font-bold uppercase rounded-full">Academic Transcript: ${escapeHtml(exam.name)}</div>
-                            </div>
-                            <div class="w-24 h-28 border-2 border-black flex flex-col items-center justify-center text-[10px] italic">
-                                <img src="${escapeHtml(photoToShow)}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?background=3b82f6&color=fff&name=${encodeURIComponent(studentName)}';">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 mt-4 text-[11px] font-bold uppercase">
-                            <div class="border-b border-gray-300 pb-1">STUDENT NAME: <span class="font-normal ml-1">${escapeHtml(studentName)}</span></div>
-                            <div class="border-b border-gray-300 pb-1">CLASS: <span class="font-normal ml-1">${escapeHtml(className)}</span></div>
-                            <div class="border-b border-gray-300 pb-1">ROLL NO: <span class="font-normal ml-1">${escapeHtml(rollNumber)}</span></div>
-                            <div class="border-b border-gray-300 pb-1">SECTION: <span class="font-normal ml-1">${escapeHtml(section || 'N/A')}</span></div>
-                            <div class="border-b border-gray-300 pb-1">STUDENT ID: <span class="font-normal ml-1">${escapeHtml(admissionNumber)}</span></div>
-                            <div class="border-b border-gray-300 pb-1">SESSION: <span class="font-normal ml-1">${escapeHtml(currentSession)}</span></div>
-                        </div>
-                        <table class="mt-4" style="font-size: 10px;"><thead class="bg-gray-100"><tr><th rowspan="2">SL</th><th rowspan="2" class="w-44">SUBJECT NAME</th><th colspan="2">WRITTEN</th><th colspan="2">MCQ</th><th colspan="2">PRAC.</th><th colspan="2">TOTAL</th><th rowspan="2">LG</th><th rowspan="2">GP</th><th rowspan="2">HI</th><th rowspan="2">POS</th></tr><tr class="text-[9px]"><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th></tr></thead><tbody>${rows}</tbody><tfoot class="bg-gray-50 font-bold"><tr><td colspan="2" class="text-left py-2 px-2 uppercase">Total: ${totalObtained} / ${totalFullMarks}</td><td colspan="4">GPA: ${finalGPA.toFixed(2)} ${fourthSubBonus > 0 ? `<span class="text-[8px] text-green-700">(+${fourthSubBonus.toFixed(2)} Bonus)</span>` : ''}</td><td colspan="4">LETTER GRADE: ${finalGrade}</td><td colspan="4">RESULT: <span class="${resultColor}">${resultText}</span></td></tr></tfoot></table>
-                        <div class="grid grid-cols-2 gap-4 mt-4"><div><table class="grade-table w-full"><tr class="bg-gray-100 font-bold uppercase"><td>Personal Traits</td><td>Rating</td></tr><tr><td class="text-left">Attendance & Punctuality</td><td>_______</td></tr><tr><td class="text-left">Cleanliness & Neatness</td><td>_______</td></tr></table></div><div><table class="grade-table w-full"><tr class="bg-gray-100 font-bold uppercase"><td>Range</td><td>Grade</td><td>GPA</td></tr><tr><td>80-100</td><td>A+</td><td>5.00</td></tr><tr><td>70-79</td><td>A</td><td>4.00</td></tr><tr><td>60-69</td><td>A-</td><td>3.50</td></tr><tr><td>33-39</td><td>D</td><td>1.00</td></tr></table></div></div>
-                        <div class="mt-6 border border-black p-2 text-[10px]"><div class="flex border-b border-black mb-2 pb-1"><span class="font-bold w-40">CLASS TEACHER'S REMARK:</span><span class="flex-1"></span></div><div class="flex pt-1"><span class="font-bold w-40">PRINCIPAL'S REMARK:</span><span class="flex-1"></span></div></div>
-                        <div class="mt-12 flex justify-between px-6"><div class="text-center border-t border-black pt-1 w-40 font-bold text-[10px] uppercase">Class Teacher</div><div class="text-center border-t border-black pt-1 w-40 font-bold text-[10px] uppercase">Guardian</div><div class="text-center border-t border-black pt-1 w-40 font-bold text-[10px] uppercase">Principal</div></div>
-                    </div>
-                </div>`;
+                allMarksheetsHTML += '<div class="marksheet-card"><div class="watermark"><i class="fas fa-school fa-8x"></i></div><div class="content-wrap">' +
+                    '<div class="flex justify-between items-center border-b-2 border-black pb-2">' +
+                        '<div class="w-20 h-20 bg-gray-200 flex items-center justify-center text-gray-400 text-xs">LOGO</div>' +
+                        '<div class="text-center"><h1 class="text-2xl font-black text-indigo-900 leading-none uppercase">' + escapeHtml(schoolName) + '</h1><p class="text-[10px] font-bold tracking-widest mt-1 uppercase">' + escapeHtml(schoolAddress) + '</p><div class="mt-2 bg-black text-white px-4 py-1 text-[12px] font-bold uppercase rounded-full">Academic Transcript: ' + escapeHtml(exam.name) + '</div></div>' +
+                        '<div class="w-24 h-28 border-2 border-black flex flex-col items-center justify-center text-[10px] italic"><img src="' + escapeHtml(photoToShow) + '" class="w-full h-full object-cover" onerror="this.onerror=null;this.src=\'https://ui-avatars.com/api/?background=3b82f6&color=fff&name=' + encodeURIComponent(studentName) + '\';"></div>' +
+                    '</div>' +
+                    '<div class="grid grid-cols-3 gap-2 mt-4 text-[11px] font-bold uppercase"><div class="border-b border-gray-300 pb-1">STUDENT NAME: <span class="font-normal ml-1">' + escapeHtml(studentName) + '</span></div><div class="border-b border-gray-300 pb-1">CLASS: <span class="font-normal ml-1">' + escapeHtml(className) + '</span></div><div class="border-b border-gray-300 pb-1">ROLL NO: <span class="font-normal ml-1">' + escapeHtml(rollNumber) + '</span></div><div class="border-b border-gray-300 pb-1">SECTION: <span class="font-normal ml-1">' + escapeHtml(section || 'N/A') + '</span></div><div class="border-b border-gray-300 pb-1">STUDENT ID: <span class="font-normal ml-1">' + escapeHtml(admissionNumber) + '</span></div><div class="border-b border-gray-300 pb-1">SESSION: <span class="font-normal ml-1">' + escapeHtml(currentSession) + '</span></div></div>' +
+                    '<table class="mt-4" style="font-size: 10px;"><thead class="bg-gray-100"><tr><th rowspan="2">SL</th><th rowspan="2" class="w-44">SUBJECT NAME</th><th colspan="2">WRITTEN</th><th colspan="2">MCQ</th><th colspan="2">PRAC.</th><th colspan="2">TOTAL</th><th rowspan="2">LG</th><th rowspan="2">GP</th><th rowspan="2">HI</th><th rowspan="2">POS</th></tr><tr class="text-[9px]"><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th><th>Full</th><th>Obt</th></tr></thead><tbody>' + rows + '</tbody><tfoot class="bg-gray-50 font-bold"><tr><td colspan="2" class="text-left py-2 px-2 uppercase">Total: ' + totalObtained + ' / ' + totalFullMarks + '</td><td colspan="4">GPA: ' + finalGPA.toFixed(2) + ' ' + (fourthSubBonus > 0 ? '<span class="text-[8px] text-green-700">(+ ' + fourthSubBonus.toFixed(2) + ' Bonus)</span>' : '') + '</td><td colspan="4">LETTER GRADE: ' + finalGrade + '</td><td colspan="4">RESULT: <span class="' + resultColor + '">' + resultText + '</span></td></tr></tfoot></table>' +
+                    '<div class="grid grid-cols-2 gap-4 mt-4"><div><table class="grade-table w-full"><tr class="bg-gray-100 font-bold uppercase"><td>Personal Traits</td><td>Rating</td></tr><tr><td class="text-left">Attendance & Punctuality</td><td>_______</td></tr><tr><td class="text-left">Cleanliness & Neatness</td><td>_______</td></tr></table></div><div><table class="grade-table w-full"><tr class="bg-gray-100 font-bold uppercase"><td>Range</td><td>Grade</td><td>GPA</td></tr><tr><td>80-100</td><td>A+</td><td>5.00</td></tr><tr><td>70-79</td><td>A</td><td>4.00</td></tr><tr><td>60-69</td><td>A-</td><td>3.50</td></tr><tr><td>33-39</td><td>D</td><td>1.00</td></tr></table></div></div>' +
+                    '<div class="mt-6 border border-black p-2 text-[10px]"><div class="flex border-b border-black mb-2 pb-1"><span class="font-bold w-40">CLASS TEACHER\'S REMARK:</span><span class="flex-1"></span></div><div class="flex pt-1"><span class="font-bold w-40">PRINCIPAL\'S REMARK:</span><span class="flex-1"></span></div></div>' +
+                    '<div class="mt-12 flex justify-between px-6"><div class="text-center border-t border-black pt-1 w-40 font-bold text-[10px] uppercase">Class Teacher</div><div class="text-center border-t border-black pt-1 w-40 font-bold text-[10px] uppercase">Guardian</div><div class="text-center border-t border-black pt-1 w-40 font-bold text-[10px] uppercase">Principal</div></div>' +
+                '</div></div>';
             }
             contentDiv.innerHTML = allMarksheetsHTML;
-        } catch (err) { contentDiv.innerHTML = `<div class="text-center py-20 text-red-500">Error: ${err.message}</div>`; showMessage("মার্কশীট লোড করতে সমস্যা হয়েছে", "error"); }
+        } catch (err) {
+            contentDiv.innerHTML = '<div class="text-center py-20 text-red-500">Error: ' + err.message + '</div>';
+            showMessage("Error loading marksheet", "error");
+        }
     };
 
-    window.viewAttendance = async (studentId, studentName, className, section, rollNumber) => {
-        const modal = document.getElementById('attendanceModal');
-        const contentDiv = document.getElementById('attendanceContent');
-        modal.classList.remove('hidden'); modal.style.display = 'block';
-        contentDiv.innerHTML = '<div class="flex justify-center items-center py-32"><i class="fas fa-spinner fa-pulse text-4xl text-indigo-500"></i><p class="mt-4 text-gray-600">Loading attendance...</p></div>';
+    // ===== Attendance from SESSION PATH (NOT root collection) =====
+    window.viewAttendance = async function(studentId) {
+        var student = null;
+        for (var i = 0; i < allStudents.length; i++) {
+            if (allStudents[i].id === studentId) { student = allStudents[i]; break; }
+        }
+        if (!student) { showMessage("Student not found", "error"); return; }
+
+        var studentName = student.fullName;
+        var className = student.className;
+        var section = student.section;
+        var rollNumber = student.rollNumber;
+        var classId = student.classId;
+
+        var modal = document.getElementById('attendanceModal');
+        var contentDiv = document.getElementById('attendanceContent');
+        modal.classList.remove('hidden');
+        modal.style.display = 'block';
+        contentDiv.innerHTML = '<div class="flex justify-center items-center py-32"><i class="fas fa-spinner fa-pulse text-4xl text-indigo-500"></i><p class="mt-4 text-gray-600">Loading attendance from session path...</p></div>';
+
         try {
-            const attendanceRef = collection(db, "attendance");
-            const q = query(attendanceRef, where("studentId", "==", studentId), where("sessionName", "==", currentSession));
-            const snapshot = await getDocs(q);
-            let records = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            records.sort((a,b) => (b.date || '').localeCompare(a.date || ''));
-            let present = 0, absent = 0, late = 0;
-            records.forEach(r => { if (r.status === 'present') present++; else if (r.status === 'late') late++; else absent++; });
-            const total = records.length, percent = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
-            let tableRows = records.map((rec, idx) => `<tr><td class="p-2">${idx+1}</td><td>${rec.date || '-'}</td><td><span class="px-2 py-0.5 rounded-full text-xs bg-${rec.status === 'present'?'green-100 text-green-700':(rec.status==='late'?'yellow-100 text-yellow-700':'red-100 text-red-700')}"><i class="fas ${rec.status==='present'?'fa-check-circle':(rec.status==='late'?'fa-clock':'fa-times-circle')}"></i> ${rec.status}</span></td><td>${rec.remark || '—'}</td></tr>`).join('');
-            contentDiv.innerHTML = `<div class="attendance-print-card max-w-5xl mx-auto bg-white p-6"><div class="text-center border-b pb-3 mb-3"><h2 class="text-xl font-bold">${escapeHtml(schoolName)}</h2><p>${escapeHtml(schoolAddress)}</p><div class="mt-2 bg-indigo-600 text-white px-3 py-0.5 inline-block rounded-full text-xs">Attendance Report</div></div><div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-4"><div class="bg-gray-50 p-2 rounded"><p class="text-xs">Student</p><p class="font-bold">${escapeHtml(studentName)}</p></div><div class="bg-gray-50 p-2 rounded"><p class="text-xs">Class</p><p class="font-bold">${escapeHtml(className)} - ${escapeHtml(section)}</p></div><div class="bg-gray-50 p-2 rounded"><p class="text-xs">Roll</p><p class="font-bold">${escapeHtml(rollNumber)}</p></div><div class="bg-gray-50 p-2 rounded"><p class="text-xs">Session</p><p class="font-bold">${currentSession}</p></div></div><div class="grid grid-cols-4 gap-3 mb-4"><div class="bg-green-50 p-2 rounded"><p class="text-xs">Present</p><p class="text-2xl font-bold text-green-600">${present}</p></div><div class="bg-red-50 p-2 rounded"><p class="text-xs">Absent</p><p class="text-2xl font-bold text-red-600">${absent}</p></div><div class="bg-yellow-50 p-2 rounded"><p class="text-xs">Late</p><p class="text-2xl font-bold text-yellow-600">${late}</p></div><div class="bg-indigo-50 p-2 rounded"><p class="text-xs">%</p><p class="text-2xl font-bold text-indigo-600">${percent}%</p></div></div><div><h3 class="font-bold text-sm mb-2">Details</h3><table class="w-full border text-xs"><thead class="bg-gray-100"><tr><th>#</th><th>Date</th><th>Status</th><th>Remark</th></tr></thead><tbody>${tableRows || '<tr><td colspan="4" class="text-center p-4">No records</td></tr>'}</tbody></table></div><div class="mt-4 pt-2 border-t text-center text-[9px] text-gray-400">Generated: ${new Date().toLocaleDateString()}</div></div>`;
-        } catch (err) { contentDiv.innerHTML = `<div class="text-center py-20 text-red-500">Error: ${err.message}</div>`; showMessage("অ্যাটেন্ডেন্স তথ্য লোড করতে সমস্যা হয়েছে", "error"); }
+            var records = [];
+
+            // ✅ Session path থেকে attendance লোড: current_session/{session}/classes/{classId}/attendance
+            var attColRef = collection(db, 'current_session/' + currentSession + '/classes/' + classId + '/attendance');
+            var attSnap = await getDocs(attColRef);
+
+            for (var d = 0; d < attSnap.docs.length; d++) {
+                var docSnap = attSnap.docs[d];
+                var data = docSnap.data();
+
+                // Pattern 1: Date-based document with embedded records map
+                if (data.records && typeof data.records === 'object' && !Array.isArray(data.records)) {
+                    var docDate = data.date || docSnap.id;
+                    var entries = Object.entries(data.records);
+
+                    for (var e = 0; e < entries.length; e++) {
+                        var sId = entries[e][0];
+                        var status = entries[e][1];
+
+                        // শুধু এই student-এর record
+                        if (sId !== studentId) continue;
+
+                        // Section ফিল্টার
+                        if (section && data.section && data.section !== section) continue;
+
+                        records.push({
+                            id: docSnap.id + '_' + sId,
+                            date: docDate,
+                            studentId: sId,
+                            studentName: data.studentNames ? (data.studentNames[sId] || studentName) : studentName,
+                            classId: data.classId || classId,
+                            className: data.className || className,
+                            section: data.section || section,
+                            roll: data.rolls ? (data.rolls[sId] || rollNumber) : rollNumber,
+                            status: status,
+                            remark: data.remarks ? (data.remarks[sId] || '') : '',
+                            sessionName: currentSession
+                        });
+                    }
+                }
+                // Pattern 2: Individual record document (one student per doc)
+                else {
+                    if (data.studentId && data.studentId === studentId) {
+                        if (section && data.section && data.section !== section) continue;
+                        records.push({
+                            id: docSnap.id,
+                            date: data.date || '',
+                            studentId: data.studentId,
+                            studentName: data.studentName || studentName,
+                            classId: data.classId || classId,
+                            className: data.className || className,
+                            section: data.section || section,
+                            roll: data.roll || rollNumber,
+                            status: data.status || '',
+                            remark: data.remark || '',
+                            sessionName: currentSession
+                        });
+                    }
+                }
+            }
+
+            // তারিখ অনুসারে সর্ট (নতুন → পুরানো)
+            records.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
+
+            // পরিসংখ্যান
+            var present = 0, absent = 0, late = 0;
+            for (var r = 0; r < records.length; r++) {
+                if (records[r].status === 'present') present++;
+                else if (records[r].status === 'late') late++;
+                else absent++;
+            }
+            var total = records.length;
+            var percent = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
+            var percentColor = percent >= 75 ? 'text-green-600' : percent >= 50 ? 'text-yellow-600' : 'text-red-600';
+
+            // টেবিল সারি
+            var tableRows = '';
+            for (var idx = 0; idx < records.length; idx++) {
+                var rec = records[idx];
+                var statusBg = rec.status === 'present' ? 'bg-green-100 text-green-700' : (rec.status === 'late' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700');
+                var statusIcon = rec.status === 'present' ? 'fa-check-circle' : (rec.status === 'late' ? 'fa-clock' : 'fa-times-circle');
+                var statusText = rec.status === 'present' ? 'Present' : (rec.status === 'late' ? 'Late' : 'Absent');
+
+                tableRows += '<tr class="hover:bg-gray-50">' +
+                    '<td class="p-2 text-center text-gray-500">' + (idx + 1) + '</td>' +
+                    '<td class="p-2">' + escapeHtml(rec.date || '-') + '</td>' +
+                    '<td class="p-2"><span class="px-2 py-0.5 rounded-full text-xs ' + statusBg + '"><i class="fas ' + statusIcon + ' mr-1"></i>' + statusText + '</span></td>' +
+                    '<td class="p-2 text-gray-500">' + escapeHtml(rec.remark || '\u2014') + '</td>' +
+                '</tr>';
+            }
+
+            var cached = studentPhotoCache[studentId];
+            var photoUrl = cached ? cached.photo : '';
+            var photoHTML = '';
+            if (photoUrl) {
+                photoHTML = '<div class="flex justify-center mb-4"><img src="' + escapeHtml(photoUrl) + '" class="w-20 h-20 rounded-full object-cover border-2 border-indigo-500 shadow" onerror="this.style.display=\'none\'"></div>';
+            }
+
+            contentDiv.innerHTML = '<div class="attendance-print-card max-w-5xl mx-auto bg-white p-6 rounded-xl shadow">' +
+                '<div class="text-center border-b pb-3 mb-3">' +
+                    '<h2 class="text-xl font-bold">' + escapeHtml(schoolName) + '</h2>' +
+                    '<p class="text-sm text-gray-500">' + escapeHtml(schoolAddress) + '</p>' +
+                    '<div class="mt-2 bg-indigo-600 text-white px-3 py-0.5 inline-block rounded-full text-xs"><i class="fas fa-calendar-check mr-1"></i> Attendance Report</div>' +
+                '</div>' +
+                photoHTML +
+                '<div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-4">' +
+                    '<div class="bg-gray-50 p-2 rounded"><p class="text-xs text-gray-500">Student</p><p class="font-bold">' + escapeHtml(studentName) + '</p></div>' +
+                    '<div class="bg-gray-50 p-2 rounded"><p class="text-xs text-gray-500">Class</p><p class="font-bold">' + escapeHtml(className) + ' - ' + escapeHtml(section) + '</p></div>' +
+                    '<div class="bg-gray-50 p-2 rounded"><p class="text-xs text-gray-500">Roll</p><p class="font-bold">' + escapeHtml(rollNumber) + '</p></div>' +
+                    '<div class="bg-gray-50 p-2 rounded"><p class="text-xs text-gray-500">Session</p><p class="font-bold">' + currentSession + '</p></div>' +
+                '</div>' +
+                '<div class="grid grid-cols-4 gap-3 mb-4">' +
+                    '<div class="bg-green-50 p-3 rounded text-center"><p class="text-xs text-gray-500">Present</p><p class="text-2xl font-bold text-green-600">' + present + '</p></div>' +
+                    '<div class="bg-red-50 p-3 rounded text-center"><p class="text-xs text-gray-500">Absent</p><p class="text-2xl font-bold text-red-600">' + absent + '</p></div>' +
+                    '<div class="bg-yellow-50 p-3 rounded text-center"><p class="text-xs text-gray-500">Late</p><p class="text-2xl font-bold text-yellow-600">' + late + '</p></div>' +
+                    '<div class="bg-indigo-50 p-3 rounded text-center"><p class="text-xs text-gray-500">Attendance %</p><p class="text-2xl font-bold ' + percentColor + '">' + percent + '%</p></div>' +
+                '</div>' +
+                '<div><h3 class="font-bold text-sm mb-2"><i class="fas fa-list mr-1 text-indigo-500"></i> Detailed Records</h3><table class="w-full border text-xs"><thead class="bg-gray-100"><tr><th>#</th><th>Date</th><th>Status</th><th>Remark</th></tr></thead><tbody>' + (tableRows || '<tr><td colspan="4" class="text-center p-4 text-gray-400">No attendance records found in session path</td></tr>') + '</tbody></table></div>' +
+                '<div class="mt-4 pt-2 border-t flex justify-between items-center text-[9px] text-gray-400"><span>Generated: ' + new Date().toLocaleDateString() + '</span><span><i class="fas fa-database mr-1"></i> Session Path Data</span></div>' +
+            '</div>';
+
+        } catch (err) {
+            contentDiv.innerHTML = '<div class="text-center py-20 text-red-500">Error: ' + err.message + '</div>';
+            showMessage("Error loading attendance", "error");
+        }
     };
 
-    window.printCurrentMarksheet = () => { const w = window.open('', '_blank'); w.document.write(`<html><head><title>Marksheet</title><style>body{margin:0;padding:0;} .marksheet-card{width:210mm;min-height:297mm;padding:12mm;margin:0;page-break-after:always;position:relative;} .watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.04;width:450px;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #000;padding:4px;} .not-enrolled{background-color:#f9fafb;color:#9ca3af;} @page{size:portrait;margin:10mm;}</style></head><body>${document.getElementById('marksheetContent').innerHTML}</body></html>`); w.document.close(); w.print(); };
-    window.printCurrentAttendance = () => { const w = window.open('', '_blank'); w.document.write(`<html><head><title>Attendance</title><style>body{margin:0;padding:12mm;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #ddd;padding:6px;}</style></head><body>${document.getElementById('attendanceContent').innerHTML}</body></html>`); w.document.close(); w.print(); };
-    window.closeMarksheetModal = () => { document.getElementById('marksheetModal').classList.add('hidden'); document.getElementById('marksheetContent').innerHTML = ''; };
-    window.closeAttendanceModal = () => { document.getElementById('attendanceModal').classList.add('hidden'); document.getElementById('attendanceContent').innerHTML = ''; };
+    // ===== Print & Close =====
+    window.printCurrentMarksheet = function() {
+        var w = window.open('', '_blank');
+        w.document.write('<html><head><title>Marksheet</title><style>body{margin:0;padding:0;} .marksheet-card{width:210mm;min-height:297mm;padding:12mm;margin:0;page-break-after:always;position:relative;} .watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.04;width:450px;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #000;padding:4px;} .not-enrolled{background-color:#f9fafb;color:#9ca3af;} @page{size:portrait;margin:10mm;}</style></head><body>' + document.getElementById('marksheetContent').innerHTML + '</body></html>');
+        w.document.close(); w.print();
+    };
+    window.printCurrentAttendance = function() {
+        var w = window.open('', '_blank');
+        w.document.write('<html><head><title>Attendance</title><style>body{margin:0;padding:12mm;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #ddd;padding:6px;}</style></head><body>' + document.getElementById('attendanceContent').innerHTML + '</body></html>');
+        w.document.close(); w.print();
+    };
+    window.closeMarksheetModal = function() {
+        document.getElementById('marksheetModal').classList.add('hidden');
+        document.getElementById('marksheetContent').innerHTML = '';
+    };
+    window.closeAttendanceModal = function() {
+        document.getElementById('attendanceModal').classList.add('hidden');
+        document.getElementById('attendanceContent').innerHTML = '';
+    };
 
-    async function initApp() { await getSession(); await getSchoolInfo(); initCloudinaryWidget(); }
-    onAuthStateChanged(auth, async (user) => { await initApp(); if (user) { const parentId = await loadParentData(user); if (parentId) await loadStudents(parentId); } else { document.getElementById("studentTableBody").innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-400">Please login</td></tr>`; showMessage("প্লিজ লগইন করুন", "error"); } });
+    // ===== Init =====
+    async function initApp() {
+        await getSession();
+        await getSchoolInfo();
+        initCloudinaryWidget();
+    }
+
+    onAuthStateChanged(auth, async function(user) {
+        await initApp();
+        if (user) {
+            var parentId = await loadParentData(user);
+            if (parentId) await loadStudents(parentId);
+        } else {
+            document.getElementById("studentTableBody").innerHTML = '<tr><td colspan="8" class="text-center py-8 text-gray-400">Please login</td></tr>';
+            showMessage("Please login", "error");
+        }
+    });
 </script>
 </body>
 </html>
