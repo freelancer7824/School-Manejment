@@ -57,9 +57,47 @@
             border-radius: 20px;
             font-size: 12px;
         }
+        .photo-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            cursor: pointer;
+            animation: fadeIn 0.2s ease;
+        }
+        .photo-modal img {
+            max-width: 90vw;
+            max-height: 85vh;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            animation: zoomIn 0.25s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .student-photo-cell {
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        .student-photo-cell:hover {
+            transform: scale(1.15);
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-6">
+
+    <!-- Photo Modal -->
+    <div id="photoModal" class="photo-modal hidden" onclick="this.classList.add('hidden')">
+        <img id="photoModalImg" src="" alt="Student Photo">
+    </div>
 
     <div id="toast" class="fixed top-20 right-4 left-4 md:left-auto z-50 hidden transition-all duration-300 max-w-sm shadow-2xl">
         <div class="bg-white rounded-xl shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success">
@@ -130,7 +168,7 @@
                     <input type="date" id="toDate" class="w-full border border-gray-300 rounded-xl p-2.5">
                 </div>
                 <div>
-                    <button id="filterBtn" class="w-full bg-primary text-white py-2.5 rounded-xl hover:bg-blue-700 transition font-medium">
+                    <button id="filterBtn" class="w-full bg-primary text-white py-2.5 rounded-xl hover:bg-blue-700 transition font-medium shadow-lg shadow-primary/25">
                         <i class="fas fa-search mr-1"></i> View Records
                     </button>
                 </div>
@@ -178,9 +216,10 @@
             </div>
             <div class="overflow-x-auto" style="max-height: 60vh; overflow-y: auto;">
                 <table class="w-full" id="recordsTable">
-                    <thead class="sticky top-0 bg-gray-50 z-10 border-b">
+                    <thead id="tableHead" class="sticky top-0 bg-gray-50 z-10 border-b">
                         <tr class="text-left text-sm font-semibold text-gray-600">
                             <th class="px-4 py-3">#</th>
+                            <th class="px-4 py-3">Photo</th>
                             <th class="px-4 py-3">Date</th>
                             <th class="px-4 py-3">Student Name</th>
                             <th class="px-4 py-3">Class - Section</th>
@@ -190,7 +229,11 @@
                         </tr>
                     </thead>
                     <tbody id="recordsTableBody">
-                        <tr><td colspan="7" class="text-center py-12 text-gray-400"><i class="fas fa-calendar-search text-3xl mb-2 block"></i>Select filters and click "View Records"</td></tr>
+                        <tr><td colspan="9" class="text-center py-16 text-gray-400">
+                            <i class="fas fa-filter text-4xl mb-3 block text-primary/30"></i>
+                            <p class="text-base font-medium text-gray-500">Select filters and click "View Records"</p>
+                            <p class="text-xs text-gray-400 mt-1">Choose session, class, date range then press View Records</p>
+                        </td></tr>
                     </tbody>
                 </table>
             </div>
@@ -200,6 +243,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getFirestore, collection, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
@@ -212,11 +256,13 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
         let allClasses = [];
         let sectionsCache = {};
         let classOptionsMap = {};
         let studentsCache = [];
+        let studentPhotoCache = {};
         let currentRecords = [];
         let isLoading = false;
         let currentSession = "2025-2026";
@@ -226,7 +272,10 @@
             const toast = document.getElementById('toast');
             const toastText = document.getElementById('toast-text');
             const toastIcon = document.getElementById('toast-icon');
-            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' : 'fas fa-exclamation-circle text-danger text-lg';
+            const borderDiv = toast.querySelector('div');
+            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' : type === 'error' ? 'fas fa-exclamation-circle text-danger text-lg' : 'fas fa-info-circle text-primary text-lg';
+            borderDiv.className = borderDiv.className.replace(/border-\w+/g, '');
+            borderDiv.classList.add(type === 'error' ? 'border-danger' : type === 'info' ? 'border-primary' : 'border-success');
             toastText.innerText = msg;
             toast.classList.remove('hidden');
             toast.style.display = 'flex';
@@ -239,11 +288,72 @@
 
         function escapeHtml(str) {
             if (!str) return '';
-            return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m]));
+            return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[m]));
         }
 
         function getViewingSession() {
             return document.getElementById('sessionSelect').value === 'current' ? currentSession : nextSession;
+        }
+
+        function getPhotoHTML(studentId, studentName) {
+            const photo = studentPhotoCache[studentId] || '';
+            const initial = (studentName || '?')[0].toUpperCase();
+            const colors = ['bg-blue-500','bg-emerald-500','bg-purple-500','bg-amber-500','bg-pink-500','bg-teal-500','bg-indigo-500','bg-rose-500'];
+            const colorIdx = Math.abs((studentId || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % colors.length;
+            const bgColor = colors[colorIdx];
+
+            if (photo && (photo.startsWith('http://') || photo.startsWith('https://'))) {
+                return `<img src="${escapeHtml(photo)}" data-fallback-initial="${initial}" data-fallback-color="${bgColor}" class="student-photo-cell w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm" alt="${escapeHtml(studentName)}" onclick="openPhotoModal(this.src)">`;
+            }
+            return `<div class="w-9 h-9 rounded-full ${bgColor} text-white font-bold text-xs flex items-center justify-center shadow-sm flex-shrink-0">${initial}</div>`;
+        }
+
+        window.openPhotoModal = function(src) {
+            if (!src) return;
+            const modal = document.getElementById('photoModal');
+            const img = document.getElementById('photoModalImg');
+            img.src = src;
+            modal.classList.remove('hidden');
+        };
+
+        // Image error handler — fallback to initials
+        document.addEventListener('error', function(e) {
+            if (e.target.classList && e.target.classList.contains('student-photo-cell')) {
+                const initial = e.target.getAttribute('data-fallback-initial') || '?';
+                const bgColor = e.target.getAttribute('data-fallback-color') || 'bg-blue-500';
+                const div = document.createElement('div');
+                div.className = `w-9 h-9 rounded-full ${bgColor} text-white font-bold text-xs flex items-center justify-center shadow-sm flex-shrink-0`;
+                div.textContent = initial;
+                e.target.replaceWith(div);
+            }
+        }, true);
+
+        function updateTableHead(reportType) {
+            const thead = document.getElementById('tableHead');
+            if (reportType === 'summary') {
+                thead.innerHTML = `<tr class="text-left text-sm font-semibold text-gray-600">
+                    <th class="px-4 py-3">#</th>
+                    <th class="px-4 py-3">Photo</th>
+                    <th class="px-4 py-3">Student Name</th>
+                    <th class="px-4 py-3">Class - Section</th>
+                    <th class="px-4 py-3">Roll No</th>
+                    <th class="px-4 py-3 text-center">Present</th>
+                    <th class="px-4 py-3 text-center">Absent</th>
+                    <th class="px-4 py-3 text-center">Late</th>
+                    <th class="px-4 py-3 text-center">%</th>
+                </tr>`;
+            } else {
+                thead.innerHTML = `<tr class="text-left text-sm font-semibold text-gray-600">
+                    <th class="px-4 py-3">#</th>
+                    <th class="px-4 py-3">Photo</th>
+                    <th class="px-4 py-3">Date</th>
+                    <th class="px-4 py-3">Student Name</th>
+                    <th class="px-4 py-3">Class - Section</th>
+                    <th class="px-4 py-3">Roll No</th>
+                    <th class="px-4 py-3 text-center">Status</th>
+                    <th class="px-4 py-3">Remark</th>
+                </tr>`;
+            }
         }
 
         async function loadSession() {
@@ -307,30 +417,30 @@
             sections.forEach(sec => sectionSelect.appendChild(new Option(sec, sec)));
         }
 
-        // 🔥 Load students from SESSION DATA only
         async function loadSessionStudents(sessionVal, classId, sectionName) {
             const students = [];
             const targetSession = sessionVal === 'next' ? nextSession : currentSession;
-            
+
             try {
                 if (classId) {
                     const studRef = collection(db, `current_session/${targetSession}/classes/${classId}/students`);
                     const studSnap = await getDocs(studRef);
-                    
+
                     for (const docSnap of studSnap.docs) {
                         const data = docSnap.data();
                         const studentSection = data.section || "";
-                        
+
                         if (sectionName && studentSection !== sectionName) continue;
                         if (sessionVal === 'current' && data.promotedToNextSession === true) continue;
-                        
+
                         students.push({
                             id: docSnap.id,
                             name: data.fullName || data.name || "Unknown",
                             classId: classId,
                             section: studentSection,
                             roll: data.rollNumber || data.roll || "N/A",
-                            className: classOptionsMap[classId] || data.className || ''
+                            className: classOptionsMap[classId] || data.className || '',
+                            photo: data.photo || data.photoURL || data.photoUrl || data.profilePhoto || data.imageUrl || data.image || data.avatar || ''
                         });
                     }
                 } else {
@@ -339,46 +449,47 @@
                         const cid = classDoc.id;
                         const studRef = collection(db, `current_session/${targetSession}/classes/${cid}/students`);
                         const studSnap = await getDocs(studRef);
-                        
+
                         for (const docSnap of studSnap.docs) {
                             const data = docSnap.data();
                             const studentSection = data.section || "";
-                            
+
                             if (sectionName && studentSection !== sectionName) continue;
                             if (sessionVal === 'current' && data.promotedToNextSession === true) continue;
-                            
+
                             students.push({
                                 id: docSnap.id,
                                 name: data.fullName || data.name || "Unknown",
                                 classId: cid,
                                 section: studentSection,
                                 roll: data.rollNumber || data.roll || "N/A",
-                                className: classOptionsMap[cid] || data.className || classDoc.data().name
+                                className: classOptionsMap[cid] || data.className || classDoc.data().name,
+                                photo: data.photo || data.photoURL || data.photoUrl || data.profilePhoto || data.imageUrl || data.image || data.avatar || ''
                             });
                         }
                     }
                 }
-                
+
                 students.sort((a, b) => {
                     const ar = parseInt(a.roll) || 0;
                     const br = parseInt(b.roll) || 0;
                     return ar - br;
                 });
-                
+
             } catch (e) {
                 console.error('Error loading session students:', e);
             }
-            
+
             return students;
         }
 
         async function updateStudentDropdown(classId, section) {
             const studentSelect = document.getElementById('studentSelect');
             const sessionVal = document.getElementById('sessionSelect').value;
-            
-            let filtered = await loadSessionStudents(sessionVal, classId, section);
+
+            let filtered = await loadSessionStudents(sessionVal, classId || null, section || null);
             studentsCache = filtered;
-            
+
             studentSelect.disabled = false;
             studentSelect.innerHTML = '<option value="">All Students</option>';
             filtered.forEach(s => studentSelect.appendChild(new Option(`${s.name} (${s.roll})`, s.id)));
@@ -398,9 +509,30 @@
 
             isLoading = true;
             const tbody = document.getElementById('recordsTableBody');
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12"><div class="loading-spinner mx-auto"></div><p class="text-gray-400 mt-2">Loading records...</p></td></table>`;
+            const maxCol = reportType === 'summary' ? 9 : 8;
+            tbody.innerHTML = `<tr><td colspan="${maxCol}" class="text-center py-12"><div class="loading-spinner mx-auto"></div><p class="text-gray-400 mt-3">Loading records...</p></td></tr>`;
 
             try {
+                // Load students for photo cache
+                const sessionStudents = await loadSessionStudents(sessionVal, classId || null, section || null);
+                studentPhotoCache = {};
+                for (const s of sessionStudents) {
+                    if (s.photo) studentPhotoCache[s.id] = s.photo;
+                }
+
+                // Resolve gs:// Firebase Storage URLs to HTTPS download URLs
+                const resolvePromises = Object.entries(studentPhotoCache).map(async ([id, photo]) => {
+                    if (photo && photo.startsWith('gs://')) {
+                        try {
+                            studentPhotoCache[id] = await getDownloadURL(ref(storage, photo));
+                        } catch {
+                            studentPhotoCache[id] = '';
+                        }
+                    }
+                });
+                await Promise.all(resolvePromises);
+
+                // Fetch attendance records
                 const snapshot = await getDocs(collection(db, "attendance"));
                 let allRecords = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
@@ -424,7 +556,7 @@
             } catch (err) {
                 console.error("Error fetching attendance:", err);
                 showToast("Error loading records: " + err.message, "error");
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12 text-red-500"><i class="fas fa-exclamation-triangle text-3xl mb-2 block"></i>Error loading records. Please try again.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-12 text-red-500"><i class="fas fa-exclamation-triangle text-3xl mb-2 block"></i>Error loading records. Please try again.</td></tr>`;
             } finally {
                 isLoading = false;
             }
@@ -434,8 +566,11 @@
             const tbody = document.getElementById('recordsTableBody');
             const recordInfo = document.getElementById('recordInfo');
 
+            updateTableHead(reportType);
+
             if (records.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12 text-gray-400"><i class="fas fa-database text-3xl mb-2 block"></i>No attendance records found</td></tr>`;
+                const colSpan = reportType === 'summary' ? 9 : 8;
+                tbody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-16 text-gray-400"><i class="fas fa-database text-4xl mb-3 block text-primary/30"></i><p class="text-base font-medium text-gray-500">No attendance records found</p><p class="text-xs text-gray-400 mt-1">Try changing the filters and date range</p></td></tr>`;
                 recordInfo.innerText = `No records found`;
                 return;
             }
@@ -448,6 +583,7 @@
                     const key = rec.studentId;
                     if (!studentSummary[key]) {
                         studentSummary[key] = {
+                            studentId: rec.studentId,
                             studentName: rec.studentName || "Unknown",
                             roll: rec.roll || "N/A",
                             className: rec.className || "N/A",
@@ -468,16 +604,18 @@
                 let idx = 1;
                 for (const summary of Object.values(studentSummary)) {
                     const presentPercent = summary.total > 0 ? ((summary.present / summary.total) * 100).toFixed(1) : 0;
+                    const percentColor = presentPercent >= 75 ? 'text-success' : presentPercent >= 50 ? 'text-warning' : 'text-danger';
                     html += `
-                        <tr class="border-b border-gray-100 hover:bg-gray-50">
-                            <td class="px-4 py-3 text-sm">${idx++}</td>
-                            <td class="px-4 py-3 text-sm font-medium">${escapeHtml(summary.studentName)}</td>
-                            <td class="px-4 py-3 text-sm">${escapeHtml(summary.className)} - ${escapeHtml(summary.section)}</td>
+                        <tr class="border-b border-gray-100 hover:bg-blue-50/40 transition-colors">
+                            <td class="px-4 py-3 text-sm text-gray-500">${idx++}</td>
+                            <td class="px-4 py-3">${getPhotoHTML(summary.studentId, summary.studentName)}</td>
+                            <td class="px-4 py-3 text-sm font-semibold text-gray-800">${escapeHtml(summary.studentName)}</td>
+                            <td class="px-4 py-3 text-sm text-gray-600">${escapeHtml(summary.className)} - ${escapeHtml(summary.section)}</td>
                             <td class="px-4 py-3 text-sm">${escapeHtml(summary.roll)}</td>
-                            <td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded-full text-xs bg-success/20 text-success font-medium">P: ${summary.present}</span></td>
-                            <td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded-full text-xs bg-danger/20 text-danger font-medium">A: ${summary.absent}</span></td>
-                            <td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded-full text-xs bg-warning/20 text-warning font-medium">L: ${summary.late}</span></td>
-                            <td class="px-4 py-3 text-center"><span class="font-bold text-primary">${presentPercent}%</span></td>
+                            <td class="px-4 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-full text-xs bg-success/15 text-success font-semibold">P: ${summary.present}</span></td>
+                            <td class="px-4 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-full text-xs bg-danger/15 text-danger font-semibold">A: ${summary.absent}</span></td>
+                            <td class="px-4 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-full text-xs bg-warning/15 text-warning font-semibold">L: ${summary.late}</span></td>
+                            <td class="px-4 py-3 text-center"><span class="font-bold ${percentColor}">${presentPercent}%</span></td>
                         </tr>
                     `;
                 }
@@ -487,19 +625,20 @@
 
             let html = '';
             records.forEach((rec, idx) => {
-                const statusColor = rec.status === 'present' ? 'bg-success/20 text-success' : (rec.status === 'late' ? 'bg-warning/20 text-warning' : 'bg-danger/20 text-danger');
+                const statusColor = rec.status === 'present' ? 'bg-success/15 text-success' : (rec.status === 'late' ? 'bg-warning/15 text-warning' : 'bg-danger/15 text-danger');
                 const statusIcon = rec.status === 'present' ? 'fa-check-circle' : (rec.status === 'late' ? 'fa-clock' : 'fa-times-circle');
                 const statusText = rec.status === 'present' ? 'Present' : (rec.status === 'late' ? 'Late' : 'Absent');
 
                 html += `
-                    <tr class="border-b border-gray-100 hover:bg-gray-50">
-                        <td class="px-4 py-3 text-sm">${idx + 1}</td>
-                        <td class="px-4 py-3 text-sm whitespace-nowrap">${escapeHtml(rec.date || 'N/A')}</td>
-                        <td class="px-4 py-3 text-sm font-medium">${escapeHtml(rec.studentName || 'Unknown')}</td>
-                        <td class="px-4 py-3 text-sm">${escapeHtml(rec.className || rec.classId || 'N/A')} - ${escapeHtml(rec.section || 'N/A')}</td>
+                    <tr class="border-b border-gray-100 hover:bg-blue-50/40 transition-colors">
+                        <td class="px-4 py-3 text-sm text-gray-500">${idx + 1}</td>
+                        <td class="px-4 py-3">${getPhotoHTML(rec.studentId, rec.studentName)}</td>
+                        <td class="px-4 py-3 text-sm whitespace-nowrap text-gray-600">${escapeHtml(rec.date || 'N/A')}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-gray-800">${escapeHtml(rec.studentName || 'Unknown')}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">${escapeHtml(rec.className || rec.classId || 'N/A')} - ${escapeHtml(rec.section || 'N/A')}</td>
                         <td class="px-4 py-3 text-sm">${escapeHtml(rec.roll || 'N/A')}</td>
                         <td class="px-4 py-3 text-center">
-                            <span class="status-badge inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${statusColor}">
+                            <span class="status-badge inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${statusColor}">
                                 <i class="fas ${statusIcon}"></i> ${statusText}
                             </span>
                         </td>
@@ -523,6 +662,14 @@
             document.getElementById('totalAbsent').innerText = absent;
             document.getElementById('totalLate').innerText = late;
             document.getElementById('attPercent').innerText = `${total > 0 ? ((present / total) * 100).toFixed(1) : 0}%`;
+        }
+
+        function resetView() {
+            currentRecords = [];
+            studentPhotoCache = {};
+            document.getElementById('recordsTableBody').innerHTML = `<tr><td colspan="9" class="text-center py-16 text-gray-400"><i class="fas fa-filter text-4xl mb-3 block text-primary/30"></i><p class="text-base font-medium text-gray-500">Select filters and click "View Records"</p><p class="text-xs text-gray-400 mt-1">Choose session, class, date range then press View Records</p></td></tr>`;
+            document.getElementById('recordInfo').innerText = 'Select filters and click View Records';
+            updateStatistics([]);
         }
 
         function printReport() { window.print(); }
@@ -586,9 +733,7 @@
             document.getElementById('sectionSelect').disabled = true;
             document.getElementById('studentSelect').innerHTML = '<option value="">All Students</option>';
             document.getElementById('studentSelect').disabled = true;
-            document.getElementById('recordsTableBody').innerHTML = `<tr><td colspan="7" class="text-center py-12 text-gray-400">Select filters and click "View Records"</td></tr>`;
-            currentRecords = [];
-            updateStatistics([]);
+            resetView();
         });
 
         document.getElementById('classSelect').addEventListener('change', async (e) => {
@@ -613,12 +758,11 @@
         document.getElementById('fromDate').value = thirtyDaysAgo.toISOString().split('T')[0];
         document.getElementById('toDate').value = today.toISOString().split('T')[0];
 
-        // Initialize
+        // Initialize — NO auto-fetch, user must click "View Records"
         await loadSession();
         await loadClasses();
         await updateStudentDropdown('', '');
         document.getElementById('studentSelect').disabled = false;
-        await fetchAttendanceRecords();
     </script>
 </body>
 </html>
