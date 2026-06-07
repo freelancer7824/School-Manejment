@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
-<!-- আপনার তৈরি করা স্ক্রিপ্ট ফাইল -->
-<script src="../Settings/School-loader/school-loader.js"></script>
-    
+    <!-- আপনার তৈরি করা স্ক্রিপ্ট ফাইল -->
+    <script src="../Settings/School-loader/school-loader.js"></script>
     
     <title>ONNO ROKOM BIDDYANIKETON - Parent & Teacher Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -388,7 +387,8 @@
             getAuth, 
             signInWithEmailAndPassword,
             onAuthStateChanged,
-            sendPasswordResetEmail
+            sendPasswordResetEmail,
+            signOut // ✅ লগআউট করার জন্য signOut ইম্পোর্ট করা হয়েছে
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
             getFirestore, collection, query, where, getDocs, doc, getDoc
@@ -439,7 +439,18 @@
                 const docSnap = await getDoc(userRef);
 
                 if (docSnap.exists() && docSnap.data().role) {
-                    const userRole = docSnap.data().role;
+                    const userData = docSnap.data();
+                    
+                    // ✅ সিকিউরিটি চেক: ইউজার যদি ইতিমধ্যে লগইন থাকে, কিন্তু অ্যাডমিন তাকে নিষ্ক্রিয় করে থাকে
+                    if (userData.status === 'inactive') {
+                        await signOut(auth); // স্বয়ংক্রিয়ভাবে লগআউট করিয়ে দেওয়া হবে
+                        displayMessage('❌ আপনার অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে। অ্যাডমিনের সাথে যোগাযোগ করুন।', 'error');
+                        loadingOverlay.style.opacity = '0';
+                        setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500);
+                        return;
+                    }
+
+                    const userRole = userData.role;
                     let redirectPage = 'dashboard.html';
                     
                     if (userRole === 'admin') redirectPage = '../Admin/admin.html';
@@ -529,6 +540,12 @@
                     return;
                 }
                 
+                // ✅ লগইন চেক: অ্যাকাউন্ট নিষ্ক্রিয় থাকলে লগইন প্রতিরোধ করা হবে
+                if (userDataFromFirestore.status === 'inactive') {
+                    displayMessage('❌ আপনার অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে। অ্যাডমিনের সাথে যোগাযোগ করুন।', 'error');
+                    return;
+                }
+
                 displayMessage(`🔄 Authenticating as ${userRole.toUpperCase()}...`, 'success');
 
                 // Sign in with Firebase Auth
@@ -631,7 +648,7 @@
             var start = new Date().getTime();
             debugger;
             var end = new Date().getTime();
-            // যদি ডিবাগার পজ করে (ডেভেলপার টুলস ওপেন থাকে), তাহলে সময় ১০০ মিলিসেকেন্ডের বেশি হবে
+            // যদি ডিবাগার পজ করে (ডেভেলপার টুলস ওপেন থাকে), তাহলে সময় ১০০ মিলিসেকেন্ডের বেশি হবে
             if(end - start > 100){
                 document.body.innerHTML = "<h1 style='text-align:center;margin-top:20%;color:red; font-size:50px;'>Access Denied!</h1>";
                 document.body.style.backgroundColor = "black";
