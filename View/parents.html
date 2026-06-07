@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Parents Management | View, Edit, Delete & Linked Students</title>
+    <title>Parents Management | Incremental Sync | Local Cache</title>
     <!-- Tailwind + Font Awesome -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -118,17 +118,23 @@
         <!-- Filter Bar -->
         <div class="bg-white rounded-2xl shadow-md p-5 mb-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div><label class="block text-sm font-semibold text-gray-700 mb-1">Select Class</label><select id="classFilter" class="w-full border rounded-lg p-2.5"><option value="">All Classes</option></select></div>
+                <div><label class="block text-sm font-semibold text-gray-700 mb-1">Select Class *</label><select id="classFilter" class="w-full border rounded-lg p-2.5"><option value="">-- Select Class --</option></select></div>
                 <div><label class="block text-sm font-semibold text-gray-700 mb-1">Select Section</label><select id="sectionFilter" class="w-full border rounded-lg p-2.5" disabled><option value="">First select class</option></select></div>
-                <div><label class="block text-sm font-semibold text-gray-700 mb-1">Search</label><input type="text" id="searchInput" class="w-full border rounded-lg p-2.5" placeholder="Guardian name, phone..."></div>
-                <div class="flex items-end"><button id="refreshBtn" class="w-full bg-gray-100 hover:bg-gray-200 py-2.5 rounded-lg font-medium"><i class="fas fa-sync-alt mr-1"></i> Refresh</button></div>
+                <div><label class="block text-sm font-semibold text-gray-700 mb-1">Search</label><input type="text" id="searchInput" class="w-full border rounded-lg p-2.5" placeholder="Guardian name, phone..." disabled></div>
+                <div class="flex items-end gap-2">
+                    <button id="refreshBtn" class="w-full bg-gray-100 hover:bg-gray-200 py-2.5 rounded-lg font-medium text-sm"><i class="fas fa-sync-alt mr-1"></i> Sync</button>
+                    <button id="hardRefreshBtn" class="w-full bg-red-100 text-red-700 hover:bg-red-200 py-2.5 rounded-lg font-medium text-sm"><i class="fas fa-database mr-1"></i> Hard Refresh</button>
+                </div>
             </div>
-            <div class="mt-3 text-sm text-gray-500">Total Parents: <span id="totalCount" class="font-bold text-primary">0</span></div>
+            <div class="mt-3 flex justify-between items-center text-sm">
+                <span class="text-gray-500">Total Parents: <span id="totalCount" class="font-bold text-primary">0</span></span>
+                <span id="cacheStatus" class="text-xs bg-blue-100 px-2 py-1 rounded-full"><i class="fas fa-spinner fa-spin"></i> Loading...</span>
+            </div>
         </div>
 
         <!-- Vertical Table Layout -->
         <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-            <div class="overflow-y-auto" style="max-height: 70vh;">
+            <div class="overflow-y-auto" style="max-height: 65vh;">
                 <table class="w-full">
                     <thead class="sticky top-0 bg-gray-50 border-b z-10">
                         <tr class="text-left text-sm font-semibold text-gray-600">
@@ -141,16 +147,21 @@
                         </tr>
                     </thead>
                     <tbody id="parentsTableBody">
-                        <tr><td colspan="6" class="text-center py-10 text-gray-400"><i class="fas fa-spinner fa-spin text-2xl"></i> Loading parents...</td></tr>
+                        <tr><td colspan="6" class="text-center py-10 text-gray-400"><i class="fas fa-spinner fa-spin text-2xl"></i> Loading...</td></tr>
                     </tbody>
                 </table>
+            </div>
+            <!-- Pagination Section -->
+            <div class="flex justify-between items-center p-4 border-t bg-gray-50">
+                <span id="paginationInfo" class="text-sm text-gray-600"></span>
+                <div id="paginationControls" class="flex gap-1 flex-wrap justify-end"></div>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, collection, query, getDocs, doc, deleteDoc, updateDoc, orderBy, where, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getFirestore, collection, query, getDocs, doc, deleteDoc, updateDoc, orderBy, where, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         
         const firebaseConfig = {
             apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
@@ -163,10 +174,42 @@
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+
+        const CACHE_KEY = 'parentManager_cache_v1';
+        const ITEMS_PER_PAGE = 20;
         
         let allParents = [], allStudents = [], allClasses = [], sectionsByClass = {}, currentSession = "2025-2026";
         let pendingDeleteId = null;
+        let currentPage = 1;
         
+        // ===== ক্যাশ হেল্পার =====
+        function getCachedData() {
+            try {
+                const raw = localStorage.getItem(CACHE_KEY);
+                if (!raw) return null;
+                return JSON.parse(raw);
+            } catch { return null; }
+        }
+
+        function setCachedData(data, lastSyncTime) {
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify({ 
+                    data, 
+                    lastSyncTime: lastSyncTime || new Date().toISOString(),
+                    timestamp: Date.now() 
+                }));
+                document.getElementById('cacheStatus').innerHTML = '<i class="fas fa-check-circle text-green-600"></i> Cache Active | Synced';
+            } catch (e) {
+                console.error("LocalStorage full, clearing cache");
+                localStorage.removeItem(CACHE_KEY);
+            }
+        }
+
+        function clearCache() {
+            localStorage.removeItem(CACHE_KEY);
+            document.getElementById('cacheStatus').innerHTML = '<i class="fas fa-times-circle text-red-600"></i> Cache Cleared';
+        }
+
         function showToast(msg, type='success') { 
             const t = document.getElementById('toast'); 
             document.getElementById('toast-text').innerText = msg; 
@@ -176,18 +219,20 @@
         }
         window.hideToast = () => document.getElementById('toast').classList.add('hidden');
         
+        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+
         async function loadCurrentSession() {
             try {
                 const s = await getDoc(doc(db, "config", "activeSession"));
                 if(s.exists()) currentSession = s.data().sessionName || "2025-2026";
-                document.getElementById('current-session-badge').innerHTML = `<i class="fas fa-calendar-alt mr-1"></i>${currentSession}`;
+                document.getElementById('current-session-badge').innerHTML = `${currentSession}`;
             } catch(e) {}
         }
         
         async function loadClasses() {
             const snap = await getDocs(query(collection(db, "classes"), orderBy("order")));
             allClasses = []; const select = document.getElementById('classFilter');
-            select.innerHTML = '<option value="">All Classes</option>';
+            select.innerHTML = '<option value="">-- Select Class --</option>';
             snap.forEach(d => { allClasses.push({ id: d.id, name: d.data().name }); select.appendChild(new Option(d.data().name, d.id)); });
         }
         
@@ -198,19 +243,81 @@
             sectionsByClass[cid] = secs; return secs;
         }
         
-        async function loadParents() {
-            const snap = await getDocs(collection(db, "parents"));
-            allParents = []; snap.forEach(d => allParents.push({ id: d.id, ...d.data() }));
+        async function loadParents(isHardRefresh = false) {
+            const cached = getCachedData();
+            const lastSyncTime = (cached?.lastSyncTime && !isHardRefresh) ? cached.lastSyncTime : '1970-01-01T00:00:00.000Z';
+            let existingParents = isHardRefresh ? [] : [...allParents];
+
+            try {
+                let q;
+                if (!isHardRefresh && lastSyncTime !== '1970-01-01T00:00:00.000Z') {
+                    q = query(collection(db, "parents"), where("updatedAt", ">=", lastSyncTime));
+                } else {
+                    q = query(collection(db, "parents"));
+                }
+                
+                const snap = await getDocs(q);
+                const newUpdates = [];
+                snap.forEach(d => newUpdates.push({ id: d.id, ...d.data() }));
+                
+                if (newUpdates.length > 0) {
+                    newUpdates.forEach(newPar => {
+                        const idx = existingParents.findIndex(p => p.id === newPar.id);
+                        if (idx !== -1) existingParents[idx] = newPar;
+                        else existingParents.push(newPar);
+                    });
+                }
+                allParents = existingParents;
+            } catch(e) { console.error(e); }
             return allParents;
         }
         
-        async function loadStudents() {
-            const snap = await getDocs(collection(db, "students"));
-            allStudents = []; snap.forEach(d => allStudents.push({ id: d.id, ...d.data() }));
+        async function loadStudents(isHardRefresh = false) {
+            const cached = getCachedData();
+            const lastSyncTime = (cached?.lastSyncTime && !isHardRefresh) ? cached.lastSyncTime : '1970-01-01T00:00:00.000Z';
+            let existingStudents = isHardRefresh ? [] : [...allStudents];
+
+            try {
+                const classesSnap = await getDocs(collection(db, "classes"));
+                const studentPromises = classesSnap.docs.map(async classDoc => {
+                    const classId = classDoc.id;
+                    const studRef = collection(db, `current_session/${currentSession}/classes/${classId}/students`);
+                    
+                    let q;
+                    if (!isHardRefresh && lastSyncTime !== '1970-01-01T00:00:00.000Z') {
+                        q = query(studRef, where("updatedAt", ">=", lastSyncTime));
+                    } else {
+                        q = query(studRef);
+                    }
+                    
+                    const studSnap = await getDocs(q);
+                    const classStudents = [];
+                    studSnap.forEach(docSnap => {
+                        const data = docSnap.data();
+                        if (data.promotedToNextSession === true) return;
+                        classStudents.push({
+                            id: docSnap.id, ...data, classId: data.classId || classId,
+                            _sessionPath: `current_session/${currentSession}/classes/${classId}/students`
+                        });
+                    });
+                    return classStudents;
+                });
+
+                const results = await Promise.all(studentPromises);
+                const newUpdates = results.flat();
+                
+                if (newUpdates.length > 0) {
+                    newUpdates.forEach(newStud => {
+                        const idx = existingStudents.findIndex(s => s.id === newStud.id);
+                        if (idx !== -1) existingStudents[idx] = newStud;
+                        else existingStudents.push(newStud);
+                    });
+                }
+                allStudents = existingStudents;
+            } catch(e) { console.error(e); }
             return allStudents;
         }
         
-        // Get students linked to a parent
         function getLinkedStudents(parentId) {
             return allStudents.filter(s => s.parentID === parentId);
         }
@@ -232,14 +339,25 @@
             
             let filtered = [...allParents];
             
-            if(classId || section) {
-                // Filter parents based on their linked students' class/section
-                let filteredStudentIds = [...allStudents];
-                if(classId) filteredStudentIds = filteredStudentIds.filter(s => s.classId === classId);
-                if(section) filteredStudentIds = filteredStudentIds.filter(s => s.section === section);
-                const parentIdsWithStudents = new Set(filteredStudentIds.map(s => s.parentID).filter(id => id));
-                filtered = filtered.filter(p => parentIdsWithStudents.has(p.id));
+            // ক্লাস সিলেক্ট করা বাধ্যতামূলক
+            if(!classId) {
+                document.getElementById('parentsTableBody').innerHTML = `<tr><td colspan="6" class="text-center py-16 text-gray-400"><i class="fas fa-hand-pointer text-4xl mb-3 block"></i>Please select a class to view parents</td></tr>`;
+                document.getElementById('paginationControls').innerHTML = '';
+                document.getElementById('paginationInfo').innerText = '';
+                document.getElementById('totalCount').innerText = '0';
+                
+                document.getElementById('searchInput').disabled = true;
+                return;
             }
+            
+            document.getElementById('searchInput').disabled = false;
+
+            // Filter parents based on their linked students' class/section
+            let filteredStudentIds = [...allStudents];
+            if(classId) filteredStudentIds = filteredStudentIds.filter(s => s.classId === classId);
+            if(section) filteredStudentIds = filteredStudentIds.filter(s => s.section === section);
+            const parentIdsWithStudents = new Set(filteredStudentIds.map(s => s.parentID).filter(id => id));
+            filtered = filtered.filter(p => parentIdsWithStudents.has(p.id));
             
             if(search) {
                 filtered = filtered.filter(p => 
@@ -250,16 +368,30 @@
                 );
             }
             
-            await renderTableRows(filtered);
             document.getElementById('totalCount').innerText = filtered.length;
+            await renderTableRows(filtered);
         }
         
         async function renderTableRows(parents) {
             const tbody = document.getElementById('parentsTableBody');
-            if(!parents.length) { tbody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-gray-400"><i class="fas fa-user-friends text-4xl mb-2 block"></i>No parents found</td></tr>`; return; }
+            if(!parents.length) { 
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-gray-400"><i class="fas fa-user-friends text-4xl mb-2 block"></i>No parents found for this class</td></tr>`; 
+                document.getElementById('paginationControls').innerHTML = '';
+                document.getElementById('paginationInfo').innerText = '';
+                return; 
+            }
+
+            const totalPages = Math.ceil(parents.length / ITEMS_PER_PAGE);
+            if (currentPage > totalPages) currentPage = totalPages || 1;
+            
+            const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+            const endIdx = startIdx + ITEMS_PER_PAGE;
+            const paginatedData = parents.slice(startIdx, endIdx);
+
             tbody.innerHTML = '';
-            for(let i=0; i<parents.length; i++) {
-                const p = parents[i];
+            for(let i=0; i<paginatedData.length; i++) {
+                const p = paginatedData[i];
+                const globalIdx = startIdx + i + 1;
                 const linkedStudents = getLinkedStudents(p.id);
                 const studentsHtml = linkedStudents.length > 0 ? 
                     `<div class="space-y-1">${linkedStudents.slice(0,2).map(s => `<div class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded inline-block mr-1 mb-1">${escapeHtml(s.fullName)} (${escapeHtml(s.className)}-${escapeHtml(s.section)})</div>`).join('')}${linkedStudents.length > 2 ? `<div class="text-xs text-gray-400">+${linkedStudents.length-2} more</div>` : ''}</div>` :
@@ -268,7 +400,7 @@
                 const row = document.createElement('tr');
                 row.className = 'parent-row border-b border-gray-100 hover:bg-gray-50';
                 row.innerHTML = `
-                    <td class="px-4 py-3 text-sm text-gray-500 font-medium align-top">${i+1}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500 font-medium align-top">${globalIdx}</td>
                     <td class="px-4 py-3 align-top">
                         <div>
                             <div class="font-semibold text-gray-800">${escapeHtml(p.guardianName || 'N/A')}</div>
@@ -277,8 +409,8 @@
                     </td>
                     <td class="px-4 py-3 align-top">
                         <div class="text-sm space-y-1">
-                            <div><i class="fas fa-father text-gray-400 w-4"></i> ${escapeHtml(p.fatherName || 'N/A')}</div>
-                            <div><i class="fas fa-mother text-gray-400 w-4"></i> ${escapeHtml(p.motherName || 'N/A')}</div>
+                            <div><i class="fas fa-male text-gray-400 w-4"></i> ${escapeHtml(p.fatherName || 'N/A')}</div>
+                            <div><i class="fas fa-female text-gray-400 w-4"></i> ${escapeHtml(p.motherName || 'N/A')}</div>
                         </div>
                     </td>
                     <td class="px-4 py-3 align-top">
@@ -307,7 +439,53 @@
                 tbody.appendChild(row);
             }
             attachRowEvents();
+            renderPagination(totalPages, parents.length);
         }
+
+        // ===== পেজিনেশন কন্ট্রোল রেন্ডার =====
+        function renderPagination(totalPages, totalItems) {
+            document.getElementById('paginationInfo').innerText = `Page ${currentPage} of ${totalPages} (Total: ${totalItems})`;
+            const controls = document.getElementById('paginationControls');
+            controls.innerHTML = '';
+            if (totalPages <= 1) return;
+
+            const prevBtn = document.createElement('button');
+            prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            prevBtn.className = `px-3 py-1 border rounded ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`;
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => { if(currentPage > 1) goToPage(currentPage - 1); };
+            controls.appendChild(prevBtn);
+
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            if(endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+            if(startPage > 1) {
+                 controls.innerHTML += `<button class="px-3 py-1 border rounded hover:bg-gray-100" onclick="goToPage(1)">1</button>`;
+                 if(startPage > 2) controls.innerHTML += `<span class="px-2">...</span>`;
+            }
+            for(let i = startPage; i <= endPage; i++) {
+                 const activeClass = i === currentPage ? 'bg-primary text-white' : 'hover:bg-gray-100';
+                 controls.innerHTML += `<button class="px-3 py-1 border rounded ${activeClass}" onclick="goToPage(${i})">${i}</button>`;
+            }
+            if(endPage < totalPages) {
+                 if(endPage < totalPages - 1) controls.innerHTML += `<span class="px-2">...</span>`;
+                 controls.innerHTML += `<button class="px-3 py-1 border rounded hover:bg-gray-100" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            nextBtn.className = `px-3 py-1 border rounded ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`;
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => { if(currentPage < totalPages) goToPage(currentPage + 1); };
+            controls.appendChild(nextBtn);
+        }
+
+        window.goToPage = (page) => {
+            currentPage = page;
+            filterAndRender();
+            document.querySelector('.overflow-y-auto').scrollTop = 0;
+        };
         
         function attachRowEvents() {
             document.querySelectorAll('.action-dropdown-btn').forEach(btn => {
@@ -358,18 +536,40 @@
                 motherPhone: document.getElementById('editMotherPhone').value,
                 guardianName: document.getElementById('editGuardianName').value,
                 guardianPhone: document.getElementById('editGuardianPhone').value,
-                updatedAt: new Date()
+                updatedAt: new Date().toISOString() // ইনক্রিমেন্টাল সিঙ্কের জন্য
             };
             try {
                 await updateDoc(doc(db, "parents", id), updateData);
-                // Also update the parent name in students collection
+                
+                // লোকাল ক্যাশে সাথে সাথে আপডেট করা
+                const pIdx = allParents.findIndex(p => p.id === id);
+                if(pIdx !== -1) {
+                    allParents[pIdx] = { ...allParents[pIdx], ...updateData };
+                    setCachedData({ allParents, allStudents, allClasses, currentSession });
+                }
+
+                // Also update the parent name in students sub-collection
                 const linkedStudents = getLinkedStudents(id);
                 for(const student of linkedStudents) {
-                    await updateDoc(doc(db, "students", student.id), { parentName: updateData.guardianName, parentPhone: updateData.guardianPhone });
+                    if(student._sessionPath) {
+                        await updateDoc(doc(db, student._sessionPath, student.id), { 
+                            parentName: updateData.guardianName, 
+                            parentPhone: updateData.guardianPhone,
+                            updatedAt: new Date().toISOString()
+                        });
+                        // স্টুডেন্ট লোকাল ক্যাশে আপডেট
+                        const sIdx = allStudents.findIndex(s => s.id === student.id);
+                        if(sIdx !== -1) {
+                            allStudents[sIdx].parentName = updateData.guardianName;
+                            allStudents[sIdx].parentPhone = updateData.guardianPhone;
+                        }
+                    }
                 }
+                setCachedData({ allParents, allStudents, allClasses, currentSession }); // আপডেটেড স্টুডেন্ট ক্যাশে সেভ
+
                 showToast("Parent updated successfully!");
                 closeEditModal();
-                await refreshData();
+                await filterAndRender();
             } catch(err) { showToast(err.message, 'error'); }
         });
         
@@ -400,48 +600,87 @@
                     // First, unlink students (set parentID to null)
                     const linkedStudents = getLinkedStudents(pendingDeleteId);
                     for(const student of linkedStudents) {
-                        await updateDoc(doc(db, "students", student.id), { parentID: null, parentName: null, parentPhone: null });
+                        if(student._sessionPath) {
+                            await updateDoc(doc(db, student._sessionPath, student.id), { 
+                                parentID: null, parentName: null, parentPhone: null,
+                                updatedAt: new Date().toISOString()
+                            });
+                        }
                     }
-                    // Delete parent from auth? (optional - skip for now)
+                    // Delete parent document
                     await deleteDoc(doc(db, "parents", pendingDeleteId));
+                    
+                    // লোকাল ক্যাশ থেকে ডিলিট করা
+                    allParents = allParents.filter(p => p.id !== pendingDeleteId);
+                    allStudents = allStudents.map(s => s.parentID === pendingDeleteId ? {...s, parentID: null, parentName: null, parentPhone: null} : s);
+                    setCachedData({ allParents, allStudents, allClasses, currentSession });
+
                     showToast("Parent deleted and students unlinked!");
                     document.getElementById('deleteModal').classList.add('hidden');
                     pendingDeleteId = null;
-                    await refreshData();
+                    await filterAndRender();
                 } catch(err) { showToast(err.message, 'error'); }
             }
         };
         
-        async function refreshData() { 
-            await loadParents(); 
-            await loadStudents();
+        async function refreshIncremental() { 
+            document.getElementById('cacheStatus').innerHTML = '<i class="fas fa-sync fa-spin text-blue-600"></i> Syncing...';
+            await Promise.all([loadParents(false), loadStudents(false)]); 
+            setCachedData({ allParents, allStudents, allClasses, currentSession }, new Date().toISOString());
+            await filterAndRender(); 
+        }
+
+        async function hardRefreshAll() { 
+            clearCache();
+            sectionsByClass = {};
+            document.getElementById('cacheStatus').innerHTML = '<i class="fas fa-database fa-spin text-blue-600"></i> Full Refresh...';
+            await Promise.all([loadParents(true), loadStudents(true)]); 
+            setCachedData({ allParents, allStudents, allClasses, currentSession }, new Date().toISOString());
             await filterAndRender(); 
         }
         
-        document.getElementById('classFilter').addEventListener('change', async (e) => { await updateSectionDropdown(e.target.value); filterAndRender(); });
-        document.getElementById('sectionFilter').addEventListener('change', () => filterAndRender());
-        document.getElementById('searchInput').addEventListener('input', () => filterAndRender());
-        document.getElementById('refreshBtn').onclick = async () => { 
-            const btn=document.getElementById('refreshBtn'); 
-            btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>'; 
-            btn.disabled=true; 
-            await refreshData(); 
-            btn.innerHTML='<i class="fas fa-sync-alt mr-1"></i> Refresh'; 
-            btn.disabled=false; 
-            showToast("Refreshed"); 
-        };
+        document.getElementById('classFilter').addEventListener('change', async (e) => { 
+            currentPage = 1;
+            await updateSectionDropdown(e.target.value); 
+            filterAndRender(); 
+        });
+        document.getElementById('sectionFilter').addEventListener('change', () => { currentPage = 1; filterAndRender(); });
+        document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; filterAndRender(); });
+        
+        document.getElementById('refreshBtn').onclick = () => refreshIncremental();
+        document.getElementById('hardRefreshBtn').onclick = () => hardRefreshAll();
         
         [document.getElementById('editModal'), document.getElementById('studentsModal'), document.getElementById('deleteModal')].forEach(m => m.addEventListener('click', (e) => { if(e.target===m) { m.classList.add('hidden'); if(m.id==='deleteModal') pendingDeleteId=null; } }));
         
-        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
-        
-        (async () => { 
-            await loadCurrentSession(); 
-            await loadClasses(); 
-            await loadParents(); 
-            await loadStudents();
+        async function init() {
+            // ১. লোকাল স্টোরেজ থেকে ডাটা তৎক্ষণাৎ লোড
+            const cached = getCachedData();
+            if (cached && cached.data) {
+                allParents = cached.data.allParents || [];
+                allStudents = cached.data.allStudents || [];
+                allClasses = cached.data.allClasses || [];
+                currentSession = cached.data.currentSession || currentSession;
+                
+                document.getElementById('current-session-badge').innerHTML = currentSession;
+                const select = document.getElementById('classFilter');
+                select.innerHTML = '<option value="">-- Select Class --</option>';
+                allClasses.forEach(c => select.appendChild(new Option(c.name, c.id)));
+                
+                document.getElementById('cacheStatus').innerHTML = '<i class="fas fa-check-circle text-green-600"></i> Cache Loaded';
+                await filterAndRender();
+            }
+
+            // ২. ফায়ারবেস থেকে বেস ডাটা লোড
+            await Promise.all([loadCurrentSession(), loadClasses()]);
+            
+            // ৩. শুধুমাত্র নতুন আপডেটেড ডাটা ফায়ারবেস থেকে আনা (Incremental)
+            await Promise.all([loadParents(cached ? false : true), loadStudents(cached ? false : true)]);
+            setCachedData({ allParents, allStudents, allClasses, currentSession }, new Date().toISOString());
+            
             await filterAndRender(); 
-        })();
+        }
+
+        init();
     </script>
 </body>
 </html>
