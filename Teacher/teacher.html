@@ -217,7 +217,7 @@
             white-space: nowrap; 
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 50vw; /* ডান পাশের সেশন কন্টেন্ট দেখানোর জন্য জায়গা ছেড়ে দিচ্ছে */
+            max-width: 50vw;
         }
 
         .menu-toggle {
@@ -255,6 +255,17 @@
             font-size: 24px;
             margin-left: 5px;
             color: var(--header-text); 
+        }
+
+        /* Header Profile Image Style */
+        .header-profile-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-left: 5px;
+            border: 2px solid #ecf0f1;
+            display: none; /* Hidden by default until image loads */
         }
 
         .user-dropdown-menu {
@@ -333,17 +344,15 @@
                 width: 100%;
             }
 
-            /* রেসপন্সিভ সেশন শো করার জন্য আপডেট */
             .session-info {
-                display: block; /* আগের display: none উঠিয়ে দেওয়া হয়েছে */
-                font-size: 11px; /* ছোট স্ক্রিনের জন্য ফন্ট ছোট করা হয়েছে */
-                margin-right: 10px; /* মার্জিন কমানো হয়েছে */
+                display: block;
+                font-size: 11px;
+                margin-right: 10px;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
             
-            /* হেডারের টাইটেল ছোট করা হয়েছে যেন সেশন সুন্দরভাবে ফিট হয় */
             .header-left h3 {
                 font-size: 13px;
                 max-width: 40vw; 
@@ -376,18 +385,35 @@
         }
 
        .circular-container {
-          width: 70px;
+          width: 45px; /* Changed from 70px to make it a perfect circle */
           height: 45px;
-          padding:2px;
+          padding: 2px;
           margin-right: 10px;
           border-radius: 50%;
           overflow: hidden; 
+          background-color: #3e5163; /* Fallback background */
+          flex-shrink: 0;
         }
 
         .circular-container img {
           width: 100%;
           height: 100%;
           object-fit: cover; 
+          border-radius: 50%;
+        }
+
+        /* ===== Parent Print Style — Ctrl+P তে iframe এর কন্টেন্ট প্রিন্ট ===== */
+        @media print {
+            .sidebar, .header, .overlay { display: none !important; }
+            .main-content { margin-left: 0 !important; width: 100% !important; }
+            .dashboard-body { padding: 0 !important; }
+            .content-container { overflow: visible !important; }
+            #main-iframe {
+                width: 100% !important;
+                height: auto !important;
+                min-height: 100vh !important;
+                border: none !important;
+            }
         }
     </style>
 </head>
@@ -400,11 +426,12 @@
 
         <div class="sidebar-header">
             <div class="circular-container">
-                <img src="../Img/profile.jpg" alt="Description">
+                <!-- Added referrerpolicy and onerror fallback -->
+                <img id="sidebar-teacher-img" src="https://ui-avatars.com/api/?name=T&background=3b82f6&color=fff" alt="Profile" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=T&background=3b82f6&color=fff';">
             </div>
            <div class="user-info">
                 <strong id="dynamicSchoolName">Loading...</strong>
-                <small>Teacher</small> 
+                <small id="dynamicTeacherName">Teacher</small> 
             </div>
         </div>
         
@@ -441,7 +468,7 @@
                     <i class="fas fa-edit"></i> <span>Exams & Marks</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../Exam/mark-entry.html">Marks Entry</a></li>
+                    <li><a href="#" data-link="../Exam/teacher-mark-entry.html">Marks Entry</a></li>
                     <li><a href="#" data-link="../Exam/mark-setup.html">Exam Schedule</a></li>
                 </ul>
             </div>
@@ -454,13 +481,15 @@
         <header class="header">
             <div class="header-left">
                 <i class="fas fa-bars menu-toggle" onclick="toggleSidebar()"></i>
-                <h3 id="main_heding">Teacher Dashboard</h3>
+                <h3 id="main_heng">Teacher Dashboard</h3>
             </div>
             <div class="header-right">
                 <span class="session-info" id="session-display">Current Session: Loading...</span>
                 
                 <div class="user-avatar-group" onclick="toggleUserDropdown(this)">
-                    <i class="fas fa-user-circle user-icon"></i>
+                    <!-- Dynamic Header Profile Image -->
+                    <img id="header-teacher-img" src="https://ui-avatars.com/api/?name=T&background=3b82f6&color=fff" alt="Profile" class="header-profile-img" referrerpolicy="no-referrer" onerror="this.style.display='none'; document.getElementById('header-fallback-icon').style.display='inline-block';">
+                    <i id="header-fallback-icon" class="fas fa-user-circle user-icon" style="margin-left:5px;"></i>
                     <i class="fas fa-caret-down user-icon" style="font-size: 18px; margin-left: 0;"></i>
                 </div>
 
@@ -474,7 +503,8 @@
 
         <div class="dashboard-body">
             <div class="content-container">
-                <iframe id="main-iframe" src="../Dashboard/dashboard.html" frameborder="0"></iframe>
+                <iframe id="main-iframe" src="../Dashboard/dashboard.html" frameborder="0" 
+                    sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals allow-downloads allow-top-navigation"></iframe>
             </div>
         </div>
     </div>
@@ -537,11 +567,12 @@
             let currentLink = window.location.hash.substring(1);
             
             if (!currentLink) {
-                currentLink = "../Dashboard/dashboard.html"; // Default page
+                currentLink = "../Dashboard/dashboard.html";
             }
 
             if(iframe.getAttribute('src') !== currentLink) {
                 iframe.src = currentLink;
+                iframe.onload = injectAntiInspectToIframe;
             }
             
             document.querySelectorAll('.sidebar-menu a, .user-dropdown-menu a').forEach(item => {
@@ -606,9 +637,44 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // ১. Login Protection Check
+        // ১. Login Protection Check & Load Logged In Teacher Data
         auth.onAuthStateChanged((user) => {
-            if (!user) {
+            if (user) {
+                // User is signed in, fetch user data from Firestore
+                db.collection("users").doc(user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        const photoURL = userData.photoURL || null;
+                        const teacherName = userData.name || "Teacher";
+                        
+                        // Update Sidebar Image
+                        const sidebarImg = document.getElementById('sidebar-teacher-img');
+                        if(photoURL) {
+                            sidebarImg.src = photoURL;
+                        } else {
+                            sidebarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(teacherName)}&background=3b82f6&color=fff`;
+                        }
+
+                        // Update Header Image
+                        const headerImg = document.getElementById('header-teacher-img');
+                        const headerFallbackIcon = document.getElementById('header-fallback-icon');
+                        if(photoURL) {
+                            headerImg.src = photoURL;
+                            headerImg.style.display = "inline-block";
+                            headerFallbackIcon.style.display = "none";
+                        } else {
+                            headerImg.style.display = "none";
+                            headerFallbackIcon.style.display = "inline-block";
+                        }
+
+                        // Update dynamic name
+                        document.getElementById('dynamicTeacherName').innerText = teacherName;
+                    }
+                }).catch((error) => {
+                    console.error("Error fetching user data:", error);
+                });
+            } else {
+                // User is signed out
                 window.location.href = '../Auth/login.html'; 
             }
         });
@@ -620,11 +686,11 @@
                 const fetchedName = data.name || data.school_name || "Name Not Set";
                 
                 document.getElementById("dynamicSchoolName").innerText = fetchedName;
-                document.getElementById("main_heading").innerText = fetchedName + " - Teacher Dashboard";
+                document.getElementById("main_heing").innerText = fetchedName + " - Teacher Dashboard";
                 
             } else {
                 document.getElementById("dynamicSchoolName").innerText = "School Name Not Set";
-                document.getElementById("main_heading").innerText = "Teacher Dashboard";
+                document.getElementById("main_heing").innerText = "Teacher Dashboard";
             }
         }, (error) => {
             console.error("Firebase Error:", error);
@@ -643,5 +709,166 @@
             document.getElementById("session-display").innerText = "Current Session: Error";
         });
     </script>
+
+    <!-- ===================================================================== -->
+    <!-- Anti-Inspect & Security + Iframe Print/Download Communication Script  -->
+    <!-- ===================================================================== -->
+    <script>
+        // এই ফাংশনটি মূল পেজ এবং আইফ্রেম উভয় ক্ষেত্রেই কাজ করবে
+        function antiInspectLogic() {
+            // ১. ডান ক্লিক বন্ধ
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
+
+            // ২. শর্টকাট কী বন্ধ (কিন্তু Ctrl+P allow করা হচ্ছে)
+            document.addEventListener('keydown', function(e) {
+                // F12 বন্ধ
+                if(e.keyCode === 123) { e.preventDefault(); return false; }
+                // Ctrl+Shift+I বন্ধ
+                if(e.ctrlKey && e.shiftKey && e.keyCode === 'I'.charCodeAt(0)) { e.preventDefault(); return false; }
+                // Ctrl+Shift+J বন্ধ
+                if(e.ctrlKey && e.shiftKey && e.keyCode === 'J'.charCodeAt(0)) { e.preventDefault(); return false; }
+                // Ctrl+Shift+C বন্ধ
+                if(e.ctrlKey && e.shiftKey && e.keyCode === 'C'.charCodeAt(0)) { e.preventDefault(); return false; }
+                // Ctrl+U বন্ধ
+                if(e.ctrlKey && e.keyCode === 'U'.charCodeAt(0)) { e.preventDefault(); return false; }
+                // Ctrl+S বন্ধ
+                if(e.ctrlKey && e.keyCode === 'S'.charCodeAt(0)) { e.preventDefault(); return false; }
+                
+                // ★ Ctrl+P ব্লক করা হচ্ছে না — প্রিন্ট কাজ করবে ★
+            });
+
+            // ৩. ডেভেলপার টুলস ডিটেকশন (debugger এবং টাইম ডিফারেন্স পদ্ধতি)
+            setInterval(function(){
+                var start = new Date().getTime();
+                debugger;
+                var end = new Date().getTime();
+                // যদি ডিবাগার পজ করে (ডেভেলপার টুলস ওপেন থাকে), তাহলে সময় ১০০ মিলিসেকেন্ডের বেশি হবে
+                if(end - start > 100){
+                    document.body.innerHTML = "<h1 style='text-align:center;margin-top:20%;color:red; font-size:50px;'>Access Denied!</h1>";
+                    document.body.style.backgroundColor = "black";
+                }
+            }, 1000);
+        }
+
+        // মূল পেজে স্ক্রিপ্টটি চালু করা
+        antiInspectLogic();
+
+
+        // আইফ্রেমে স্ক্রিপ্ট ইনজেক্ট করার ফাংশন
+        function injectAntiInspectToIframe() {
+            try {
+                const iframe = document.getElementById('main-iframe');
+                const iframeDoc = iframe.contentWindow.document || iframe.contentDocument;
+                
+                // চেক করা যদি আগে থেকেই স্ক্রিপ্ট ঢুকে থাকে
+                if (iframeDoc.getElementById('injected-anti-inspect')) return;
+
+                const script = iframeDoc.createElement('script');
+                script.id = 'injected-anti-inspect';
+                script.textContent = `
+                    ${antiInspectLogic.toString()}
+                    antiInspectLogic();
+                `;
+                
+                // আইফ্রেমের বডিতে স্ক্রিপ্ট যোগ করা
+                if(iframeDoc.body) {
+                    iframeDoc.body.appendChild(script);
+                } else {
+                    // যদি বডি লোড হতে দেরি হয়
+                    iframeDoc.addEventListener('DOMContentLoaded', function() {
+                        iframeDoc.body.appendChild(script);
+                    });
+                }
+            } catch (e) {
+                console.warn("Cross-origin iframe: Cannot inject anti-inspect script automatically. Please add the script manually to the iframe source files.");
+            }
+        }
+
+        // পেজ লোড হলে প্রথম আইফ্রেমে স্ক্রিপ্ট ইনজেক্ট করার চেষ্টা
+        window.addEventListener('load', function() {
+            const iframe = document.getElementById('main-iframe');
+            if(iframe) {
+                iframe.onload = injectAntiInspectToIframe;
+                // যদি আইফ্রেম আগেই লোড হয়ে যায়
+                try {
+                    if (iframe.contentWindow.document.readyState === 'complete') {
+                        injectAntiInspectToIframe();
+                    }
+                } catch(e) {}
+            }
+        });
+
+
+        /* ==================================================================
+           ★★★ আইফ্রেম থেকে Print ও Download Request গ্রহণ করা ★★★
+           ================================================================== */
+        window.addEventListener('message', function(event) {
+            // নিরাপত্তা: শুধু same-origin থেকে আসা message গ্রহণ করো
+            if (event.origin !== window.location.origin && event.origin !== 'null') return;
+            
+            if (!event.data || !event.data.type) return;
+
+            const iframe = document.getElementById('main-iframe');
+
+            /* ----- PRINT REQUEST ----- */
+            if (event.data.type === 'REQUEST_PRINT') {
+                try {
+                    if (iframe && iframe.contentWindow) {
+                        // iframe এ focus দাও তারপর print কল করো
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                    }
+                } catch(e) {
+                    // Fallback: parent থেকে print
+                    window.print();
+                }
+            }
+
+            /* ----- PDF/DOWNLOAD REQUEST ----- */
+            if (event.data.type === 'REQUEST_DOWNLOAD') {
+                try {
+                    const dataUrl = event.data.dataUrl;
+                    const filename = event.data.filename || 'download.pdf';
+                    
+                    if (!dataUrl) return;
+
+                    const a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                } catch(e) {
+                    console.error('Download failed:', e);
+                }
+            }
+        });
+
+
+        /* ==================================================================
+           ★★★ Parent এ Ctrl+P চাপলে iframe এর কন্টেন্ট প্রিন্ট হবে ★★★
+           ================================================================== */
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.keyCode === 80)) {
+                // Shift চাপা নেই (Ctrl+Shift+P হলে ব্রাউজারের ডিফল্ট হবে)
+                if (e.shiftKey) return;
+
+                e.preventDefault();
+                
+                try {
+                    const iframe = document.getElementById('main-iframe');
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                    }
+                } catch(ex) {
+                    window.print();
+                }
+            }
+        }, true); // ★ capture phase — অন্য কোনো handler আগে ক্যাচ করবে
+    </script>
+
 </body>
 </html>
