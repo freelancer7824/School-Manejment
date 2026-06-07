@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Student Manager | Session Data Update | No Duplicate</title>
+    <title>Student Manager | Incremental Sync | Local Storage</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
@@ -199,7 +199,7 @@
             </div>
             <div class="mt-3 flex justify-between items-center text-sm">
                 <span class="text-gray-500">Total: <span id="totalCountSpan" class="font-bold text-primary">0</span> students</span>
-                <span class="text-xs bg-blue-100 px-2 py-1 rounded-full"><i class="fas fa-database"></i> Cache Active | Incremental Load</span>
+                <span id="cacheStatus" class="text-xs bg-blue-100 px-2 py-1 rounded-full"><i class="fas fa-database"></i> Loading...</span>
             </div>
         </div>
         
@@ -248,9 +248,8 @@
         const CLOUDINARY_CLOUD_NAME = "dhvtgzy5x";
         const CLOUDINARY_UPLOAD_PRESET = "Rosenews";
         
-        const CACHE_KEY = 'studentManager_cache_v2';
-        const CACHE_TTL = 24 * 60 * 60 * 1000; // ২৪ ঘণ্টা ক্যাশ (ফ্রি প্ল্যান সেভ করতে)
-        const ITEMS_PER_PAGE = 20; // প্রতি পেজে ২০ টি ডাটা
+        const CACHE_KEY = 'studentManager_cache_v3'; // ভার্সন চেঞ্জ করা হয়েছে
+        const ITEMS_PER_PAGE = 20; 
 
         let sessionStudents = [], allClasses = [], sectionsCache = {}, parentCache = {}, allParents = [], parentsMap = {};
         let currentSession = "2025-2026", nextSession = "2026-2027";
@@ -263,19 +262,18 @@
             try {
                 const raw = localStorage.getItem(CACHE_KEY);
                 if (!raw) return null;
-                const parsed = JSON.parse(raw);
-                // যদি ২৪ ঘণ্টার বেশি হয়ে যায়, তবে ক্যাশ বাতিল (হার্ড রিফ্রেশ ছাড়া)
-                if (Date.now() - parsed.timestamp > CACHE_TTL) {
-                    localStorage.removeItem(CACHE_KEY);
-                    return null;
-                }
-                return parsed.data;
+                return JSON.parse(raw);
             } catch { return null; }
         }
 
-        function setCachedData(data) {
+        function setCachedData(data, lastSyncTime) {
             try {
-                localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+                localStorage.setItem(CACHE_KEY, JSON.stringify({ 
+                    data, 
+                    lastSyncTime: lastSyncTime || new Date().toISOString(),
+                    timestamp: Date.now() 
+                }));
+                document.getElementById('cacheStatus').innerHTML = '<i class="fas fa-check-circle text-green-600"></i> Cache Active | Synced';
             } catch (e) {
                 console.error("LocalStorage full, clearing cache");
                 localStorage.removeItem(CACHE_KEY);
@@ -285,6 +283,7 @@
         function clearCache() {
             localStorage.removeItem(CACHE_KEY);
             sessionStudents = [];
+            document.getElementById('cacheStatus').innerHTML = '<i class="fas fa-times-circle text-red-600"></i> Cache Cleared';
         }
 
         function showToast(msg, type = "success") {
@@ -407,16 +406,20 @@
             document.getElementById('eParentEmail').value = parent.data?.loginEmail || '';
         }
 
-        // ===== ইনক্রিমেন্টাল ডাটা লোড (শুধু নতুন ডাটা আনা) =====
+        // ===== ইনক্রিমেন্টাল ডাটা লোড (শুধু নতুন বা আপডেটেড ডাটা আনা) =====
         async function loadSessionDataOnly(isHardRefresh = false) {
             const sessionVal = document.getElementById('sessionView').value;
             let targetSession = currentSession;
             if (sessionVal === 'next') targetSession = nextSession;
             
             const classMap = Object.fromEntries(allClasses.map(c => [c.id, c.name]));
+            const cached = getCachedData();
+            
+            // যদি হার্ড রিফ্রেশ না হয়, তবে লোকাল স্টোরেজ থেকে আগের ডাটা নেওয়া
             let existingStudents = isHardRefresh ? [] : [...sessionStudents];
-            const cachedData = getCachedData();
-            const lastSyncTime = cachedData?.lastSyncTime || 0;
+            
+            // শেষবার কখন সিঙ্ক করা হয়েছিল তার সময় (ISO String ফরম্যাট)
+            const lastSyncTime = (cached?.lastSyncTime && !isHardRefresh) ? cached.lastSyncTime : '1970-01-01T00:00:00.000Z';
 
             try {
                 const classesSnap = await getDocs(collection(db, "classes"));
@@ -427,11 +430,11 @@
                     const studRef = collection(db, `current_session/${targetSession}/classes/${classId}/students`);
                     
                     let q;
-                    // যদি ক্যাশ থাকে এবং হার্ড রিফ্রেশ না হয়, তবে শুধু আপডেটেড ডাটা আনবে
-                    if (!isHardRefresh && lastSyncTime) {
-                        q = query(studRef, where("updatedAt", ">=", new Date(lastSyncTime)));
+                    // শুধুমাত্র সেই ডাটা আনবে যার updatedAt সময় lastSyncTime এর পরের
+                    if (!isHardRefresh && lastSyncTime !== '1970-01-01T00:00:00.000Z') {
+                        q = query(studRef, where("updatedAt", ">=", lastSyncTime));
                     } else {
-                        q = query(studRef); // নতুন করে সব আনবে
+                        q = query(studRef); // নতুন করে সব আনবে (প্রথম লোড বা হার্ড রিফ্রেশ)
                     }
                     
                     const studSnap = await getDocs(q);
@@ -456,29 +459,32 @@
                 const newUpdates = results.flat();
                 
                 // পুরানো ডাটার সাথে নতুন আপডেট মার্জ করা
-                newUpdates.forEach(newStud => {
-                    const idx = existingStudents.findIndex(s => s.id === newStud.id);
-                    if (idx !== -1) {
-                        existingStudents[idx] = newStud; // আপডেট করা ডাটা রিপ্লেস
-                    } else {
-                        existingStudents.push(newStud); // নতুন ডাটা অ্যাড
-                    }
-                });
+                if (newUpdates.length > 0) {
+                    newUpdates.forEach(newStud => {
+                        const idx = existingStudents.findIndex(s => s.id === newStud.id);
+                        if (idx !== -1) {
+                            existingStudents[idx] = newStud; // আপডেট করা ডাটা রিপ্লেস
+                        } else {
+                            existingStudents.push(newStud); // নতুন ডাটা অ্যাড
+                        }
+                    });
+                }
 
                 existingStudents.sort((a, b) => (parseFloat(a.rollNumber) || 0) - (parseFloat(b.rollNumber) || 0));
                 sessionStudents = existingStudents;
 
-                // ক্যাশে সেভ করা (lastSyncTime হিসেবে বর্তমান সময় সেট করা)
+                // ক্যাশে সেভ করা (বর্তমান সময়টি lastSyncTime হিসেবে সেট হবে)
                 setCachedData({ 
                     sessionStudents, 
                     allClasses, 
                     allParents, 
                     currentSession, 
-                    nextSession, 
-                    lastSyncTime: Date.now() 
-                });
+                    nextSession
+                }, new Date().toISOString());
 
-            } catch (e) { console.error('Error loading session data:', e); }
+            } catch (e) { 
+                console.error('Error loading session data:', e); 
+            }
             return sessionStudents;
         }
 
@@ -545,7 +551,6 @@
                 return;
             }
 
-            // পেজিনেশন ক্যালকুলেশন
             const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
             if (currentPage > totalPages) currentPage = totalPages || 1;
             
@@ -556,7 +561,7 @@
             let rowsHtml = '';
             for (let i = 0; i < paginatedData.length; i++) {
                 const s = paginatedData[i];
-                const globalIdx = startIdx + i + 1; // গ্লোবাল সিরিয়াল
+                const globalIdx = startIdx + i + 1; 
                 const parent = getParentDataFast(s.parentID); 
                 const imageUrl = s.profileImage || s.passportPhotoURL;
                 const avatarFallback = `https://ui-avatars.com/api/?background=3b82f6&color=fff&name=${encodeURIComponent(s.fullName || 'S')}`;
@@ -617,7 +622,6 @@
             renderPagination(totalPages, filtered.length);
         }
 
-        // ===== পেজিনেশন কন্ট্রোল রেন্ডার =====
         function renderPagination(totalPages, totalItems) {
             document.getElementById('paginationInfo').innerText = `Page ${currentPage} of ${totalPages} (Total: ${totalItems})`;
             const controls = document.getElementById('paginationControls');
@@ -625,7 +629,6 @@
 
             if (totalPages <= 1) return;
 
-            // Previous Button
             const prevBtn = document.createElement('button');
             prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
             prevBtn.className = `px-3 py-1 border rounded ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`;
@@ -633,7 +636,6 @@
             prevBtn.onclick = () => { if(currentPage > 1) goToPage(currentPage - 1); };
             controls.appendChild(prevBtn);
 
-            // Page Numbers
             let startPage = Math.max(1, currentPage - 2);
             let endPage = Math.min(totalPages, startPage + 4);
             if(endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
@@ -653,7 +655,6 @@
                  controls.innerHTML += `<button class="px-3 py-1 border rounded hover:bg-gray-100" onclick="goToPage(${totalPages})">${totalPages}</button>`;
             }
 
-            // Next Button
             const nextBtn = document.createElement('button');
             nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
             nextBtn.className = `px-3 py-1 border rounded ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`;
@@ -665,7 +666,7 @@
         window.goToPage = (page) => {
             currentPage = page;
             renderFilteredTable();
-            document.querySelector('.overflow-x-auto').scrollTop = 0; // টেবিল উপরে নিয়ে যাওয়া
+            document.querySelector('.overflow-x-auto').scrollTop = 0; 
         };
 
         function closeAllMenus() { document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.add('hidden')); }
@@ -708,6 +709,7 @@
             const imageUrl = s.profileImage || s.passportPhotoURL;
             const avatarFallback = `https://ui-avatars.com/api/?background=3b82f6&color=fff&name=${encodeURIComponent(s.fullName || 'S')}`;
             
+            // Fourth Subject এখানে দেখানো হচ্ছে
             document.getElementById('profileContent').innerHTML = `
                 <div class="space-y-4">
                     <div class="flex items-center gap-4 border-b pb-3">
@@ -724,6 +726,7 @@
                         <div class="bg-gray-50 p-3 rounded-lg"><p class="font-bold text-primary">Mother</p>${escapeHtml(parent?.mother || s.motherName || 'N/A')}<br>📞 ${escapeHtml(parent?.mPhone || '')}</div>
                         <div class="bg-gray-50 p-3 rounded-lg"><p class="font-bold text-primary">Guardian</p>${escapeHtml(parent?.guardian || s.guardianName || 'N/A')}<br>📞 ${escapeHtml(parent?.gPhone || '')}</div>
                         <div class="bg-gray-50 p-3 rounded-lg"><p class="font-bold text-primary">Contact</p>📞 ${escapeHtml(s.phone || '')}<br>✉️ ${escapeHtml(s.email || '')}</div>
+                        <div class="bg-gray-50 p-3 rounded-lg col-span-2"><p class="font-bold text-primary">Fourth / Optional Subject</p>${escapeHtml(s.fourthSubject || 'None')}</div>
                     </div>
                 </div>
                 <div class="mt-5 text-right"><button onclick="closeProfileModal()" class="px-5 py-2 bg-primary text-white rounded-lg">Close</button></div>
@@ -802,7 +805,8 @@
             await updateEditSectionDropdown(s.classId);
             document.getElementById('eSection').value = s.section || '';
             
-            await loadEditSubjects(s.classId, s.mandatorySubjects || [], s.additionalSubjects || []);
+            // Fourth Subject ড্রপডাউনে ভ্যালু সেট করা
+            await loadEditSubjects(s.classId, s.mandatorySubjects || [], s.additionalSubjects || [], s.fourthSubject || '');
             
             if (s.parentID && parent) {
                 document.getElementById('editParentId').value = s.parentID;
@@ -827,7 +831,7 @@
             document.getElementById('editModal').classList.remove('hidden');
         }
 
-        async function loadEditSubjects(classId, existingMandatory = [], existingAdditional = []) {
+        async function loadEditSubjects(classId, existingMandatory = [], existingAdditional = [], existingFourth = '') {
             const subjects = await loadSubjectsForClass(classId);
             const mandatoryDiv = document.getElementById('editMandatoryList');
             const additionalDiv = document.getElementById('editAdditionalList');
@@ -847,6 +851,9 @@
             
             fourthSelect.innerHTML = '<option value="">None</option>';
             subjects.optional.forEach(sub => fourthSelect.appendChild(new Option(sub, sub)));
+            
+            // এডিট করার সময় আগের ফোর্থ সাবজেক্ট সিলেক্টেড রাখা
+            if(existingFourth) fourthSelect.value = existingFourth;
         }
 
         async function updateEditSectionDropdown(classId) {
@@ -879,6 +886,8 @@
             const mandatorySubjects = Array.from(document.querySelectorAll('input[name="editMandatorySub"]:checked')).map(cb => cb.value);
             const additionalSubjects = Array.from(document.querySelectorAll('input[name="editAdditionalSub"]:checked')).map(cb => cb.value);
             const fourthSub = document.getElementById('editFourthSubject').value;
+            
+            // ফোর্থ সাবজেক্ট যদি এডিশনাল লিস্টে না থাকে, তবে এড করা
             if (fourthSub && !additionalSubjects.includes(fourthSub)) additionalSubjects.push(fourthSub);
             
             const oldSessionPath = document.getElementById('editSessionPath').value;
@@ -904,6 +913,7 @@
                 profileImage: imageUrl,
                 mandatorySubjects,
                 additionalSubjects,
+                fourthSubject: fourthSub, // Fourth Subject আলাদা ফিল্ডে সেভ হচ্ছে
                 parentID: parentId,
                 fatherName: document.getElementById('eFather').value,
                 motherName: document.getElementById('eMother').value,
@@ -911,7 +921,7 @@
                 fatherPhone: document.getElementById('eFatherPhone').value,
                 motherPhone: document.getElementById('eMotherPhone').value,
                 guardianPhone: document.getElementById('eGuardianPhone').value,
-                updatedAt: new Date().toISOString() // গুরুত্বপূর্ণ!
+                updatedAt: new Date().toISOString() // গুরুত্বপূর্ণ! সিঙ্ক এর জন্য
             };
             
             try {
@@ -952,7 +962,7 @@
                 
                 closeEditModal();
                 showToast('✅ Student updated successfully!', 'success');
-                await refreshIncremental(); // শুধু নতুন আপডেট সিঙ্ক করবে
+                await refreshIncremental(); // শুধু নতুন আপডেট সিঙ্ক করবে এবং লোকাল স্টোরেজে সেভ করবে
             } catch (err) {
                 console.error('Update error:', err);
                 showToast(err.message || 'Update failed', 'error');
@@ -989,7 +999,7 @@
 
         // শুধু নতুন ডাটা সিঙ্ক করবে (ফায়ারবেস রিড বাঁচায়)
         async function refreshIncremental() { 
-            document.getElementById('studentTableBody').innerHTML = '<tr><td colspan="6" class="text-center py-10"><i class="fas fa-sync fa-spin text-2xl text-primary"></i> Syncing updates...<\/td><\/tr>';
+            document.getElementById('cacheStatus').innerHTML = '<i class="fas fa-sync fa-spin text-blue-600"></i> Syncing...';
             await loadSessionDataOnly(false); 
             await renderFilteredTable(); 
         }
@@ -999,13 +1009,13 @@
             clearCache();
             sectionsCache = {};
             parentCache = {};
-            document.getElementById('studentTableBody').innerHTML = '<tr><td colspan="6" class="text-center py-10"><i class="fas fa-database fa-spin text-2xl text-primary"></i> Full Refresh...<\/td><\/tr>';
+            document.getElementById('cacheStatus').innerHTML = '<i class="fas fa-database fa-spin text-blue-600"></i> Full Refresh...';
             await loadSessionDataOnly(true); 
             await renderFilteredTable(); 
         }
 
         document.getElementById('filterClass').addEventListener('change', async e => { 
-            currentPage = 1; // ফিল্টার পরিবর্তনে পেজ ১ এ চলে যাবে
+            currentPage = 1; 
             const cid = e.target.value; 
             const secSelect = document.getElementById('filterSection'); 
             if (!cid) { secSelect.disabled = true; secSelect.innerHTML = '<option>Select class first</option>'; renderFilteredTable(); return; } 
@@ -1020,7 +1030,6 @@
         document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; renderFilteredTable(); });
         document.getElementById('sessionView').addEventListener('change', () => hardRefreshAll());
         
-        // সিঙ্ক বাটনগুলো
         document.getElementById('refreshBtn').addEventListener('click', () => refreshIncremental());
         document.getElementById('hardRefreshBtn').addEventListener('click', () => hardRefreshAll());
         
@@ -1054,12 +1063,12 @@
         async function init() { 
             // ১. লোকাল স্টোরেজ থেকে ডাটা তৎক্ষণাৎ লোড (এতে ইউজার অপেক্ষা করে না)
             const cached = getCachedData();
-            if (cached) {
-                sessionStudents = cached.sessionStudents || [];
-                allClasses = cached.allClasses || [];
-                allParents = cached.allParents || [];
-                currentSession = cached.currentSession || currentSession;
-                nextSession = cached.nextSession || nextSession;
+            if (cached && cached.data) {
+                sessionStudents = cached.data.sessionStudents || [];
+                allClasses = cached.data.allClasses || [];
+                allParents = cached.data.allParents || [];
+                currentSession = cached.data.currentSession || currentSession;
+                nextSession = cached.data.nextSession || nextSession;
                 
                 parentsMap = {};
                 allParents.forEach(p => parentsMap[p.id] = p);
@@ -1068,6 +1077,7 @@
                 document.getElementById('nextBadge').innerText = nextSession;
                 populateClassDropdowns();
                 renderFilteredTable();
+                document.getElementById('cacheStatus').innerHTML = '<i class="fas fa-check-circle text-green-600"></i> Cache Loaded';
                 showToast("Loaded from cache", "success");
             }
 
@@ -1076,7 +1086,7 @@
             initCloudinaryWidget();
             
             // ৩. শুধুমাত্র নতুন আপডেটেড ডাটা ফায়ারবেস থেকে আনা (Incremental)
-            await loadSessionDataOnly(false); 
+            await loadSessionDataOnly(cached ? false : true); 
             await renderFilteredTable(); 
         }
 
