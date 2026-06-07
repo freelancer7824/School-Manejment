@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark Setup - Session Wise | ONNO ROKOM BIDDYANIKETON</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
+        body { background: #f8fafc; font-family: 'Hind Siliguri', sans-serif; }
+        .setup-card { transition: all 0.3s ease; border: 2px solid #e2e8f0; }
+        .card-active { border-color: #4f46e5; background: #f5f3ff; }
+        .session-badge { background: linear-gradient(135deg, #4f46e5, #6366f1); }
+    </style>
+</head>
+<body class="p-5">
+    <div class="max-w-5xl mx-auto">
+        
+        <!-- Teacher Info Header -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm mb-4 flex justify-between items-center flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-chalkboard-teacher text-indigo-600"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-gray-800" id="teacherNameHeader">টিচার লোড হচ্ছে...</h2>
+                    <p class="text-xs text-gray-500">শুধুমাত্র আপনার বিষয় ও ক্লাসের মার্ক সেটআপ করতে পারবেন</p>
+                </div>
+            </div>
+            <button id="logoutBtn" class="text-sm text-red-500 hover:text-red-700 font-medium hidden">
+                <i class="fas fa-sign-out-alt mr-1"></i> লগআউট
+            </button>
+        </div>
+
+        <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 p-6 rounded-2xl text-white mb-6 shadow-lg">
+            <div class="flex justify-between items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="text-2xl font-bold">Mark Distribution Setup</h1>
+                    <p class="opacity-80">পরীক্ষার সাবজেক্ট অনুযায়ী মার্ক কনফিগার করুন</p>
+                </div>
+                <div class="bg-white/20 px-4 py-2 rounded-full text-sm font-semibold">
+                    <i class="fas fa-calendar-alt mr-2"></i>
+                    <span id="sessionBadge">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Selector -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border mb-6">
+            <div class="flex items-center justify-between flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-database text-indigo-600"></i>
+                    <span class="font-semibold">Session:</span>
+                    <select id="sessionSelect" class="border p-2 rounded-lg bg-indigo-50 font-semibold">
+                        <option value="current">Current Session</option>
+                        <option value="next">Next Session</option>
+                    </select>
+                </div>
+                <div class="text-xs text-gray-500">
+                    <i class="fas fa-info-circle"></i> প্রতিটি কনফিগারেশন নির্দিষ্ট Session এর জন্য সংরক্ষিত হয়
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <select id="examSelect" class="border p-3 rounded-xl outline-none focus:border-indigo-500">
+                <option value="">Select Exam</option>
+            </select>
+            <select id="classSelect" class="border p-3 rounded-xl outline-none focus:border-indigo-500">
+                <option value="">Select Class</option>
+            </select>
+            <select id="sectionSelect" class="border p-3 rounded-xl outline-none focus:border-indigo-500">
+                <option value="All">All Sections</option>
+            </select>
+            <select id="subjectSelect" class="border p-3 rounded-xl outline-none focus:border-indigo-500">
+                <option value="">Select Subject</option>
+            </select>
+        </div>
+
+        <!-- Setup Form -->
+        <div id="setupForm" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Written -->
+                <div id="card-written" class="setup-card p-6 rounded-2xl bg-white">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="font-bold">Written</span>
+                        <input type="checkbox" id="writtenEnable" class="w-5 h-5 accent-indigo-600" data-target="written">
+                    </div>
+                    <div id="input-written" class="hidden space-y-3">
+                        <input type="number" id="writtenFull" placeholder="Full Mark" class="w-full border p-2 rounded-lg">
+                        <input type="number" id="writtenPass" placeholder="Pass Mark" class="w-full border p-2 rounded-lg">
+                    </div>
+                </div>
+
+                <!-- MCQ -->
+                <div id="card-mcq" class="setup-card p-6 rounded-2xl bg-white">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="font-bold">MCQ</span>
+                        <input type="checkbox" id="mcqEnable" class="w-5 h-5 accent-indigo-600" data-target="mcq">
+                    </div>
+                    <div id="input-mcq" class="hidden space-y-3">
+                        <input type="number" id="mcqFull" placeholder="Full Mark" class="w-full border p-2 rounded-lg">
+                        <input type="number" id="mcqPass" placeholder="Pass Mark" class="w-full border p-2 rounded-lg">
+                    </div>
+                </div>
+
+                <!-- Practical -->
+                <div id="card-prac" class="setup-card p-6 rounded-2xl bg-white">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="font-bold">Practical</span>
+                        <input type="checkbox" id="pracEnable" class="w-5 h-5 accent-indigo-600" data-target="prac">
+                    </div>
+                    <div id="input-prac" class="hidden space-y-3">
+                        <input type="number" id="pracFull" placeholder="Full Mark" class="w-full border p-2 rounded-lg">
+                        <input type="number" id="pracPass" placeholder="Pass Mark" class="w-full border p-2 rounded-lg">
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button id="saveBtn" class="bg-indigo-600 text-white px-10 py-3 rounded-xl font-bold shadow-lg hover:bg-indigo-700 transition-all">
+                    <i class="fas fa-save mr-2"></i> Save Configuration
+                </button>
+            </div>
+        </div>
+        
+        <!-- Loading indicator -->
+        <div id="loadingIndicator" class="hidden fixed bottom-5 right-5 bg-white rounded-full shadow-lg px-4 py-2 z-50">
+            <i class="fas fa-spinner fa-spin text-indigo-600 mr-2"></i>
+            <span>Processing...</span>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, getDocs, collection, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk", 
+            authDomain: "school-menejment.firebaseapp.com", 
+            projectId: "school-menejment", 
+            storageBucket: "school-menejment.firebasestorage.app", 
+            messagingSenderId: "348342436525", 
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24" 
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentSession = "2025-2026";
+        let nextSession = "2026-2027";
+        let allExamsCache = [];
+        let allClassesCache = [];
+        
+        // Teacher specific data
+        let currentTeacherId = null;
+        let myAssignments = []; // { classId, subjectId, teacherName }
+
+        const sels = {
+            session: document.getElementById('sessionSelect'),
+            exam: document.getElementById('examSelect'),
+            class: document.getElementById('classSelect'),
+            section: document.getElementById('sectionSelect'),
+            subject: document.getElementById('subjectSelect'),
+            form: document.getElementById('setupForm')
+        };
+
+        // Load active session from config
+        async function loadActiveSession() {
+            try {
+                const sdoc = await getDoc(doc(db, "config", "activeSession"));
+                if (sdoc.exists()) {
+                    currentSession = sdoc.data().sessionName || currentSession;
+                }
+                const parts = currentSession.split('-');
+                nextSession = parts.length === 2 ? `${parseInt(parts[0]) + 1}-${parseInt(parts[1]) + 1}` : "2026-2027";
+            } catch (e) {
+                console.error("Error loading session:", e);
+            }
+            updateSessionDisplay();
+        }
+        
+        function updateSessionDisplay() {
+            const viewingSession = getViewingSession();
+            document.getElementById('sessionBadge').innerHTML = `<i class="fas fa-database"></i> ${viewingSession}`;
+        }
+        
+        function getViewingSession() {
+            return sels.session.value === 'current' ? currentSession : nextSession;
+        }
+
+        // Load all exams and filter client-side
+        async function loadOptions() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            loadingIndicator.classList.remove('hidden');
+            
+            try {
+                const viewingSession = getViewingSession();
+                
+                const exSnap = await getDocs(collection(db, "exams"));
+                const clSnap = await getDocs(collection(db, "classes"));
+                
+                const allExams = [];
+                exSnap.forEach(d => {
+                    const data = d.data();
+                    allExams.push({ id: d.id, ...data });
+                });
+                
+                const filteredExams = allExams
+                    .filter(exam => exam.session === viewingSession)
+                    .sort((a, b) => (a.order || 0) - (b.order || 0));
+                
+                allClassesCache = [];
+                clSnap.forEach(d => {
+                    const data = d.data();
+                    allClassesCache.push({ id: d.id, name: data.name, order: data.order || 0 });
+                });
+                allClassesCache.sort((a, b) => a.order - b.order);
+                
+                renderExams(filteredExams);
+                // Classes will be rendered by loadTeacherAssignments
+                renderClasses(); 
+                
+            } catch (error) {
+                console.error("Error loading options:", error);
+                alert("Error loading data: " + error.message);
+            } finally {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+        
+        function renderExams(exams) {
+            sels.exam.innerHTML = `<option value="">Select Exam</option>`;
+            if (exams.length === 0) {
+                sels.exam.innerHTML += `<option disabled>No exams found for this session</option>`;
+            }
+            exams.forEach(exam => {
+                sels.exam.innerHTML += `<option value="${exam.id}">${exam.name}</option>`;
+            });
+        }
+        
+        // 🔥 Render ONLY classes the teacher is assigned to
+        function renderClasses() {
+            sels.class.innerHTML = `<option value="">Select Class</option>`;
+            const myClassIds = [...new Set(myAssignments.map(a => a.classId))];
+            const allowedClasses = allClassesCache.filter(c => myClassIds.includes(c.id));
+            
+            allowedClasses.forEach(cls => {
+                sels.class.innerHTML += `<option value="${cls.id}">${cls.name}</option>`;
+            });
+        }
+
+        async function loadSubjectsAndSections(classId) {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            loadingIndicator.classList.remove('hidden');
+            
+            try {
+                const subSnap = await getDocs(collection(db, "subjects"));
+                const subjects = [];
+                subSnap.forEach(d => {
+                    const data = d.data();
+                    if (data.classId === classId) {
+                        subjects.push({ id: d.id, name: data.name });
+                    }
+                });
+                
+                const secSnap = await getDocs(collection(db, "sections"));
+                const sections = [];
+                secSnap.forEach(d => {
+                    const data = d.data();
+                    if (data.classId === classId) {
+                        sections.push(data.name);
+                    }
+                });
+                
+                renderSubjects(subjects, classId);
+                renderSections(sections);
+                
+            } catch (error) {
+                console.error("Error loading subjects/sections:", error);
+            } finally {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+        
+        // 🔥 Render ONLY subjects the teacher is assigned to in the selected class
+        function renderSubjects(subjects, classId) {
+            sels.subject.innerHTML = `<option value="">Select Subject</option>`;
+            
+            const mySubjectIdsInClass = myAssignments.filter(a => a.classId === classId).map(a => a.subjectId);
+            const allowedSubjects = subjects.filter(sub => mySubjectIdsInClass.includes(sub.id));
+            
+            if (allowedSubjects.length === 0) {
+                sels.subject.innerHTML += `<option disabled>আপনার কোনো বিষয় নেই এই ক্লাসে</option>`;
+            }
+            allowedSubjects.forEach(sub => {
+                sels.subject.innerHTML += `<option value="${sub.id}">${sub.name}</option>`;
+            });
+        }
+        
+        function renderSections(sections) {
+            sels.section.innerHTML = '<option value="All">All Sections</option>';
+            sections.forEach(sec => {
+                sels.section.innerHTML += `<option value="${sec}">${sec}</option>`;
+            });
+        }
+
+        sels.class.onchange = async () => {
+            const cid = sels.class.value;
+            if(!cid) {
+                sels.subject.innerHTML = '<option value="">Select Subject</option>';
+                sels.section.innerHTML = '<option value="All">All Sections</option>';
+                sels.form.classList.add('hidden');
+                return;
+            }
+            await loadSubjectsAndSections(cid);
+            sels.form.classList.add('hidden');
+        };
+
+        // --- FETCH EXISTING DATA ---
+        async function checkData() {
+            if(sels.exam.value && sels.class.value && sels.subject.value) {
+                
+                // 🔥 Security check: Ensure the teacher is assigned to this class & subject
+                const isAssigned = myAssignments.some(a => a.classId === sels.class.value && a.subjectId === sels.subject.value);
+                if (!isAssigned) {
+                    alert("আপনি এই ক্লাসের এই বিষয়ের জন্য অনুমোদিত নন!");
+                    sels.form.classList.add('hidden');
+                    return;
+                }
+
+                sels.form.classList.remove('hidden');
+                const viewingSession = getViewingSession();
+                const sectionVal = sels.section.value || 'All';
+                const id = `${sels.exam.value}_${sels.class.value}_${sectionVal}_${sels.subject.value}_${viewingSession}`;
+                
+                try {
+                    const snap = await getDoc(doc(db, "mark_setup", id));
+                    
+                    if(snap.exists()) {
+                        const d = snap.data().marks;
+                        fill('written', d.written || {enabled: false, full: '', pass: ''});
+                        fill('mcq', d.mcq || {enabled: false, full: '', pass: ''});
+                        fill('prac', d.practical || {enabled: false, full: '', pass: ''});
+                    } else {
+                        ['written', 'mcq', 'prac'].forEach(p => fill(p, {enabled: false, full: '', pass: ''}));
+                    }
+                } catch (error) {
+                    console.error("Error loading data:", error);
+                    ['written', 'mcq', 'prac'].forEach(p => fill(p, {enabled: false, full: '', pass: ''}));
+                }
+            } else {
+                sels.form.classList.add('hidden');
+            }
+        }
+
+        function fill(p, data) {
+            const cb = document.getElementById(`${p}Enable`);
+            const fullInput = document.getElementById(`${p}Full`);
+            const passInput = document.getElementById(`${p}Pass`);
+            const inputDiv = document.getElementById(`input-${p}`);
+            const card = document.getElementById(`card-${p}`);
+            
+            cb.checked = data.enabled || false;
+            fullInput.value = data.full || "";
+            passInput.value = data.pass || "";
+            
+            if (inputDiv) inputDiv.classList.toggle('hidden', !data.enabled);
+            if (card) card.classList.toggle('card-active', data.enabled);
+        }
+
+        // Toggle handlers
+        document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.onchange = (e) => {
+                const target = e.target.dataset.target;
+                const enabled = e.target.checked;
+                const inputDiv = document.getElementById(`input-${target}`);
+                const card = document.getElementById(`card-${target}`);
+                
+                if (inputDiv) inputDiv.classList.toggle('hidden', !enabled);
+                if (card) card.classList.toggle('card-active', enabled);
+            };
+        });
+
+        // Event listeners for filter changes
+        sels.exam.onchange = checkData;
+        sels.subject.onchange = checkData;
+        sels.section.onchange = checkData;
+        
+        sels.session.onchange = async () => {
+            updateSessionDisplay();
+            await loadOptions();
+            sels.class.value = '';
+            sels.section.innerHTML = '<option value="All">All Sections</option>';
+            sels.subject.innerHTML = '<option value="">Select Subject</option>';
+            sels.form.classList.add('hidden');
+        };
+
+        // Save button handler
+        document.getElementById('saveBtn').onclick = async () => {
+            if (!sels.exam.value || !sels.class.value || !sels.subject.value) {
+                alert("Please select Exam, Class, and Subject first!");
+                return;
+            }
+            
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            loadingIndicator.classList.remove('hidden');
+            
+            try {
+                const viewingSession = getViewingSession();
+                const sectionVal = sels.section.value || 'All';
+                const id = `${sels.exam.value}_${sels.class.value}_${sectionVal}_${sels.subject.value}_${viewingSession}`;
+                
+                const getV = (p) => ({ 
+                    enabled: document.getElementById(`${p}Enable`).checked, 
+                    full: parseInt(document.getElementById(`${p}Full`).value) || 0, 
+                    pass: parseInt(document.getElementById(`${p}Pass`).value) || 0 
+                });
+
+                await setDoc(doc(db, "mark_setup", id), {
+                    examId: sels.exam.value,
+                    classId: sels.class.value,
+                    subjectId: sels.subject.value,
+                    section: sectionVal,
+                    session: viewingSession,
+                    marks: { 
+                        written: getV('written'), 
+                        mcq: getV('mcq'), 
+                        practical: getV('prac') 
+                    },
+                    updatedAt: serverTimestamp(),
+                    updatedBy: currentTeacherId || "unknown" // 🔥 Save who updated it
+                });
+                
+                alert(`✅ Setup Saved Successfully for ${viewingSession} Session!`);
+                await checkData(); 
+                
+            } catch (error) {
+                console.error("Error saving:", error);
+                alert("Error saving setup: " + error.message);
+            } finally {
+                loadingIndicator.classList.add('hidden');
+            }
+        };
+
+        // 🔥 Fetch logged-in teacher's assigned classes and subjects
+        async function loadTeacherAssignments(uid) {
+            try {
+                const q = query(collection(db, "teacher_subject"), where("teacherId", "==", uid));
+                const snap = await getDocs(q);
+                
+                myAssignments = [];
+                snap.forEach(d => {
+                    const data = d.data();
+                    myAssignments.push({
+                        classId: data.classId,
+                        subjectId: data.subjectId,
+                        teacherName: data.teacherName || "Teacher"
+                    });
+                });
+
+                if(myAssignments.length > 0) {
+                    document.getElementById('teacherNameHeader').innerText = myAssignments[0].teacherName;
+                    document.getElementById('logoutBtn').classList.remove('hidden');
+                } else {
+                    document.getElementById('teacherNameHeader').innerText = "কোনো ক্লাস বরাদ্দ নেই";
+                    document.getElementById('logoutBtn').classList.remove('hidden');
+                }
+                
+                renderClasses(); // Re-render classes to reflect only assigned ones
+            } catch (error) {
+                console.error("Error loading assignments:", error);
+                document.getElementById('teacherNameHeader').innerText = "এসাইনমেন্ট লোড ব্যর্থ";
+            }
+        }
+
+        // 🔥 Authentication Observer
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentTeacherId = user.uid;
+                document.getElementById('teacherNameHeader').innerText = "ডাটা লোড হচ্ছে...";
+                
+                await loadActiveSession();
+                await loadOptions(); // Loads exams and caches classes
+                await loadTeacherAssignments(currentTeacherId); // Filters classes and subjects
+            } else {
+                currentTeacherId = null;
+                myAssignments = [];
+                document.getElementById('teacherNameHeader').innerText = "লগইন করা নেই!";
+                document.getElementById('logoutBtn').classList.add('hidden');
+                
+                // Disable filters if not logged in
+                sels.exam.disabled = true;
+                sels.class.disabled = true;
+                sels.section.disabled = true;
+                sels.subject.disabled = true;
+                sels.form.classList.add('hidden');
+            }
+        });
+
+        // Logout button handler
+        document.getElementById('logoutBtn').onclick = () => {
+            auth.signOut();
+        };
+    </script>
+</body>
+</html>
