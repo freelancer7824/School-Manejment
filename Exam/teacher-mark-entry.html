@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark Entry - Teachers | Session Wise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri&display=swap');
+        body { background: #f1f5f9; font-family: 'Hind Siliguri', sans-serif; }
+        .session-badge { background: linear-gradient(135deg, #4f46e5, #6366f1); }
+    </style>
+</head>
+<body class="p-5">
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Teacher Info Header -->
+        <div style="display:none" class="bg-white p-4 rounded-2xl shadow-sm mb-4 flex justify-between items-center flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-chalkboard-teacher text-indigo-600"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-gray-800" id="teacherNameHeader">টিচার লোড হচ্ছে...</h2>
+                    <p class="text-xs text-gray-500">শুধুমাত্র আপনার বিষয় ও ক্লাসের মার্ক এন্ট্রি করতে পারবেন</p>
+                </div>
+            </div>
+            <button id="logoutBtn" class="text-sm text-red-500 hover:text-red-700 font-medium hidden">
+                <i class="fas fa-sign-out-alt mr-1"></i> লগআউট
+            </button>
+        </div>
+
+        <!-- Session Info & Filters Card -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm mb-6">
+            <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-calendar-alt text-indigo-600"></i>
+                    <span class="font-semibold">Academic Session:</span>
+                    <select id="sessionSelect" class="border p-2 rounded-lg bg-indigo-50 font-semibold">
+                        <option value="current">Current Session</option>
+                        <option value="next">Next Session</option>
+                    </select>
+                </div>
+                <div class="session-badge text-white px-4 py-2 rounded-full text-sm">
+                    <i class="fas fa-database mr-2"></i>
+                    <span id="sessionLabel">Loading...</span>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap gap-4">
+                <select id="exSel" class="border p-2 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none flex-1 min-w-[150px]">
+                    <option value="">Select Exam</option>
+                </select>
+                <select id="clSel" class="border p-2 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none flex-1 min-w-[150px]">
+                    <option value="">Select Class</option>
+                </select>
+                <select id="secSel" class="border p-2 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none flex-1 min-w-[130px]">
+                    <option value="">Select Section</option>
+                </select>
+                <select id="subSel" class="border p-2 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none flex-1 min-w-[150px]">
+                    <option value="">Select Subject</option>
+                </select>
+                <button id="loadBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-all">
+                    <i class="fas fa-users mr-2"></i> Load Students
+                </button>
+            </div>
+        </div>
+
+        <!-- Marks Table Card -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left min-w-[600px]">
+                    <thead class="bg-indigo-50 border-b border-indigo-100">
+                        <tr id="tHead">
+                            <th class="p-4 font-bold text-indigo-900 w-16">Roll</th>
+                            <th class="p-4 font-bold text-indigo-900 w-48">Name</th>
+                         </tr>
+                    </thead>
+                    <tbody id="tBody" class="divide-y divide-gray-100">
+                        <tr><td colspan="10" class="p-10 text-center text-gray-400">
+                            <i class="fas fa-lock text-4xl mb-3 block text-gray-300"></i>
+                            দয়া করে লগইন করুন অথবা ফিল্টার সিলেক্ট করুন
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <button id="saveAll" class="mt-6 w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg hidden transition-all">
+            <i class="fas fa-save mr-2"></i> Update All Marks
+        </button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, getDocs, collection, query, where, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk", 
+            authDomain: "school-menejment.firebaseapp.com", 
+            projectId: "school-menejment", 
+            storageBucket: "school-menejment.firebasestorage.app", 
+            messagingSenderId: "348342436525", 
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24" 
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentSession = "2025-2026";
+        let nextSession = "2026-2027";
+        let allExamsCache = [];
+        let allClassesCache = [];
+        let allSubjectsCache = [];
+        let allSectionsCache = [];
+        
+        // Teacher specific data
+        let currentTeacherId = null;
+        let myAssignments = []; // { classId, subjectId, className, subjectName, teacherName }
+
+        // Load active session from config
+        async function loadActiveSession() {
+            try {
+                const sdoc = await getDoc(doc(db, "config", "activeSession"));
+                if (sdoc.exists()) {
+                    currentSession = sdoc.data().sessionName || currentSession;
+                }
+                const parts = currentSession.split('-');
+                nextSession = parts.length === 2 ? `${parseInt(parts[0]) + 1}-${parseInt(parts[1]) + 1}` : "2026-2027";
+            } catch (e) {
+                console.error("Error loading session:", e);
+            }
+            updateSessionDisplay();
+        }
+        
+        function updateSessionDisplay() {
+            const viewingSession = getViewingSession();
+            document.getElementById('sessionLabel').innerHTML = `${viewingSession}`;
+        }
+        
+        function getViewingSession() {
+            const sessionVal = document.getElementById('sessionSelect').value;
+            return sessionVal === 'current' ? currentSession : nextSession;
+        }
+
+        // Load all base data
+        async function loadAllBaseData() {
+            const loadingIndicator = document.getElementById('tBody');
+            loadingIndicator.innerHTML = '<tr><td colspan="10" class="p-10 text-center"><i class="fas fa-spinner fa-spin text-indigo-600"></i> ডাটাবেস লোড হচ্ছে...</td></tr>';
+            
+            try {
+                const [exSnap, clSnap, subSnap, secSnap] = await Promise.all([
+                    getDocs(collection(db, "exams")),
+                    getDocs(collection(db, "classes")),
+                    getDocs(collection(db, "subjects")),
+                    getDocs(collection(db, "sections"))
+                ]);
+                
+                allExamsCache = [];
+                exSnap.forEach(d => {
+                    const data = d.data();
+                    allExamsCache.push({ id: d.id, name: data.name, session: data.session, order: data.order || 0 });
+                });
+                
+                allClassesCache = [];
+                clSnap.forEach(d => {
+                    const data = d.data();
+                    allClassesCache.push({ id: d.id, name: data.name, order: data.order || 0 });
+                });
+                allClassesCache.sort((a, b) => a.order - b.order);
+                
+                allSubjectsCache = [];
+                subSnap.forEach(d => {
+                    const data = d.data();
+                    allSubjectsCache.push({ id: d.id, name: data.name, classId: data.classId });
+                });
+                
+                allSectionsCache = [];
+                secSnap.forEach(d => {
+                    const data = d.data();
+                    allSectionsCache.push({ name: data.name, classId: data.classId });
+                });
+                
+                renderExams();
+                
+                loadingIndicator.innerHTML = '<tr><td colspan="10" class="p-10 text-center text-gray-400">ফিল্টার সিলেক্ট করুন</td></tr>';
+                
+            } catch (error) {
+                console.error("Error loading data:", error);
+                loadingIndicator.innerHTML = '<tr><td colspan="10" class="p-10 text-center text-red-500">Error loading data: ' + error.message + '</td></tr>';
+            }
+        }
+
+        // 🔥 Fetch logged-in teacher's assigned classes and subjects
+        async function loadTeacherAssignments(uid) {
+            try {
+                const q = query(collection(db, "teacher_subject"), where("teacherId", "==", uid));
+                const snap = await getDocs(q);
+                
+                myAssignments = [];
+                snap.forEach(d => {
+                    const data = d.data();
+                    myAssignments.push({
+                        classId: data.classId,
+                        subjectId: data.subjectId,
+                        teacherName: data.teacherName || "Teacher"
+                    });
+                });
+
+                if(myAssignments.length > 0) {
+                    document.getElementById('teacherNameHeader').innerText = myAssignments[0].teacherName;
+                    document.getElementById('logoutBtn').classList.remove('hidden');
+                } else {
+                    document.getElementById('teacherNameHeader').innerText = "কোনো ক্লাস বরাদ্দ নেই";
+                    document.getElementById('logoutBtn').classList.remove('hidden');
+                }
+                
+                renderTeacherClasses();
+            } catch (error) {
+                console.error("Error loading assignments:", error);
+                document.getElementById('teacherNameHeader').innerText = "এসাইনমেন্ট লোড ব্যর্থ";
+            }
+        }
+
+        function renderExams() {
+            const viewingSession = getViewingSession();
+            const filteredExams = allExamsCache
+                .filter(exam => exam.session === viewingSession)
+                .sort((a, b) => a.order - b.order);
+            
+            const exSel = document.getElementById('exSel');
+            exSel.innerHTML = '<option value="">Select Exam</option>';
+            filteredExams.forEach(exam => {
+                exSel.innerHTML += `<option value="${exam.id}">${exam.name}</option>`;
+            });
+        }
+        
+        // 🔥 Render ONLY classes the teacher is assigned to
+        function renderTeacherClasses() {
+            const clSel = document.getElementById('clSel');
+            clSel.innerHTML = '<option value="">Select Class</option>';
+            
+            // Get unique classIds from teacher's assignments
+            const myClassIds = [...new Set(myAssignments.map(a => a.classId))];
+            
+            // Filter global classes cache by these IDs
+            const allowedClasses = allClassesCache.filter(c => myClassIds.includes(c.id));
+            
+            allowedClasses.forEach(cls => {
+                clSel.innerHTML += `<option value="${cls.id}">${cls.name}</option>`;
+            });
+        }
+        
+        // 🔥 Render ONLY subjects the teacher is assigned to in the selected class
+        function renderSubjects(classId) {
+            const subSel = document.getElementById('subSel');
+            subSel.innerHTML = '<option value="">Select Subject</option>';
+            
+            if(!classId) return;
+            
+            // Get subjectIds for this class from teacher's assignments
+            const mySubjectsInClass = myAssignments.filter(a => a.classId === classId);
+            const mySubjectIds = mySubjectsInClass.map(a => a.subjectId);
+            
+            // Filter global subjects cache
+            const allowedSubjects = allSubjectsCache.filter(s => s.classId === classId && mySubjectIds.includes(s.id));
+            
+            allowedSubjects.forEach(sub => {
+                subSel.innerHTML += `<option value="${sub.id}">${sub.name}</option>`;
+            });
+        }
+        
+        function renderSections(classId) {
+            const filteredSections = allSectionsCache.filter(sec => sec.classId === classId);
+            const secSel = document.getElementById('secSel');
+            secSel.innerHTML = '<option value="">Select Section</option>';
+            filteredSections.forEach(sec => {
+                secSel.innerHTML += `<option value="${sec.name}">${sec.name}</option>`;
+            });
+        }
+
+        // Class change handler
+        document.getElementById('clSel').onchange = async () => {
+            const cid = document.getElementById('clSel').value;
+            if (!cid) {
+                document.getElementById('subSel').innerHTML = '<option value="">Select Subject</option>';
+                document.getElementById('secSel').innerHTML = '<option value="">Select Section</option>';
+                return;
+            }
+            renderSubjects(cid);
+            renderSections(cid);
+        };
+
+        // Session change handler
+        document.getElementById('sessionSelect').onchange = () => {
+            updateSessionDisplay();
+            renderExams();
+            document.getElementById('clSel').value = '';
+            document.getElementById('subSel').innerHTML = '<option value="">Select Subject</option>';
+            document.getElementById('secSel').innerHTML = '<option value="">Select Section</option>';
+            document.getElementById('tBody').innerHTML = '<tr><td colspan="10" class="p-10 text-center text-gray-400">Select filters and click Load Students</td></tr>';
+            document.getElementById('saveAll').classList.add('hidden');
+        };
+
+        // Load students from SESSION DATA only
+        document.getElementById('loadBtn').onclick = async () => {
+            const ex = document.getElementById('exSel').value;
+            const cl = document.getElementById('clSel').value;
+            const sub = document.getElementById('subSel').value;
+            const sec = document.getElementById('secSel').value;
+
+            if (!ex || !cl || !sub || !sec) {
+                alert("সবগুলো ফিল্টার সিলেক্ট করুন!");
+                return;
+            }
+
+            // 🔥 Security check: Ensure the teacher is actually assigned to this class & subject
+            const isAssigned = myAssignments.some(a => a.classId === cl && a.subjectId === sub);
+            if (!isAssigned) {
+                alert("আপনি এই ক্লাসের এই বিষয়ের জন্য অনুমোদিত নন!");
+                return;
+            }
+
+            const viewingSession = getViewingSession();
+            const setupId = `${ex}_${cl}_${sec}_${sub}_${viewingSession}`;
+            
+            const setupSnap = await getDoc(doc(db, "mark_setup", setupId));
+            if (!setupSnap.exists()) {
+                alert("এই সাবজেক্টের মার্ক সেটআপ করা হয়নি! প্রথমে Mark Setup এ কনফিগার করুন।");
+                return;
+            }
+
+            const config = setupSnap.data().marks;
+            const activeFields = [];
+            let h = '<th class="p-4 font-bold text-indigo-900 w-16">Roll</th><th class="p-4 font-bold text-indigo-900 w-48">Name</th>';
+            
+            if (config.written?.enabled) { 
+                activeFields.push({id: 'written', max: config.written.full, label: 'Written'}); 
+                h += `<th class="p-4 text-center font-bold text-indigo-900">Written (${config.written.full})</th>`; 
+            }
+            if (config.mcq?.enabled) { 
+                activeFields.push({id: 'mcq', max: config.mcq.full, label: 'MCQ'}); 
+                h += `<th class="p-4 text-center font-bold text-indigo-900">MCQ (${config.mcq.full})</th>`; 
+            }
+            if (config.practical?.enabled) { 
+                activeFields.push({id: 'practical', max: config.practical.full, label: 'Practical'}); 
+                h += `<th class="p-4 text-center font-bold text-indigo-900">Practical (${config.practical.full})</th>`; 
+            }
+            h += '<th class="p-4 text-center font-bold text-indigo-900 w-24">Total</th>';
+            document.getElementById('tHead').innerHTML = h;
+
+            const students = [];
+            const studRef = collection(db, `current_session/${viewingSession}/classes/${cl}/students`);
+            const studSnap = await getDocs(studRef);
+            
+            for (const docSnap of studSnap.docs) {
+                const data = docSnap.data();
+                const studentSection = data.section || "";
+                if (sec && studentSection !== sec) continue;
+                if (document.getElementById('sessionSelect').value === 'current' && data.promotedToNextSession === true) continue;
+                
+                students.push({
+                    id: docSnap.id,
+                    rollNumber: data.rollNumber || data.roll || '',
+                    fullName: data.fullName || '',
+                    section: studentSection
+                });
+            }
+            
+            students.sort((a, b) => {
+                const ar = parseInt(a.rollNumber) || 0;
+                const br = parseInt(b.rollNumber) || 0;
+                return ar - br;
+            });
+
+            const markSnap = await getDocs(query(collection(db, "marks"), where("examId", "==", ex), where("subjectId", "==", sub)));
+            const mData = {}; 
+            markSnap.forEach(d => mData[d.data().studentId] = d.data().marks);
+
+            const tbody = document.getElementById('tBody'); 
+            tbody.innerHTML = "";
+
+            if (students.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="p-10 text-center text-gray-400">
+                    <i class="fas fa-user-graduate text-4xl mb-2 block"></i>
+                    ${viewingSession} সেশনে এই ক্লাস/সেকশনে কোনো ছাত্র পাওয়া যায়নি।
+                 </td></tr>`;
+                document.getElementById('saveAll').classList.add('hidden');
+                return;
+            }
+
+            students.forEach(stu => {
+                const sm = mData[stu.id] || {};
+                let row = `<tr data-sid="${stu.id}" class="hover:bg-gray-50 border-b">
+                    <td class="p-4 font-bold text-gray-700">${stu.rollNumber || '-'}</td>
+                    <td class="p-4 text-gray-700">${stu.fullName || '-'}</td>`;
+                
+                activeFields.forEach(f => {
+                    row += `<td class="p-4 text-center">
+                        <input type="number" 
+                        class="mark-input w-20 border border-gray-300 p-1 rounded text-center focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none" 
+                        data-type="${f.id}" 
+                        data-max="${f.max}" 
+                        value="${sm[f.id] || ""}"
+                        step="0.01">
+                     </td>`;
+                });
+                row += `<td class="p-4 text-center font-bold text-indigo-600 total-cell">0</td></tr>`;
+                tbody.innerHTML += row;
+            });
+
+            document.getElementById('saveAll').classList.remove('hidden');
+            attachCalc();
+        };
+
+        function attachCalc() {
+            document.querySelectorAll('.mark-input').forEach(i => {
+                i.oninput = function() {
+                    const max = parseFloat(this.dataset.max);
+                    const val = parseFloat(this.value);
+                    if (val > max) {
+                        this.classList.add('border-red-500', 'text-red-600');
+                    } else {
+                        this.classList.remove('border-red-500', 'text-red-600');
+                    }
+                    const tr = this.closest('tr'); 
+                    let total = 0;
+                    tr.querySelectorAll('.mark-input').forEach(mi => {
+                        const v = parseFloat(mi.value);
+                        if (!isNaN(v)) total += v;
+                    });
+                    tr.querySelector('.total-cell').innerText = total;
+                };
+                i.oninput();
+            });
+        }
+
+        document.getElementById('saveAll').onclick = async function() {
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
+            
+            const batch = writeBatch(db);
+            const ex = document.getElementById('exSel').value;
+            const sub = document.getElementById('subSel').value;
+            const viewingSession = getViewingSession();
+
+            document.querySelectorAll('#tBody tr[data-sid]').forEach(tr => {
+                const sid = tr.dataset.sid; 
+                const marks = {};
+                tr.querySelectorAll('.mark-input').forEach(i => {
+                    marks[i.dataset.type] = parseFloat(i.value) || 0;
+                });
+                const mId = `${viewingSession}_${ex}_${sub}_${sid}`;
+                batch.set(doc(db, "marks", mId), { 
+                    studentId: sid, 
+                    examId: ex, 
+                    subjectId: sub,
+                    session: viewingSession,
+                    marks, 
+                    updatedAt: serverTimestamp() 
+                }, {merge: true});
+            });
+
+            try {
+                await batch.commit(); 
+                alert(`✅ সব মার্ক সফলভাবে আপডেট হয়েছে! (${viewingSession} Session)`);
+            } catch (e) {
+                console.error(e);
+                alert("সেভ করার সময় সমস্যা হয়েছে! " + e.message);
+            }
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-save mr-2"></i> Update All Marks';
+        };
+
+        // 🔥 Authentication Observer
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentTeacherId = user.uid;
+                document.getElementById('teacherNameHeader').innerText = "ডাটা লোড হচ্ছে...";
+                
+                await loadActiveSession();
+                await loadAllBaseData();
+                await loadTeacherAssignments(currentTeacherId); // Load only assigned classes/subjects
+            } else {
+                currentTeacherId = null;
+                myAssignments = [];
+                document.getElementById('teacherNameHeader').innerText = "লগইন করা নেই!";
+                document.getElementById('logoutBtn').classList.add('hidden');
+                document.getElementById('tBody').innerHTML = '<tr><td colspan="10" class="p-10 text-center text-red-500 font-bold">মার্ক এন্ট্রি করতে দয়া করে লগইন করুন!</td></tr>';
+                
+                // Disable filters if not logged in
+                document.getElementById('exSel').disabled = true;
+                document.getElementById('clSel').disabled = true;
+                document.getElementById('secSel').disabled = true;
+                document.getElementById('subSel').disabled = true;
+                document.getElementById('loadBtn').disabled = true;
+            }
+        });
+
+        // Logout button handler
+        document.getElementById('logoutBtn').onclick = () => {
+            auth.signOut();
+        };
+    </script>
+</body>
+</html>
