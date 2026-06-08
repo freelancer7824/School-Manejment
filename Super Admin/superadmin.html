@@ -552,7 +552,8 @@
 
         <div class="dashboard-body">
             <div class="content-container">
-                <iframe id="main-iframe" src="../Dashboard/dashboard" frameborder="0" 
+                <!-- HTML এ src খালি রাখা হয়েছে, জাভাস্ক্রিপ্ট থেকে লোড করা হবে -->
+                <iframe id="main-iframe" src="" frameborder="0" 
                     sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals allow-downloads allow-top-navigation"></iframe>
             </div>
         </div>
@@ -566,7 +567,23 @@
         const iframe = document.getElementById('main-iframe');
         
         // ডিফল্ট পেজ ভ্যারিয়েবল
-        let currentPage = "../Dashboard/dashboard"; 
+        const DEFAULT_PAGE = "../Dashboard/dashboard"; 
+        let currentPage = DEFAULT_PAGE; 
+
+        // লোকাল স্টোরেজ এবং URL হ্যাশ থেকে সেভ করা পেজ বের করার ফাংশন
+        function getSavedPage() {
+            // প্রথমে URL এ হ্যাশ আছে কিনা চেক করা
+            if (window.location.hash && window.location.hash.length > 1) {
+                return decodeURIComponent(window.location.hash.substring(1));
+            }
+            // এরপর লোকাল স্টোরেজ চেক করা
+            const storedPage = localStorage.getItem('adminCurrentPage');
+            if (storedPage) {
+                return storedPage;
+            }
+            // কিছু না পেলে ডিফল্ট ড্যাশবোর্ড রিটার্ন করা
+            return DEFAULT_PAGE;
+        }
 
         function toggleSidebar() {
             if (window.innerWidth <= 768) {
@@ -612,13 +629,17 @@
             }
         }
 
-        // আইফ্রেম লোড এবং মেনু অ্যাক্টিভেশন ফাংশন (URL ছাড়া)
+        // আইফ্রেম লোড এবং মেনু অ্যাক্টিভেশন ফাংশন
         function loadIframePage(targetLink) {
             if (!targetLink) {
-                targetLink = currentPage;
+                targetLink = DEFAULT_PAGE;
             }
 
             currentPage = targetLink; // বর্তমান পেজ আপডেট করা হচ্ছে
+
+            // লোকাল স্টোরেজ এবং URL হ্যাশে সেভ করা হচ্ছে
+            localStorage.setItem('adminCurrentPage', targetLink);
+            window.location.hash = encodeURIComponent(targetLink);
 
             if(iframe.getAttribute('src') !== targetLink) {
                 iframe.src = targetLink;
@@ -651,7 +672,9 @@
 
         // পেজ লোড এবং ক্লিক ইভেন্ট হ্যান্ডলিং
         window.addEventListener('DOMContentLoaded', () => {
-            loadIframePage(currentPage); // প্রথমে ড্যাশবোর্ড লোড করা হচ্ছে
+            // পেজ লোড হলে সেভ করা পেজ কি তা চেক করে লোড করা হচ্ছে
+            const initialPage = getSavedPage();
+            loadIframePage(initialPage); 
 
             const links = document.querySelectorAll('a[data-link]');
             links.forEach(link => {
@@ -662,15 +685,21 @@
 
                     e.preventDefault();
                     const url = this.getAttribute('data-link');
-                    
-                    // window.location.hash = url; <-- এই লাইনটি সরিয়ে দেওয়া হয়েছে
-                    loadIframePage(url); // সরাসরি ফাংশন কল করা হচ্ছে
+                    loadIframePage(url); 
 
                     if (window.innerWidth <= 768) {
                         toggleSidebar();
                     }
                 });
             });
+        });
+
+        // ব্রাউজারের ব্যাক/ফরওয়ার্ড বাটন প্রেস করলে পেজ পরিবর্তন হবে
+        window.addEventListener('hashchange', function() {
+            const targetPage = getSavedPage();
+            if (targetPage !== currentPage) {
+                loadIframePage(targetPage);
+            }
         });
     </script>
     
