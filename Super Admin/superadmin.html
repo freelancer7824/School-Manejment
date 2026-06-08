@@ -552,8 +552,7 @@
 
         <div class="dashboard-body">
             <div class="content-container">
-                <!-- HTML এ src খালি রাখা হয়েছে, জাভাস্ক্রিপ্ট থেকে লোড করা হবে -->
-                <iframe id="main-iframe" src="" frameborder="0" 
+                <iframe id="main-iframe" src="../Dashboard/dashboard" frameborder="0" 
                     sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals allow-downloads allow-top-navigation"></iframe>
             </div>
         </div>
@@ -565,25 +564,44 @@
         const overlay = document.querySelector('.overlay');
         const userDropdown = document.getElementById('userDropdown');
         const iframe = document.getElementById('main-iframe');
-        
-        // ডিফল্ট পেজ ভ্যারিয়েবল
-        const DEFAULT_PAGE = "../Dashboard/dashboard"; 
-        let currentPage = DEFAULT_PAGE; 
 
-        // লোকাল স্টোরেজ এবং URL হ্যাশ থেকে সেভ করা পেজ বের করার ফাংশন
-        function getSavedPage() {
-            // প্রথমে URL এ হ্যাশ আছে কিনা চেক করা
-            if (window.location.hash && window.location.hash.length > 1) {
-                return decodeURIComponent(window.location.hash.substring(1));
-            }
-            // এরপর লোকাল স্টোরেজ চেক করা
-            const storedPage = localStorage.getItem('adminCurrentPage');
-            if (storedPage) {
-                return storedPage;
-            }
-            // কিছু না পেলে ডিফল্ট ড্যাশবোর্ড রিটার্ন করা
-            return DEFAULT_PAGE;
+        // --- Link Obfuscation (Random Big Link) Functions ---
+        function utf8_to_b64(str) {
+            return window.btoa(unescape(encodeURIComponent(str)));
         }
+
+        function b64_to_utf8(str) {
+            return decodeURIComponent(escape(window.atob(str)));
+        }
+
+        function generateRandomString(length) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function obfuscateLink(link) {
+            const randomPrefix = generateRandomString(6);
+            const randomSuffix = generateRandomString(6);
+            const encoded = utf8_to_b64(link);
+            return randomPrefix + encoded + randomSuffix;
+        }
+
+        function deobfuscateLink(hash) {
+            if (!hash) return "../Dashboard/dashboard";
+            try {
+                if (hash.length <= 12) return "../Dashboard/dashboard"; // Not a valid obfuscated string
+                const base64 = hash.substring(6, hash.length - 6);
+                return b64_to_utf8(base64);
+            } catch (e) {
+                console.error("Failed to decode link:", e);
+                return "../Dashboard/dashboard";
+            }
+        }
+        // -------------------------------------------------
 
         function toggleSidebar() {
             if (window.innerWidth <= 768) {
@@ -629,33 +647,29 @@
             }
         }
 
-        // আইফ্রেম লোড এবং মেনু অ্যাক্টিভেশন ফাংশন
-        function loadIframePage(targetLink) {
-            if (!targetLink) {
-                targetLink = DEFAULT_PAGE;
+        function loadPageFromHash() {
+            const links = document.querySelectorAll('a[data-link]');
+            let currentHash = window.location.hash.substring(1);
+            
+            // Deobfuscate the hash to get the real link
+            let currentLink = deobfuscateLink(currentHash);
+
+            if (!currentHash) {
+                currentLink = "../Dashboard/dashboard";
             }
 
-            currentPage = targetLink; // বর্তমান পেজ আপডেট করা হচ্ছে
-
-            // লোকাল স্টোরেজ এবং URL হ্যাশে সেভ করা হচ্ছে
-            localStorage.setItem('adminCurrentPage', targetLink);
-            window.location.hash = encodeURIComponent(targetLink);
-
-            if(iframe.getAttribute('src') !== targetLink) {
-                iframe.src = targetLink;
+            if(iframe.getAttribute('src') !== currentLink) {
+                iframe.src = currentLink;
                 iframe.onload = injectAntiInspectToIframe;
             }
             
-            // আগের অ্যাক্টিভ ক্লাসগুলো মুছে ফেলা
             document.querySelectorAll('.sidebar-menu a, .user-dropdown-menu a').forEach(item => {
                 item.classList.remove('active');
                 item.classList.remove('active-sub');
             });
 
-            // নতুন ক্লিক করা মেনুতে অ্যাক্টিভ ক্লাস যোগ করা
-            const links = document.querySelectorAll('a[data-link]');
             links.forEach(link => {
-                if (link.getAttribute('data-link') === targetLink && !link.classList.contains('dropdown-toggle')) {
+                if (link.getAttribute('data-link') === currentLink && !link.classList.contains('dropdown-toggle')) {
                     if (link.classList.contains('menu-item')) {
                         link.classList.add('active');
                     } else {
@@ -670,11 +684,14 @@
             });
         }
 
-        // পেজ লোড এবং ক্লিক ইভেন্ট হ্যান্ডলিং
+        window.addEventListener('hashchange', loadPageFromHash);
         window.addEventListener('DOMContentLoaded', () => {
-            // পেজ লোড হলে সেভ করা পেজ কি তা চেক করে লোড করা হচ্ছে
-            const initialPage = getSavedPage();
-            loadIframePage(initialPage); 
+            loadPageFromHash();
+
+            // If no hash exists, set the default obfuscated hash for dashboard
+            if(!window.location.hash) {
+                window.location.hash = obfuscateLink("../Dashboard/dashboard");
+            }
 
             const links = document.querySelectorAll('a[data-link]');
             links.forEach(link => {
@@ -685,21 +702,15 @@
 
                     e.preventDefault();
                     const url = this.getAttribute('data-link');
-                    loadIframePage(url); 
+                    
+                    // Set the obfuscated hash instead of the real URL
+                    window.location.hash = obfuscateLink(url);
 
                     if (window.innerWidth <= 768) {
                         toggleSidebar();
                     }
                 });
             });
-        });
-
-        // ব্রাউজারের ব্যাক/ফরওয়ার্ড বাটন প্রেস করলে পেজ পরিবর্তন হবে
-        window.addEventListener('hashchange', function() {
-            const targetPage = getSavedPage();
-            if (targetPage !== currentPage) {
-                loadIframePage(targetPage);
-            }
         });
     </script>
     
@@ -810,6 +821,7 @@
 
         function injectAntiInspectToIframe() {
             try {
+                const iframe = document.getElementById('main-iframe');
                 const iframeDoc = iframe.contentWindow.document || iframe.contentDocument;
                 
                 if (iframeDoc.getElementById('injected-anti-inspect')) return;
@@ -834,6 +846,7 @@
         }
 
         window.addEventListener('load', function() {
+            const iframe = document.getElementById('main-iframe');
             if(iframe) {
                 iframe.onload = injectAntiInspectToIframe;
                 try {
@@ -848,6 +861,8 @@
             if (event.origin !== window.location.origin && event.origin !== 'null') return;
             
             if (!event.data || !event.data.type) return;
+
+            const iframe = document.getElementById('main-iframe');
 
             if (event.data.type === 'REQUEST_PRINT') {
                 try {
@@ -884,6 +899,7 @@
                 if (e.shiftKey) return;
                 e.preventDefault();
                 try {
+                    const iframe = document.getElementById('main-iframe');
                     if (iframe && iframe.contentWindow) {
                         iframe.contentWindow.focus();
                         iframe.contentWindow.print();
