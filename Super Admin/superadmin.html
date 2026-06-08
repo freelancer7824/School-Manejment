@@ -564,6 +564,9 @@
         const overlay = document.querySelector('.overlay');
         const userDropdown = document.getElementById('userDropdown');
         const iframe = document.getElementById('main-iframe');
+        
+        // ডিফল্ট পেজ ভ্যারিয়েবল
+        let currentPage = "../Dashboard/dashboard"; 
 
         function toggleSidebar() {
             if (window.innerWidth <= 768) {
@@ -609,26 +612,29 @@
             }
         }
 
-        function loadPageFromHash() {
-            const links = document.querySelectorAll('a[data-link]');
-            let currentLink = window.location.hash.substring(1);
-            
-            if (!currentLink) {
-                currentLink = "../Dashboard/dashboard";
+        // আইফ্রেম লোড এবং মেনু অ্যাক্টিভেশন ফাংশন (URL ছাড়া)
+        function loadIframePage(targetLink) {
+            if (!targetLink) {
+                targetLink = currentPage;
             }
 
-            if(iframe.getAttribute('src') !== currentLink) {
-                iframe.src = currentLink;
+            currentPage = targetLink; // বর্তমান পেজ আপডেট করা হচ্ছে
+
+            if(iframe.getAttribute('src') !== targetLink) {
+                iframe.src = targetLink;
                 iframe.onload = injectAntiInspectToIframe;
             }
             
+            // আগের অ্যাক্টিভ ক্লাসগুলো মুছে ফেলা
             document.querySelectorAll('.sidebar-menu a, .user-dropdown-menu a').forEach(item => {
                 item.classList.remove('active');
                 item.classList.remove('active-sub');
             });
 
+            // নতুন ক্লিক করা মেনুতে অ্যাক্টিভ ক্লাস যোগ করা
+            const links = document.querySelectorAll('a[data-link]');
             links.forEach(link => {
-                if (link.getAttribute('data-link') === currentLink && !link.classList.contains('dropdown-toggle')) {
+                if (link.getAttribute('data-link') === targetLink && !link.classList.contains('dropdown-toggle')) {
                     if (link.classList.contains('menu-item')) {
                         link.classList.add('active');
                     } else {
@@ -643,9 +649,9 @@
             });
         }
 
-        window.addEventListener('hashchange', loadPageFromHash);
+        // পেজ লোড এবং ক্লিক ইভেন্ট হ্যান্ডলিং
         window.addEventListener('DOMContentLoaded', () => {
-            loadPageFromHash();
+            loadIframePage(currentPage); // প্রথমে ড্যাশবোর্ড লোড করা হচ্ছে
 
             const links = document.querySelectorAll('a[data-link]');
             links.forEach(link => {
@@ -656,7 +662,9 @@
 
                     e.preventDefault();
                     const url = this.getAttribute('data-link');
-                    window.location.hash = url;
+                    
+                    // window.location.hash = url; <-- এই লাইনটি সরিয়ে দেওয়া হয়েছে
+                    loadIframePage(url); // সরাসরি ফাংশন কল করা হচ্ছে
 
                     if (window.innerWidth <= 768) {
                         toggleSidebar();
@@ -773,7 +781,6 @@
 
         function injectAntiInspectToIframe() {
             try {
-                const iframe = document.getElementById('main-iframe');
                 const iframeDoc = iframe.contentWindow.document || iframe.contentDocument;
                 
                 if (iframeDoc.getElementById('injected-anti-inspect')) return;
@@ -798,7 +805,6 @@
         }
 
         window.addEventListener('load', function() {
-            const iframe = document.getElementById('main-iframe');
             if(iframe) {
                 iframe.onload = injectAntiInspectToIframe;
                 try {
@@ -813,8 +819,6 @@
             if (event.origin !== window.location.origin && event.origin !== 'null') return;
             
             if (!event.data || !event.data.type) return;
-
-            const iframe = document.getElementById('main-iframe');
 
             if (event.data.type === 'REQUEST_PRINT') {
                 try {
@@ -851,7 +855,6 @@
                 if (e.shiftKey) return;
                 e.preventDefault();
                 try {
-                    const iframe = document.getElementById('main-iframe');
                     if (iframe && iframe.contentWindow) {
                         iframe.contentWindow.focus();
                         iframe.contentWindow.print();
