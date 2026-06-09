@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>অ্যাকাউন্ট্যান্ট ড্যাশবোর্ড</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&display=swap');
+
+        :root {
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 60px; 
+            --header-height: 60px;
+            --sidebar-bg: #2c3e50;
+            --header-bg: #2c3e50; 
+            --header-text: #ecf0f1; 
+            --main-bg: #f0f2f5;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', 'Noto Sans Bengali', sans-serif;
+        }
+
+        body {
+            background-color: var(--main-bg);
+            color: #333;
+            line-height: 1.6;
+            overflow: hidden;
+            height: 100vh; 
+        }
+
+        /* --- সাইডবার স্টাইল --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            color: #ecf0f1;
+            padding-top: 0;
+            transition: transform 0.3s ease, width 0.3s ease;
+            position: fixed;
+            height: 100%;
+            z-index: 1000;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width); 
+        }
+        
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #3e5163;
+            position: relative; 
+            transition: opacity 0.3s ease;
+        }
+        .sidebar.collapsed .sidebar-header {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        .sidebar.collapsed .sidebar-header .user-info,
+        .sidebar.collapsed .sidebar-header img {
+             display: none;
+        }
+
+        .sidebar.collapsed .nav-hide-icon {
+            transform: rotate(180deg); 
+            left: 50%;
+            transform: translateX(-50%);
+            right: auto;
+            top: 20px;
+        }
+
+        .nav-hide-icon {
+            position: absolute;
+            right: 15px;
+            top: 18px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #ecf0f1;
+            display: none; 
+            transition: transform 0.3s ease, left 0.3s ease;
+        }
+
+        .sidebar-menu a.menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #ecf0f1;
+            font-size: 14px;
+            transition: background-color 0.2s, padding 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .sidebar.collapsed .sidebar-menu a.menu-item {
+            justify-content: center;
+            padding: 12px 0; 
+        }
+        
+        .menu-item span {
+            margin-left: 15px;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+        }
+        .sidebar.collapsed .menu-item span {
+            opacity: 0;
+            width: 0;
+            margin-left: 0;
+        }
+
+        .dropdown-toggle .arrow {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+        }
+        .sidebar.collapsed .dropdown-toggle .arrow {
+            display: none; 
+        }
+
+        .dropdown-content {
+            list-style: none;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background-color: #233140;
+        }
+
+        .sidebar.collapsed .dropdown-content {
+            display: none;
+        }
+
+        .dropdown-content.open {
+            max-height: 500px; 
+            transition: max-height 0.5s ease-in;
+        }
+        .dropdown-content li a {
+            display: block;
+            padding: 8px 15px 8px 50px;
+            color: #bdc3c7;
+            text-decoration: none;
+            font-size: 13px;
+        }
+        .dropdown-content li a.active-sub {
+            color: #fff;
+            background-color: #34495e;
+            font-weight: bold;
+        }
+
+        /* --- প্রধান কন্টেন্ট এরিয়া --- */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s ease, width 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            width: calc(100% - var(--sidebar-width));
+            height: 100vh; 
+        }
+
+        .main-content.collapsed-margin {
+            margin-left: var(--sidebar-collapsed-width);
+            width: calc(100% - var(--sidebar-collapsed-width));
+        }
+
+        .main-content.full-width {
+            margin-left: 0;
+            width: 100%;
+        }
+        
+        .header {
+            background-color: var(--header-bg); 
+            color: var(--header-text); 
+            padding: 0 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: var(--header-height);
+            flex-shrink: 0; 
+            z-index: 999;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px; 
+        }
+
+        .header-left h3 {
+            font-size: 16px; 
+            color: var(--header-text); 
+            margin: 0;
+            white-space: nowrap; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 70vw; 
+        }
+
+        .menu-toggle {
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--header-text); 
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .session-info {
+            font-size: 14px;
+            margin-right: 20px;
+            white-space: nowrap;
+        }
+
+        .user-avatar-group {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            padding: 5px;
+        }
+
+        .user-avatar-group:hover {
+             background-color: rgba(255, 255, 255, 0.1); 
+             border-radius: 4px;
+        }
+
+        .user-avatar-group .user-icon {
+            font-size: 24px;
+            margin-left: 5px;
+            color: var(--header-text); 
+        }
+
+        .header-profile-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-left: 5px;
+            border: 2px solid #ecf0f1;
+            display: none;
+        }
+
+        .user-dropdown-menu {
+            position: absolute;
+            top: var(--header-height);
+            right: 0;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1011;
+            min-width: 150px;
+            display: none;
+            list-style: none;
+            padding: 5px 0;
+            border-radius: 4px;
+        }
+
+        .user-dropdown-menu.show {
+            display: block;
+        }
+
+        .user-dropdown-menu a {
+            display: block;
+            padding: 10px 15px;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .user-dropdown-menu a:hover {
+            background-color: var(--main-bg);
+            color: #2c3e50;
+        }
+
+        /* --- আই-ফ্রেম কনটেন্ট এরিয়া --- */
+        .dashboard-body {
+            padding: 0; 
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column; 
+            min-height: 0; 
+            overflow: hidden; 
+        }
+
+        .content-container {
+            width: 100%;
+            flex: 1; 
+            min-height: 0; 
+            background-color: #fff;
+            overflow: hidden;
+        }
+
+        #main-iframe {
+            display: block; 
+            width: 100%;
+            height: 100%; 
+            border: none;
+            background-color: var(--main-bg); 
+        }
+        
+        /* --- রেসপন্সিভ ডিজাইন --- */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 250px; 
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            .main-content.collapsed-margin {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .session-info {
+                display: none;
+            }
+            
+            .nav-hide-icon {
+                display: none !important; 
+            }
+
+            .overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 990; 
+                display: none;
+            }
+
+            .overlay.active {
+                display: block;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .nav-hide-icon {
+                display: block; 
+            }
+        }
+
+       .circular-container {
+          width: 45px;
+          height: 45px;
+          padding: 2px;
+          margin-right: 10px;
+          border-radius: 50%;
+          overflow: hidden; 
+          background-color: #3e5163;
+          flex-shrink: 0;
+        }
+
+        .circular-container img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover; 
+          border-radius: 50%;
+        }
+
+        .sidebar-menu a.menu-item.active {
+            background-color: #34495e;
+            border-left: 4px solid #3498db;
+        }
+
+        @media print {
+            .sidebar, .header, .overlay { display: none !important; }
+            .main-content { margin-left: 0 !important; width: 100% !important; height: auto !important; }
+            .dashboard-body { padding: 0 !important; }
+            .content-container { overflow: visible !important; }
+            #main-iframe {
+                width: 100% !important;
+                height: auto !important;
+                min-height: 100vh !important;
+                border: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="sidebar" id="sidebar">
+        <i class="fas fa-arrow-left nav-hide-icon" id="navHideIcon" onclick="toggleSidebar()"></i>
+
+        <div class="sidebar-header">
+            <div class="circular-container">
+                <img id="sidebar-admin-img" src="https://ui-avatars.com/api/?name=ACC&background=3b82f6&color=fff" alt="Profile" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=ACC&background=3b82f6&color=fff';">
+            </div>
+           <div class="user-info">
+                <strong id="school_name">Loading...</strong>
+                <small id="dynamic-admin-name">Accountant</small>
+            </div>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <a href="#" class="menu-item active" id="dashboard-menu-btn" data-link="../Dashboard/dashboard"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+
+            <!-- অ্যাকাউন্ট্যান্টের প্রয়োজনীয় মেনু শুরু -->
+            
+            <div class="dropdown">
+                <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
+                    <i class="fas fa-file-invoice-dollar"></i> <span>Fee Management</span> <i class="fas fa-angle-right arrow"></i>
+                </a>
+                <ul class="dropdown-content">
+                    <li><a href="#" data-link="../Accounts/fee-setup">ফি সেটআপ</a></li>
+                    <li><a href="#" data-link="../Accounts/fee-collection">ফি আদায়</a></li>
+                    <li><a href="#" data-link="../Accounts/fee-due">বকেয়া রিপোর্ট</a></li>
+                </ul>
+            </div>
+
+            <div class="dropdown">
+                <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
+                    <i class="fas fa-money-check-alt"></i> <span>Salary & Payroll</span> <i class="fas fa-angle-right arrow"></i>
+                </a>
+                <ul class="dropdown-content">
+                    <li><a href="#" data-link="../Accounts/salary-setup">বেতন সেটআপ</a></li>
+                    <li><a href="#" data-link="../Accounts/salary-generate">বেতন প্রস্তুতি</a></li>
+                    <li><a href="#" data-link="../Accounts/salary-payment">বেতন প্রদান</a></li>
+                </ul>
+            </div>
+
+            <div class="dropdown">
+                <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
+                    <i class="fas fa-hand-holding-usd"></i> <span>Expense</span> <i class="fas fa-angle-right arrow"></i>
+                </a>
+                <ul class="dropdown-content">
+                    <li><a href="#" data-link="../Accounts/expense-category">খরচের ক্যাটাগরি</a></li>
+                    <li><a href="#" data-link="../Accounts/add-expense">খরচ যোগ করুন</a></li>
+                    <li><a href="#" data-link="../Accounts/expense-list">খরচের তালিকা</a></li>
+                </ul>
+            </div>
+
+            <div class="dropdown">
+                <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
+                    <i class="fas fa-chart-line"></i> <span>Accounts Report</span> <i class="fas fa-angle-right arrow"></i>
+                </a>
+                <ul class="dropdown-content">
+                    <li><a href="#" data-link="../Accounts/daily-transaction">দৈনিক লেনদেন</a></li>
+                    <li><a href="#" data-link="../Accounts/income-expense-report">আয়-ব্যয় রিপোর্ট</a></li>
+                    <li><a href="#" data-link="../Accounts/balance-sheet">ব্যালেন্স শিট</a></li>
+                </ul>
+            </div>
+
+            <div class="dropdown">
+                <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
+                    <i class="fas fa-credit-card"></i> <span>Payment</span> <i class="fas fa-angle-right arrow"></i>
+                </a>
+                <ul class="dropdown-content">
+                    <li><a href="#" data-link="../Payment/payment-management">পেমেন্ট ম্যানেজমেন্ট</a></li>
+                    <li><a href="#" data-link="../Payment/payment">পেমেন্ট</a></li>
+                </ul>
+            </div>
+
+            <a href="#" class="menu-item" data-link="../Settings/settings"><i class="fas fa-sliders-h"></i> <span>Settings</span></a>
+            <a href="#" class="menu-item" data-link="../Settings/my-account"><i class="fas fa-user-circle"></i> <span>My Account</span></a>
+            
+            <!-- অ্যাকাউন্ট্যান্টের প্রয়োজনীয় মেনু শেষ -->
+        </nav>
+    </div>
+
+    <div class="main-content" id="mainContent">
+        <header class="header">
+            <div class="header-left">
+                <i class="fas fa-bars menu-toggle" onclick="toggleSidebar()"></i>
+                <h3 id="main_heading">Loading...</h3>
+            </div>
+            <div class="header-right">
+                <span class="session-info" id="session-display">Current Session: Loading...</span>
+                
+                <div class="user-avatar-group" onclick="toggleUserDropdown(this)">
+                    <img id="header-admin-img" src="https://ui-avatars.com/api/?name=ACC&background=3b82f6&color=fff" alt="Profile" class="header-profile-img" referrerpolicy="no-referrer" onerror="this.style.display='none'; document.getElementById('header-fallback-icon').style.display='inline-block';">
+                    <i id="header-fallback-icon" class="fas fa-user-circle user-icon" style="margin-left:5px;"></i>
+                    <i class="fas fa-caret-down user-icon" style="font-size: 18px; margin-left: 0;"></i>
+                </div>
+
+                <ul class="user-dropdown-menu" id="userDropdown">
+                    <li><a href="#" data-link="profile"><i class="fas fa-user-edit"></i> প্রোফাইল</a></li>
+                    <li><a href="#" data-link="settings"><i class="fas fa-cog"></i> সেটিংস</a></li>
+                    <li><a href="../Auth/logout"><i class="fas fa-sign-out-alt"></i> লগ আউট</a></li> 
+                </ul>
+            </div>
+        </header>
+
+        <div class="dashboard-body">
+            <div class="content-container">
+                <iframe id="main-iframe" src="../Dashboard/dashboard" frameborder="0" 
+                    sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals allow-downloads allow-top-navigation"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const overlay = document.querySelector('.overlay');
+        const userDropdown = document.getElementById('userDropdown');
+        const iframe = document.getElementById('main-iframe');
+
+        // --- Link Obfuscation (Random Big Link) Functions ---
+        function utf8_to_b64(str) {
+            return window.btoa(unescape(encodeURIComponent(str)));
+        }
+
+        function b64_to_utf8(str) {
+            return decodeURIComponent(escape(window.atob(str)));
+        }
+
+        function generateRandomString(length) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function obfuscateLink(link) {
+            const randomPrefix = generateRandomString(6);
+            const randomSuffix = generateRandomString(6);
+            const encoded = utf8_to_b64(link);
+            return randomPrefix + encoded + randomSuffix;
+        }
+
+        function deobfuscateLink(hash) {
+            if (!hash) return "../Dashboard/dashboard";
+            try {
+                if (hash.length <= 12) return "../Dashboard/dashboard"; // Not a valid obfuscated string
+                const base64 = hash.substring(6, hash.length - 6);
+                return b64_to_utf8(base64);
+            } catch (e) {
+                console.error("Failed to decode link:", e);
+                return "../Dashboard/dashboard";
+            }
+        }
+        // -------------------------------------------------
+
+        function toggleSidebar() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('active');
+            } else {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('collapsed-margin');
+            }
+        }
+        
+        function toggleUserDropdown(element) {
+            userDropdown.classList.toggle('show');
+        }
+
+        document.addEventListener('click', function(event) {
+            const isClickInside = userDropdown.contains(event.target) || event.target.closest('.user-avatar-group');
+            if (!isClickInside && userDropdown.classList.contains('show')) {
+                userDropdown.classList.remove('show');
+            }
+        });
+
+        function toggleDropdown(element) {
+            if(event) event.preventDefault();
+            
+            const dropdownContent = element.nextElementSibling;
+            
+            if (sidebar.classList.contains('collapsed') && window.innerWidth > 768) {
+                return; 
+            }
+
+            if (dropdownContent.style.maxHeight) {
+                dropdownContent.style.maxHeight = null;
+                element.classList.remove('open');
+            } else {
+                document.querySelectorAll('.dropdown-content.open').forEach(content => {
+                    content.style.maxHeight = null;
+                    content.previousElementSibling.classList.remove('open');
+                });
+                
+                dropdownContent.style.maxHeight = dropdownContent.scrollHeight + "px";
+                element.classList.add('open');
+            }
+        }
+
+        function loadPageFromHash() {
+            const links = document.querySelectorAll('a[data-link]');
+            let currentHash = window.location.hash.substring(1);
+            
+            // Deobfuscate the hash to get the real link
+            let currentLink = deobfuscateLink(currentHash);
+
+            if (!currentHash) {
+                currentLink = "../Dashboard/dashboard";
+            }
+
+            if(iframe.getAttribute('src') !== currentLink) {
+                iframe.src = currentLink;
+                iframe.onload = injectAntiInspectToIframe;
+            }
+            
+            document.querySelectorAll('.sidebar-menu a, .user-dropdown-menu a').forEach(item => {
+                item.classList.remove('active');
+                item.classList.remove('active-sub');
+            });
+
+            links.forEach(link => {
+                if (link.getAttribute('data-link') === currentLink && !link.classList.contains('dropdown-toggle')) {
+                    if (link.classList.contains('menu-item')) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.add('active-sub');
+                        const parentDropdown = link.closest('.dropdown-content');
+                        if (parentDropdown) {
+                            parentDropdown.style.maxHeight = parentDropdown.scrollHeight + "px";
+                            parentDropdown.previousElementSibling.classList.add('open');
+                        }
+                    }
+                }
+            });
+        }
+
+        window.addEventListener('hashchange', loadPageFromHash);
+        window.addEventListener('DOMContentLoaded', () => {
+            loadPageFromHash();
+
+            // If no hash exists, set the default obfuscated hash for dashboard
+            if(!window.location.hash) {
+                window.location.hash = obfuscateLink("../Dashboard/dashboard");
+            }
+
+            const links = document.querySelectorAll('a[data-link]');
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (this.classList.contains('dropdown-toggle')) {
+                        return;
+                    }
+
+                    e.preventDefault();
+                    const url = this.getAttribute('data-link');
+                    
+                    // Set the obfuscated hash instead of the real URL
+                    window.location.hash = obfuscateLink(url);
+
+                    if (window.innerWidth <= 768) {
+                        toggleSidebar();
+                    }
+                });
+            });
+        });
+    </script>
+    
+    <script> 
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:41fc72cb02f824baa3bc24",
+            measurementId: "G-GS91N1J5SH"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                db.collection("users").doc(user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        const photoURL = userData.photoURL || null;
+                        const adminName = userData.name || "Accountant";
+                        
+                        const sidebarImg = document.getElementById('sidebar-admin-img');
+                        if(photoURL) {
+                            sidebarImg.src = photoURL;
+                        } else {
+                            sidebarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(adminName)}&background=3b82f6&color=fff`;
+                        }
+
+                        const headerImg = document.getElementById('header-admin-img');
+                        const headerFallbackIcon = document.getElementById('header-fallback-icon');
+                        if(photoURL) {
+                            headerImg.src = photoURL;
+                            headerImg.style.display = "inline-block";
+                            headerFallbackIcon.style.display = "none";
+                        } else {
+                            headerImg.style.display = "none";
+                            headerFallbackIcon.style.display = "inline-block";
+                        }
+
+                        document.getElementById('dynamic-admin-name').innerText = adminName;
+                    }
+                }).catch((error) => {
+                    console.error("Error fetching user data:", error);
+                });
+            } else {
+                window.location.href = '../Auth/login'; 
+            }
+        });
+
+        db.collection("settings").doc("school_info").onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                const fetchedName = data.name || data.school_name || "Name Not Set";
+                document.getElementById("school_name").innerText = fetchedName;
+                document.getElementById("main_heading").innerText = fetchedName;
+            }
+        }, (error) => {
+            console.error("Firebase Error:", error);
+        });
+
+        db.collection("config").doc("activeSession").onSnapshot((doc) => {
+            if (doc.exists) {
+                const sessionName = doc.data().sessionName || "Not Set";
+                document.getElementById("session-display").innerText = `Current Session: ${sessionName}`;
+            } else {
+                document.getElementById("session-display").innerText = "Current Session: Not Set";
+            }
+        }, (error) => {
+            console.error("Session Fetch Error:", error);
+            document.getElementById("session-display").innerText = "Current Session: Error";
+        });
+    </script>
+
+    <script>
+        function antiInspectLogic() {
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if(e.keyCode === 123) { e.preventDefault(); return false; }
+                if(e.ctrlKey && e.shiftKey && e.keyCode === 'I'.charCodeAt(0)) { e.preventDefault(); return false; }
+                if(e.ctrlKey && e.shiftKey && e.keyCode === 'J'.charCodeAt(0)) { e.preventDefault(); return false; }
+                if(e.ctrlKey && e.shiftKey && e.keyCode === 'C'.charCodeAt(0)) { e.preventDefault(); return false; }
+                if(e.ctrlKey && e.keyCode === 'U'.charCodeAt(0)) { e.preventDefault(); return false; }
+                if(e.ctrlKey && e.keyCode === 'S'.charCodeAt(0)) { e.preventDefault(); return false; }
+            });
+
+            setInterval(function(){
+                var start = new Date().getTime();
+                debugger;
+                var end = new Date().getTime();
+                if(end - start > 100){
+                    document.body.innerHTML = "<h1 style='text-align:center;margin-top:20%;color:red; font-size:50px;'>Access Denied!</h1>";
+                    document.body.style.backgroundColor = "black";
+                }
+            }, 1000);
+        }
+
+        antiInspectLogic();
+
+        function injectAntiInspectToIframe() {
+            try {
+                const iframe = document.getElementById('main-iframe');
+                const iframeDoc = iframe.contentWindow.document || iframe.contentDocument;
+                
+                if (iframeDoc.getElementById('injected-anti-inspect')) return;
+
+                const script = iframeDoc.createElement('script');
+                script.id = 'injected-anti-inspect';
+                script.textContent = `
+                    ${antiInspectLogic.toString()}
+                    antiInspectLogic();
+                `;
+                
+                if(iframeDoc.body) {
+                    iframeDoc.body.appendChild(script);
+                } else {
+                    iframeDoc.addEventListener('DOMContentLoaded', function() {
+                        iframeDoc.body.appendChild(script);
+                    });
+                }
+            } catch (e) {
+                console.warn("Cross-origin iframe: Cannot inject anti-inspect script.");
+            }
+        }
+
+        window.addEventListener('load', function() {
+            const iframe = document.getElementById('main-iframe');
+            if(iframe) {
+                iframe.onload = injectAntiInspectToIframe;
+                try {
+                    if (iframe.contentWindow.document.readyState === 'complete') {
+                        injectAntiInspectToIframe();
+                    }
+                } catch(e) {}
+            }
+        });
+
+        window.addEventListener('message', function(event) {
+            if (event.origin !== window.location.origin && event.origin !== 'null') return;
+            
+            if (!event.data || !event.data.type) return;
+
+            const iframe = document.getElementById('main-iframe');
+
+            if (event.data.type === 'REQUEST_PRINT') {
+                try {
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                    }
+                } catch(e) {
+                    window.print();
+                }
+            }
+
+            if (event.data.type === 'REQUEST_DOWNLOAD') {
+                try {
+                    const dataUrl = event.data.dataUrl;
+                    const filename = event.data.filename || 'download.pdf';
+                    
+                    if (!dataUrl) return;
+
+                    const a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                } catch(e) {
+                    console.error('Download failed:', e);
+                }
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.keyCode === 80)) {
+                if (e.shiftKey) return;
+                e.preventDefault();
+                try {
+                    const iframe = document.getElementById('main-iframe');
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                    }
+                } catch(ex) {
+                    window.print();
+                }
+            }
+        }, true); 
+    </script>
+
+</body>
+</html>
