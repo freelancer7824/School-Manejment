@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>পূর্ণাঙ্গ ব্যবহারকারী ব্যবস্থাপনা | অ্যাডমিন ও শিক্ষক তৈরি, সম্পাদনা ও মুছুন</title>
+    <title>পূর্ণাঙ্গ ব্যবহারকারী ব্যবস্থাপনা | অ্যাডমিন, শিক্ষক ও অ্যাকাউন্ট্যান্ট তৈরি</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script>
@@ -245,12 +245,16 @@
         <div class="bg-white rounded-2xl shadow-md overflow-hidden mb-8">
             <div class="p-6 md:p-8">
                 <!-- Role Selection Tabs -->
-                <div class="flex gap-3 mb-8 border-b pb-3">
+                <div class="flex gap-3 mb-8 border-b pb-3 flex-wrap">
                     <button type="button" id="roleAdminBtn" class="role-tab px-6 py-2 rounded-lg font-semibold transition bg-primary text-white">
                         <i class="fas fa-user-cog mr-2"></i> অ্যাডমিন
                     </button>
                     <button type="button" id="roleTeacherBtn" class="role-tab px-6 py-2 rounded-lg font-semibold transition bg-gray-200 text-gray-600 hover:bg-gray-300">
                         <i class="fas fa-chalkboard-teacher mr-2"></i> শিক্ষক
+                    </button>
+                    <!-- ✅ Accountant Tab যোগ করা হয়েছে -->
+                    <button type="button" id="roleAccountantBtn" class="role-tab px-6 py-2 rounded-lg font-semibold transition bg-gray-200 text-gray-600 hover:bg-gray-300">
+                        <i class="fas fa-calculator mr-2"></i> অ্যাকাউন্ট্যান্ট
                     </button>
                 </div>
 
@@ -338,6 +342,16 @@
                         </div>
                     </div>
 
+                    <!-- ✅ Accountant Specific Fields -->
+                    <div id="accountantFields" class="hidden border-t pt-5 mt-2">
+                        <h3 class="font-bold text-gray-800 mb-4"><i class="fas fa-calculator text-primary mr-2"></i> অ্যাকাউন্ট্যান্ট সংক্রান্ত তথ্য</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">অ্যাকাউন্ট্যান্ট আইডি</label><input type="text" id="accountId" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="ACC-001"></div>
+                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">বিভাগ</label><input type="text" id="accDepartment" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="অ্যাকাউন্টস, হিসাব..."></div>
+                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">যোগদানের তারিখ</label><input type="date" id="accJoiningDate" class="w-full border border-gray-300 rounded-lg p-2.5"></div>
+                        </div>
+                    </div>
+
                     <div class="flex justify-end pt-4 border-t">
                         <button type="submit" id="submitBtn" class="px-6 py-2.5 bg-success text-white rounded-xl hover:bg-green-700 transition font-medium">
                             <i class="fas fa-save mr-2"></i> একাউন্ট তৈরি করুন
@@ -350,7 +364,7 @@
         <!-- Users List Table -->
         <div style="display:none" class="bg-white rounded-2xl shadow-md overflow-hidden">
             <div class="p-5 border-b bg-gray-50 flex justify-between items-center flex-wrap gap-2">
-                <h3 class="font-bold text-gray-800"><i class="fas fa-users text-primary mr-2"></i> সকল ব্যবহারকারী (অ্যাডমিন ও শিক্ষক)</h3>
+                <h3 class="font-bold text-gray-800"><i class="fas fa-users text-primary mr-2"></i> সকল ব্যবহারকারী</h3>
                 <div class="flex gap-2 items-center">
                     <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full"><i class="fas fa-circle text-[8px] mr-1"></i>সক্রিয়</span>
                     <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full"><i class="fas fa-circle text-[8px] mr-1"></i>নিষ্ক্রিয়</span>
@@ -378,7 +392,7 @@
             </div>
         </div>
         
-        <div class="mt-4 text-xs text-gray-400 text-center border-t pt-4">✅ যে কোনো শিক্ষক তৈরি হলে স্বয়ংক্রিয়ভাবে টিচার তালিকায় যুক্ত হবে এবং অন্যত্র সার্চে পাওয়া যাবে।</div>
+        <div class="mt-4 text-xs text-gray-400 text-center border-t pt-4">✅ যে কোনো শিক্ষক বা অ্যাকাউন্ট্যান্ট তৈরি হলে স্বয়ংক্রিয়ভাবে তালিকায় যুক্ত হবে।</div>
 
         <!-- ===== Login Page Code Section ===== -->
         <div style="display:none"class="bg-white rounded-2xl shadow-md overflow-hidden mt-8">
@@ -396,29 +410,24 @@ import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10
 
 const db = getFirestore();
 
-// লগইন ফাংশনের ভিতরে, signInWithEmailAndPassword সফল হলে:
 async function handleLogin(email, password) {
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const uid = userCredential.user.uid;
 
-        // ✅ ইউজারের স্ট্যাটাস চেক করুন
         const userDoc = await getDoc(doc(db, "users", uid));
         
         if (userDoc.exists()) {
             const userData = userDoc.data();
             
             if (userData.status === "inactive") {
-                // ❌ অ্যাকাউন্ট নিষ্ক্রিয় — লগইন ব্লক করুন
                 await auth.signOut();
-                showToast("আপনার অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে। অ্যাডমিনের সাথে যোগাযোগ করুন।", "error");
+                showToast("আপনার অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে।", "error");
                 return;
             }
             
-            // ✅ সক্রিয় ইউজার — ড্যাশবোর্ডে পাঠান
             window.location.href = "dashboard.html";
         } else {
-            // ইউজার ডকুমেন্ট না পাওয়া গেলে
             await auth.signOut();
             showToast("ব্যবহারকারীর তথ্য পাওয়া যায়নি।", "error");
         }
@@ -626,6 +635,17 @@ async function handleLogin(email, password) {
                     if (adminType === 'superadmin') userData.role = 'superadmin';
                     await setDoc(doc(db, 'users', authUid), userData);
                     showToast(`✅ অ্যাডমিন তৈরি! ইমেইল: ${userEmail} | পাস: ${password}`, 'success');
+                } 
+                // ✅ Accountant Creation Logic
+                else if (role === 'accountant') {
+                    const accountId = document.getElementById('accountId').value || `ACC-${phone.slice(-4)}`;
+                    const accDepartment = document.getElementById('accDepartment').value || '';
+                    const accJoiningDate = document.getElementById('accJoiningDate').value || new Date().toISOString().split('T')[0];
+                    userData.accountId = accountId;
+                    userData.department = accDepartment;
+                    userData.joiningDate = accJoiningDate;
+                    await setDoc(doc(db, 'users', authUid), userData);
+                    showToast(`✅ অ্যাকাউন্ট্যান্ট তৈরি! ইমেইল: ${userEmail} | পাস: ${password}`, 'success');
                 }
                 
                 document.getElementById('userForm').reset();
@@ -684,9 +704,16 @@ async function handleLogin(email, password) {
             tbody.innerHTML = '';
             allUsers.forEach((user, index) => {
                 if (user.role === 'parent') return;
-                const roleIcon = user.role === 'admin' ? 'fa-user-cog' : (user.role === 'superadmin' ? 'fa-user-shield' : 'fa-chalkboard-teacher');
-                const roleColor = user.role === 'admin' ? 'bg-blue-100 text-blue-700' : (user.role === 'superadmin' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700');
-                const roleDisplay = user.role === 'teacher' ? 'শিক্ষক' : (user.role === 'superadmin' ? 'সুপার অ্যাডমিন' : 'অ্যাডমিন');
+                
+                // ✅ Role Display Configuration with Accountant
+                const roleConfig = {
+                    'admin': { icon: 'fa-user-cog', color: 'bg-blue-100 text-blue-700', display: 'অ্যাডমিন' },
+                    'superadmin': { icon: 'fa-user-shield', color: 'bg-purple-100 text-purple-700', display: 'সুপার অ্যাডমিন' },
+                    'teacher': { icon: 'fa-chalkboard-teacher', color: 'bg-green-100 text-green-700', display: 'শিক্ষক' },
+                    'accountant': { icon: 'fa-calculator', color: 'bg-orange-100 text-orange-700', display: 'অ্যাকাউন্ট্যান্ট' }
+                };
+                
+                const roleInfo = roleConfig[user.role] || { icon: 'fa-user', color: 'bg-gray-100 text-gray-700', display: user.role };
                 const isActive = user.status === 'active';
                 
                 const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=3b82f6&color=fff`;
@@ -707,7 +734,7 @@ async function handleLogin(email, password) {
                     </td>
                     <td class="px-5 py-3 text-sm ${isActive ? '' : 'text-gray-400'}">${escapeHtml(user.phone || 'N/A')}</td>
                     <td class="px-5 py-3 text-sm ${isActive ? 'text-gray-500' : 'text-gray-400'}">${escapeHtml(user.email || 'N/A')}</td>
-                    <td class="px-5 py-3"><span class="text-xs px-2 py-1 rounded-full ${roleColor}"><i class="fas ${roleIcon} mr-1"></i> ${roleDisplay}</span></td>
+                    <td class="px-5 py-3"><span class="text-xs px-2 py-1 rounded-full ${roleInfo.color}"><i class="fas ${roleInfo.icon} mr-1"></i> ${roleInfo.display}</span></td>
                     <td class="px-5 py-3">
                         <span class="text-xs px-2.5 py-1 rounded-full font-medium ${isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}">
                             ${isActive ? '<i class="fas fa-check-circle mr-1 pulse-dot"></i>সক্রিয়' : '<i class="fas fa-ban mr-1"></i>নিষ্ক্রিয়'}
@@ -795,7 +822,6 @@ async function handleLogin(email, password) {
                     updatedAt: serverTimestamp()
                 });
                 
-                // Sync to teachers collection if teacher
                 if (pendingToggleRole === 'teacher') {
                     await setDoc(doc(db, 'teachers', pendingToggleId), {
                         status: pendingToggleNewStatus,
@@ -837,13 +863,10 @@ async function handleLogin(email, password) {
             document.getElementById('editGender').value = user.gender || '';
             document.getElementById('editAddress').value = user.address || '';
             
-            // Set toggle switch state
             const isActive = user.status === 'active';
             const toggleCheckbox = document.getElementById('editStatusToggle');
             toggleCheckbox.checked = isActive;
             document.getElementById('editStatusValue').value = user.status || 'active';
-            
-            // Update visual state
             window.handleEditStatusToggle(toggleCheckbox);
             
             const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=3b82f6&color=fff`;
@@ -938,23 +961,37 @@ async function handleLogin(email, password) {
             }
         };
         
-        document.getElementById('roleAdminBtn').addEventListener('click', () => {
-            currentRole = 'admin';
-            document.getElementById('selectedRole').value = 'admin';
-            document.getElementById('roleAdminBtn').className = 'role-tab px-6 py-2 rounded-lg font-semibold transition bg-primary text-white';
-            document.getElementById('roleTeacherBtn').className = 'role-tab px-6 py-2 rounded-lg font-semibold transition bg-gray-200 text-gray-600 hover:bg-gray-300';
+        // ✅ Role Tab Switching Logic
+        function switchRole(role) {
+            currentRole = role;
+            document.getElementById('selectedRole').value = role;
+            
+            const btns = {
+                admin: document.getElementById('roleAdminBtn'),
+                teacher: document.getElementById('roleTeacherBtn'),
+                accountant: document.getElementById('roleAccountantBtn')
+            };
+            
+            Object.keys(btns).forEach(key => {
+                if (key === role) {
+                    btns[key].className = 'role-tab px-6 py-2 rounded-lg font-semibold transition bg-primary text-white';
+                } else {
+                    btns[key].className = 'role-tab px-6 py-2 rounded-lg font-semibold transition bg-gray-200 text-gray-600 hover:bg-gray-300';
+                }
+            });
+
             document.getElementById('teacherFields').classList.add('hidden');
-            document.getElementById('adminFields').classList.remove('hidden');
-        });
-        
-        document.getElementById('roleTeacherBtn').addEventListener('click', () => {
-            currentRole = 'teacher';
-            document.getElementById('selectedRole').value = 'teacher';
-            document.getElementById('roleTeacherBtn').className = 'role-tab px-6 py-2 rounded-lg font-semibold transition bg-primary text-white';
-            document.getElementById('roleAdminBtn').className = 'role-tab px-6 py-2 rounded-lg font-semibold transition bg-gray-200 text-gray-600 hover:bg-gray-300';
-            document.getElementById('teacherFields').classList.remove('hidden');
             document.getElementById('adminFields').classList.add('hidden');
-        });
+            document.getElementById('accountantFields').classList.add('hidden');
+            
+            if (role === 'teacher') document.getElementById('teacherFields').classList.remove('hidden');
+            else if (role === 'admin') document.getElementById('adminFields').classList.remove('hidden');
+            else if (role === 'accountant') document.getElementById('accountantFields').classList.remove('hidden');
+        }
+
+        document.getElementById('roleAdminBtn').addEventListener('click', () => switchRole('admin'));
+        document.getElementById('roleTeacherBtn').addEventListener('click', () => switchRole('teacher'));
+        document.getElementById('roleAccountantBtn').addEventListener('click', () => switchRole('accountant'));
         
         async function loadCurrentSession() {
             try {
@@ -979,26 +1016,22 @@ async function handleLogin(email, password) {
 
 const db = getFirestore();
 
-// লগইন ফাংশনের ভিতরে, signInWithEmailAndPassword সফল হলে:
 async function handleLogin(email, password) {
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const uid = userCredential.user.uid;
 
-        // ✅ ইউজারের স্ট্যাটাস চেক করুন
         const userDoc = await getDoc(doc(db, "users", uid));
         
         if (userDoc.exists()) {
             const userData = userDoc.data();
             
             if (userData.status === "inactive") {
-                // ❌ অ্যাকাউন্ট নিষ্ক্রিয় — লগইন ব্লক করুন
                 await auth.signOut();
-                alert("আপনার অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে। অ্যাডমিনের সাথে যোগাযোগ করুন।");
+                alert("আপনার অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে।");
                 return;
             }
             
-            // ✅ সক্রিয় ইউজার — ড্যাশবোর্ডে পাঠান
             window.location.href = "dashboard.html";
         } else {
             await auth.signOut();
