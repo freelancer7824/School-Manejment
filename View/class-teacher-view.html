@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>প্যারেন্ট ভিউ | ক্লাস অনুযায়ী শিক্ষক ও বিষয় তালিকা</title>
-    <!-- Tailwind + Font Awesome + Google Fonts for clean table styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
@@ -28,10 +27,10 @@
     </script>
     <style>
         body {
-            background: #eef2ff;
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 50%, #ede9fe 100%);
             font-family: 'Inter', sans-serif;
+            min-height: 100vh;
         }
-        /* clean table styles with responsive fallback but focus on beautiful table */
         .class-table-container {
             border-radius: 1.25rem;
             overflow-x: auto;
@@ -42,35 +41,43 @@
             border-spacing: 0;
         }
         .subject-table thead th {
-            background: #f1f5f9;
+            background: linear-gradient(135deg, #f1f5f9, #e8edf5);
             color: #1e293b;
             font-weight: 600;
             font-size: 0.85rem;
             letter-spacing: 0.3px;
             text-transform: uppercase;
             padding: 1rem 1.25rem;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 2px solid #cbd5e1;
         }
         .subject-table tbody td {
             padding: 1rem 1.25rem;
             border-bottom: 1px solid #f0f2f5;
             vertical-align: middle;
             background-color: white;
-            transition: background 0.15s ease;
+            transition: all 0.2s ease;
+        }
+        .subject-table tbody tr {
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
         .subject-table tbody tr:hover td {
-            background-color: #fafcff;
+            background-color: #eff6ff;
+        }
+        .subject-table tbody tr:active td {
+            background-color: #dbeafe;
         }
         .teacher-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: #eef2ff;
+            background: linear-gradient(135deg, #eef2ff, #e0e7ff);
             padding: 6px 14px;
             border-radius: 40px;
             font-size: 0.85rem;
             font-weight: 500;
             color: #1e40af;
+            border: 1px solid #c7d2fe;
         }
         .no-teacher-badge {
             display: inline-flex;
@@ -81,19 +88,414 @@
             border-radius: 40px;
             font-size: 0.8rem;
             color: #b91c1c;
+            border: 1px solid #fecaca;
         }
-        .class-selector {
-            transition: all 0.2s;
+
+        /* ====== Custom Dropdown Styles ====== */
+        .custom-dropdown-wrapper {
+            position: relative;
+            width: 100%;
         }
+
+        .custom-dropdown-trigger {
+            width: 100%;
+            padding: 14px 48px 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 14px;
+            background: white;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #1f2937;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            user-select: none;
+            position: relative;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .custom-dropdown-trigger:hover {
+            border-color: #93c5fd;
+            box-shadow: 0 4px 12px rgba(59,130,246,0.1);
+        }
+
+        .custom-dropdown-trigger.active {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15), 0 4px 16px rgba(59,130,246,0.12);
+        }
+
+        .custom-dropdown-trigger .trigger-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #eff6ff, #e0e7ff);
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #3b82f6;
+            font-size: 0.75rem;
+        }
+
+        .custom-dropdown-trigger.active .trigger-icon {
+            transform: translateY(-50%) rotate(180deg);
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: white;
+        }
+
+        .custom-dropdown-trigger .placeholder-text {
+            color: #9ca3af;
+            font-weight: 400;
+        }
+
+        .custom-dropdown-trigger .selected-text {
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .custom-dropdown-trigger .selected-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+        }
+
+        /* Dropdown Panel */
+        .custom-dropdown-panel {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(59,130,246,0.08);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-12px) scale(0.97);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            max-height: 340px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .custom-dropdown-panel.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .dropdown-panel-header {
+            padding: 14px 16px 10px;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-bottom: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .dropdown-search-input {
+            width: 100%;
+            padding: 10px 14px 10px 38px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            color: #1f2937;
+            background: white;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .dropdown-search-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+
+        .dropdown-search-input::placeholder {
+            color: #94a3b8;
+        }
+
+        .dropdown-search-wrapper {
+            position: relative;
+        }
+
+        .dropdown-search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.8rem;
+            pointer-events: none;
+        }
+
+        .dropdown-options-list {
+            overflow-y: auto;
+            padding: 6px;
+            flex: 1;
+        }
+
+        .dropdown-options-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        .dropdown-options-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .dropdown-options-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .dropdown-option {
+            padding: 12px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.15s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #374151;
+            position: relative;
+        }
+
+        .dropdown-option:hover,
+        .dropdown-option.highlighted {
+            background: linear-gradient(135deg, #eff6ff, #e0e7ff);
+            color: #1e40af;
+        }
+
+        .dropdown-option:active {
+            transform: scale(0.98);
+        }
+
+        .dropdown-option.selected {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+        }
+
+        .dropdown-option.selected:hover {
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+        }
+
+        .dropdown-option .option-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #f0f4ff, #dde4f8);
+            color: #4f46e5;
+            transition: all 0.15s ease;
+        }
+
+        .dropdown-option:hover .option-icon,
+        .dropdown-option.highlighted .option-icon {
+            background: linear-gradient(135deg, #c7d2fe, #a5b4fc);
+            color: #3730a3;
+        }
+
+        .dropdown-option.selected .option-icon {
+            background: rgba(255,255,255,0.25);
+            color: white;
+        }
+
+        .dropdown-option .option-check {
+            margin-left: auto;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .dropdown-option.selected .option-check {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .dropdown-option .option-label {
+            flex: 1;
+        }
+
+        .dropdown-no-results {
+            padding: 24px 16px;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+
+        .dropdown-no-results i {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 8px;
+            color: #d1d5db;
+        }
+
+        .dropdown-panel-footer {
+            padding: 8px 14px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        /* ====== End Custom Dropdown ====== */
+
+        .selected-class-card {
+            background: linear-gradient(135deg, #3b82f6, #6366f1, #8b5cf6);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .selected-class-card::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -10%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+        }
+        .selected-class-card::after {
+            content: '';
+            position: absolute;
+            bottom: -40%;
+            left: -5%;
+            width: 150px;
+            height: 150px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+        .selected-class-card .stat-pill {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 1.5rem;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.1);
+            transform: scale(0.85) translateY(30px);
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow: hidden;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+        .modal-header-gradient {
+            background: linear-gradient(135deg, #6366f1, #3b82f6, #06b6d4);
+            position: relative;
+            overflow: hidden;
+        }
+        .modal-header-gradient::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 180px;
+            height: 180px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        .modal-header-gradient::after {
+            content: '';
+            position: absolute;
+            bottom: -60%;
+            left: 10%;
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 50%;
+        }
+        .modal-info-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .modal-info-row:last-child {
+            border-bottom: none;
+        }
+        .modal-info-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1rem;
+        }
+
         @media (max-width: 640px) {
             .subject-table thead {
                 display: none;
             }
             .subject-table tbody tr {
                 display: block;
-                margin-bottom: 1rem;
+                margin-bottom: 0.75rem;
                 border-radius: 1rem;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.06);
                 background: white;
                 border: 1px solid #e2e8f0;
             }
@@ -107,6 +509,10 @@
             }
             .subject-table tbody td:last-child {
                 border-bottom: none;
+                border-radius: 0 0 1rem 1rem;
+            }
+            .subject-table tbody td:first-child {
+                border-radius: 1rem 1rem 0 0;
             }
             .subject-table tbody td::before {
                 content: attr(data-label);
@@ -126,27 +532,49 @@
             }
         }
         .fade-in {
-            animation: fadeIn 0.25s ease-out;
+            animation: fadeIn 0.3s ease-out;
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px);}
+            from { opacity: 0; transform: translateY(8px);}
             to { opacity: 1; transform: translateY(0);}
         }
-        .custom-select {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
-            background-position: right 0.75rem center;
-            background-repeat: no-repeat;
-            background-size: 1.25rem;
-            appearance: none;
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px) scale(0.95);}
+            to { opacity: 1; transform: translateY(0) scale(1);}
         }
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        .pulse-dot::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse-ring 1.5s ease-out infinite;
+        }
+        /* Row click hint */
+        .click-hint {
+            animation: hintBounce 2s ease-in-out infinite;
+        }
+        @keyframes hintBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-6">
 
     <div class="max-w-5xl mx-auto">
-        <!-- Header Section with parent friendly design -->
+        <!-- Header -->
         <div class="text-center mb-6 md:mb-8">
-            <div class="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm rounded-full px-4 py-1 shadow-sm mb-2">
+            <div class="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm rounded-full px-4 py-1.5 shadow-sm mb-2">
                 <i class="fas fa-user-friends text-primary text-sm"></i>
                 <span class="text-xs font-medium text-gray-600">প্যারেন্ট অ্যাকাউন্ট · শুধুমাত্র প্রদর্শন</span>
             </div>
@@ -157,24 +585,49 @@
             <p class="text-gray-500 text-sm mt-1">নিচের তালিকা থেকে ক্লাস নির্বাচন করলে সংশ্লিষ্ট বিষয় ও দায়িত্বপ্রাপ্ত শিক্ষক দেখাবে</p>
         </div>
 
-        <!-- Class selection card (beautiful dropdown) -->
-        <div class="bg-white rounded-2xl shadow-lg p-5 mb-6 border border-gray-100">
+        <!-- Class Selection Card — Custom Dropdown -->
+        <div class="bg-white rounded-2xl shadow-lg p-5 mb-5 border border-gray-100">
             <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                 <i class="fas fa-graduation-cap text-primary"></i> 
                 <span>আপনার সন্তানের ক্লাস নির্বাচন করুন</span>
             </label>
-            <div class="relative">
-                <select id="classSelect" class="custom-select w-full p-3.5 pr-10 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 bg-white text-gray-800 font-medium shadow-sm transition class-selector">
-                    <option value="">-- ক্লাস বাছাই করুন --</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <i class="fas fa-chevron-down text-gray-400 text-sm"></i>
+
+            <!-- Custom Dropdown -->
+            <div class="custom-dropdown-wrapper" id="classDropdownWrapper">
+                <!-- Trigger -->
+                <div class="custom-dropdown-trigger" id="dropdownTrigger" tabindex="0" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-label="ক্লাস নির্বাচন করুন">
+                    <span id="triggerContent" class="placeholder-text">
+                        <i class="fas fa-graduation-cap mr-1 opacity-50"></i> ক্লাস বাছাই করুন
+                    </span>
+                    <span class="trigger-icon">
+                        <i class="fas fa-chevron-down"></i>
+                    </span>
+                </div>
+
+                <!-- Panel -->
+                <div class="custom-dropdown-panel" id="dropdownPanel" role="listbox">
+                    <div class="dropdown-panel-header">
+                        <div class="dropdown-search-wrapper">
+                            <i class="fas fa-search dropdown-search-icon"></i>
+                            <input type="text" class="dropdown-search-input" id="dropdownSearch" placeholder="ক্লাস খুঁজুন..." autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="dropdown-options-list" id="dropdownOptionsList">
+                        <!-- Options will be rendered here -->
+                    </div>
+                    <div class="dropdown-panel-footer" id="dropdownFooter">
+                        <i class="fas fa-info-circle mr-1"></i> <span id="dropdownFooterText">ক্লাস লোড হচ্ছে...</span>
+                    </div>
                 </div>
             </div>
+
             <p class="text-xs text-gray-400 mt-2 flex items-center gap-1"><i class="fas fa-info-circle"></i> যে ক্লাস নির্বাচন করবেন, ঐ ক্লাসের সব বিষয় এবং শিক্ষকের নাম টেবিল আকারে দেখাবে।</p>
         </div>
 
-        <!-- Table card: Subject & Teacher Information -->
+        <!-- Selected Class Info Card (dynamic) -->
+        <div id="selectedClassCard" class="hidden mb-5"></div>
+
+        <!-- Table Card -->
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden class-table-container">
             <div class="bg-gradient-to-r from-indigo-50 to-blue-50 px-5 py-3 border-b border-gray-200 flex justify-between items-center flex-wrap gap-2">
                 <div class="flex items-center gap-2">
@@ -187,29 +640,91 @@
                 </div>
             </div>
             <div id="tableContent" class="p-0 md:p-1">
-                <!-- Dynamic Table will be injected here -->
                 <div class="text-center py-16 px-4">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-3">
-                        <i class="fas fa-school text-gray-400 text-2xl"></i>
+                    <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl mb-4 shadow-inner">
+                        <i class="fas fa-school text-gray-400 text-3xl"></i>
                     </div>
-                    <h3 class="text-gray-500 font-medium">ক্লাস নির্বাচন করেনি</h3>
+                    <h3 class="text-gray-500 font-semibold text-lg">ক্লাস নির্বাচন করেননি</h3>
                     <p class="text-gray-400 text-sm mt-1">উপরের ড্রপডাউন থেকে একটি ক্লাস বাছাই করলে এখানে বিষয় ও শিক্ষকের তালিকা দেখাবে।</p>
                 </div>
             </div>
         </div>
 
-        <!-- footer note: read-only for parent -->
+        <!-- Footer -->
         <div class="mt-8 text-center text-xs text-gray-400 border-t border-gray-200 pt-5">
             <i class="fas fa-lock mr-1"></i> প্যারেন্ট ভিউ · শুধুমাত্র তথ্য দেখার জন্য। কোনো পরিবর্তন এখান থেকে করা যাবে না।
         </div>
     </div>
 
-    <!-- Firebase modular imports and configuration -->
+    <!-- Detail Modal -->
+    <div id="detailModal" class="modal-overlay" onclick="closeModalOutside(event)">
+        <div class="modal-content">
+            <div class="modal-header-gradient p-6 text-white relative">
+                <button onclick="closeDetailModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition z-10">
+                    <i class="fas fa-times text-white text-sm"></i>
+                </button>
+                <div class="flex items-center gap-4 relative z-10">
+                    <div id="modalSubjectIcon" class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl shadow-lg">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div>
+                        <h3 id="modalSubjectName" class="text-xl font-bold leading-tight">বিষয়ের নাম</h3>
+                        <p id="modalClassName" class="text-white/80 text-sm mt-0.5">ক্লাস নাম</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6">
+                <div id="modalTeacherRow" class="modal-info-row">
+                    <div id="modalTeacherIcon" class="modal-info-icon bg-indigo-50 text-indigo-600">
+                        <i class="fas fa-chalkboard-user"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xs text-gray-400 font-medium uppercase tracking-wider">দায়িত্বপ্রাপ্ত শিক্ষক</p>
+                        <p id="modalTeacherName" class="text-gray-800 font-semibold text-base mt-0.5">শিক্ষকের নাম</p>
+                    </div>
+                    <div id="modalTeacherStatus" class="flex-shrink-0"></div>
+                </div>
+                <div class="modal-info-row">
+                    <div class="modal-info-icon bg-emerald-50 text-emerald-600">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xs text-gray-400 font-medium uppercase tracking-wider">নিয়োগ অবস্থা</p>
+                        <p id="modalAssignStatus" class="text-gray-800 font-semibold text-base mt-0.5">—</p>
+                    </div>
+                </div>
+                <div class="modal-info-row">
+                    <div class="modal-info-icon bg-amber-50 text-amber-600">
+                        <i class="fas fa-list-ol"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xs text-gray-400 font-medium uppercase tracking-wider">ক্রমিক নম্বর</p>
+                        <p id="modalSerial" class="text-gray-800 font-semibold text-base mt-0.5">—</p>
+                    </div>
+                </div>
+                <div class="modal-info-row">
+                    <div class="modal-info-icon bg-purple-50 text-purple-600">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xs text-gray-400 font-medium uppercase tracking-wider">এই ক্লাসে মোট বিষয়</p>
+                        <p id="modalTotalSubjects" class="text-gray-800 font-semibold text-base mt-0.5">—</p>
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 pb-5">
+                <button onclick="closeDetailModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-semibold text-sm hover:from-indigo-600 hover:to-blue-600 transition shadow-lg shadow-indigo-200 active:scale-[0.98]">
+                    <i class="fas fa-check mr-2"></i>ঠিক আছে
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase & Custom Dropdown Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, orderBy, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         
-        // Firebase configuration (same as your existing project)
         const firebaseConfig = {
             apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
             authDomain: "school-menejment.firebaseapp.com",
@@ -224,61 +739,275 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        // Global data stores
         let allClasses = [];
         let currentSelectedClassId = null;
+        let currentSubjectsList = [];
+        let currentClassName = '';
         
-        // Helper: show simple toast message (for errors or info)
+        /* ============================================
+           CUSTOM DROPDOWN ENGINE
+        ============================================ */
+        const dropdownWrapper = document.getElementById('classDropdownWrapper');
+        const dropdownTrigger = document.getElementById('dropdownTrigger');
+        const dropdownPanel = document.getElementById('dropdownPanel');
+        const dropdownSearch = document.getElementById('dropdownSearch');
+        const dropdownOptionsList = document.getElementById('dropdownOptionsList');
+        const dropdownFooterText = document.getElementById('dropdownFooterText');
+        const triggerContent = document.getElementById('triggerContent');
+
+        let isDropdownOpen = false;
+        let highlightedIndex = -1;
+        let filteredClasses = [];
+
+        // Color palette for option icons
+        const classColors = [
+            { bg: 'linear-gradient(135deg, #6366f1, #818cf8)', icon: 'fa-baby' },
+            { bg: 'linear-gradient(135deg, #3b82f6, #60a5fa)', icon: 'fa-child' },
+            { bg: 'linear-gradient(135deg, #06b6d4, #22d3ee)', icon: 'fa-seedling' },
+            { bg: 'linear-gradient(135deg, #10b981, #34d399)', icon: 'fa-leaf' },
+            { bg: 'linear-gradient(135deg, #f59e0b, #fbbf24)', icon: 'fa-star' },
+            { bg: 'linear-gradient(135deg, #f97316, #fb923c)', icon: 'fa-sun' },
+            { bg: 'linear-gradient(135deg, #ef4444, #f87171)', icon: 'fa-fire' },
+            { bg: 'linear-gradient(135deg, #ec4899, #f472b6)', icon: 'fa-heart' },
+            { bg: 'linear-gradient(135deg, #8b5cf6, #a78bfa)', icon: 'fa-gem' },
+            { bg: 'linear-gradient(135deg, #14b8a6, #2dd4bf)', icon: 'fa-feather' },
+            { bg: 'linear-gradient(135deg, #0ea5e9, #38bdf8)', icon: 'fa-bolt' },
+            { bg: 'linear-gradient(135deg, #d946ef, #e879f9)', icon: 'fa-wand-magic-sparkles' },
+        ];
+
+        function getClassStyle(index) {
+            return classColors[index % classColors.length];
+        }
+
+        function openDropdown() {
+            if (isDropdownOpen) return;
+            isDropdownOpen = true;
+            highlightedIndex = -1;
+            dropdownTrigger.classList.add('active');
+            dropdownTrigger.setAttribute('aria-expanded', 'true');
+            dropdownPanel.classList.add('open');
+            dropdownSearch.value = '';
+            renderDropdownOptions(allClasses);
+            // Focus search after animation
+            setTimeout(() => dropdownSearch.focus(), 100);
+        }
+
+        function closeDropdown() {
+            if (!isDropdownOpen) return;
+            isDropdownOpen = false;
+            highlightedIndex = -1;
+            dropdownTrigger.classList.remove('active');
+            dropdownTrigger.setAttribute('aria-expanded', 'false');
+            dropdownPanel.classList.remove('open');
+        }
+
+        function toggleDropdown() {
+            if (isDropdownOpen) closeDropdown();
+            else openDropdown();
+        }
+
+        function updateTriggerDisplay(className, classId) {
+            if (className && classId) {
+                const classIdx = allClasses.findIndex(c => c.id === classId);
+                const style = getClassStyle(classIdx >= 0 ? classIdx : 0);
+                triggerContent.innerHTML = `
+                    <span class="selected-icon" style="background:${style.bg}">
+                        <i class="fas ${style.icon}"></i>
+                    </span>
+                    <span class="selected-text">${escapeHtml(className)}</span>
+                `;
+                triggerContent.classList.remove('placeholder-text');
+            } else {
+                triggerContent.innerHTML = `<i class="fas fa-graduation-cap mr-1 opacity-50"></i> ক্লাস বাছাই করুন`;
+                triggerContent.classList.add('placeholder-text');
+            }
+        }
+
+        function renderDropdownOptions(classes) {
+            filteredClasses = classes;
+            if (classes.length === 0) {
+                const searchVal = dropdownSearch.value.trim();
+                dropdownOptionsList.innerHTML = `
+                    <div class="dropdown-no-results">
+                        <i class="fas fa-search"></i>
+                        ${searchVal ? `"${escapeHtml(searchVal)}" নামে কোন ক্লাস পাওয়া যায়নি` : 'কোন ক্লাস উপলব্ধ নেই'}
+                    </div>
+                `;
+                return;
+            }
+
+            dropdownOptionsList.innerHTML = classes.map((cls, idx) => {
+                const style = getClassStyle(allClasses.indexOf(cls));
+                const isSelected = cls.id === currentSelectedClassId;
+                return `
+                    <div class="dropdown-option ${isSelected ? 'selected' : ''}" 
+                         data-value="${cls.id}" 
+                         data-index="${idx}"
+                         role="option"
+                         aria-selected="${isSelected}">
+                        <span class="option-icon" style="background:${isSelected ? 'rgba(255,255,255,0.25)' : style.bg}; color:${isSelected ? 'white' : 'white'}">
+                            <i class="fas ${style.icon}"></i>
+                        </span>
+                        <span class="option-label">${escapeHtml(cls.name)}</span>
+                        <span class="option-check"><i class="fas fa-check"></i></span>
+                    </div>
+                `;
+            }).join('');
+
+            // Attach click events
+            dropdownOptionsList.querySelectorAll('.dropdown-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    selectClass(opt.dataset.value);
+                });
+                opt.addEventListener('mouseenter', () => {
+                    clearHighlight();
+                    opt.classList.add('highlighted');
+                    highlightedIndex = parseInt(opt.dataset.index);
+                });
+                opt.addEventListener('mouseleave', () => {
+                    opt.classList.remove('highlighted');
+                });
+            });
+        }
+
+        function clearHighlight() {
+            dropdownOptionsList.querySelectorAll('.dropdown-option.highlighted').forEach(el => {
+                el.classList.remove('highlighted');
+            });
+        }
+
+        function highlightOption(index) {
+            clearHighlight();
+            const options = dropdownOptionsList.querySelectorAll('.dropdown-option');
+            if (index < 0) index = options.length - 1;
+            if (index >= options.length) index = 0;
+            highlightedIndex = index;
+            if (options[index]) {
+                options[index].classList.add('highlighted');
+                options[index].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        }
+
+        function selectClass(classId) {
+            closeDropdown();
+            const selectedClass = allClasses.find(c => c.id === classId);
+            if (selectedClass) {
+                currentSelectedClassId = classId;
+                updateTriggerDisplay(selectedClass.name, classId);
+                loadSubjectsAndTeachersForClass(classId);
+            }
+        }
+
+        function clearSelection() {
+            currentSelectedClassId = null;
+            currentSubjectsList = [];
+            currentClassName = '';
+            updateTriggerDisplay(null, null);
+            showEmptyTable("দয়া করে একটি ক্লাস নির্বাচন করুন");
+            updateClassBadge(null);
+            hideSelectedClassCard();
+        }
+
+        // Trigger click
+        dropdownTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleDropdown();
+        });
+
+        // Search input
+        dropdownSearch.addEventListener('input', (e) => {
+            const searchVal = e.target.value.trim().toLowerCase();
+            if (!searchVal) {
+                renderDropdownOptions(allClasses);
+                return;
+            }
+            const filtered = allClasses.filter(c => c.name.toLowerCase().includes(searchVal));
+            renderDropdownOptions(filtered);
+        });
+
+        // Prevent search click from closing dropdown
+        dropdownSearch.addEventListener('click', (e) => e.stopPropagation());
+
+        // Keyboard navigation
+        dropdownTrigger.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleDropdown();
+            } else if (e.key === 'Escape') {
+                closeDropdown();
+            }
+        });
+
+        dropdownSearch.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                highlightOption(highlightedIndex + 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                highlightOption(highlightedIndex - 1);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (highlightedIndex >= 0 && filteredClasses[highlightedIndex]) {
+                    selectClass(filteredClasses[highlightedIndex].id);
+                }
+            } else if (e.key === 'Escape') {
+                closeDropdown();
+                dropdownTrigger.focus();
+            }
+        });
+
+        // Click outside to close
+        document.addEventListener('click', (e) => {
+            if (!dropdownWrapper.contains(e.target)) {
+                closeDropdown();
+            }
+        });
+
+        /* ============================================
+           FIREBASE & DATA LOGIC
+        ============================================ */
+        
+        // Toast
         function showMessage(text, isError = false) {
-            // Create floating toast if needed but simple alert alternative? better use small toast
             const existingToast = document.getElementById('quickToast');
             if(existingToast) existingToast.remove();
             const toast = document.createElement('div');
             toast.id = 'quickToast';
-            toast.className = `fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50 px-5 py-2.5 rounded-full shadow-lg text-white text-sm font-medium transition-all duration-300 ${isError ? 'bg-red-500' : 'bg-green-600'}`;
+            toast.className = `fixed bottom-5 left-1/2 transform -translate-x-1/2 z-[2000] px-5 py-2.5 rounded-full shadow-lg text-white text-sm font-medium transition-all duration-300 ${isError ? 'bg-red-500' : 'bg-green-600'}`;
             toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'} mr-2"></i>${text}`;
             document.body.appendChild(toast);
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 2500);
         }
         
-        // Load classes from Firestore
+        // Load classes
         async function loadClasses() {
             try {
                 const q = query(collection(db, "classes"), orderBy("order", "asc"));
                 const snapshot = await getDocs(q);
                 allClasses = snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name, order: doc.data().order || 0 }));
-                renderClassSelect();
-                // if previously selected class exists, restore selection and reload table
+                
+                renderDropdownOptions(allClasses);
+                dropdownFooterText.textContent = `মোট ${allClasses.length} টি ক্লাস উপলব্ধ`;
+
                 if (currentSelectedClassId && allClasses.some(c => c.id === currentSelectedClassId)) {
-                    document.getElementById('classSelect').value = currentSelectedClassId;
+                    const cls = allClasses.find(c => c.id === currentSelectedClassId);
+                    updateTriggerDisplay(cls.name, cls.id);
                     await loadSubjectsAndTeachersForClass(currentSelectedClassId);
                 } else if (currentSelectedClassId) {
-                    // previously selected class no longer exists
                     currentSelectedClassId = null;
-                    document.getElementById('classSelect').value = "";
+                    updateTriggerDisplay(null, null);
                     showEmptyTable("পূর্বে নির্বাচিত ক্লাস আর উপলব্ধ নেই। নতুন ক্লাস নির্বাচন করুন।");
                     updateClassBadge(null);
+                    hideSelectedClassCard();
                 }
             } catch (error) {
                 console.error("Error loading classes:", error);
                 showMessage("ক্লাস লোড করতে সমস্যা হয়েছে", true);
-                document.getElementById('classSelect').innerHTML = '<option value="">-- ত্রুটি, পুনরায় চেষ্টা করুন --</option>';
+                dropdownFooterText.textContent = 'ত্রুটি! পুনরায় চেষ্টা করুন';
+                renderDropdownOptions([]);
             }
         }
         
-        // Render class dropdown
-        function renderClassSelect() {
-            const selectEl = document.getElementById('classSelect');
-            selectEl.innerHTML = '<option value="">-- ক্লাস বাছাই করুন --</option>';
-            allClasses.forEach(cls => {
-                const option = document.createElement('option');
-                option.value = cls.id;
-                option.textContent = `${cls.name}`;
-                selectEl.appendChild(option);
-            });
-        }
-        
-        // update badge showing selected class name
         function updateClassBadge(className) {
             const badgeSpan = document.getElementById('selectedClassNameBadge');
             if (className) {
@@ -287,35 +1016,81 @@
                 badgeSpan.innerHTML = `<i class="far fa-eye mr-1"></i> কোন ক্লাস নির্বাচিত হয়নি`;
             }
         }
+
+        // Show selected class card
+        function showSelectedClassCard(className, totalSubjects, assignedCount) {
+            const card = document.getElementById('selectedClassCard');
+            const unassignedCount = totalSubjects - assignedCount;
+            card.innerHTML = `
+                <div class="selected-class-card">
+                    <div class="flex items-start justify-between relative z-10">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="relative w-3 h-3 pulse-dot">
+                                    <div class="w-3 h-3 bg-green-400 rounded-full relative z-10"></div>
+                                </div>
+                                <span class="text-white/70 text-xs font-medium uppercase tracking-wider">বর্তমানে নির্বাচিত</span>
+                            </div>
+                            <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                                <i class="fas fa-graduation-cap text-white/80"></i>
+                                ${escapeHtml(className)}
+                            </h2>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl font-black text-white/90">${totalSubjects}</div>
+                            <div class="text-white/60 text-xs">মোট বিষয়</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 mt-4 flex-wrap relative z-10">
+                        <div class="stat-pill">
+                            <i class="fas fa-user-check text-green-300"></i>
+                            <span>নিয়োগপ্রাপ্ত: <strong>${assignedCount}</strong></span>
+                        </div>
+                        <div class="stat-pill">
+                            <i class="fas fa-user-slash text-red-300"></i>
+                            <span>শূন্য: <strong>${unassignedCount}</strong></span>
+                        </div>
+                        ${totalSubjects > 0 ? `
+                        <div class="stat-pill">
+                            <i class="fas fa-chart-pie text-yellow-300"></i>
+                            <span>হার: <strong>${Math.round((assignedCount/totalSubjects)*100)}%</strong></span>
+                        </div>` : ''}
+                    </div>
+                </div>
+            `;
+            card.classList.remove('hidden');
+        }
+
+        function hideSelectedClassCard() {
+            document.getElementById('selectedClassCard').classList.add('hidden');
+        }
         
-        // show empty / placeholder table
         function showEmptyTable(message = "দয়া করে একটি ক্লাস নির্বাচন করুন") {
             const container = document.getElementById('tableContent');
             container.innerHTML = `
                 <div class="text-center py-16 px-4">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-3">
-                        <i class="fas fa-chalkboard text-gray-400 text-2xl"></i>
+                    <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl mb-4 shadow-inner">
+                        <i class="fas fa-chalkboard text-gray-400 text-3xl"></i>
                     </div>
-                    <h3 class="text-gray-500 font-medium">${message}</h3>
+                    <h3 class="text-gray-500 font-semibold text-lg">${message}</h3>
                     <p class="text-gray-400 text-sm mt-1">ক্লাস নির্বাচন করলে এখানে বিষয় ও শিক্ষকের তালিকা দেখাবে।</p>
                 </div>
             `;
         }
         
-        // Core function: Load subjects + teacher assignments for selected class and render beautiful table
         async function loadSubjectsAndTeachersForClass(classId) {
             if (!classId) {
                 showEmptyTable();
                 updateClassBadge(null);
+                hideSelectedClassCard();
                 return;
             }
             
-            // Find class name
             const selectedClass = allClasses.find(c => c.id === classId);
             const className = selectedClass ? selectedClass.name : 'ক্লাস';
+            currentClassName = className;
             updateClassBadge(className);
             
-            // Show loading state in table
             const container = document.getElementById('tableContent');
             container.innerHTML = `
                 <div class="flex justify-center items-center py-20">
@@ -327,7 +1102,6 @@
             `;
             
             try {
-                // 1. Fetch subjects for this class
                 const subjectsQuery = query(collection(db, "subjects"), where("classId", "==", classId));
                 const subjectsSnap = await getDocs(subjectsQuery);
                 const subjects = subjectsSnap.docs.map(docSnap => ({
@@ -339,20 +1113,20 @@
                 if (subjects.length === 0) {
                     container.innerHTML = `
                         <div class="text-center py-14 px-4">
-                            <div class="bg-amber-50 inline-flex p-3 rounded-full mb-3">
-                                <i class="fas fa-folder-open text-amber-500 text-xl"></i>
+                            <div class="bg-amber-50 inline-flex p-4 rounded-2xl mb-3">
+                                <i class="fas fa-folder-open text-amber-500 text-2xl"></i>
                             </div>
-                            <h3 class="text-gray-600 font-medium">কোন বিষয় পাওয়া যায়নি</h3>
-                            <p class="text-gray-400 text-sm max-w-sm mx-auto">"${className}" ক্লাসের জন্য এখনো কোনো বিষয় সংযোজন করা হয়নি।</p>
+                            <h3 class="text-gray-600 font-semibold text-lg">কোন বিষয় পাওয়া যায়নি</h3>
+                            <p class="text-gray-400 text-sm max-w-sm mx-auto mt-1">"${escapeHtml(className)}" ক্লাসের জন্য এখনো কোনো বিষয় সংযোজন করা হয়নি।</p>
                         </div>
                     `;
+                    showSelectedClassCard(className, 0, 0);
                     return;
                 }
                 
-                // 2. Fetch teacher assignments (teacher_subject collection) for this class
                 const assignmentQuery = query(collection(db, "teacher_subject"), where("classId", "==", classId));
                 const assignmentSnap = await getDocs(assignmentQuery);
-                const assignmentMap = new Map(); // key: subjectId, value: { teacherId, teacherName, assignmentId }
+                const assignmentMap = new Map();
                 assignmentSnap.forEach(docA => {
                     const data = docA.data();
                     assignmentMap.set(data.subjectId, {
@@ -362,34 +1136,30 @@
                     });
                 });
                 
-                // 3. Optionally fetch all teachers just to get fallback names, but we already have teacherName in assignment map
-                // Build final rows with subject and teacher info
                 const tableRows = subjects.map(sub => {
                     const assignment = assignmentMap.get(sub.id);
-                    let teacherName = assignment?.teacherName || null;
-                    let teacherId = assignment?.teacherId || null;
-                    // if teacherName is missing but teacherId exists, we could try to fetch from teachers collection but assignment doc normally stores name.
-                    // for robust, if teacherName missing but teacherId exists, we can fetch but this is rare.
                     return {
                         subjectId: sub.id,
                         subjectName: sub.name,
-                        teacherName: teacherName,
-                        teacherId: teacherId,
-                        isAssigned: !!(teacherName && teacherId)
+                        teacherName: assignment?.teacherName || null,
+                        teacherId: assignment?.teacherId || null,
+                        isAssigned: !!(assignment?.teacherName && assignment?.teacherId)
                     };
                 });
                 
-                // Render the table beautifully
+                currentSubjectsList = tableRows;
+                const assignedCount = tableRows.filter(s => s.isAssigned).length;
+                showSelectedClassCard(className, tableRows.length, assignedCount);
                 renderSubjectsTable(tableRows, className);
                 
             } catch (error) {
                 console.error("Error loading subjects/teachers:", error);
                 container.innerHTML = `
                     <div class="text-center py-14 px-4">
-                        <div class="bg-red-50 inline-flex p-3 rounded-full mb-3">
-                            <i class="fas fa-exclamation-triangle text-red-400 text-xl"></i>
+                        <div class="bg-red-50 inline-flex p-4 rounded-2xl mb-3">
+                            <i class="fas fa-exclamation-triangle text-red-400 text-2xl"></i>
                         </div>
-                        <h3 class="text-gray-700 font-medium">তথ্য লোড করতে সমস্যা হয়েছে</h3>
+                        <h3 class="text-gray-700 font-semibold text-lg">তথ্য লোড করতে সমস্যা হয়েছে</h3>
                         <p class="text-gray-400 text-sm">ইন্টারনেট সংযোগ চেক করুন অথবা পুনরায় চেষ্টা করুন।</p>
                         <button onclick="location.reload()" class="mt-3 text-primary text-sm underline">রিফ্রেশ করুন</button>
                     </div>
@@ -398,7 +1168,6 @@
             }
         }
         
-        // Render elegant table with subjects and assigned teachers
         function renderSubjectsTable(subjectsList, className) {
             const container = document.getElementById('tableContent');
             if (!subjectsList.length) {
@@ -406,7 +1175,6 @@
                 return;
             }
             
-            // Build table HTML
             let tableHtml = `
                 <div class="overflow-x-auto">
                     <table class="subject-table w-full">
@@ -415,6 +1183,7 @@
                                 <th class="text-left rounded-tl-xl">#</th>
                                 <th class="text-left">বিষয়ের নাম</th>
                                 <th class="text-left">দায়িত্বপ্রাপ্ত শিক্ষক</th>
+                                <th class="text-center rounded-tr-xl w-16"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -440,7 +1209,7 @@
                 }
                 
                 tableHtml += `
-                    <tr class="fade-in">
+                    <tr class="fade-in" onclick="openDetailModal(${idx})" title="বিস্তারিত দেখতে ক্লিক করুন">
                         <td data-label="ক্রম" class="font-medium text-gray-500 w-12">${serial}</td>
                         <td data-label="বিষয়ের নাম" class="font-semibold text-gray-800">
                             <div class="flex items-center gap-2">
@@ -451,66 +1220,128 @@
                         <td data-label="দায়িত্বপ্রাপ্ত শিক্ষক">
                             ${teacherDisplay}
                         </td>
+                        <td class="text-center text-gray-300">
+                            <i class="fas fa-chevron-right text-xs click-hint"></i>
+                        </td>
                     </tr>
                 `;
             });
             
+            const assignedCount = subjectsList.filter(s => s.isAssigned).length;
             tableHtml += `
                         </tbody>
                     </table>
                 </div>
-                <div class="bg-gray-50 px-5 py-2.5 text-xs text-gray-500 border-t flex justify-between items-center flex-wrap gap-2">
-                    <span><i class="far fa-clock mr-1"></i> মোট বিষয়: ${subjectsList.length} টি</span>
-                    <span><i class="fas fa-user-check text-success mr-1"></i> শিক্ষক নিয়োগপ্রাপ্ত বিষয়: ${subjectsList.filter(s => s.isAssigned).length}</span>
+                <div class="bg-gray-50 px-5 py-3 text-xs text-gray-500 border-t flex justify-between items-center flex-wrap gap-2">
+                    <span><i class="far fa-clock mr-1"></i> মোট বিষয়: <strong>${subjectsList.length}</strong> টি</span>
+                    <div class="flex items-center gap-3">
+                        <span><i class="fas fa-user-check text-success mr-1"></i> নিয়োগপ্রাপ্ত: <strong>${assignedCount}</strong></span>
+                        <span><i class="fas fa-user-slash text-red-400 mr-1"></i> শূন্য: <strong>${subjectsList.length - assignedCount}</strong></span>
+                    </div>
+                </div>
+                <div class="px-5 py-2 text-center">
+                    <span class="text-xs text-gray-400 inline-flex items-center gap-1"><i class="fas fa-hand-pointer"></i> বিস্তারিত দেখতে যেকোনো বিষয়ে ক্লিক করুন</span>
                 </div>
             `;
             
             container.innerHTML = tableHtml;
         }
+
+        // Open detail modal
+        window.openDetailModal = function(idx) {
+            const subject = currentSubjectsList[idx];
+            if (!subject) return;
+
+            document.getElementById('modalSubjectName').textContent = subject.subjectName;
+            document.getElementById('modalClassName').innerHTML = `<i class="fas fa-graduation-cap mr-1"></i>${escapeHtml(currentClassName)}`;
+            document.getElementById('modalSerial').textContent = `${idx + 1} / ${currentSubjectsList.length}`;
+            document.getElementById('modalTotalSubjects').textContent = `${currentSubjectsList.length} টি বিষয়`;
+
+            if (subject.isAssigned && subject.teacherName) {
+                document.getElementById('modalTeacherName').textContent = subject.teacherName;
+                document.getElementById('modalTeacherName').className = 'text-gray-800 font-semibold text-base mt-0.5';
+                document.getElementById('modalTeacherIcon').className = 'modal-info-icon bg-indigo-50 text-indigo-600';
+                document.getElementById('modalTeacherIcon').innerHTML = '<i class="fas fa-chalkboard-user"></i>';
+                document.getElementById('modalTeacherStatus').innerHTML = `
+                    <span class="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
+                        <i class="fas fa-check-circle"></i> নিয়োগপ্রাপ্ত
+                    </span>
+                `;
+                document.getElementById('modalAssignStatus').innerHTML = `
+                    <span class="inline-flex items-center gap-1 text-green-600 font-semibold">
+                        <i class="fas fa-check-circle mr-1"></i> শিক্ষক নিযুক্ত আছেন
+                    </span>
+                `;
+            } else {
+                document.getElementById('modalTeacherName').textContent = 'কোনো শিক্ষক নিযুক্ত নন';
+                document.getElementById('modalTeacherName').className = 'text-red-500 font-semibold text-base mt-0.5';
+                document.getElementById('modalTeacherIcon').className = 'modal-info-icon bg-red-50 text-red-500';
+                document.getElementById('modalTeacherIcon').innerHTML = '<i class="fas fa-user-slash"></i>';
+                document.getElementById('modalTeacherStatus').innerHTML = `
+                    <span class="inline-flex items-center gap-1 text-xs bg-red-100 text-red-600 px-2.5 py-1 rounded-full font-medium">
+                        <i class="fas fa-exclamation-circle"></i> শূন্য
+                    </span>
+                `;
+                document.getElementById('modalAssignStatus').innerHTML = `
+                    <span class="inline-flex items-center gap-1 text-red-500 font-semibold">
+                        <i class="fas fa-times-circle mr-1"></i> এখনো শিক্ষক নিযুক্ত হননি
+                    </span>
+                `;
+            }
+
+            const modal = document.getElementById('detailModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        };
+
+        // Close detail modal
+        window.closeDetailModal = function() {
+            const modal = document.getElementById('detailModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        };
+
+        // Close modal on outside click
+        window.closeModalOutside = function(event) {
+            if (event.target === event.currentTarget) {
+                closeDetailModal();
+            }
+        };
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeDetailModal();
+            }
+        });
         
-        // Helper to escape HTML
         function escapeHtml(str) {
             if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
+            return str.replace(/[&<>"]/g, function(m) {
                 if (m === '&') return '&amp;';
                 if (m === '<') return '&lt;';
                 if (m === '>') return '&gt;';
+                if (m === '"') return '&quot;';
                 return m;
-            }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-                return c;
             });
         }
         
-        // Event listener on class select dropdown
-        document.getElementById('classSelect').addEventListener('change', async (e) => {
-            const selectedValue = e.target.value;
-            if (!selectedValue) {
-                currentSelectedClassId = null;
-                showEmptyTable("দয়া করে একটি ক্লাস নির্বাচন করুন");
-                updateClassBadge(null);
-                return;
-            }
-            currentSelectedClassId = selectedValue;
-            await loadSubjectsAndTeachersForClass(currentSelectedClassId);
-        });
-        
-        // initial data load
+        // Init
         (async function initialize() {
             await loadClasses();
-            // If there's any preselected via url or none, just wait user action.
-            // Also we can check if any class exists but not auto-select to keep clean parent view.
             if (allClasses.length === 0) {
                 const container = document.getElementById('tableContent');
                 container.innerHTML = `
                     <div class="text-center py-14 px-4">
-                        <i class="fas fa-database text-gray-300 text-4xl mb-3"></i>
-                        <p class="text-gray-500">কোন ক্লাস পাওয়া যায়নি। প্রশাসকের সাহায্য নিন।</p>
+                        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl mb-4 shadow-inner">
+                            <i class="fas fa-database text-gray-300 text-3xl"></i>
+                        </div>
+                        <p class="text-gray-500 font-medium">কোন ক্লাস পাওয়া যায়নি। প্রশাসকের সাহায্য নিন।</p>
                     </div>
                 `;
             }
         })();
         
-        // Expose any necessary methods (no edit)
         window.showEmptyTable = showEmptyTable;
     </script>
 </body>
