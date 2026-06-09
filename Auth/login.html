@@ -306,6 +306,7 @@
             gap: 10px;
             justify-content: center;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         .role-badge span {
             font-size: 0.7em;
@@ -336,10 +337,12 @@
             <h2>Login to your account</h2>
             <p>Enter your Phone Number and Password</p>
             
+            <!-- ✅ এখানে Accountant ব্যাজ যোগ করা হয়েছে -->
             <div class="role-badge">
                 <span><i class="fas fa-user-graduate"></i> Parents</span>
                 <span><i class="fas fa-chalkboard-teacher"></i> Teachers</span>
                 <span><i class="fas fa-user-cog"></i> Admins</span>
+                <span><i class="fas fa-calculator"></i> Accountant</span>
             </div>
             
             <div id="loginMessage" class="login-message"></div>
@@ -370,6 +373,8 @@
                 <strong>Demo Accounts:</strong><br>
                 <span>Parent: 01700000001 | Pass: 01700000001</span>
                 <span>Teacher: 01711111111 | Pass: 01711111111</span>
+                <!-- ✅ ডেমো অ্যাকাউন্ট হিসেবে Accountant যোগ করা হলো -->
+                <span>Accountant: 01722222222 | Pass: 01722222222</span>
             </div>
         </div>
     </div>
@@ -388,7 +393,7 @@
             signInWithEmailAndPassword,
             onAuthStateChanged,
             sendPasswordResetEmail,
-            signOut // ✅ লগআউট করার জন্য signOut ইম্পোর্ট করা হয়েছে
+            signOut 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
             getFirestore, collection, query, where, getDocs, doc, getDoc
@@ -441,9 +446,8 @@
                 if (docSnap.exists() && docSnap.data().role) {
                     const userData = docSnap.data();
                     
-                    // ✅ সিকিউরিটি চেক: ইউজার যদি ইতিমধ্যে লগইন থাকে, কিন্তু অ্যাডমিন তাকে নিষ্ক্রিয় করে থাকে
                     if (userData.status === 'inactive') {
-                        await signOut(auth); // স্বয়ংক্রিয়ভাবে লগআউট করিয়ে দেওয়া হবে
+                        await signOut(auth);
                         displayMessage('❌ আপনার অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে। অ্যাডমিনের সাথে যোগাযোগ করুন।', 'error');
                         loadingOverlay.style.opacity = '0';
                         setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500);
@@ -457,6 +461,8 @@
                     else if (userRole === 'teacher') redirectPage = '../Teacher/teacher.html';
                     else if (userRole === 'parent') redirectPage = '../Parents/parent.html';
                     else if (userRole === 'superadmin') redirectPage = '../Super Admin/superadmin.html';
+                    // ✅ Accountant এর জন্য রাউটিং যোগ করা হয়েছে
+                    else if (userRole === 'accountant') redirectPage = '../Accountant/accountant.html';
                     else redirectPage = 'dashboard.html';
                     
                     if (delay > 0) {
@@ -521,7 +527,6 @@
             let userDataFromFirestore = null;
             
             try {
-                // Query Firestore to find user by phone number
                 const usersRef = collection(db, 'users');
                 const q = query(usersRef, where("phone", "==", phoneNumber));
                 const querySnapshot = await getDocs(q);
@@ -540,7 +545,6 @@
                     return;
                 }
                 
-                // ✅ লগইন চেক: অ্যাকাউন্ট নিষ্ক্রিয় থাকলে লগইন প্রতিরোধ করা হবে
                 if (userDataFromFirestore.status === 'inactive') {
                     displayMessage('❌ আপনার অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে। অ্যাডমিনের সাথে যোগাযোগ করুন।', 'error');
                     return;
@@ -548,18 +552,15 @@
 
                 displayMessage(`🔄 Authenticating as ${userRole.toUpperCase()}...`, 'success');
 
-                // Sign in with Firebase Auth
                 const userCredential = await signInWithEmailAndPassword(auth, userEmail, password);
                 const user = userCredential.user;
                 
-                // Save remember me preference
                 if (rememberMe) {
                     localStorage.setItem('rememberedPhone', phoneNumber);
                 } else {
                     localStorage.removeItem('rememberedPhone');
                 }
                 
-                // Redirect to role-based dashboard
                 await redirectToPageByRole(user.uid, 1500);
 
             } catch (error) {
@@ -612,43 +613,36 @@
             }
         });
 
-        // Load remembered phone number
         const rememberedPhone = localStorage.getItem('rememberedPhone');
         if (rememberedPhone) {
             document.getElementById('loginId').value = rememberedPhone;
             document.getElementById('remember').checked = true;
         }
 
-        // More links button
         document.getElementById('moreLinksBtn').addEventListener('click', (e) => {
             e.preventDefault();
             displayMessage('📞 Contact admin at support@school.com for assistance.', 'success');
         });
     </script>
 
-    <!-- Anti-Inspect & Security Script -->
     <script>
-        // ১. ডান ক্লিক বন্ধ
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
         });
 
-        // ২. শর্টকাট কী বন্ধ
         document.onkeydown = function(e) {
-            if(e.keyCode == 123) return false; // F12
+            if(e.keyCode == 123) return false;
             if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false;
             if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false;
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; // Ctrl+Shift+C
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false;
             if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
             if(e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) return false;
         };
 
-        // ৩. ডেভেলপার টুলস ডিটেকশন (debugger এবং টাইম ডিফারেন্স পদ্ধতি)
         setInterval(function(){
             var start = new Date().getTime();
             debugger;
             var end = new Date().getTime();
-            // যদি ডিবাগার পজ করে (ডেভেলপার টুলস ওপেন থাকে), তাহলে সময় ১০০ মিলিসেকেন্ডের বেশি হবে
             if(end - start > 100){
                 document.body.innerHTML = "<h1 style='text-align:center;margin-top:20%;color:red; font-size:50px;'>Access Denied!</h1>";
                 document.body.style.backgroundColor = "black";
