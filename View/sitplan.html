@@ -20,289 +20,133 @@
         @keyframes slideIn { from { opacity:0; transform:translateX(50px); } to { opacity:1; transform:translateX(0); } }
 
         /* ===== SIT PLAN PAGE ===== */
-        .sit-page {
-            width: 210mm; height: 297mm;
-            background: #fff; padding: 6mm 7mm;
-            display: flex; flex-direction: column;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
-            margin: 0 auto 20px; overflow: hidden;
-        }
-
-        /* ===== CARD GRID — bigger gap for cutting ===== */
-        .card-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 5mm 6mm; /* enough space to cut between cards */
-            flex: 1;
-        }
-
-        /* ===== SINGLE SIT CARD ===== */
-        .sit-card {
-            border: 1.5px solid #1a237e;
-            border-radius: 4px;
-            display: flex; flex-direction: column;
-            overflow: hidden;
-        }
-
-        /* -- Header -- */
-        .sit-card-header {
-            background: #1a237e; color: #fff;
-            padding: 3px 8px 3px;
-            display: flex; align-items: flex-start;
-            justify-content: space-between; gap: 6px;
-            flex-shrink: 0;
-        }
+        .sit-page { width: 210mm; height: 297mm; background: #fff; padding: 6mm 7mm; display: flex; flex-direction: column; box-shadow: 0 2px 20px rgba(0,0,0,0.08); margin: 0 auto 20px; overflow: hidden; }
+        .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm 6mm; flex: 1; }
+        .sit-card { border: 1.5px solid #1a237e; border-radius: 4px; display: flex; flex-direction: column; overflow: hidden; }
+        .sit-card-header { background: #1a237e; color: #fff; padding: 3px 8px 3px; display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; flex-shrink: 0; }
         .sit-header-left { flex: 1; min-width: 0; }
-        .sit-school-name {
-            font-size: 7.5px; font-weight: 800;
-            letter-spacing: 0.3px; text-transform: uppercase;
-            line-height: 1.3; white-space: nowrap;
-            overflow: hidden; text-overflow: ellipsis;
-        }
-        .sit-school-address {
-            font-size: 5.5px; font-weight: 400;
-            opacity: 0.85; letter-spacing: 0.2px;
-            line-height: 1.25; margin-top: 1px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-        .sit-exam-badge {
-            font-size: 5.5px; font-weight: 700;
-            background: #ffd54f; color: #1a237e;
-            padding: 2px 5px; border-radius: 2px;
-            white-space: nowrap; flex-shrink: 0;
-            line-height: 1.3; text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        /* -- Logo LEFT + Photo RIGHT -- */
-        .sit-logo-photo {
-            display: flex; align-items: center;
-            justify-content: space-between;
-            padding: 4px 8px 2px; gap: 6px;
-            flex-shrink: 0;
-        }
-        .sit-logo {
-            width: 32px; height: 32px; border-radius: 50%;
-            border: 1.5px solid #1a237e; background: #f0f0fa;
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden; flex-shrink: 0;
-        }
+        .sit-school-name { font-size: 7.5px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sit-school-address { font-size: 5.5px; font-weight: 400; opacity: 0.85; letter-spacing: 0.2px; line-height: 1.25; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sit-exam-badge { font-size: 5.5px; font-weight: 700; background: #ffd54f; color: #1a237e; padding: 2px 5px; border-radius: 2px; white-space: nowrap; flex-shrink: 0; line-height: 1.3; text-transform: uppercase; letter-spacing: 0.3px; }
+        .sit-logo-photo { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px 2px; gap: 6px; flex-shrink: 0; }
+        .sit-logo { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid #1a237e; background: #f0f0fa; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
         .sit-logo img { width: 100%; height: 100%; object-fit: cover; }
         .sit-logo svg { width: 20px; height: 20px; fill: none; stroke: #1a237e; stroke-width: 1.5; }
-
-        .sit-photo {
-            width: 32px; height: 40px;
-            border: 1.5px solid #1a237e; background: #f5f5f5;
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden; border-radius: 2px; flex-shrink: 0;
-        }
+        .sit-photo { width: 32px; height: 40px; border: 1.5px solid #1a237e; background: #f5f5f5; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 2px; flex-shrink: 0; }
         .sit-photo img { width: 100%; height: 100%; object-fit: cover; }
         .sit-photo-placeholder { color: #ccc; font-size: 4.5px; text-align: center; line-height: 1; }
         .sit-photo-placeholder svg { width: 14px; height: 14px; opacity: 0.3; }
-
-        /* -- Info Section — flex:1 to push footer down -- */
-        .sit-info {
-            padding: 3px 8px 2px;
-            flex: 1 1 auto;
-            min-height: 0;
-            display: flex; flex-direction: column;
-            justify-content: center; /* vertically center info rows */
-        }
-        .sit-info-row {
-            display: flex; align-items: baseline;
-            line-height: 1.6; border-bottom: 0.5px solid #eee;
-            padding: 1px 0;
-        }
+        .sit-info { padding: 3px 8px 2px; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+        .sit-info-row { display: flex; align-items: baseline; line-height: 1.6; border-bottom: 0.5px solid #eee; padding: 1px 0; }
         .sit-info-row:last-child { border-bottom: none; }
-        .sit-label {
-            font-size: 6.5px; font-weight: 700; color: #1a237e;
-            white-space: nowrap; flex-shrink: 0; min-width: 60px;
-        }
-        .sit-sep {
-            font-size: 6.5px; font-weight: 700; color: #1a237e;
-            margin: 0 2px; flex-shrink: 0;
-        }
-        .sit-value {
-            font-size: 7px; font-weight: 500; color: #222;
-            flex: 1; min-width: 0;
-            overflow: hidden; text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        /* Two column row */
+        .sit-label { font-size: 6.5px; font-weight: 700; color: #1a237e; white-space: nowrap; flex-shrink: 0; min-width: 60px; }
+        .sit-sep { font-size: 6.5px; font-weight: 700; color: #1a237e; margin: 0 2px; flex-shrink: 0; }
+        .sit-value { font-size: 7px; font-weight: 500; color: #222; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .sit-info-cols { display: flex; gap: 6px; }
         .sit-info-col { flex: 1; min-width: 0; }
-        .sit-info-col .sit-info-row {
-            display: flex; align-items: baseline;
-            line-height: 1.6; border-bottom: 0.5px solid #eee;
-            padding: 1px 0;
-        }
+        .sit-info-col .sit-info-row { display: flex; align-items: baseline; line-height: 1.6; border-bottom: 0.5px solid #eee; padding: 1px 0; }
         .sit-info-col .sit-info-row:last-child { border-bottom: none; }
-        .sit-info-col .sit-label {
-            font-size: 5.5px; font-weight: 700; color: #1a237e;
-            white-space: nowrap; flex-shrink: 0; min-width: 52px;
-        }
-        .sit-info-col .sit-sep {
-            font-size: 5.5px; font-weight: 700; color: #1a237e;
-            margin: 0 1px; flex-shrink: 0;
-        }
-        .sit-info-col .sit-value {
-            font-size: 6px; font-weight: 500; color: #222;
-            flex: 1; min-width: 0;
-            overflow: hidden; text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        /* -- Footer — ALWAYS at bottom -- */
-        .sit-card-footer {
-            padding: 2px 8px 3px;
-            display: flex; justify-content: space-between; align-items: flex-end;
-            border-top: 0.5px solid #ccc;
-            flex-shrink: 0;
-            margin-top: auto;
-        }
+        .sit-info-col .sit-label { font-size: 5.5px; font-weight: 700; color: #1a237e; white-space: nowrap; flex-shrink: 0; min-width: 52px; }
+        .sit-info-col .sit-sep { font-size: 5.5px; font-weight: 700; color: #1a237e; margin: 0 1px; flex-shrink: 0; }
+        .sit-info-col .sit-value { font-size: 6px; font-weight: 500; color: #222; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sit-card-footer { padding: 2px 8px 3px; display: flex; justify-content: space-between; align-items: flex-end; border-top: 0.5px solid #ccc; flex-shrink: 0; margin-top: auto; }
         .sit-footer-sign { text-align: center; width: 50px; }
         .sit-footer-sign-line { border-bottom: 0.5px dotted #888; height: 8px; }
         .sit-footer-sign-text { font-size: 4px; color: #888; font-weight: 600; margin-top: 1px; }
 
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 800px) {
-            .sit-page { width: 100%; height: auto; min-height: auto; padding: 4mm; }
-            .card-grid { grid-template-columns: 1fr; }
-        }
-
-        /* ===== PRINT ===== */
+        @media (max-width: 800px) { .sit-page { width: 100%; height: auto; min-height: auto; padding: 4mm; } .card-grid { grid-template-columns: 1fr; } }
         @media print {
             @page { size: A4; margin: 5mm; }
-
-            html, body {
-                width: 210mm; margin: 0; padding: 0;
-                background: #fff !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                color-adjust: exact !important;
-            }
-
+            html, body { width: 210mm; margin: 0; padding: 0; background: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
             .no-print { display: none !important; }
-
-            .sit-page {
-                width: 200mm !important;
-                height: 287mm !important;
-                margin: 0 !important;
-                padding: 5mm 6mm !important;
-                box-shadow: none !important;
-                page-break-after: always !important;
-                overflow: hidden !important;
-            }
+            .sit-page { width: 200mm !important; height: 287mm !important; margin: 0 !important; padding: 5mm 6mm !important; box-shadow: none !important; page-break-after: always !important; overflow: hidden !important; }
             .sit-page:last-child { page-break-after: avoid !important; }
-
-            .card-grid {
-                display: grid !important;
-                grid-template-columns: 1fr 1fr !important;
-                gap: 5mm 6mm !important;
-            }
-
-            .sit-card {
-                border: 1.5px solid #1a237e !important;
-                border-radius: 4px !important;
-                display: flex !important;
-                flex-direction: column !important;
-                overflow: hidden !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-            }
-
-            .sit-card-header {
-                background: #1a237e !important;
-                color: #fff !important;
-                display: flex !important;
-                align-items: flex-start !important;
-                justify-content: space-between !important;
-                padding: 3px 8px 3px !important;
-                flex-shrink: 0 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            .sit-exam-badge {
-                background: #ffd54f !important;
-                color: #1a237e !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            .sit-logo-photo {
-                display: flex !important;
-                align-items: center !important;
-                justify-content: space-between !important;
-                padding: 4px 8px 2px !important;
-                flex-shrink: 0 !important;
-            }
-
-            .sit-logo {
-                background: #f0f0fa !important;
-                border: 1.5px solid #1a237e !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            .sit-photo {
-                background: #f5f5f5 !important;
-                border: 1.5px solid #1a237e !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            .sit-info {
-                flex: 1 1 auto !important;
-                min-height: 0 !important;
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-                padding: 3px 8px 2px !important;
-            }
-
-            .sit-info-row {
-                display: flex !important;
-                align-items: baseline !important;
-                line-height: 1.6 !important;
-                padding: 1px 0 !important;
-            }
-
-            .sit-info-cols {
-                display: flex !important;
-                gap: 6px !important;
-            }
-
-            .sit-info-col .sit-info-row {
-                display: flex !important;
-                align-items: baseline !important;
-                line-height: 1.6 !important;
-                padding: 1px 0 !important;
-            }
-
-            .sit-card-footer {
-                display: flex !important;
-                justify-content: space-between !important;
-                align-items: flex-end !important;
-                flex-shrink: 0 !important;
-                margin-top: auto !important;
-                border-top: 0.5px solid #ccc !important;
-                padding: 2px 8px 3px !important;
-            }
+            .card-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 5mm 6mm !important; }
+            .sit-card { border: 1.5px solid #1a237e !important; border-radius: 4px !important; display: flex !important; flex-direction: column !important; overflow: hidden !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+            .sit-card-header { background: #1a237e !important; color: #fff !important; -webkit-print-color-adjust: exact !important; }
+            .sit-exam-badge { background: #ffd54f !important; color: #1a237e !important; -webkit-print-color-adjust: exact !important; }
+            .sit-logo { background: #f0f0fa !important; border: 1.5px solid #1a237e !important; -webkit-print-color-adjust: exact !important; }
+            .sit-photo { background: #f5f5f5 !important; border: 1.5px solid #1a237e !important; -webkit-print-color-adjust: exact !important; }
         }
 
         .empty-state { text-align: center; padding: 60px 20px; color: #94a3b8; }
         .empty-state i { font-size: 48px; margin-bottom: 12px; }
-
         .grid-toggle { display: flex; gap: 4px; }
-        .grid-toggle button {
-            padding: 6px 14px; border: 2px solid #e2e8f0;
-            border-radius: 8px; font-size: 12px; font-weight: 600;
-            cursor: pointer; background: #fff; color: #64748b; transition: all 0.15s;
-        }
+        .grid-toggle button { padding: 6px 14px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; background: #fff; color: #64748b; transition: all 0.15s; }
         .grid-toggle button.active { border-color: #1a237e; background: #1a237e; color: #fff; }
         .grid-toggle button:hover:not(.active) { border-color: #1a237e; color: #1a237e; }
+
+        /* ====== Custom Dropdown Styles ====== */
+        .custom-dropdown-wrapper { position: relative; width: 100%; }
+        .custom-dropdown-trigger {
+            width: 100%; padding: 10px 40px 10px 14px;
+            border: 2px solid #e5e7eb; border-radius: 10px; background: white;
+            font-size: 0.875rem; font-weight: 500; color: #1f2937; cursor: pointer;
+            transition: all 0.25s ease; display: flex; align-items: center; gap: 8px;
+            user-select: none; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .custom-dropdown-trigger:hover { border-color: #a5b4fc; box-shadow: 0 2px 8px rgba(26,35,126,0.08); }
+        .custom-dropdown-trigger.active { border-color: #1a237e; box-shadow: 0 0 0 3px rgba(26,35,126,0.1), 0 4px 12px rgba(26,35,126,0.08); }
+        .custom-dropdown-trigger.disabled { background: #f3f4f6; color: #9ca3af; cursor: not-allowed; pointer-events: none; }
+        .custom-dropdown-trigger .trigger-icon {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+            background: #eff6ff; border-radius: 6px; transition: all 0.3s ease; color: #1a237e; font-size: 0.65rem;
+        }
+        .custom-dropdown-trigger.active .trigger-icon { transform: translateY(-50%) rotate(180deg); background: #1a237e; color: white; }
+        .custom-dropdown-trigger .placeholder-text { color: #9ca3af; font-weight: 400; }
+        .custom-dropdown-trigger .selected-text { color: #1f2937; font-weight: 600; }
+        .custom-dropdown-trigger .selected-icon {
+            width: 26px; height: 26px; border-radius: 8px;
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            display: flex; align-items: center; justify-content: center; color: white;
+            font-size: 0.65rem; flex-shrink: 0; box-shadow: 0 2px 6px rgba(26,35,126,0.3);
+        }
+        .custom-dropdown-panel {
+            position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+            background: white; border-radius: 14px;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.12), 0 0 0 1px rgba(26,35,126,0.06);
+            z-index: 999; opacity: 0; visibility: hidden;
+            transform: translateY(-10px) scale(0.97); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden; max-height: 300px; display: flex; flex-direction: column;
+        }
+        .custom-dropdown-panel.open { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+        .dropdown-search-input {
+            width: 100%; padding: 8px 12px 8px 34px;
+            border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.8rem;
+            color: #1f2937; background: white; transition: all 0.2s ease; outline: none;
+        }
+        .dropdown-search-input:focus { border-color: #1a237e; box-shadow: 0 0 0 2px rgba(26,35,126,0.08); }
+        .dropdown-search-input::placeholder { color: #94a3b8; }
+        .dropdown-search-wrapper { position: relative; }
+        .dropdown-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.75rem; pointer-events: none; }
+        .dropdown-options-list { overflow-y: auto; padding: 4px; flex: 1; }
+        .dropdown-options-list::-webkit-scrollbar { width: 4px; }
+        .dropdown-options-list::-webkit-scrollbar-track { background: transparent; }
+        .dropdown-options-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dropdown-option {
+            padding: 9px 12px; border-radius: 8px; cursor: pointer;
+            display: flex; align-items: center; gap: 10px; transition: all 0.15s ease;
+            font-size: 0.85rem; font-weight: 500; color: #374151; position: relative;
+        }
+        .dropdown-option:hover, .dropdown-option.highlighted { background: #eff6ff; color: #1a237e; }
+        .dropdown-option:active { transform: scale(0.98); }
+        .dropdown-option.selected { background: linear-gradient(135deg, #1a237e, #3949ab); color: white; box-shadow: 0 3px 8px rgba(26,35,126,0.25); }
+        .dropdown-option.selected:hover { background: linear-gradient(135deg, #0d1757, #1a237e); }
+        .dropdown-option .option-icon {
+            width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; flex-shrink: 0; transition: all 0.15s ease;
+        }
+        .dropdown-option .option-check {
+            margin-left: auto; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; font-size: 0.6rem; opacity: 0; transform: scale(0.5);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); background: rgba(255,255,255,0.3); color: white;
+        }
+        .dropdown-option.selected .option-check { opacity: 1; transform: scale(1); }
+        .dropdown-option .option-label { flex: 1; }
+        .dropdown-no-results { padding: 20px 12px; text-align: center; color: #9ca3af; font-size: 0.8rem; }
+        .dropdown-no-results i { font-size: 1.2rem; display: block; margin-bottom: 6px; color: #d1d5db; }
+        .dropdown-panel-footer { padding: 6px 12px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; text-align: center; flex-shrink: 0; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-6">
@@ -323,40 +167,113 @@
                 Session: <span id="sessionBadge" class="font-bold text-primary">2025-2026</span>
             </div>
         </div>
+        
         <div class="bg-white rounded-2xl shadow-md p-5">
             <div class="flex flex-wrap gap-4 items-end">
+                
+                <!-- Session Custom Dropdown -->
                 <div class="flex-1 min-w-[130px]">
                     <label class="block text-xs font-semibold text-gray-600 mb-1"><i class="fas fa-calendar-check text-primary mr-1"></i> Session</label>
-                    <select id="filterSession" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
-                        <option value="current">Current Session</option>
-                        <option value="next">Next Session</option>
-                    </select>
+                    <div class="custom-dropdown-wrapper" id="dd_session_wrapper">
+                        <div class="custom-dropdown-trigger" tabindex="0">
+                            <span class="selected-text" data-value="current">Current Session</span>
+                            <span class="trigger-icon"><i class="fas fa-chevron-down"></i></span>
+                        </div>
+                        <div class="custom-dropdown-panel">
+                            <div class="p-2 border-b bg-gray-50">
+                                <div class="dropdown-search-wrapper">
+                                    <i class="fas fa-search dropdown-search-icon"></i>
+                                    <input type="text" class="dropdown-search-input" placeholder="Search session..." autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="dropdown-options-list">
+                                <div class="dropdown-option selected" data-value="current">
+                                    <span class="option-icon" style="background:linear-gradient(135deg,#1a237e,#3949ab);color:white"><i class="fas fa-calendar"></i></span>
+                                    <span class="option-label">Current Session</span>
+                                    <span class="option-check"><i class="fas fa-check"></i></span>
+                                </div>
+                                <div class="dropdown-option" data-value="next">
+                                    <span class="option-icon" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);color:white"><i class="fas fa-calendar-plus"></i></span>
+                                    <span class="option-label">Next Session</span>
+                                    <span class="option-check"><i class="fas fa-check"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Exam Custom Dropdown -->
                 <div class="flex-1 min-w-[130px]">
                     <label class="block text-xs font-semibold text-gray-600 mb-1"><i class="fas fa-file-alt text-primary mr-1"></i> Exam Type *</label>
-                    <select id="filterExam" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
-                        <option value="">-- Select Exam --</option>
-                        <option value="Annual Exam">Annual Exam</option>
-                        <option value="Half Yearly Exam">Half Yearly Exam</option>
-                        <option value="Quarterly Exam">Quarterly Exam</option>
-                        <option value="Test Exam">Test Exam</option>
-                        <option value="Model Test">Model Test</option>
-                        <option value="Pre-Test Exam">Pre-Test Exam</option>
-                        <option value="Final Exam">Final Exam</option>
-                    </select>
+                    <div class="custom-dropdown-wrapper" id="dd_exam_wrapper">
+                        <div class="custom-dropdown-trigger" tabindex="0">
+                            <span class="placeholder-text">Select Exam</span>
+                            <span class="trigger-icon"><i class="fas fa-chevron-down"></i></span>
+                        </div>
+                        <div class="custom-dropdown-panel">
+                            <div class="p-2 border-b bg-gray-50">
+                                <div class="dropdown-search-wrapper">
+                                    <i class="fas fa-search dropdown-search-icon"></i>
+                                    <input type="text" class="dropdown-search-input" placeholder="Search exam..." autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="dropdown-options-list">
+                                <div class="dropdown-option" data-value="Annual Exam"><span class="option-icon" style="background:linear-gradient(135deg,#6366f1,#818cf8);color:white"><i class="fas fa-award"></i></span><span class="option-label">Annual Exam</span><span class="option-check"><i class="fas fa-check"></i></span></div>
+                                <div class="dropdown-option" data-value="Half Yearly Exam"><span class="option-icon" style="background:linear-gradient(135deg,#3b82f6,#60a5fa);color:white"><i class="fas fa-clipboard-list"></i></span><span class="option-label">Half Yearly Exam</span><span class="option-check"><i class="fas fa-check"></i></span></div>
+                                <div class="dropdown-option" data-value="Quarterly Exam"><span class="option-icon" style="background:linear-gradient(135deg,#06b6d4,#22d3ee);color:white"><i class="fas fa-clock"></i></span><span class="option-label">Quarterly Exam</span><span class="option-check"><i class="fas fa-check"></i></span></div>
+                                <div class="dropdown-option" data-value="Test Exam"><span class="option-icon" style="background:linear-gradient(135deg,#10b981,#34d399);color:white"><i class="fas fa-pen"></i></span><span class="option-label">Test Exam</span><span class="option-check"><i class="fas fa-check"></i></span></div>
+                                <div class="dropdown-option" data-value="Model Test"><span class="option-icon" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);color:white"><i class="fas fa-star"></i></span><span class="option-label">Model Test</span><span class="option-check"><i class="fas fa-check"></i></span></div>
+                                <div class="dropdown-option" data-value="Pre-Test Exam"><span class="option-icon" style="background:linear-gradient(135deg,#f97316,#fb923c);color:white"><i class="fas fa-file-signature"></i></span><span class="option-label">Pre-Test Exam</span><span class="option-check"><i class="fas fa-check"></i></span></div>
+                                <div class="dropdown-option" data-value="Final Exam"><span class="option-icon" style="background:linear-gradient(135deg,#ef4444,#f87171);color:white"><i class="fas fa-trophy"></i></span><span class="option-label">Final Exam</span><span class="option-check"><i class="fas fa-check"></i></span></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Class Custom Dropdown -->
                 <div class="flex-1 min-w-[120px]">
                     <label class="block text-xs font-semibold text-gray-600 mb-1"><i class="fas fa-chalkboard text-primary mr-1"></i> Class *</label>
-                    <select id="filterClass" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
-                        <option value="">-- Select Class --</option>
-                    </select>
+                    <div class="custom-dropdown-wrapper" id="dd_class_wrapper">
+                        <div class="custom-dropdown-trigger" tabindex="0">
+                            <span class="placeholder-text">Select Class</span>
+                            <span class="trigger-icon"><i class="fas fa-chevron-down"></i></span>
+                        </div>
+                        <div class="custom-dropdown-panel">
+                            <div class="p-2 border-b bg-gray-50">
+                                <div class="dropdown-search-wrapper">
+                                    <i class="fas fa-search dropdown-search-icon"></i>
+                                    <input type="text" class="dropdown-search-input" placeholder="Search class..." autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="dropdown-options-list">
+                                <div class="dropdown-no-results"><i class="fas fa-spinner fa-spin"></i>Loading...</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Section Custom Dropdown -->
                 <div class="flex-1 min-w-[120px]">
                     <label class="block text-xs font-semibold text-gray-600 mb-1"><i class="fas fa-layer-group text-primary mr-1"></i> Section</label>
-                    <select id="filterSection" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" disabled>
-                        <option value="">All Sections</option>
-                    </select>
+                    <div class="custom-dropdown-wrapper" id="dd_section_wrapper">
+                        <div class="custom-dropdown-trigger disabled" tabindex="0">
+                            <span class="placeholder-text">All Sections</span>
+                            <span class="trigger-icon"><i class="fas fa-chevron-down"></i></span>
+                        </div>
+                        <div class="custom-dropdown-panel">
+                            <div class="p-2 border-b bg-gray-50">
+                                <div class="dropdown-search-wrapper">
+                                    <i class="fas fa-search dropdown-search-icon"></i>
+                                    <input type="text" class="dropdown-search-input" placeholder="Search section..." autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="dropdown-options-list">
+                                <div class="dropdown-no-results"><i class="fas fa-lock"></i>Select a class first</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="flex-1 min-w-[140px]">
                     <label class="block text-xs font-semibold text-gray-600 mb-1"><i class="fas fa-calendar text-primary mr-1"></i> Exam Date</label>
                     <input type="date" id="filterExamDate" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
@@ -423,41 +340,43 @@
             setTimeout(() => { div.style.opacity = '0'; div.style.transition = 'opacity 0.3s'; setTimeout(() => div.remove(), 300); }, 3000);
         }
 
-        function formatDate(dateStr) {
-            if (!dateStr) return '';
-            try { return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }); }
-            catch { return dateStr; }
-        }
+        function formatDate(dateStr) { if (!dateStr) return ''; try { return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }); } catch { return dateStr; } }
 
         async function loadSchoolData() {
             try {
                 const snap = await getDoc(doc(db, "settings", "school_info"));
-                if (snap.exists()) {
-                    const d = snap.data();
-                    schoolData.name = getField(d, 'school_name', 'schoolName', 'name') || schoolData.name;
-                    schoolData.address = getField(d, 'address', 'schoolAddress') || schoolData.address;
-                    schoolData.logo = getField(d, 'school_logo', 'logo', 'emblem') || '';
-                }
+                if (snap.exists()) { const d = snap.data(); schoolData.name = getField(d, 'school_name', 'schoolName', 'name') || schoolData.name; schoolData.address = getField(d, 'address', 'schoolAddress') || schoolData.address; schoolData.logo = getField(d, 'school_logo', 'logo', 'emblem') || ''; }
             } catch (e) { console.warn('Could not load settings/school_info:', e); }
             document.getElementById('schoolSubheading').innerText = schoolData.name;
         }
 
         async function loadSessions() {
-            try {
-                const sdoc = await getDoc(doc(db, "config", "activeSession"));
-                if (sdoc.exists()) currentSession = sdoc.data().sessionName || currentSession;
-                const p = currentSession.split('-');
-                nextSession = p.length === 2 ? `${parseInt(p[0])+1}-${parseInt(p[1])+1}` : '2026-2027';
-            } catch (e) {}
+            try { const sdoc = await getDoc(doc(db, "config", "activeSession")); if (sdoc.exists()) currentSession = sdoc.data().sessionName || currentSession; const p = currentSession.split('-'); nextSession = p.length === 2 ? `${parseInt(p[0])+1}-${parseInt(p[1])+1}` : '2026-2027'; } catch (e) {}
             document.getElementById('sessionBadge').innerText = currentSession;
         }
 
         async function loadClasses() {
             const snap = await getDocs(query(collection(db, "classes"), orderBy("order")));
             allClasses = snap.docs.map(d => ({ id: d.id, name: d.data().name }));
-            const sel = document.getElementById('filterClass');
-            sel.innerHTML = '<option value="">-- Select Class --</option>';
-            allClasses.forEach(c => sel.appendChild(new Option(c.name, c.id)));
+            
+            // Update Class Custom Dropdown
+            const classOptionsList = document.querySelector('#dd_class_wrapper .dropdown-options-list');
+            const classColors = [
+                { bg: 'linear-gradient(135deg, #6366f1, #818cf8)' }, { bg: 'linear-gradient(135deg, #3b82f6, #60a5fa)' },
+                { bg: 'linear-gradient(135deg, #06b6d4, #22d3ee)' }, { bg: 'linear-gradient(135deg, #10b981, #34d399)' },
+                { bg: 'linear-gradient(135deg, #f59e0b, #fbbf24)' }, { bg: 'linear-gradient(135deg, #f97316, #fb923c)' },
+                { bg: 'linear-gradient(135deg, #ef4444, #f87171)' }, { bg: 'linear-gradient(135deg, #ec4899, #f472b6)' },
+                { bg: 'linear-gradient(135deg, #8b5cf6, #a78bfa)' }, { bg: 'linear-gradient(135deg, #14b8a6, #2dd4bf)' }
+            ];
+            classOptionsList.innerHTML = allClasses.map((c, i) => {
+                const style = classColors[i % classColors.length];
+                return `<div class="dropdown-option" data-value="${c.id}">
+                    <span class="option-icon" style="background:${style.bg};color:white"><i class="fas fa-chalkboard"></i></span>
+                    <span class="option-label">${esc(c.name)}</span>
+                    <span class="option-check"><i class="fas fa-check"></i></span>
+                </div>`;
+            }).join('');
+            if (!allClasses.length) classOptionsList.innerHTML = '<div class="dropdown-no-results"><i class="fas fa-database"></i>No classes found</div>';
         }
 
         async function getSections(classId) {
@@ -506,7 +425,6 @@
             const parent = getParentInfo(student.parentID);
             const guardianDisplay = parent.guardian || student.guardianName || '—';
             const examDateFormatted = examDate ? formatDate(examDate) : '';
-
             return `
                 <div class="sit-card">
                     <div class="sit-card-header">
@@ -519,74 +437,193 @@
                     <div class="sit-logo-photo">
                         <div class="sit-logo">${logoHTML}</div>
                         <div class="sit-photo">
-                            ${imageUrl
-                                ? `<img src="${esc(imageUrl)}" onerror="this.src='${avatarFallback}'">`
-                                : `<div class="sit-photo-placeholder"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg></div>`
-                            }
+                            ${imageUrl ? `<img src="${esc(imageUrl)}" onerror="this.src='${avatarFallback}'">` : `<div class="sit-photo-placeholder"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg></div>`}
                         </div>
                     </div>
                     <div class="sit-info">
-                        <div class="sit-info-row">
-                            <span class="sit-label">Student Name</span>
-                            <span class="sit-sep">:</span>
-                            <span class="sit-value">${esc(student.fullName || '—')}</span>
+                        <div class="sit-info-row"><span class="sit-label">Student Name</span><span class="sit-sep">:</span><span class="sit-value">${esc(student.fullName || '—')}</span></div>
+                        <div class="sit-info-cols">
+                            <div class="sit-info-col"><div class="sit-info-row"><span class="sit-label">Student's ID</span><span class="sit-sep">:</span><span class="sit-value">${esc(student.rollNumber || student.admissionNumber || '—')}</span></div></div>
+                            <div class="sit-info-col"><div class="sit-info-row"><span class="sit-label">Class & Sec</span><span class="sit-sep">:</span><span class="sit-value">${esc(student.className || '—')}, ${esc(student.section || '—')}</span></div></div>
                         </div>
                         <div class="sit-info-cols">
-                            <div class="sit-info-col">
-                                <div class="sit-info-row">
-                                    <span class="sit-label">Student's ID</span>
-                                    <span class="sit-sep">:</span>
-                                    <span class="sit-value">${esc(student.rollNumber || student.admissionNumber || '—')}</span>
-                                </div>
-                            </div>
-                            <div class="sit-info-col">
-                                <div class="sit-info-row">
-                                    <span class="sit-label">Class & Sec</span>
-                                    <span class="sit-sep">:</span>
-                                    <span class="sit-value">${esc(student.className || '—')}, ${esc(student.section || '—')}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sit-info-cols">
-                            <div class="sit-info-col">
-                                <div class="sit-info-row">
-                                    <span class="sit-label">Exam Date</span>
-                                    <span class="sit-sep">:</span>
-                                    <span class="sit-value">${examDateFormatted || '—'}</span>
-                                </div>
-                            </div>
-                            <div class="sit-info-col">
-                                <div class="sit-info-row">
-                                    <span class="sit-label">Guardian</span>
-                                    <span class="sit-sep">:</span>
-                                    <span class="sit-value">${esc(guardianDisplay)}</span>
-                                </div>
-                            </div>
+                            <div class="sit-info-col"><div class="sit-info-row"><span class="sit-label">Exam Date</span><span class="sit-sep">:</span><span class="sit-value">${examDateFormatted || '—'}</span></div></div>
+                            <div class="sit-info-col"><div class="sit-info-row"><span class="sit-label">Guardian</span><span class="sit-sep">:</span><span class="sit-value">${esc(guardianDisplay)}</span></div></div>
                         </div>
                     </div>
                     <div class="sit-card-footer">
-                        <div class="sit-footer-sign">
-                            <div class="sit-footer-sign-line"></div>
-                            <div class="sit-footer-sign-text">Guardian's Sign</div>
-                        </div>
-                        <div class="sit-footer-sign">
-                            <div class="sit-footer-sign-line"></div>
-                            <div class="sit-footer-sign-text">Class Teacher</div>
-                        </div>
-                        <div class="sit-footer-sign">
-                            <div class="sit-footer-sign-line"></div>
-                            <div class="sit-footer-sign-text">Headmaster</div>
-                        </div>
+                        <div class="sit-footer-sign"><div class="sit-footer-sign-line"></div><div class="sit-footer-sign-text">Guardian's Sign</div></div>
+                        <div class="sit-footer-sign"><div class="sit-footer-sign-line"></div><div class="sit-footer-sign-text">Class Teacher</div></div>
+                        <div class="sit-footer-sign"><div class="sit-footer-sign-line"></div><div class="sit-footer-sign-text">Headmaster</div></div>
                     </div>
                 </div>`;
         }
 
+        /* ============================================
+           CUSTOM DROPDOWN ENGINE
+        ============================================ */
+        const dropdownValues = {
+            session: 'current',
+            exam: '',
+            class: '',
+            section: ''
+        };
+
+        function initCustomDropdowns() {
+            document.querySelectorAll('.custom-dropdown-wrapper').forEach(wrapper => {
+                const key = wrapper.id.replace('dd_', '').replace('_wrapper', '');
+                const trigger = wrapper.querySelector('.custom-dropdown-trigger');
+                const panel = wrapper.querySelector('.custom-dropdown-panel');
+                const searchInput = wrapper.querySelector('.dropdown-search-input');
+                const optionsList = wrapper.querySelector('.dropdown-options-list');
+                let isOpen = false;
+                let highlightedIdx = -1;
+
+                function open() {
+                    if (trigger.classList.contains('disabled')) return;
+                    if (isOpen) return;
+                    isOpen = true;
+                    highlightedIdx = -1;
+                    trigger.classList.add('active');
+                    panel.classList.add('open');
+                    searchInput.value = '';
+                    filterOptions('');
+                    setTimeout(() => searchInput.focus(), 80);
+                }
+
+                function close() {
+                    if (!isOpen) return;
+                    isOpen = false;
+                    highlightedIdx = -1;
+                    trigger.classList.remove('active');
+                    panel.classList.remove('open');
+                }
+
+                function toggle() { isOpen ? close() : open(); }
+
+                function selectOption(optionEl) {
+                    const val = optionEl.dataset.value;
+                    const label = optionEl.querySelector('.option-label').innerText;
+                    dropdownValues[key] = val;
+                    
+                    // Update UI
+                    optionsList.querySelectorAll('.dropdown-option').forEach(o => o.classList.remove('selected'));
+                    optionEl.classList.add('selected');
+                    
+                    const triggerSpan = trigger.querySelector('span:first-child');
+                    const iconHtml = optionEl.querySelector('.option-icon').outerHTML;
+                    triggerSpan.className = 'selected-text';
+                    triggerSpan.dataset.value = val;
+                    triggerSpan.innerHTML = `${iconHtml}<span class="ml-1">${esc(label)}</span>`;
+                    
+                    close();
+
+                    // Custom Event for Class change
+                    if (key === 'class') handleClassChange(val);
+                }
+
+                function filterOptions(query) {
+                    const q = query.toLowerCase();
+                    let visibleCount = 0;
+                    optionsList.querySelectorAll('.dropdown-option').forEach(opt => {
+                        const text = opt.querySelector('.option-label').innerText.toLowerCase();
+                        if (text.includes(q)) { opt.style.display = 'flex'; visibleCount++; }
+                        else opt.style.display = 'none';
+                    });
+                    const noRes = optionsList.querySelector('.dropdown-no-results');
+                    if (noRes) noRes.style.display = visibleCount === 0 ? 'block' : 'none';
+                }
+
+                function highlight(idx) {
+                    const visible = Array.from(optionsList.querySelectorAll('.dropdown-option')).filter(o => o.style.display !== 'none');
+                    optionsList.querySelectorAll('.dropdown-option.highlighted').forEach(o => o.classList.remove('highlighted'));
+                    if (idx < 0) idx = visible.length - 1;
+                    if (idx >= visible.length) idx = 0;
+                    highlightedIdx = idx;
+                    if (visible[idx]) { visible[idx].classList.add('highlighted'); visible[idx].scrollIntoView({ block: 'nearest' }); }
+                }
+
+                trigger.addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
+                searchInput.addEventListener('input', (e) => { filterOptions(e.target.value); highlightedIdx = -1; });
+                searchInput.addEventListener('click', (e) => e.stopPropagation());
+                
+                searchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowDown') { e.preventDefault(); highlight(highlightedIdx + 1); }
+                    else if (e.key === 'ArrowUp') { e.preventDefault(); highlight(highlightedIdx - 1); }
+                    else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const visible = Array.from(optionsList.querySelectorAll('.dropdown-option')).filter(o => o.style.display !== 'none');
+                        if (highlightedIdx >= 0 && visible[highlightedIdx]) selectOption(visible[highlightedIdx]);
+                    }
+                    else if (e.key === 'Escape') close();
+                });
+
+                trigger.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+                    else if (e.key === 'Escape') close();
+                });
+
+                optionsList.addEventListener('click', (e) => {
+                    const opt = e.target.closest('.dropdown-option');
+                    if (opt) selectOption(opt);
+                });
+
+                optionsList.addEventListener('mouseover', (e) => {
+                    const opt = e.target.closest('.dropdown-option');
+                    if (opt) {
+                        optionsList.querySelectorAll('.dropdown-option.highlighted').forEach(o => o.classList.remove('highlighted'));
+                        opt.classList.add('highlighted');
+                    }
+                });
+
+                document.addEventListener('click', (e) => { if (!wrapper.contains(e.target)) close(); });
+            });
+        }
+
+        async function handleClassChange(classId) {
+            const sectionTrigger = document.querySelector('#dd_section_wrapper .custom-dropdown-trigger');
+            const sectionList = document.querySelector('#dd_section_wrapper .dropdown-options-list');
+            
+            if (!classId) {
+                sectionTrigger.classList.add('disabled');
+                const triggerSpan = sectionTrigger.querySelector('span:first-child');
+                triggerSpan.className = 'placeholder-text';
+                triggerSpan.innerHTML = 'All Sections';
+                dropdownValues.section = '';
+                sectionList.innerHTML = '<div class="dropdown-no-results"><i class="fas fa-lock"></i>Select a class first</div>';
+                return;
+            }
+
+            sectionTrigger.classList.remove('disabled');
+            sectionList.innerHTML = '<div class="dropdown-no-results"><i class="fas fa-spinner fa-spin"></i>Loading...</div>';
+            
+            const secs = await getSections(classId);
+            const secColors = [
+                { bg: 'linear-gradient(135deg, #14b8a6, #2dd4bf)' }, { bg: 'linear-gradient(135deg, #8b5cf6, #a78bfa)' },
+                { bg: 'linear-gradient(135deg, #ec4899, #f472b6)' }, { bg: 'linear-gradient(135deg, #f97316, #fb923c)' }
+            ];
+            
+            if (secs.length === 0) {
+                sectionList.innerHTML = '<div class="dropdown-no-results"><i class="fas fa-folder-open"></i>No sections found</div>';
+                return;
+            }
+
+            sectionList.innerHTML = secs.map((s, i) => {
+                const style = secColors[i % secColors.length];
+                return `<div class="dropdown-option" data-value="${s.name}">
+                    <span class="option-icon" style="background:${style.bg};color:white"><i class="fas fa-layer-group"></i></span>
+                    <span class="option-label">${esc(s.name)}</span>
+                    <span class="option-check"><i class="fas fa-check"></i></span>
+                </div>`;
+            }).join('');
+        }
+
         async function generateSitCards() {
-            const examType = document.getElementById('filterExam').value;
-            const classId = document.getElementById('filterClass').value;
-            const section = document.getElementById('filterSection').value;
+            const examType = dropdownValues.exam;
+            const classId = dropdownValues.class;
+            const section = dropdownValues.section;
             const examDate = document.getElementById('filterExamDate').value;
-            const sessionVal = document.getElementById('filterSession').value;
+            const sessionVal = dropdownValues.session;
             const targetSession = sessionVal === 'next' ? nextSession : currentSession;
             const year = targetSession.split('-')[0];
 
@@ -612,19 +649,10 @@
                 for (let i = 0; i < students.length; i += perPage) {
                     const pageStudents = students.slice(i, i + perPage);
                     let cardsHTML = '';
-                    for (const s of pageStudents) {
-                        cardsHTML += buildSitCard(s, examType, examDate, year);
-                    }
+                    for (const s of pageStudents) { cardsHTML += buildSitCard(s, examType, examDate, year); }
                     const remaining = perPage - pageStudents.length;
-                    for (let r = 0; r < remaining; r++) {
-                        cardsHTML += '<div class="sit-card" style="border-style:dashed;border-color:#ddd;opacity:0.15;"></div>';
-                    }
-                    pagesHTML += `
-                        <div class="sit-page">
-                            <div class="card-grid" style="grid-template-columns:repeat(${gridCols},1fr);grid-template-rows:repeat(${gridRows},1fr);">
-                                ${cardsHTML}
-                            </div>
-                        </div>`;
+                    for (let r = 0; r < remaining; r++) { cardsHTML += '<div class="sit-card" style="border-style:dashed;border-color:#ddd;opacity:0.15;"></div>'; }
+                    pagesHTML += `<div class="sit-page"><div class="card-grid" style="grid-template-columns:repeat(${gridCols},1fr);grid-template-rows:repeat(${gridRows},1fr);">${cardsHTML}</div></div>`;
                 }
 
                 container.innerHTML = pagesHTML;
@@ -646,21 +674,11 @@
             });
         });
 
-        document.getElementById('filterClass').addEventListener('change', async (e) => {
-            const classId = e.target.value;
-            const secSelect = document.getElementById('filterSection');
-            if (!classId) { secSelect.disabled = true; secSelect.innerHTML = '<option value="">All Sections</option>'; return; }
-            secSelect.disabled = false;
-            secSelect.innerHTML = '<option value="">All Sections</option><option value="loading">Loading...</option>';
-            const secs = await getSections(classId);
-            secSelect.innerHTML = '<option value="">All Sections</option>';
-            secs.forEach(sec => secSelect.appendChild(new Option(sec.name, sec.name)));
-        });
-
         document.getElementById('generateBtn').addEventListener('click', generateSitCards);
         document.getElementById('printBtn').addEventListener('click', () => window.print());
 
         async function init() {
+            initCustomDropdowns(); // Start dropdown logic
             document.getElementById('schoolSubheading').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
             await Promise.all([loadSchoolData(), loadSessions(), loadClasses(), loadAllParents()]);
             document.getElementById('schoolSubheading').innerText = schoolData.name;
