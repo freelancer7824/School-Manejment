@@ -460,8 +460,13 @@ async function handleLogin(email, password) {
         };
         
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ✅ সেকেন্ডারি অ্যাপ — নতুন ইউজার তৈরি করতে ব্যবহৃত হবে
+// এতে বর্তমান অ্যাডমিনের লগইন সেশন নিরাপদ থাকবে, লগআউট হবে না
+const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+const secondaryAuth = getAuth(secondaryApp);
 
         const CLOUD_NAME = "dhvtgzy5x"; 
         const UPLOAD_PRESET = "Rosenews"; 
@@ -602,8 +607,13 @@ async function handleLogin(email, password) {
                 let photoURL = null;
                 if (imageFile) { photoURL = await uploadImageToCloudinary(imageFile); }
                 const userEmail = email || generateEmailFromPhone(phone, role);
-                const userCredential = await createUserWithEmailAndPassword(auth, userEmail, password);
-                const authUid = userCredential.user.uid;
+                // ✅ মূল অথ (auth) এর বদলে সেকেন্ডারি অথ (secondaryAuth) ব্যবহার করা হচ্ছে
+const userCredential = await createUserWithEmailAndPassword(secondaryAuth, userEmail, password);
+const authUid = userCredential.user.uid;
+
+// ✅ সেকেন্ডারি ইনস্ট্যান্স থেকে নতুন ইউজারকে সাথে সাথে সাইনআউট করে দিচ্ছি (ক্লিনআপ)
+// এতে অ্যাডমিনের সেশনে কোনো প্রভাব পড়বে না
+await secondaryAuth.signOut();
                 
                 const userData = {
                     uid: authUid, name: fullName, email: userEmail, phone: phone, role: role,
