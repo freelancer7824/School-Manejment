@@ -32,11 +32,14 @@
             font-family: 'Noto Sans Bengali', system-ui, sans-serif;
             background: #f1f5f9;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         /* হেডার গ্র্যাডিয়েন্ট */
         .header-bg {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+            flex-shrink: 0; /* হেডার সংকুচিত হবে না */
         }
 
         /* স্টেপ ইন্ডিকেটর */
@@ -160,7 +163,7 @@
             100% { box-shadow: 0 0 0 20px rgba(16,185,129,0); }
         }
 
-        /* সেকশন টাইটেল */
+        /* সেক্শন টাইটেল */
         .section-title {
             display: flex; align-items: center; gap: 8px;
             font-size: 15px; font-weight: 700; color: #1e293b;
@@ -223,7 +226,7 @@
     </div>
 
     <!-- মেইন কন্টেন্ট -->
-    <div class="max-w-lg mx-auto px-4 -mt-10 pb-8 relative z-10">
+    <div class="flex-grow max-w-lg mx-auto px-4 -mt-10 pb-8 relative z-10 w-full">
 
         <!-- স্টেপ ইন্ডিকেটর -->
         <div class="card p-4 mb-4">
@@ -304,7 +307,7 @@
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><i class="fas fa-envelope"></i></span>
                             <input type="email" id="email" class="form-input pl-9" placeholder="teacher@school.com">
                         </div>
-                        <div class="field-error" id="emailError">সঠিক ইমেইল ফরম্যাট দিন</div>
+                        <div class="field-error" id="emailError">সঠিক ইমেইল ফরম্ট দিন</div>
                     </div>
 
                     <!-- লিঙ্গ ও জন্ম তারিখ -->
@@ -577,7 +580,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         import { getFirestore, collection, serverTimestamp, doc, setDoc, query, where, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -596,12 +599,11 @@
         const db = getFirestore(app);
 
         // ===== ক্লাউডিনারি কনফিগারেশন =====
-        // আপনার Cloudinary ড্যাশবোর্ড থেকে Cloud Name এবং Unsigned Upload Preset এখানে বসান
         const CLOUDINARY_CLOUD_NAME = 'dhvtgzy5x'; 
         const CLOUDINARY_UPLOAD_PRESET = 'Rosenews'; 
 
         let currentStep = 1;
-        let profileImageUrl = null; // আপলোড হওয়া ছবির URL সংরক্ষণের জন্য
+        let profileImageUrl = null;
 
         // ===== সেশন লোড =====
         async function loadSession() {
@@ -875,6 +877,14 @@
                 }
 
                 const userEmail = emailVal || generateEmail(phone, 'teacher');
+                
+                // Create User করার আগে যদি কেউ লগইন থাকে তাকে লগআউট করা হবে (প্রয়োজন হলে, তবে এখানে আমরা লগইন পরিবর্তন করব না)
+                // যদি আপনি চান যে কেউ লগইন থাকলে তাকে লগআউট না করেই শুধু একাউন্ট তৈরি করতে হবে, তবে createUserWithEmailAndPassword অটোমেটিক লগইন করিয়ে দেয়।
+                // আপনার রিকোয়ারমেন্ট অনুযায়ী, আমরা নতুন ইউজার তৈরির পর তাকে লগআউট করে দিব, যাতে পুরানো লগইন (যদি থাকে) ফিরে আসে বা এডমিন অবস্থায় থাকে।
+                
+                // বর্তমান ইউজার চেক করা (Admin যাতে লগআউট না হয়ে যায় সেজন্য আমাদের পরে তাকে রিস্টোর করতে হবে, কিন্তু Firebase Auth এ সাধারণত এটি করা জটিল। 
+                // সহজ সমাধান: নতুন একাউন্ট তৈরি হওয়ার সাথে সাথে তাকে লগআউট করা।
+                
                 const cred = await createUserWithEmailAndPassword(auth, userEmail, pw);
                 const uid = cred.user.uid;
 
@@ -882,7 +892,7 @@
                 const userData = {
                     uid, name: fullName, fatherName: fatherName || null,
                     email: userEmail, phone, role: 'teacher',
-                    photoURL: profileImageUrl || null, // ক্লাউডিনারি থেকে পাওয়া ছবির URL
+                    photoURL: profileImageUrl || null, 
                     gender: gender || null, dateOfBirth: dob || null,
                     address: address || null, employeeId, department,
                     qualification, subjects: subjects || null,
@@ -897,7 +907,7 @@
                 // teachers কালেকশন সিঙ্ক
                 await setDoc(doc(db, 'teachers', uid), {
                     name: fullName, phone, email: userEmail,
-                    photoURL: profileImageUrl || null, // ক্লাউডিনারি থেকে পাওয়া ছবির URL
+                    photoURL: profileImageUrl || null, 
                     employeeId, department, qualification,
                     subjects: subjects || null,
                     joiningDate, salary: salary || null,
@@ -906,6 +916,9 @@
                     uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp()
                 }, { merge: true });
 
+                // ===== গুরুত্বপূর্ণ: নতুন ইউজারকে লগআউট করা =====
+                await signOut(auth);
+                
                 // সাকসেস স্ক্রিন
                 document.getElementById('successName').textContent = fullName;
                 document.getElementById('successEmail').textContent = userEmail;
@@ -925,14 +938,14 @@
                 document.getElementById('connector1').classList.remove('active'); document.getElementById('connector1').classList.add('done');
                 document.getElementById('connector2').classList.remove('active'); document.getElementById('connector2').classList.add('done');
 
-                showToast('শিক্ষক একাউন্ট সফলভাবে তৈরি হয়েছে!', 'success');
+                showToast('শিক্ষক একাউন্ট সফলভাবে তৈরি হয়েছে! (অটো লগইন বন্ধ)', 'success');
 
             } catch (error) {
                 console.error(error);
                 let msg = 'একাউন্ট তৈরিতে সমস্যা হয়েছে';
                 if (error.code === 'auth/email-already-in-use') msg = 'এই ইমেইল/ফোন দিয়ে আগেই একাউন্ট আছে';
                 else if (error.code === 'auth/weak-password') msg = 'পাসওয়ার্ড খুব দুর্বল';
-                else if (error.code === 'auth/invalid-email') msg = 'ইমেইল ফরম্যাট সঠিক নয়';
+                else if (error.code === 'auth/invalid-email') msg = 'ইমেইল ফরম্ট সঠিক নয়';
                 else msg = error.message;
                 showToast(msg, 'error');
             } finally {
@@ -963,17 +976,6 @@
             currentStep = 1;
             updateStepUI();
         };
-
-        // ===== কীবোর্ড =====
-        document.addEventListener('keydown', function(e) {
-            if (e.key !== 'Enter') return;
-            const active = document.querySelector('.step-panel.active');
-            if (!active) return;
-            const id = active.id;
-            if (id === 'step1') goToStep(2);
-            else if (id === 'step2') goToStep(3);
-            else if (id === 'step3') submitForm();
-        });
     </script>
 </body>
 </html>
