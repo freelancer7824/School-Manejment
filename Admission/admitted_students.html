@@ -214,8 +214,13 @@
         };
         
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// ✅ Secondary app — used ONLY for creating parent accounts
+// This keeps the admin's auth session intact
+const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+const secondaryAuth = getAuth(secondaryApp);
 
         // Cloudinary Configuration
         const CLOUDINARY_CLOUD_NAME = "dhvtgzy5x";
@@ -392,29 +397,59 @@
 
         // Parent creation with phone number as password
         document.getElementById('parent-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const gName = document.getElementById('guardianName').value.trim();
-            const gPhone = document.getElementById('guardianPhone').value.trim();
-            if (!gName || !gPhone) { showMsg("Error", "Guardian name & phone required", false); return; }
-            const phoneRegex = /^01[3-9]\d{8}$/;
-            if (!phoneRegex.test(gPhone)) { showMsg("Invalid Phone", "Enter valid Bangladeshi phone number", false); return; }
-            const saveBtn = document.getElementById('saveParentBtn');
-            saveBtn.disabled = true; saveBtn.innerText = "Creating...";
-            try {
-                const loginEmail = generateEmailFromPhone(gPhone);
-                const password = generatePasswordFromPhone(gPhone);
-                const userCredential = await createUserWithEmailAndPassword(auth, loginEmail, password);
-                const authUid = userCredential.user.uid;
-                const parentDoc = { fatherName: document.getElementById('fatherName').value, fatherPhone: document.getElementById('fatherPhone').value, motherName: document.getElementById('motherName').value, motherPhone: document.getElementById('motherPhone').value, guardianName: gName, guardianPhone: gPhone, loginEmail, authUserId: authUid, role: "parent", createdAt: serverTimestamp() };
-                const docRef = await addDoc(collection(db, "parents"), parentDoc);
-                await setDoc(doc(db, "users", authUid), { uid: authUid, email: loginEmail, phone: gPhone, name: gName, role: "parent", parentId: docRef.id, createdAt: serverTimestamp() });
-                await loadParentsList();
-                selectParent({ id: docRef.id, name: gName, phone: gPhone });
-                showMsg("Parent Created!", `Email: ${loginEmail} | Password: ${password}`, true);
-                closeParentModal();
-                document.getElementById('parent-form').reset();
-            } catch(err) { showMsg("Creation Failed", err.message, false); } finally { saveBtn.disabled = false; saveBtn.innerText = "Create Parent & Link"; }
+    e.preventDefault();
+    const gName = document.getElementById('guardianName').value.trim();
+    const gPhone = document.getElementById('guardianPhone').value.trim();
+    if (!gName || !gPhone) { showMsg("Error", "Guardian name & phone required", false); return; }
+    const phoneRegex = /^01[3-9]\d{8}$/;
+    if (!phoneRegex.test(gPhone)) { showMsg("Invalid Phone", "Enter valid Bangladeshi phone number", false); return; }
+    const saveBtn = document.getElementById('saveParentBtn');
+    saveBtn.disabled = true; saveBtn.innerText = "Creating...";
+    try {
+        const loginEmail = generateEmailFromPhone(gPhone);
+        const password = generatePasswordFromPhone(gPhone);
+
+        // ✅ KEY FIX: Use secondaryAuth instead of auth
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, loginEmail, password);
+        const authUid = userCredential.user.uid;
+
+        // ✅ Immediately sign out from secondary (cleanup, doesn't affect admin)
+        await secondaryAuth.signOut();
+
+        const parentDoc = {
+            fatherName: document.getElementById('fatherName').value,
+            fatherPhone: document.getElementById('fatherPhone').value,
+            motherName: document.getElementById('motherName').value,
+            motherPhone: document.getElementById('motherPhone').value,
+            guardianName: gName,
+            guardianPhone: gPhone,
+            loginEmail,
+            authUserId: authUid,
+            role: "parent",
+            createdAt: serverTimestamp()
+        };
+        const docRef = await addDoc(collection(db, "parents"), parentDoc);
+        await setDoc(doc(db, "users", authUid), {
+            uid: authUid,
+            email: loginEmail,
+            phone: gPhone,
+            name: gName,
+            role: "parent",
+            parentId: docRef.id,
+            createdAt: serverTimestamp()
         });
+        await loadParentsList();
+        selectParent({ id: docRef.id, name: gName, phone: gPhone });
+        showMsg("Parent Created!", `Email: ${loginEmail} | Password: ${password}`, true);
+        closeParentModal();
+        document.getElementById('parent-form').reset();
+    } catch(err) {
+        showMsg("Creation Failed", err.message, false);
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = "Create Parent & Link";
+    }
+});
 
         // SUBMIT: Save student under current_session/classes/students with Cloudinary image URL
         document.getElementById('admission-form').addEventListener('submit', async (e) => {
