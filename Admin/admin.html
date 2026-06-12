@@ -553,9 +553,8 @@
         </header>
 
         <div class="dashboard-body">
-            <div class="content-container">
-                <iframe id="main-iframe" src="../Dashboard/dashboard" frameborder="0" 
-                    sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals allow-downloads allow-top-navigation"></iframe>
+            <div class="content-container" id="iframe-container">
+                <!-- ৬৪-বিট সিস্টেমের জন্য ডাইনামিক্যালি আইফ্রেম তৈরি করা হবে এখানে -->
             </div>
         </div>
     </div>
@@ -565,7 +564,9 @@
         const mainContent = document.getElementById('mainContent');
         const overlay = document.querySelector('.overlay');
         const userDropdown = document.getElementById('userDropdown');
-        const iframe = document.getElementById('main-iframe');
+        const iframeContainer = document.getElementById('iframe-container');
+        
+        let currentIframe = null;
 
         function toggleSidebar() {
             if (window.innerWidth <= 768) {
@@ -611,18 +612,47 @@
             }
         }
 
-        function loadPageFromHash() {
+        // ★ ৬৪-বিট সিস্টেমে লং লিংক সিঙ্ক করার জন্য ডাইনামিক আইফ্রেম ফাংশন
+        function loadIframe(url) {
+            if (currentIframe && currentIframe.src === window.location.origin + '/' + url) return; // একই লিংক হলে লোড করবে না
+
+            // আগের আইফ্রেমটি রিমুভ করা (মেমরি লিক ও ক্র্যাশ প্রতিরোধ)
+            if (currentIframe) {
+                currentIframe.remove();
+            }
+
+            // নতুন আইফ্রেম তৈরি করা
+            const newIframe = document.createElement('iframe');
+            newIframe.id = "main-iframe";
+            newIframe.src = url;
+            newIframe.frameBorder = "0";
+            newIframe.sandbox = "allow-scripts allow-forms allow-same-origin allow-popups allow-modals allow-downloads allow-top-navigation";
+            newIframe.style.width = "100%";
+            newIframe.style.height = "100vh";
+            newIframe.style.border = "none";
+            newIframe.style.backgroundColor = "var(--main-bg)";
+            
+            // ৬৪-বিট আর্কিটেকচারে DOM অ্যাপেন্ড করলে লং ইউআরএল সিঙ্ক পারফেক্টলি কাজ করে
+            iframeContainer.appendChild(newIframe);
+            currentIframe = newIframe;
+
+            currentIframe.onload = injectAntiInspectToIframe;
+            
+            // ব্রাউজারের অ্যাড্রেস বারে লিংক না দেখানোর জন্য sessionStorage তে সেভ করা
+            try {
+                sessionStorage.setItem('dashboard_current_path', url);
+            } catch(e) {}
+        }
+
+        function loadPageFromSession() {
             const links = document.querySelectorAll('a[data-link]');
-            let currentLink = window.location.hash.substring(1);
+            let currentLink = sessionStorage.getItem('dashboard_current_path');
             
             if (!currentLink) {
                 currentLink = "../Dashboard/dashboard";
             }
 
-            if(iframe.getAttribute('src') !== currentLink) {
-                iframe.src = currentLink;
-                iframe.onload = injectAntiInspectToIframe;
-            }
+            loadIframe(currentLink);
             
             document.querySelectorAll('.sidebar-menu a, .user-dropdown-menu a').forEach(item => {
                 item.classList.remove('active');
@@ -645,9 +675,8 @@
             });
         }
 
-        window.addEventListener('hashchange', loadPageFromHash);
         window.addEventListener('DOMContentLoaded', () => {
-            loadPageFromHash();
+            loadPageFromSession();
 
             const links = document.querySelectorAll('a[data-link]');
             links.forEach(link => {
@@ -658,7 +687,25 @@
 
                     e.preventDefault();
                     const url = this.getAttribute('data-link');
-                    window.location.hash = url;
+                    
+                    // ব্রাউজার হিস্ট্রি আপডেট করা ছাড়া পেজ লোড (অ্যাড্রেস বার পরিবর্তন হবে না)
+                    loadIframe(url);
+
+                    document.querySelectorAll('.sidebar-menu a, .user-dropdown-menu a').forEach(item => {
+                        item.classList.remove('active');
+                        item.classList.remove('active-sub');
+                    });
+
+                    if (this.classList.contains('menu-item')) {
+                        this.classList.add('active');
+                    } else {
+                        this.classList.add('active-sub');
+                        const parentDropdown = this.closest('.dropdown-content');
+                        if (parentDropdown) {
+                            parentDropdown.style.maxHeight = parentDropdown.scrollHeight + "px";
+                            parentDropdown.previousElementSibling.classList.add('open');
+                        }
+                    }
 
                     if (window.innerWidth <= 768) {
                         toggleSidebar();
@@ -809,6 +856,7 @@
         function injectAntiInspectToIframe() {
             try {
                 const iframe = document.getElementById('main-iframe');
+                if(!iframe) return;
                 const iframeDoc = iframe.contentWindow.document || iframe.contentDocument;
                 
                 // চেক করা যদি আগে থেকেই স্ক্রিপ্ট ঢুকে থাকে
@@ -829,7 +877,7 @@
                     });
                 }
             } catch (e) {
-                console.warn("Cross-origin iframe: Cannot inject anti-inspect script automatically. Please add the script manually to the iframe source files.");
+                console.warn("Cross-origin iframe: Cannot inject anti-inspect script automatically.");
             }
         }
 
@@ -837,7 +885,6 @@
         window.addEventListener('load', function() {
             const iframe = document.getElementById('main-iframe');
             if(iframe) {
-                iframe.onload = injectAntiInspectToIframe;
                 try {
                     if (iframe.contentWindow.document.readyState === 'complete') {
                         injectAntiInspectToIframe();
