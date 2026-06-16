@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>সম্পূর্ণ অ্যাডমিন ড্যাশবোর্ড</title>
+    <title>Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <!-- Firebase Core App -->
@@ -14,7 +14,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     
     <style>
-        /* ফন্ট এবং বেসিক রিসেট */
+        /* Fonts and Basic Reset */
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&display=swap');
 
         :root {
@@ -46,7 +46,7 @@
             height: 100vh;
         }
 
-        /* --- সাইডবার স্টাইল --- */
+        /* --- Sidebar Style --- */
         .sidebar {
             width: var(--sidebar-width);
             background-color: var(--sidebar-bg);
@@ -165,7 +165,7 @@
             font-weight: bold;
         }
 
-        /* --- প্রধান কন্টেন্ট এরিয়া --- */
+        /* --- Main Content Area --- */
         .main-content {
             flex-grow: 1;
             margin-left: var(--sidebar-width);
@@ -296,7 +296,7 @@
             color: #2c3e50;
         }
 
-        /* --- আই-ফ্রেম কনটেন্ট এরিয়া --- */
+        /* --- Iframe Content Area --- */
         .dashboard-body {
             padding: 0; 
             flex-grow: 1;
@@ -319,7 +319,7 @@
             background-color: var(--main-bg); 
         }
         
-        /* --- রেসপন্সিভ ডিজাইন --- */
+        /* --- Responsive Design --- */
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -371,8 +371,8 @@
 
        /* Fixed Circular Container for Perfect Circle */
        .circular-container {
-          width: 45px; /* Changed from 70px */
-          height: 45px; /* Changed from 45px */
+          width: 45px; 
+          height: 45px; 
           padding: 2px;
           margin-right: 10px;
           border-radius: 50%;
@@ -393,7 +393,7 @@
             border-left: 4px solid #3498db;
         }
 
-        /* ===== Parent Print Style — Ctrl+P তে iframe এর কন্টেন্ট প্রিন্ট ===== */
+        /* ===== Parent Print Style — Ctrl+P prints iframe content ===== */
         @media print {
             .sidebar, .header, .overlay { display: none !important; }
             .main-content { margin-left: 0 !important; width: 100% !important; }
@@ -434,9 +434,9 @@
                     <i class="fas fa-graduation-cap"></i> <span>Academics</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../View/class-teacher">ক্লাস সেটআপ</a></li>
-                    <li><a href="#" data-link="../View/teacher-class-list">বিষয় তালিকা</a></li>
-                    <li><a href="#" data-link="academics/routines">দৈনিক রুটিন</a></li>
+                    <li><a href="#" data-link="../View/class-teacher">Class Setup</a></li>
+                    <li><a href="#" data-link="../View/teacher-class-list">Subject List</a></li>
+                    <li><a href="#" data-link="academics/routines">Daily Routine</a></li>
                 </ul>
             </div>
             
@@ -445,8 +445,8 @@
                     <i class="fas fa-cogs"></i> <span>Administrative</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../Settings/current_session">সেশন নিয়ন্ত্রণ</a></li>
-                    <li><a href="#" data-link="../View/chuti-admin">ছুটির তালিকা</a></li>
+                    <li><a href="#" data-link="../Settings/current_session">Session Control</a></li>
+                    <li><a href="#" data-link="../View/chuti-admin">Holiday List</a></li>
                 </ul>
             </div>
 
@@ -455,9 +455,9 @@
                     <i class="fas fa-user-graduate"></i> <span>Students</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../Student-info/students">শিক্ষার্থী তালিকা</a></li>
-                    <li><a href="#" data-link="../Admission/admitted_students">নতুন ভর্তি</a></li>
-                    <li><a href="#" data-link="../Student-info/promotion">প্রোমোশন</a></li>
+                    <li><a href="#" data-link="../Student-info/students">Student List</a></li>
+                    <li><a href="#" data-link="../Admission/admitted_students">New Admission</a></li>
+                    <li><a href="#" data-link="../Student-info/promotion">Promotion</a></li>
                 </ul>
             </div>
 
@@ -466,8 +466,8 @@
                     <i class="fas fa-calendar-check"></i> <span>Attendance</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../Attendance/attendance">হাজিরা করুন</a></li>
-                    <li><a href="#" data-link="../Attendance/record-attendence">হাজিরা দেখুন</a></li>
+                    <li><a href="#" data-link="../Attendance/attendance">Take Attendance</a></li>
+                    <li><a href="#" data-link="../Attendance/record-attendence">View Attendance</a></li>
                 </ul>
             </div>
             
@@ -487,8 +487,8 @@
                     <i class="fas fa-users"></i> <span>Teachers</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../View/teacher-list">শিক্ষক তালিকা</a></li>
-                    <li><a href="#" data-link="../View/admission-teacher">ভর্তি শিক্ষক</a></li>
+                    <li><a href="#" data-link="../View/teacher-list">Teacher List</a></li>
+                    <li><a href="#" data-link="../View/admission-teacher">Admission Teacher</a></li>
                 </ul>
             </div>
             
@@ -501,14 +501,14 @@
                     <i class="fas fa-clipboard-list"></i> <span>Exams</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../Exam/add-exam">পরীক্ষা লিস্ট </a></li>
-                    <li><a href="#" data-link="../Exam/mark-setup">পরীক্ষা সেটআপ</a></li>
-                    <li><a href="#" data-link="../Exam/mark-entry">মার্কস এন্ট্রি</a></li>
-                    <li><a href="#" data-link="../Exam/all-marksheet">মার্ক শিট</a></li>
-                    <li><a href="#" data-link="../Exam/trabulationsheet">টেবুলেশন শিট</a></li>
-                    <li><a href="#" data-link="../Exam/result">ফলাফল</a></li>
-                    <li><a href="#" data-link="../View/admit">এডমিট কার্ড</a></li>
-                    <li><a href="#" data-link="../View/sitplan">ছিটপ্লান</a></li>
+                    <li><a href="#" data-link="../Exam/add-exam">Exam List</a></li>
+                    <li><a href="#" data-link="../Exam/mark-setup">Exam Setup</a></li>
+                    <li><a href="#" data-link="../Exam/mark-entry">Marks Entry</a></li>
+                    <li><a href="#" data-link="../Exam/all-marksheet">Mark Sheet</a></li>
+                    <li><a href="#" data-link="../Exam/trabulationsheet">Tabulation Sheet</a></li>
+                    <li><a href="#" data-link="../Exam/result">Result</a></li>
+                    <li><a href="#" data-link="../View/admit">Admit Card</a></li>
+                    <li><a href="#" data-link="../View/sitplan">Seat Plan</a></li>
                 </ul>
             </div>
 
@@ -517,8 +517,8 @@
                     <i class="fas fa-credit-card"></i> <span>Payment</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../Payment/payment-management">পেমেন্ট ম্যানেজমেন্ট</a></li>
-                    <li><a href="#" data-link="../Payment/payment">পেমেন্ট</a></li>
+                    <li><a href="#" data-link="../Payment/payment-management">Payment Management</a></li>
+                    <li><a href="#" data-link="../Payment/payment">Payment</a></li>
                 </ul>
             </div>
 
@@ -545,16 +545,17 @@
                 </div>
 
                 <ul class="user-dropdown-menu" id="userDropdown">
-                    <li><a href="#" data-link="profile"><i class="fas fa-user-edit"></i> প্রোফাইল</a></li>
-                    <li><a href="#" data-link="settings"><i class="fas fa-cog"></i> সেটিংস</a></li>
-                    <li><a href="../Auth/logout"><i class="fas fa-sign-out-alt"></i> লগ আউট</a></li> 
+                    <li><a href="#" data-link="profile"><i class="fas fa-user-edit"></i> Profile</a></li>
+                    <li><a href="#" data-link="settings"><i class="fas fa-cog"></i> Settings</a></li>
+                    <li><a href="../Auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li> 
                 </ul>
             </div>
         </header>
 
         <div class="dashboard-body">
-            <div class="content-container" id="iframe-container">
-                <!-- ৬৪-বিট সিস্টেমের জন্য ডাইনামিক্যালি আইফ্রেম তৈরি করা হবে এখানে -->
+            <div class="content-container">
+                <iframe id="main-iframe" src="../Dashboard/dashboard" frameborder="0" 
+                    sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals allow-downloads allow-top-navigation"></iframe>
             </div>
         </div>
     </div>
@@ -564,9 +565,7 @@
         const mainContent = document.getElementById('mainContent');
         const overlay = document.querySelector('.overlay');
         const userDropdown = document.getElementById('userDropdown');
-        const iframeContainer = document.getElementById('iframe-container');
-        
-        let currentIframe = null;
+        const iframe = document.getElementById('main-iframe');
 
         function toggleSidebar() {
             if (window.innerWidth <= 768) {
@@ -612,47 +611,18 @@
             }
         }
 
-        // ★ ৬৪-বিট সিস্টেমে লং লিংক সিঙ্ক করার জন্য ডাইনামিক আইফ্রেম ফাংশন
-        function loadIframe(url) {
-            if (currentIframe && currentIframe.src === window.location.origin + '/' + url) return; // একই লিংক হলে লোড করবে না
-
-            // আগের আইফ্রেমটি রিমুভ করা (মেমরি লিক ও ক্র্যাশ প্রতিরোধ)
-            if (currentIframe) {
-                currentIframe.remove();
-            }
-
-            // নতুন আইফ্রেম তৈরি করা
-            const newIframe = document.createElement('iframe');
-            newIframe.id = "main-iframe";
-            newIframe.src = url;
-            newIframe.frameBorder = "0";
-            newIframe.sandbox = "allow-scripts allow-forms allow-same-origin allow-popups allow-modals allow-downloads allow-top-navigation";
-            newIframe.style.width = "100%";
-            newIframe.style.height = "100vh";
-            newIframe.style.border = "none";
-            newIframe.style.backgroundColor = "var(--main-bg)";
-            
-            // ৬৪-বিট আর্কিটেকচারে DOM অ্যাপেন্ড করলে লং ইউআরএল সিঙ্ক পারফেক্টলি কাজ করে
-            iframeContainer.appendChild(newIframe);
-            currentIframe = newIframe;
-
-            currentIframe.onload = injectAntiInspectToIframe;
-            
-            // ব্রাউজারের অ্যাড্রেস বারে লিংক না দেখানোর জন্য sessionStorage তে সেভ করা
-            try {
-                sessionStorage.setItem('dashboard_current_path', url);
-            } catch(e) {}
-        }
-
-        function loadPageFromSession() {
+        function loadPageFromHash() {
             const links = document.querySelectorAll('a[data-link]');
-            let currentLink = sessionStorage.getItem('dashboard_current_path');
+            let currentLink = window.location.hash.substring(1);
             
             if (!currentLink) {
                 currentLink = "../Dashboard/dashboard";
             }
 
-            loadIframe(currentLink);
+            if(iframe.getAttribute('src') !== currentLink) {
+                iframe.src = currentLink;
+                iframe.onload = injectAntiInspectToIframe;
+            }
             
             document.querySelectorAll('.sidebar-menu a, .user-dropdown-menu a').forEach(item => {
                 item.classList.remove('active');
@@ -675,8 +645,9 @@
             });
         }
 
+        window.addEventListener('hashchange', loadPageFromHash);
         window.addEventListener('DOMContentLoaded', () => {
-            loadPageFromSession();
+            loadPageFromHash();
 
             const links = document.querySelectorAll('a[data-link]');
             links.forEach(link => {
@@ -687,25 +658,7 @@
 
                     e.preventDefault();
                     const url = this.getAttribute('data-link');
-                    
-                    // ব্রাউজার হিস্ট্রি আপডেট করা ছাড়া পেজ লোড (অ্যাড্রেস বার পরিবর্তন হবে না)
-                    loadIframe(url);
-
-                    document.querySelectorAll('.sidebar-menu a, .user-dropdown-menu a').forEach(item => {
-                        item.classList.remove('active');
-                        item.classList.remove('active-sub');
-                    });
-
-                    if (this.classList.contains('menu-item')) {
-                        this.classList.add('active');
-                    } else {
-                        this.classList.add('active-sub');
-                        const parentDropdown = this.closest('.dropdown-content');
-                        if (parentDropdown) {
-                            parentDropdown.style.maxHeight = parentDropdown.scrollHeight + "px";
-                            parentDropdown.previousElementSibling.classList.add('open');
-                        }
-                    }
+                    window.location.hash = url;
 
                     if (window.innerWidth <= 768) {
                         toggleSidebar();
@@ -734,13 +687,21 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // ১. Login Protection Check & Load Logged In Admin Data
+        // 1. Login Protection Check & Admin Role Verification
         auth.onAuthStateChanged((user) => {
             if (user) {
-                // User is signed in, fetch user data from Firestore
+                // User is signed in, fetch user data from Firestore to check role
                 db.collection("users").doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         const userData = doc.data();
+                        
+                        // Role Check: Only allow admin role to access the dashboard
+                        if (userData.role !== 'admin') {
+                            // If the user is not an admin, redirect to login.html
+                            window.location.href = 'login.html'; 
+                            return;
+                        }
+
                         const photoURL = userData.photoURL || null;
                         const adminName = userData.name || "Admin";
                         
@@ -766,17 +727,22 @@
 
                         // Update dynamic name
                         document.getElementById('dynamic-admin-name').innerText = adminName;
+                    } else {
+                        // Document doesn't exist, meaning no role assigned. Redirect to login.
+                        window.location.href = 'login.html';
                     }
                 }).catch((error) => {
                     console.error("Error fetching user data:", error);
+                    // Optional: redirect to login on error fetching data
+                    window.location.href = 'login.html';
                 });
             } else {
-                // User is signed out
-                window.location.href = '../Auth/login'; 
+                // User is signed out, redirect to login.html
+                window.location.href = 'login.html'; 
             }
         });
 
-        // ২. School Info Fetch
+        // 2. School Info Fetch
         db.collection("settings").doc("school_info").onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
@@ -792,7 +758,7 @@
             console.error("Firebase Error:", error);
         });
 
-        // ৩. Current Session Dynamic Fetch
+        // 3. Current Session Dynamic Fetch
         db.collection("config").doc("activeSession").onSnapshot((doc) => {
             if (doc.exists) {
                 const sessionName = doc.data().sessionName || "Not Set";
@@ -810,37 +776,37 @@
     <!-- Anti-Inspect & Security + Iframe Print/Download Communication Script  -->
     <!-- ===================================================================== -->
     <script>
-        // এই ফাংশনটি মূল পেজ এবং আইফ্রেম উভয় ক্ষেত্রেই কাজ করবে
+        // This function will work on both the main page and inside the iframe
         function antiInspectLogic() {
-            // ১. ডান ক্লিক বন্ধ
+            // 1. Disable Right Click
             document.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
             });
 
-            // ২. শর্টকাট কী বন্ধ (কিন্তু Ctrl+P allow করা হচ্ছে)
+            // 2. Disable Shortcut Keys (but allow Ctrl+P for printing)
             document.addEventListener('keydown', function(e) {
-                // F12 বন্ধ
+                // Disable F12
                 if(e.keyCode === 123) { e.preventDefault(); return false; }
-                // Ctrl+Shift+I বন্ধ
+                // Disable Ctrl+Shift+I
                 if(e.ctrlKey && e.shiftKey && e.keyCode === 'I'.charCodeAt(0)) { e.preventDefault(); return false; }
-                // Ctrl+Shift+J বন্ধ
+                // Disable Ctrl+Shift+J
                 if(e.ctrlKey && e.shiftKey && e.keyCode === 'J'.charCodeAt(0)) { e.preventDefault(); return false; }
-                // Ctrl+Shift+C বন্ধ
+                // Disable Ctrl+Shift+C
                 if(e.ctrlKey && e.shiftKey && e.keyCode === 'C'.charCodeAt(0)) { e.preventDefault(); return false; }
-                // Ctrl+U বন্ধ
+                // Disable Ctrl+U
                 if(e.ctrlKey && e.keyCode === 'U'.charCodeAt(0)) { e.preventDefault(); return false; }
-                // Ctrl+S বন্ধ
+                // Disable Ctrl+S
                 if(e.ctrlKey && e.keyCode === 'S'.charCodeAt(0)) { e.preventDefault(); return false; }
                 
-                // ★ Ctrl+P ব্লক করা হচ্ছে না — প্রিন্ট কাজ করবে ★
+                // ★ Ctrl+P is NOT blocked — printing will work ★
             });
 
-            // ৩. ডেভেলপার টুলস ডিটেকশন (debugger এবং টাইম ডিফারেন্স পদ্ধতি)
+            // 3. Developer Tools Detection (debugger and time difference method)
             setInterval(function(){
                 var start = new Date().getTime();
                 debugger;
                 var end = new Date().getTime();
-                // যদি ডিবাগার পজ করে (ডেভেলপার টুলস ওপেন থাকে), তাহলে সময় ১০০ মিলিসেকেন্ডের বেশি হবে
+                // If debugger pauses (DevTools open), the time will be more than 100ms
                 if(end - start > 100){
                     document.body.innerHTML = "<h1 style='text-align:center;margin-top:20%;color:red; font-size:50px;'>Access Denied!</h1>";
                     document.body.style.backgroundColor = "black";
@@ -848,18 +814,17 @@
             }, 1000);
         }
 
-        // মূল পেজে স্ক্রিপ্টটি চালু করা
+        // Run the script on the main page
         antiInspectLogic();
 
 
-        // আইফ্রেমে স্ক্রিপ্ট ইনজেক্ট করার ফাংশন
+        // Function to inject the script into the iframe
         function injectAntiInspectToIframe() {
             try {
                 const iframe = document.getElementById('main-iframe');
-                if(!iframe) return;
                 const iframeDoc = iframe.contentWindow.document || iframe.contentDocument;
                 
-                // চেক করা যদি আগে থেকেই স্ক্রিপ্ট ঢুকে থাকে
+                // Check if the script is already injected
                 if (iframeDoc.getElementById('injected-anti-inspect')) return;
 
                 const script = iframeDoc.createElement('script');
@@ -877,14 +842,15 @@
                     });
                 }
             } catch (e) {
-                console.warn("Cross-origin iframe: Cannot inject anti-inspect script automatically.");
+                console.warn("Cross-origin iframe: Cannot inject anti-inspect script automatically. Please add the script manually to the iframe source files.");
             }
         }
 
-        // পেজ লোড হলে প্রথম আইফ্রেমে স্ক্রিপ্ট ইনজেক্ট করার চেষ্টা
+        // Attempt to inject script into the first iframe on page load
         window.addEventListener('load', function() {
             const iframe = document.getElementById('main-iframe');
             if(iframe) {
+                iframe.onload = injectAntiInspectToIframe;
                 try {
                     if (iframe.contentWindow.document.readyState === 'complete') {
                         injectAntiInspectToIframe();
@@ -895,10 +861,10 @@
 
 
         /* ==================================================================
-           ★★★ আইফ্রেম থেকে Print ও Download Request গ্রহণ করা ★★★
+           ★★★ Receive Print and Download Requests from Iframe ★★★
            ================================================================== */
         window.addEventListener('message', function(event) {
-            // নিরাপত্তা: শুধু same-origin থেকে আসা message গ্রহণ করো
+            // Security: Only accept messages from same-origin
             if (event.origin !== window.location.origin && event.origin !== 'null') return;
             
             if (!event.data || !event.data.type) return;
@@ -909,12 +875,12 @@
             if (event.data.type === 'REQUEST_PRINT') {
                 try {
                     if (iframe && iframe.contentWindow) {
-                        // iframe এ focus দাও তারপর print কল করো
+                        // Focus the iframe then call print
                         iframe.contentWindow.focus();
                         iframe.contentWindow.print();
                     }
                 } catch(e) {
-                    // Fallback: parent থেকে print
+                    // Fallback: print from parent
                     window.print();
                 }
             }
@@ -941,11 +907,11 @@
 
 
         /* ==================================================================
-           ★★★ Parent এ Ctrl+P চাপলে iframe এর কন্টেন্ট প্রিন্ট হবে ★★★
+           ★★★ Pressing Ctrl+P on Parent will print the iframe content ★★★
            ================================================================== */
         document.addEventListener('keydown', function(e) {
             if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.keyCode === 80)) {
-                // Shift চাপা নেই (Ctrl+Shift+P হলে ব্রাউজারের ডিফল্ট হবে)
+                // If Shift is pressed (Ctrl+Shift+P), let the browser handle it
                 if (e.shiftKey) return;
 
                 e.preventDefault();
@@ -960,7 +926,7 @@
                     window.print();
                 }
             }
-        }, true); // ★ capture phase — অন্য কোনো handler আগে ক্যাচ করবে
+        }, true); // ★ capture phase — catches before any other handler
     </script>
 
 </body>
