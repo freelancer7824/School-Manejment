@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>সম্পূর্ণ অ্যাডমিন ড্যাশবোর্ড</title>
+    <title>Complete Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -11,7 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
         :root {
             --sidebar-width: 250px;
@@ -27,7 +27,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Roboto', 'Noto Sans Bengali', sans-serif;
+            font-family: 'Roboto', sans-serif;
         }
 
         body {
@@ -38,7 +38,7 @@
             height: 100vh; 
         }
 
-        /* --- সাইডবার স্টাইল --- */
+        /* --- Sidebar Style --- */
         .sidebar {
             width: var(--sidebar-width);
             background-color: var(--sidebar-bg);
@@ -157,7 +157,7 @@
             font-weight: bold;
         }
 
-        /* --- প্রধান কন্টেন্ট এরিয়া --- */
+        /* --- Main Content Area --- */
         .main-content {
             margin-left: var(--sidebar-width);
             transition: margin-left 0.3s ease, width 0.3s ease;
@@ -285,7 +285,7 @@
             color: #2c3e50;
         }
 
-        /* --- আই-ফ্রেম কনটেন্ট এরিয়া --- */
+        /* --- Iframe Content Area --- */
         .dashboard-body {
             padding: 0; 
             flex-grow: 1;
@@ -311,7 +311,7 @@
             background-color: var(--main-bg); 
         }
         
-        /* --- রেসপন্সিভ ডিজাইন --- */
+        /* --- Responsive Design --- */
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -423,9 +423,9 @@
                     <i class="fas fa-graduation-cap"></i> <span>Academics</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../View/class-teacher">ক্লাস সেটআপ</a></li>
-                    <li><a href="#" data-link="../View/teacher-class-list">বিষয় তালিকা</a></li>
-                    <li><a href="#" data-link="academics/routines">দৈনিক রুটিন</a></li>
+                    <li><a href="#" data-link="../View/class-teacher">Class Setup</a></li>
+                    <li><a href="#" data-link="../View/teacher-class-list">Subject List</a></li>
+                    <li><a href="#" data-link="academics/routines">Daily Routine</a></li>
                 </ul>
             </div>
             
@@ -434,8 +434,8 @@
                     <i class="fas fa-cogs"></i> <span>Administrative</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../Settings/current_session">সেশন নিয়ন্ত্রণ</a></li>
-                    <li><a href="#" data-link="../View/chuti-admin">ছুটির তালিকা</a></li>
+                    <li><a href="#" data-link="../Settings/current_session">Session Control</a></li>
+                    <li><a href="#" data-link="../View/chuti-admin">Holiday List</a></li>
                 </ul>
             </div>
 
@@ -444,9 +444,9 @@
                     <i class="fas fa-user-graduate"></i> <span>Students</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../Student-info/students">শিক্ষার্থী তালিকা</a></li>
-                    <li><a href="#" data-link="../Admission/admitted_students">নতুন ভর্তি</a></li>
-                    <li><a href="#" data-link="../Student-info/promotion">প্রোমোশন</a></li>
+                    <li><a href="#" data-link="../Student-info/students">Student List</a></li>
+                    <li><a href="#" data-link="../Admission/admitted_students">New Admission</a></li>
+                    <li><a href="#" data-link="../Student-info/promotion">Promotion</a></li>
                 </ul>
             </div>
 
@@ -455,8 +455,8 @@
                     <i class="fas fa-calendar-check"></i> <span>Attendance</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../Attendance/attendance">হাজিরা করুন</a></li>
-                    <li><a href="#" data-link="../Attendance/record-attendence">হাজিরা দেখুন</a></li>
+                    <li><a href="#" data-link="../Attendance/attendance">Take Attendance</a></li>
+                    <li><a href="#" data-link="../Attendance/record-attendence">View Attendance</a></li>
                 </ul>
             </div>
             
@@ -500,14 +500,14 @@
                     <i class="fas fa-clipboard-list"></i> <span>Exams</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../Exam/add-exam">পরীক্ষা লিস্ট </a></li>
-                    <li><a href="#" data-link="../Exam/mark-setup">পরীক্ষা সেটআপ</a></li>
-                    <li><a href="#" data-link="../Exam/mark-entry">মার্কস এন্ট্রি</a></li>
-                    <li><a href="#" data-link="../Exam/all-marksheet">মার্ক শিট</a></li>
-                    <li><a href="#" data-link="../Exam/trabulationsheet">টেবুলেশন শিট</a></li>
-                    <li><a href="#" data-link="../Exam/result">ফলাফল</a></li>
-                    <li><a href="#" data-link="../View/admit">এডমিট কার্ড</a></li>
-                    <li><a href="#" data-link="../View/sitplan">ছিট প্লান</a></li>
+                    <li><a href="#" data-link="../Exam/add-exam">Exam List</a></li>
+                    <li><a href="#" data-link="../Exam/mark-setup">Exam Setup</a></li>
+                    <li><a href="#" data-link="../Exam/mark-entry">Marks Entry</a></li>
+                    <li><a href="#" data-link="../Exam/all-marksheet">Mark Sheet</a></li>
+                    <li><a href="#" data-link="../Exam/trabulationsheet">Tabulation Sheet</a></li>
+                    <li><a href="#" data-link="../Exam/result">Result</a></li>
+                    <li><a href="#" data-link="../View/admit">Admit Card</a></li>
+                    <li><a href="#" data-link="../View/sitplan">Seat Plan</a></li>
                 </ul>
             </div>
 
@@ -516,8 +516,8 @@
                     <i class="fas fa-credit-card"></i> <span>Payment</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../Payment/payment-management">পেমেন্ট ম্যানেজমেন্ট</a></li>
-                    <li><a href="#" data-link="../Payment/payment">পেমেন্ট</a></li>
+                    <li><a href="#" data-link="../Payment/payment-management">Payment Management</a></li>
+                    <li><a href="#" data-link="../Payment/payment">Payment</a></li>
                 </ul>
             </div>
 
@@ -543,9 +543,9 @@
                 </div>
 
                 <ul class="user-dropdown-menu" id="userDropdown">
-                    <li><a href="#" data-link="profile"><i class="fas fa-user-edit"></i> প্রোফাইল</a></li>
-                    <li><a href="#" data-link="settings"><i class="fas fa-cog"></i> সেটিংস</a></li>
-                    <li><a href="../Auth/logout"><i class="fas fa-sign-out-alt"></i> লগ আউট</a></li> 
+                    <li><a href="#" data-link="profile"><i class="fas fa-user-edit"></i> Profile</a></li>
+                    <li><a href="#" data-link="settings"><i class="fas fa-cog"></i> Settings</a></li>
+                    <li><a href="../Auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li> 
                 </ul>
             </div>
         </header>
@@ -736,6 +736,14 @@
                 db.collection("users").doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         const userData = doc.data();
+                        
+                        // Role Check: If the user is not a superadmin, redirect to login.html
+                        if (userData.role !== 'superadmin') {
+                            console.warn("Access Denied: Not a Super Admin.");
+                            window.location.href = 'login.html'; 
+                            return;
+                        }
+
                         const photoURL = userData.photoURL || null;
                         const adminName = userData.name || "Super Admin";
                         
@@ -758,12 +766,17 @@
                         }
 
                         document.getElementById('dynamic-admin-name').innerText = adminName;
+                    } else {
+                        // If the user document doesn't exist, redirect to login
+                        window.location.href = 'login.html'; 
                     }
                 }).catch((error) => {
                     console.error("Error fetching user data:", error);
+                    window.location.href = 'login.html'; 
                 });
             } else {
-                window.location.href = '../Auth/login'; 
+                // If no user is logged in, redirect to login
+                window.location.href = 'login.html'; 
             }
         });
 
