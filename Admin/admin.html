@@ -734,11 +734,11 @@
                 }).catch((error) => {
                     console.error("Error fetching user data:", error);
                     // Optional: redirect to login on error fetching data
-                    window.location.href = 'login.html';
+                    window.location.href = '../Auth/login';
                 });
             } else {
                 // User is signed out, redirect to login.html
-                window.location.href = 'login.html'; 
+                window.location.href = '../Auth/login'; 
             }
         });
 
