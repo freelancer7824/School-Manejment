@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>অ্যাকাউন্ট্যান্ট ড্যাশবোর্ড</title>
+    <title>Accountant Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -38,7 +38,7 @@
             height: 100vh; 
         }
 
-        /* --- সাইডবার স্টাইল --- */
+        /* --- Sidebar Style --- */
         .sidebar {
             width: var(--sidebar-width);
             background-color: var(--sidebar-bg);
@@ -157,7 +157,7 @@
             font-weight: bold;
         }
 
-        /* --- প্রধান কন্টেন্ট এরিয়া --- */
+        /* --- Main Content Area --- */
         .main-content {
             margin-left: var(--sidebar-width);
             transition: margin-left 0.3s ease, width 0.3s ease;
@@ -285,7 +285,7 @@
             color: #2c3e50;
         }
 
-        /* --- আই-ফ্রেম কনটেন্ট এরিয়া --- */
+        /* --- Iframe Content Area --- */
         .dashboard-body {
             padding: 0; 
             flex-grow: 1;
@@ -311,7 +311,7 @@
             background-color: var(--main-bg); 
         }
         
-        /* --- রেসপন্সিভ ডিজাইন --- */
+        /* --- Responsive Design --- */
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -418,16 +418,16 @@
         <nav class="sidebar-menu">
             <a href="#" class="menu-item active" id="dashboard-menu-btn" data-link="../Dashboard/dashboard"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
 
-            <!-- অ্যাকাউন্ট্যান্টের প্রয়োজনীয় মেনু শুরু -->
+            <!-- Accountant Menu Start -->
             
             <div class="dropdown">
                 <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
                     <i class="fas fa-file-invoice-dollar"></i> <span>Fee Management</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../Accounts/fee-setup">ফি সেটআপ</a></li>
-                    <li><a href="#" data-link="../Accounts/fee-collection">ফি আদায়</a></li>
-                    <li><a href="#" data-link="../Accounts/fee-due">বকেয়া রিপোর্ট</a></li>
+                    <li><a href="#" data-link="../Accounts/fee-setup">Fee Setup</a></li>
+                    <li><a href="#" data-link="../Accounts/fee-collection">Fee Collection</a></li>
+                    <li><a href="#" data-link="../Accounts/fee-due">Due Report</a></li>
                 </ul>
             </div>
 
@@ -436,9 +436,9 @@
                     <i class="fas fa-money-check-alt"></i> <span>Salary & Payroll</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../Accounts/salary-setup">বেতন সেটআপ</a></li>
-                    <li><a href="#" data-link="../Accounts/salary-generate">বেতন প্রস্তুতি</a></li>
-                    <li><a href="#" data-link="../Accounts/salary-payment">বেতন প্রদান</a></li>
+                    <li><a href="#" data-link="../Accounts/salary-setup">Salary Setup</a></li>
+                    <li><a href="#" data-link="../Accounts/salary-generate">Salary Preparation</a></li>
+                    <li><a href="#" data-link="../Accounts/salary-payment">Salary Payment</a></li>
                 </ul>
             </div>
 
@@ -447,9 +447,9 @@
                     <i class="fas fa-hand-holding-usd"></i> <span>Expense</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../Accounts/expense-category">খরচের ক্যাটাগরি</a></li>
-                    <li><a href="#" data-link="../Accounts/add-expense">খরচ যোগ করুন</a></li>
-                    <li><a href="#" data-link="../Accounts/expense-list">খরচের তালিকা</a></li>
+                    <li><a href="#" data-link="../Accounts/expense-category">Expense Category</a></li>
+                    <li><a href="#" data-link="../Accounts/add-expense">Add Expense</a></li>
+                    <li><a href="#" data-link="../Accounts/expense-list">Expense List</a></li>
                 </ul>
             </div>
 
@@ -458,9 +458,9 @@
                     <i class="fas fa-chart-line"></i> <span>Accounts Report</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../Accounts/daily-transaction">দৈনিক লেনদেন</a></li>
-                    <li><a href="#" data-link="../Accounts/income-expense-report">আয়-ব্যয় রিপোর্ট</a></li>
-                    <li><a href="#" data-link="../Accounts/balance-sheet">ব্যালেন্স শিট</a></li>
+                    <li><a href="#" data-link="../Accounts/daily-transaction">Daily Transaction</a></li>
+                    <li><a href="#" data-link="../Accounts/income-expense-report">Income-Expense Report</a></li>
+                    <li><a href="#" data-link="../Accounts/balance-sheet">Balance Sheet</a></li>
                 </ul>
             </div>
 
@@ -469,15 +469,15 @@
                     <i class="fas fa-credit-card"></i> <span>Payment</span> <i class="fas fa-angle-right arrow"></i>
                 </a>
                 <ul class="dropdown-content">
-                    <li><a href="#" data-link="../Payment/payment-management">পেমেন্ট ম্যানেজমেন্ট</a></li>
-                    <li><a href="#" data-link="../Payment/payment">পেমেন্ট</a></li>
+                    <li><a href="#" data-link="../Payment/payment-management">Payment Management</a></li>
+                    <li><a href="#" data-link="../Payment/payment">Payment</a></li>
                 </ul>
             </div>
 
             <a href="#" class="menu-item" data-link="../Settings/settings"><i class="fas fa-sliders-h"></i> <span>Settings</span></a>
             <a href="#" class="menu-item" data-link="../Settings/my-account"><i class="fas fa-user-circle"></i> <span>My Account</span></a>
             
-            <!-- অ্যাকাউন্ট্যান্টের প্রয়োজনীয় মেনু শেষ -->
+            <!-- Accountant Menu End -->
         </nav>
     </div>
 
@@ -497,9 +497,9 @@
                 </div>
 
                 <ul class="user-dropdown-menu" id="userDropdown">
-                    <li><a href="#" data-link="profile"><i class="fas fa-user-edit"></i> প্রোফাইল</a></li>
-                    <li><a href="#" data-link="settings"><i class="fas fa-cog"></i> সেটিংস</a></li>
-                    <li><a href="../Auth/logout"><i class="fas fa-sign-out-alt"></i> লগ আউট</a></li> 
+                    <li><a href="#" data-link="profile"><i class="fas fa-user-edit"></i> Profile</a></li>
+                    <li><a href="#" data-link="settings"><i class="fas fa-cog"></i> Settings</a></li>
+                    <li><a href="../Auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li> 
                 </ul>
             </div>
         </header>
@@ -690,6 +690,13 @@
                 db.collection("users").doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         const userData = doc.data();
+                        // --- Role Check Logic ---
+                        if (userData.role !== 'accountant') {
+                            // Redirect to login.html if the user is not an accountant
+                            window.location.href = '../Auth/login';
+                            return;
+                        }
+
                         const photoURL = userData.photoURL || null;
                         const adminName = userData.name || "Accountant";
                         
@@ -712,12 +719,17 @@
                         }
 
                         document.getElementById('dynamic-admin-name').innerText = adminName;
+                    } else {
+                        // Redirect if the user document does not exist
+                        window.location.href = '../Auth/login';
                     }
                 }).catch((error) => {
                     console.error("Error fetching user data:", error);
+                    window.location.href = 'login.html';
                 });
             } else {
-                window.location.href = '../Auth/login'; 
+                // Redirect if no user is logged in
+                window.location.href = 'login.html'; 
             }
         });
 
