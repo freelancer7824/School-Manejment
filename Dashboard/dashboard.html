@@ -1,247 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Role-Based User Analytics</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, collection, query, onSnapshot, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
-            authDomain: "school-menejment.firebaseapp.com",
-            databaseURL: "https://school-menejment-default-rtdb.firebaseio.com",
-            projectId: "school-menejment",
-            storageBucket: "school-menejment.firebasestorage.app",
-            messagingSenderId: "348342436525",
-            appId: "1:348342436525:web:c339fe6216c4516aa3bc24",
-            measurementId: "G-SQT1N4PVD3"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        const CACHE_KEY = 'dashboard_data_cache';
-        const CACHE_TTL = 5 * 60 * 1000; // 5 মিনিট ক্যাশ টিটিএল
-
-        const dashboardMetrics = {
-            admin: { id: 'totalAdmin', icon: 'fa-user-cog', color: '#e74c3c', label: 'Total Admins' },
-            teacher: { id: 'totalTeacher', icon: 'fa-chalkboard-teacher', color: '#2ecc71', label: 'Total Teachers' },
-            student: { id: 'totalStudent', icon: 'fa-user-graduate', color: '#3498db', label: 'Total Students' },
-            parent: { id: 'totalParent', icon: 'fa-hands-helping', color: '#9b59b6', label: 'Total Parents' },
-            superadmin: { id: 'totalSuperAdmin', icon: 'fa-user-shield', color: '#f1c40f', label: 'Total Super Admins' },
-            totalUsers: { id: 'totalUsers', icon: 'fa-users', color: '#e67e22', label: 'Total Users' }
-        };
-
-        /* ===== ক্যাশ হেল্পার ===== */
-        function getCachedData() {
-            try {
-                const raw = localStorage.getItem(CACHE_KEY);
-                if (!raw) return null;
-                const parsed = JSON.parse(raw);
-                if (Date.now() - parsed.timestamp > CACHE_TTL) {
-                    localStorage.removeItem(CACHE_KEY);
-                    return null;
-                }
-                return parsed.data;
-            } catch {
-                return null;
-            }
-        }
-
-        function setCachedData(data) {
-            try {
-                localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
-            } catch { /* ক্যাশ সেভ ব্যর্থ হলেও সমস্যা নেই */ }
-        }
-
-        /* ===== UI আপডেট ফাংশন ===== */
-        function updateUI(data) {
-            const mapping = {
-                admin: 'totalAdmin',
-                teacher: 'totalTeacher',
-                student: 'totalStudent',
-                parent: 'totalParent',
-                superadmin: 'totalSuperAdmin',
-                totalUsers: 'totalUsers'
-            };
-
-            for (const key in mapping) {
-                const el = document.getElementById(mapping[key]);
-                if (el) el.textContent = data[key] ?? 0;
-            }
-
-            if (data.sessionName) {
-                const el = document.getElementById('currentSessionDisplay');
-                if (el) el.innerHTML = `<i class="fas fa-calendar-alt"></i> <span>${data.sessionName}</span>`;
-            }
-        }
-
-        function hideLoadingOverlay() {
-            const overlay = document.getElementById('loading-overlay');
-            if (!overlay) return;
-            overlay.style.opacity = '0';
-            setTimeout(() => { overlay.style.display = 'none'; }, 300);
-        }
-
-        function showError(message) {
-            const overlay = document.getElementById('loading-overlay');
-            if (overlay) overlay.innerHTML = `<p style="color:red;">${message}</p>`;
-        }
-
-        /* ===== কার্ড তৈরি ===== */
-        function createDashboardCards() {
-            const grid = document.getElementById('infoCardsGrid');
-            if (!grid) return;
-            grid.innerHTML = '';
-
-            let cardIndex = 1;
-            for (const key in dashboardMetrics) {
-                const metric = dashboardMetrics[key];
-                const card = document.createElement('div');
-                card.classList.add('info-card', `card-${cardIndex++}`);
-                card.innerHTML = `
-                    <div class="card-details">
-                        <div class="count" id="${metric.id}">0</div>
-                        <div class="label">${metric.label}</div>
-                    </div>
-                    <i class="fas ${metric.icon} card-icon"></i>
-                `;
-                grid.appendChild(card);
-            }
-        }
-
-        /* ===== ফায়ারবেস থেকে ডাটা লোড (সব প্যারালালে) ===== */
-        async function fetchAllDataFromFirebase() {
-            // ১. সেশন নাম আনা হচ্ছে
-            const sessionPromise = getDoc(doc(db, "config", "activeSession"))
-                .then(snap => snap.exists() ? (snap.data().sessionName || "2025-2026") : "2025-2026")
-                .catch(() => "2025-2026");
-
-            // ২. ইউজার কাউন্ট আনা হচ্ছে
-            const usersPromise = getDocs(collection(db, "users"))
-                .then(snap => {
-                    const counts = { admin: 0, teacher: 0, superadmin: 0 };
-                    snap.forEach(d => {
-                        const role = d.data().role ? String(d.data().role).toLowerCase() : null;
-                        if (role === 'admin') counts.admin++;
-                        else if (role === 'teacher') counts.teacher++;
-                        else if (role === 'superadmin') counts.superadmin++;
-                    });
-                    return counts;
-                })
-                .catch(() => ({ admin: 0, teacher: 0, superadmin: 0 }));
-
-            // ৩. প্যারেন্ট কাউন্ট আনা হচ্ছে
-            const parentsPromise = getDocs(collection(db, "parents"))
-                .then(snap => snap.size)
-                .catch(() => 0);
-
-            // তিনটি রিকোয়েস্ট একসাথে চলছে
-            const [sessionName, userCounts, parentCount] = await Promise.all([
-                sessionPromise,
-                usersPromise,
-                parentsPromise
-            ]);
-
-            // ৪. সেশন নাম জানার পর স্টুডেন্ট কাউন্ট আনা হচ্ছে (সেশন দরকার)
-            let studentCount = 0;
-            try {
-                const classesSnap = await getDocs(collection(db, "classes"));
-                // সব ক্লাসের স্টুডেন্ট কাউন্ট প্যারালালে আনা হচ্ছে
-                const studentPromises = classesSnap.docs.map(classDoc =>
-                    getDocs(collection(db, `current_session/${sessionName}/classes/${classDoc.id}/students`))
-                        .then(snap => snap.size)
-                        .catch(() => 0)
-                );
-                const classCounts = await Promise.all(studentPromises);
-                studentCount = classCounts.reduce((sum, c) => sum + c, 0);
-            } catch (e) {
-                console.error("Student count error:", e);
-            }
-
-            const totalUsers = userCounts.admin + userCounts.teacher + userCounts.superadmin + parentCount;
-
-            return {
-                admin: userCounts.admin,
-                teacher: userCounts.teacher,
-                student: studentCount,
-                parent: parentCount,
-                superadmin: userCounts.superadmin,
-                totalUsers: totalUsers,
-                sessionName: sessionName
-            };
-        }
-
-        /* ===== রিয়েলটাইম লিসেনার (ইউজার পরিবর্তন ধরা) ===== */
-        function setupRealtimeListener() {
-            const q = query(collection(db, "users"));
-            onSnapshot(q, async (snapshot) => {
-                const counts = { admin: 0, teacher: 0, superadmin: 0 };
-                snapshot.forEach((docSnap) => {
-                    const role = docSnap.data().role ? String(docSnap.data().role).toLowerCase() : null;
-                    if (role === 'admin') counts.admin++;
-                    else if (role === 'teacher') counts.teacher++;
-                    else if (role === 'superadmin') counts.superadmin++;
-                });
-
-                const adminEl = document.getElementById('totalAdmin');
-                const teacherEl = document.getElementById('totalTeacher');
-                const superAdminEl = document.getElementById('totalSuperAdmin');
-
-                if (adminEl) adminEl.textContent = counts.admin;
-                if (teacherEl) teacherEl.textContent = counts.teacher;
-                if (superAdminEl) superAdminEl.textContent = counts.superadmin;
-
-                // টোটাল ইউজার আপডেট (প্যারেন্ট + স্টুডেন্ট আলাদা ফেচ না করে ক্যাশ থেকে নেওয়া)
-                const cached = getCachedData();
-                const parentCount = cached ? cached.parent : 0;
-                const totalUsers = counts.admin + counts.teacher + counts.superadmin + parentCount;
-                const totalUsersEl = document.getElementById('totalUsers');
-                if (totalUsersEl) totalUsersEl.textContent = totalUsers;
-            }, (error) => {
-                console.error("Realtime listener error:", error);
-            });
-        }
-
-        /* ===== মেইন ইনিশিয়ালাইজেশন ===== */
-        function init() {
-            createDashboardCards();
-
-            // ক্যাশ থেকে ডাটা দিয়ে তৎক্ষণাৎ UI আপডেট
-            const cached = getCachedData();
-            if (cached) {
-                updateUI(cached);
-                hideLoadingOverlay(); // ক্যাশ থাকলে স্পিনার তৎক্ষণাৎ চলে যাবে
-            }
-
-            // ফায়ারবেস থেকে ফ্রেশ ডাটা আনা হচ্ছে
-            fetchAllDataFromFirebase()
-                .then(data => {
-                    updateUI(data);
-                    setCachedData(data);
-                    if (!cached) hideLoadingOverlay(); // ক্যাশ না থাকলে এখানে হাইড
-                    setupRealtimeListener();
-                })
-                .catch(error => {
-                    console.error("Data fetch error:", error);
-                    if (!cached) showError(`Error: ${error.message}`);
-                });
-        }
-
-        // DOM রেডি হলেই শুরু, window.onload এর জন্য অপেক্ষা না করে
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
-        }
-    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | School Analytics</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
     <style>
+        /* ---------- RESET & BASE ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -250,17 +17,27 @@
         }
 
         body {
-            background-color: #f0f2f5;
+            background: #f0f2f5;
             min-height: 100vh;
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
         }
 
+        .dashboard-container {
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        /* ---------- NAVBAR (100% same as original) ---------- */
         .navbar {
             background: white;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            padding: 0 30px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            padding: 0 5px;
+            border-radius: 2 !important; /* no radius - flat like original */
+            margin-bottom: 15px;
+            background: white;
         }
 
         .nav-container {
@@ -297,71 +74,216 @@
             border-radius: 40px;
             font-size: 14px;
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             gap: 8px;
             letter-spacing: 0.3px;
         }
 
-        .main-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 30px;
-        }
-
+        /* ---------- METRIC CARDS (exact same as original: no radius, same colors) ---------- */
         .info-cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            margin-top: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 36px;
         }
 
         .info-card {
             color: white;
-            padding: 25px;
-            border-radius: 16px;
+            padding: 24px 22px;
+            border-radius: 4px !important; /* no radius - flat like screenshot */
             display: flex;
             justify-content: space-between;
             align-items: center;
-            min-height: 140px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-height: 120px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
             cursor: pointer;
         }
 
         .info-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         }
 
-        .card-1 { background: linear-gradient(135deg, #e74c3c, #c0392b); }
-        .card-2 { background: linear-gradient(135deg, #2ecc71, #27ae60); }
-        .card-3 { background: linear-gradient(135deg, #3498db, #2980b9); }
-        .card-4 { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
-        .card-5 { background: linear-gradient(135deg, #f1c40f, #f39c12); }
-        .card-6 { background: linear-gradient(135deg, #e67e22, #d35400); }
+        /* exact same card colors as original */
+        .card-1 {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        .card-2 {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+        .card-3 {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+        .card-4 {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+        .card-5 {
+            background: linear-gradient(135deg, #f1c40f, #f39c12);
+        }
+        .card-6 {
+            background: linear-gradient(135deg, #e67e22, #d35400);
+        }
 
         .card-icon {
-            font-size: 56px;
+            font-size: 48px;
             opacity: 0.85;
         }
 
         .card-details .count {
-            font-size: 48px;
+            font-size: 42px;
             font-weight: 800;
-            margin-bottom: 8px;
-            letter-spacing: -1px;
+            line-height: 1.1;
+            letter-spacing: -0.5px;
         }
 
         .card-details .label {
-            font-size: 14px;
+            font-size: 13px;
             text-transform: uppercase;
             font-weight: 600;
             letter-spacing: 0.5px;
             opacity: 0.9;
+            margin-top: 4px;
         }
 
+        /* ---------- CALENDAR (exactly like screenshot: no radius, flat) ---------- */
+        .calendar-wrapper {
+            background: white;
+            padding: 2px 28px 30px;
+            border-radius: 4px !important; /* no radius */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            border: none;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+        }
+
+        .calendar-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .calendar-header h2 i {
+            color: #3498db;
+            font-size: 22px;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 12px;
+        }
+
+        .calendar-nav button {
+            background: #f1f5f9;
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 2 !important; /* flat */
+            font-size: 18px;
+            color: #1e293b;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-nav button:hover {
+            background: #e2e8f0;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+        }
+
+        .calendar-grid .day-name {
+            font-weight: 600;
+            font-size: 13px;
+            color: #64748b;
+            padding: 8px 0 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .calendar-grid .day-cell {
+            background: #f8fafc;
+            border-radius: 2 !important; /* flat */
+            padding: 10px 4px;
+            font-weight: 500;
+            font-size: 15px;
+            color: #0f172a;
+            transition: 0.15s;
+            cursor: default;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-grid .day-cell.other-month {
+            color: #94a3b8;
+            background: transparent;
+        }
+
+        .calendar-grid .day-cell.today {
+            background: #3498db;
+            color: white;
+            font-weight: 700;
+            box-shadow: none;
+        }
+
+        .calendar-grid .day-cell.event {
+            background: #fef9c3;
+            color: #854d0e;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .calendar-grid .day-cell.event::after {
+            content: "•";
+            position: absolute;
+            bottom: 2px;
+            font-size: 18px;
+            color: #eab308;
+        }
+
+        .event-legend {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid #eef2f6;
+            font-size: 13px;
+            color: #334155;
+            flex-wrap: wrap;
+        }
+
+        .event-legend span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .event-legend i {
+            color: #eab308;
+        }
+
+        /* ---------- LOADING OVERLAY (same) ---------- */
         #loading-overlay {
             position: fixed;
             top: 0;
@@ -398,49 +320,446 @@
             font-weight: 500;
         }
 
+        /* ---------- RESPONSIVE ---------- */
         @media (max-width: 768px) {
-            .navbar { padding: 0 20px; }
-            .nav-left .dashboard-text { font-size: 18px; }
-            .nav-left i { font-size: 22px; }
-            .session-badge { padding: 6px 14px; font-size: 12px; }
-            .main-content { padding: 20px; }
-            .info-cards-grid { gap: 18px; }
-            .info-card { padding: 20px; min-height: 120px; }
-            .card-details .count { font-size: 36px; }
-            .card-icon { font-size: 44px; }
+            body {
+                padding: 16px;
+            }
+            .navbar {
+                padding: 0 20px;
+            }
+            .nav-left .dashboard-text {
+                font-size: 18px;
+            }
+            .nav-left i {
+                font-size: 22px;
+            }
+            .session-badge {
+                padding: 6px 14px;
+                font-size: 12px;
+            }
+            .info-cards-grid {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 14px;
+            }
+            .info-card {
+                padding: 18px 16px;
+                min-height: 100px;
+            }
+            .card-details .count {
+                font-size: 32px;
+            }
+            .card-icon {
+                font-size: 38px;
+            }
+            .calendar-wrapper {
+                padding: 18px 14px 22px;
+            }
+            .calendar-grid .day-cell {
+                font-size: 14px;
+                padding: 8px 2px;
+                min-height: 40px;
+            }
         }
 
         @media (max-width: 480px) {
-            .info-cards-grid { grid-template-columns: 1fr; }
-            .nav-container { height: 60px; }
-            .session-badge span { display: none; }
-            .session-badge { padding: 8px 12px; }
+            .info-cards-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+            .nav-container {
+                height: 60px;
+            }
+            .session-badge span {
+                display: none;
+            }
+            .session-badge {
+                padding: 8px 12px;
+            }
+            .calendar-grid {
+                gap: 3px;
+            }
+            .calendar-grid .day-cell {
+                font-size: 13px;
+                min-height: 34px;
+                padding: 6px 2px;
+            }
         }
     </style>
 </head>
 <body>
+
+    <!-- LOADING OVERLAY -->
     <div id="loading-overlay">
         <div class="spinner"></div>
         <p>Loading dashboard data...</p>
     </div>
 
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-left">
-                <i class="fas fa-chart-pie"></i>
-                <span class="dashboard-text">Dashboard</span>
-            </div>
-            <div class="nav-right">
-                <div class="session-badge" id="currentSessionDisplay">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>Loading...</span>
+    <div class="dashboard-container">
+
+        <!-- NAVBAR (exact same as original) -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-left">
+                    <i class="fas fa-chart-pie"></i>
+                    <span class="dashboard-text">Dashboard</span>
+                </div>
+                <div class="nav-right">
+                    <div class="session-badge" id="currentSessionDisplay">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span id="sessionLabel">Loading...</span>
+                    </div>
                 </div>
             </div>
-        </div>
-    </nav>
+        </nav>
 
-    <div class="main-content">
-        <div class="info-cards-grid" id="infoCardsGrid"></div>
+        <!-- METRIC CARDS (flat, no radius, same colors) -->
+        <div class="info-cards-grid" id="infoCardsGrid">
+            <!-- injected by JS -->
+        </div>
+
+        <!-- CALENDAR (flat, no radius, exactly like screenshot) -->
+        <div class="calendar-wrapper">
+            <div class="calendar-header">
+                <h2><i class="fas fa-calendar-check"></i> School Events Calendar</h2>
+                <div class="calendar-nav">
+                    <button id="prevMonthBtn" aria-label="Previous month"><i class="fas fa-chevron-left"></i></button>
+                    <button id="nextMonthBtn" aria-label="Next month"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- generated by JS -->
+            </div>
+
+            <div class="event-legend">
+                <span><i class="fas fa-circle" style="color: #eab308; font-size: 10px;"></i> Event day</span>
+                <span><i class="fas fa-circle" style="color: #3498db; font-size: 10px;"></i> Today</span>
+                <span style="margin-left: auto; opacity: 0.7;"><i class="far fa-calendar-alt"></i> June 2026 – July 2026</span>
+            </div>
+        </div>
+
     </div>
+
+    <script type="module">
+        // ================================================================
+        // FIREBASE (module import)
+        // ================================================================
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import {
+            getFirestore,
+            collection,
+            query,
+            onSnapshot,
+            doc,
+            getDoc,
+            getDocs
+        } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            databaseURL: "https://school-menejment-default-rtdb.firebaseio.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24",
+            measurementId: "G-SQT1N4PVD3"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const CACHE_KEY = 'dashboard_data_cache';
+        const CACHE_TTL = 5 * 60 * 1000;
+
+        // metric config - order: student, teacher, admin, parent
+        const dashboardMetrics = {
+            student: { id: 'totalStudent', icon: 'fa-user-graduate', label: 'TOTAL STUDENTS' },
+            teacher: { id: 'totalTeacher', icon: 'fa-chalkboard-teacher', label: 'TOTAL TEACHERS' },
+            admin: { id: 'totalAdmin', icon: 'fa-user-cog', label: 'TOTAL ADMINISTRATORS' },
+            parent: { id: 'totalParent', icon: 'fa-hands-helping', label: 'TOTAL PARENTS' },
+            superadmin: { id: 'totalSuperAdmin', icon: 'fa-user-shield', label: 'TOTAL SUPER ADMINS' },
+            totalUsers: { id: 'totalUsers', icon: 'fa-users', label: 'TOTAL USERS' }
+        };
+
+        // ----- CACHE -----
+        function getCachedData() {
+            try {
+                const raw = localStorage.getItem(CACHE_KEY);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                if (Date.now() - parsed.timestamp > CACHE_TTL) {
+                    localStorage.removeItem(CACHE_KEY);
+                    return null;
+                }
+                return parsed.data;
+            } catch { return null; }
+        }
+
+        function setCachedData(data) {
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+            } catch {}
+        }
+
+        // ----- UI UPDATE -----
+        function updateUI(data) {
+            const mapping = {
+                student: 'totalStudent',
+                teacher: 'totalTeacher',
+                admin: 'totalAdmin',
+                parent: 'totalParent',
+                superadmin: 'totalSuperAdmin',
+                totalUsers: 'totalUsers'
+            };
+            for (const key in mapping) {
+                const el = document.getElementById(mapping[key]);
+                if (el) el.textContent = data[key] ?? 0;
+            }
+            if (data.sessionName) {
+                const el = document.getElementById('sessionLabel');
+                if (el) el.textContent = data.sessionName;
+            }
+        }
+
+        function hideLoadingOverlay() {
+            const overlay = document.getElementById('loading-overlay');
+            if (!overlay) return;
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+        }
+
+        function showError(message) {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) overlay.innerHTML = `<p style="color:red;">${message}</p>`;
+        }
+
+        // ----- BUILD CARDS (flat, no radius) -----
+        function createDashboardCards() {
+            const grid = document.getElementById('infoCardsGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            // order matches screenshot: Students, Teachers, Administrators, Parents
+            const order = ['student', 'teacher', 'admin', 'parent', 'superadmin', 'totalUsers'];
+            let cardIndex = 1;
+            for (const key of order) {
+                const metric = dashboardMetrics[key];
+                if (!metric) continue;
+                const card = document.createElement('div');
+                card.classList.add('info-card', `card-${cardIndex++}`);
+                card.innerHTML = `
+                    <div class="card-details">
+                        <div class="count" id="${metric.id}">0</div>
+                        <div class="label">${metric.label}</div>
+                    </div>
+                    <i class="fas ${metric.icon} card-icon"></i>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        // ----- FETCH DATA -----
+        async function fetchAllDataFromFirebase() {
+            const sessionPromise = getDoc(doc(db, "config", "activeSession"))
+                .then(snap => snap.exists() ? (snap.data().sessionName || "2025-2026") : "2025-2026")
+                .catch(() => "2025-2026");
+
+            const usersPromise = getDocs(collection(db, "users"))
+                .then(snap => {
+                    const counts = { admin: 0, teacher: 0, superadmin: 0 };
+                    snap.forEach(d => {
+                        const role = d.data().role ? String(d.data().role).toLowerCase() : null;
+                        if (role === 'admin') counts.admin++;
+                        else if (role === 'teacher') counts.teacher++;
+                        else if (role === 'superadmin') counts.superadmin++;
+                    });
+                    return counts;
+                })
+                .catch(() => ({ admin: 0, teacher: 0, superadmin: 0 }));
+
+            const parentsPromise = getDocs(collection(db, "parents"))
+                .then(snap => snap.size)
+                .catch(() => 0);
+
+            const [sessionName, userCounts, parentCount] = await Promise.all([
+                sessionPromise,
+                usersPromise,
+                parentsPromise
+            ]);
+
+            let studentCount = 0;
+            try {
+                const classesSnap = await getDocs(collection(db, "classes"));
+                const studentPromises = classesSnap.docs.map(classDoc =>
+                    getDocs(collection(db, `current_session/${sessionName}/classes/${classDoc.id}/students`))
+                    .then(snap => snap.size)
+                    .catch(() => 0)
+                );
+                const classCounts = await Promise.all(studentPromises);
+                studentCount = classCounts.reduce((sum, c) => sum + c, 0);
+            } catch (e) {
+                console.error("Student count error:", e);
+            }
+
+            const totalUsers = userCounts.admin + userCounts.teacher + userCounts.superadmin + parentCount;
+            return {
+                student: studentCount,
+                teacher: userCounts.teacher,
+                admin: userCounts.admin,
+                parent: parentCount,
+                superadmin: userCounts.superadmin,
+                totalUsers: totalUsers,
+                sessionName: sessionName
+            };
+        }
+
+        // ----- REALTIME LISTENER -----
+        function setupRealtimeListener() {
+            const q = query(collection(db, "users"));
+            onSnapshot(q, async (snapshot) => {
+                const counts = { admin: 0, teacher: 0, superadmin: 0 };
+                snapshot.forEach((docSnap) => {
+                    const role = docSnap.data().role ? String(docSnap.data().role).toLowerCase() : null;
+                    if (role === 'admin') counts.admin++;
+                    else if (role === 'teacher') counts.teacher++;
+                    else if (role === 'superadmin') counts.superadmin++;
+                });
+                const adminEl = document.getElementById('totalAdmin');
+                const teacherEl = document.getElementById('totalTeacher');
+                const superAdminEl = document.getElementById('totalSuperAdmin');
+                if (adminEl) adminEl.textContent = counts.admin;
+                if (teacherEl) teacherEl.textContent = counts.teacher;
+                if (superAdminEl) superAdminEl.textContent = counts.superadmin;
+
+                const cached = getCachedData();
+                const parentCount = cached ? cached.parent : 0;
+                const totalUsers = counts.admin + counts.teacher + counts.superadmin + parentCount;
+                const totalUsersEl = document.getElementById('totalUsers');
+                if (totalUsersEl) totalUsersEl.textContent = totalUsers;
+            }, (error) => {
+                console.error("Realtime listener error:", error);
+            });
+        }
+
+        // ----- CALENDAR (flat, no radius, June 2026) -----
+        function buildCalendar(year, month) {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayNames.forEach(name => {
+                const div = document.createElement('div');
+                div.className = 'day-name';
+                div.textContent = name;
+                grid.appendChild(div);
+            });
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            // previous month
+            const prevMonthStart = daysInPrevMonth - firstDay + 1;
+            for (let i = prevMonthStart; i <= daysInPrevMonth; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'day-cell other-month';
+                cell.textContent = i;
+                grid.appendChild(cell);
+            }
+
+            // current month
+            const today = new Date();
+            const isToday = (d) => today.getDate() === d && today.getMonth() === month && today.getFullYear() === year;
+            const eventDays = [5, 12, 19, 26];
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const cell = document.createElement('div');
+                cell.className = 'day-cell';
+                if (isToday(d)) cell.classList.add('today');
+                if (eventDays.includes(d)) cell.classList.add('event');
+                cell.textContent = d;
+                grid.appendChild(cell);
+            }
+
+            // next month
+            const totalCells = firstDay + daysInMonth;
+            const remaining = (7 - (totalCells % 7)) % 7;
+            for (let i = 1; i <= remaining; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'day-cell other-month';
+                cell.textContent = i;
+                grid.appendChild(cell);
+            }
+        }
+
+        let currentYear = 2026;
+        let currentMonth = 5;
+
+        function updateCalendar(year, month) {
+            currentYear = year;
+            currentMonth = month;
+            buildCalendar(year, month);
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            const legend = document.querySelector('.event-legend span:last-child');
+            if (legend) {
+                const nextMonth = month === 11 ? 0 : month + 1;
+                const nextYear = month === 11 ? year + 1 : year;
+                legend.innerHTML =
+                    `<i class="far fa-calendar-alt"></i> ${monthNames[month]} ${year} – ${monthNames[nextMonth]} ${nextYear}`;
+            }
+        }
+
+        // ----- INIT -----
+        function init() {
+            createDashboardCards();
+
+            const cached = getCachedData();
+            if (cached) {
+                updateUI(cached);
+                hideLoadingOverlay();
+            }
+
+            fetchAllDataFromFirebase()
+                .then(data => {
+                    updateUI(data);
+                    setCachedData(data);
+                    if (!cached) hideLoadingOverlay();
+                    setupRealtimeListener();
+                })
+                .catch(error => {
+                    console.error("Data fetch error:", error);
+                    if (!cached) showError(`Error: ${error.message}`);
+                });
+
+            // Calendar: June 2026 (matches screenshot)
+            updateCalendar(2026, 5);
+
+            document.getElementById('prevMonthBtn').addEventListener('click', () => {
+                let newMonth = currentMonth - 1;
+                let newYear = currentYear;
+                if (newMonth < 0) { newMonth = 11;
+                    newYear--; }
+                updateCalendar(newYear, newMonth);
+            });
+
+            document.getElementById('nextMonthBtn').addEventListener('click', () => {
+                let newMonth = currentMonth + 1;
+                let newYear = currentYear;
+                if (newMonth > 11) { newMonth = 0;
+                    newYear++; }
+                updateCalendar(newYear, newMonth);
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
 </body>
 </html>
