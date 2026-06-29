@@ -48,8 +48,16 @@
             position: fixed;
             height: 100%;
             z-index: 1000;
-            overflow-y: auto;
+            overflow-y: scroll;
             flex-shrink: 0;
+            /* Scrollbar hide - cross browser */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE & Old Edge */
+        }
+
+        /* Scrollbar hide - Webkit (Chrome, Safari, New Edge) */
+        .sidebar::-webkit-scrollbar {
+            display: none;
         }
         
         .sidebar.collapsed {
@@ -470,7 +478,6 @@
                 </ul>
             </div>
             
-            <!-- Users Dropdown Menu Added Here -->
             <div class="dropdown">
                 <a href="#" class="menu-item dropdown-toggle" onclick="toggleDropdown(this)">
                     <i class="fas fa-users"></i> <span>Users</span> <i class="fas fa-angle-right arrow"></i>
@@ -565,7 +572,6 @@
         const userDropdown = document.getElementById('userDropdown');
         const iframe = document.getElementById('main-iframe');
 
-        // --- Link Obfuscation (Random Big Link) Functions ---
         function utf8_to_b64(str) {
             return window.btoa(unescape(encodeURIComponent(str)));
         }
@@ -593,7 +599,7 @@
         function deobfuscateLink(hash) {
             if (!hash) return "../Dashboard/dashboard";
             try {
-                if (hash.length <= 12) return "../Dashboard/dashboard"; // Not a valid obfuscated string
+                if (hash.length <= 12) return "../Dashboard/dashboard";
                 const base64 = hash.substring(6, hash.length - 6);
                 return b64_to_utf8(base64);
             } catch (e) {
@@ -601,7 +607,6 @@
                 return "../Dashboard/dashboard";
             }
         }
-        // -------------------------------------------------
 
         function toggleSidebar() {
             if (window.innerWidth <= 768) {
@@ -651,7 +656,6 @@
             const links = document.querySelectorAll('a[data-link]');
             let currentHash = window.location.hash.substring(1);
             
-            // Deobfuscate the hash to get the real link
             let currentLink = deobfuscateLink(currentHash);
 
             if (!currentHash) {
@@ -688,7 +692,6 @@
         window.addEventListener('DOMContentLoaded', () => {
             loadPageFromHash();
 
-            // If no hash exists, set the default obfuscated hash for dashboard
             if(!window.location.hash) {
                 window.location.hash = obfuscateLink("../Dashboard/dashboard");
             }
@@ -703,7 +706,6 @@
                     e.preventDefault();
                     const url = this.getAttribute('data-link');
                     
-                    // Set the obfuscated hash instead of the real URL
                     window.location.hash = obfuscateLink(url);
 
                     if (window.innerWidth <= 768) {
@@ -737,7 +739,6 @@
                     if (doc.exists) {
                         const userData = doc.data();
                         
-                        // Role Check: If the user is not a superadmin, redirect to login.html
                         if (userData.role !== 'superadmin') {
                             console.warn("Access Denied: Not a Super Admin.");
                             window.location.href = '../Auth/login'; 
@@ -767,7 +768,6 @@
 
                         document.getElementById('dynamic-admin-name').innerText = adminName;
                     } else {
-                        // If the user document doesn't exist, redirect to login
                         window.location.href = '../Auth/login'; 
                     }
                 }).catch((error) => {
@@ -775,7 +775,6 @@
                     window.location.href = '../Auth/login'; 
                 });
             } else {
-                // If no user is logged in, redirect to login
                 window.location.href = '../Auth/login'; 
             }
         });
