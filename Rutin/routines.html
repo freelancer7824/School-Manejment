@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>রুটিন ম্যানেজমেন্ট প্যানেল</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            flex: 1;
+            width: 100%;
+        }
+
+        .form-card, .list-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        .form-card h2, .list-card h2 {
+            font-size: 1.3rem;
+            color: #1e3c72;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1e3c72;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea,
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group textarea:focus {
+            border-color: #2a5298;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            height: 100px;
+        }
+
+        .btn-submit {
+            background-color: #2a5298;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .btn-submit:hover {
+            background-color: #1e3c72;
+        }
+
+        .status-msg {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* Routine Item List Style */
+        .routine-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: #fafbfc;
+            gap: 15px;
+        }
+
+        .routine-info h4 {
+            font-size: 1.1rem;
+            color: #1e3c72;
+            margin-bottom: 5px;
+        }
+
+        .routine-info p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .btn-action {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: white;
+            transition: opacity 0.2s;
+        }
+
+        .btn-action:hover {
+            opacity: 0.85;
+        }
+
+        .btn-publish {
+            background-color: #319795;
+        }
+
+        .btn-unpublish {
+            background-color: #dd6b20;
+        }
+
+        .btn-delete {
+            background-color: #e53e3e;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>রুটিন ম্যানেজমেন্ট প্যানেল</h1>
+        <p>নতুন রুটিন আপলোড, পাবলিশ এবং ডিলিট করুন</p>
+    </header>
+
+    <div class="container">
+        <!-- আপলোড ফর্ম -->
+        <div class="form-card">
+            <h2>নতুন রুটিন আপলোড করুন</h2>
+            <form id="routineForm">
+                <div class="form-group">
+                    <label for="title">রুটিনের শিরোনাম (Title):</label>
+                    <input type="text" id="title" placeholder="যেমন: ১. ক্লাস রুটিন (২০২৬)" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">বিস্তারিত বিবরণ (Description):</label>
+                    <textarea id="description" placeholder="রুটিন সম্পর্কে সংক্ষিপ্ত বিবরণ লিখুন..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="pdfFile">পিডিএফ ফাইল সিলেক্ট করুন (PDF):</label>
+                    <input type="file" id="pdfFile" accept="application/pdf" required>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-submit">আপলোড ও সেভ করুন</button>
+                <div id="statusMsg" class="status-msg"></div>
+            </form>
+        </div>
+
+        <!-- রুটিন লিস্ট ও ম্যানেজমেন্ট সেকশন -->
+        <div class="list-card">
+            <h2>সকল রুটিনের তালিকা</h2>
+            <div id="routineListContainer">
+                <p class="no-data">রুটিন লোড হচ্ছে...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs (Modular v10) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // ফায়ারবেস কনফিগারেশন
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // ক্লাউডিনারি সেটিংস
+        const CLOUDINARY_UPLOAD_PRESET = "Rosenews";
+        const CLOUDINARY_CLOUD_NAME = "dhvtgzy5x";
+
+        const form = document.getElementById('routineForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const routineListContainer = document.getElementById('routineListContainer');
+
+        // ডাটাবেজ থেকে রুটিন ফেচ করে লিস্টে দেখানোর ফাংশন
+        async function fetchRoutines() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "routines"));
+                
+                if (querySnapshot.empty) {
+                    routineListContainer.innerHTML = `<p class="no-data">কোনো রুটিন পাওয়া যায়নি।</p>`;
+                    return;
+                }
+
+                let html = "";
+                querySnapshot.forEach((documentSnapshot) => {
+                    const data = documentSnapshot.data();
+                    const docId = documentSnapshot.id;
+                    const isPublished = data.isPublished || false;
+
+                    html += `
+                        <div class="routine-item">
+                            <div class="routine-info">
+                                <h4>${data.title}</h4>
+                                <p>${data.description ? data.description.substring(0, 60) : ''}...</p>
+                                <small>স্ট্যাটাস: <b>${isPublished ? 'পাবলিশড (Published)' : 'আনপাবলিশড (Unpublished)'}</b></small>
+                            </div>
+                            <div class="action-btns">
+                                ${isPublished 
+                                    ? `<button class="btn-action btn-unpublish" data-id="${docId}" data-status="false">Unpublish</button>`
+                                    : `<button class="btn-action btn-publish" data-id="${docId}" data-status="true">Publish</button>`
+                                }
+                                <button class="btn-action btn-delete" data-id="${docId}">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                routineListContainer.innerHTML = html;
+
+            } catch (error) {
+                console.error("লিস্ট লোড করতে সমস্যা:", error);
+                routineListContainer.innerHTML = `<p class="no-data" style="color:red;">রুটিন তালিকা লোড করা যায়নি।</p>`;
+            }
+        }
+
+        // পাবলিশ স্ট্যাটাস টগল (Publish / Unpublish) করার ফাংশন
+        async function togglePublish(docId, status) {
+            try {
+                const docRef = doc(db, "routines", docId);
+                const boolStatus = (status === 'true' || status === true);
+                await updateDoc(docRef, { isPublished: boolStatus });
+                alert(boolStatus ? "রুটিনটি সফলভাবে পাবলিশ করা হয়েছে!" : "রুটিনটি আনপাবলিশ করা হয়েছে!");
+                fetchRoutines();
+            } catch (error) {
+                console.error("স্ট্যাটাস আপডেট করতে সমস্যা:", error);
+                alert("স্ট্যাটাস পরিবর্তন করা সম্ভব হয়নি।");
+            }
+        }
+
+        // রুটিন ডিলিট করার ফাংশন
+        async function deleteRoutine(docId) {
+            if (confirm("আপনি কি নিশ্চিতভাবে এই রুটিনটি ডিলিট করতে চান?")) {
+                try {
+                    await deleteDoc(doc(db, "routines", docId));
+                    alert("রুটিন সফলভাবে ডিলিট করা হয়েছে!");
+                    fetchRoutines();
+                } catch (error) {
+                    console.error("ডিলিট করতে সমস্যা:", error);
+                    alert("রুটিন ডিলিট করা যায়নি।");
+                }
+            }
+        }
+
+        // ইভেন্ট ডেলিগেশনের মাধ্যমে বাটন ক্লিকের হ্যান্ডেলিং (TypeError এড়ানোর জন্য সুরক্ষিত পদ্ধতি)
+        routineListContainer.addEventListener('click', (e) => {
+            const target = e.target;
+            if (target.classList.contains('btn-publish') || target.classList.contains('btn-unpublish')) {
+                const docId = target.getAttribute('data-id');
+                const status = target.getAttribute('data-status');
+                togglePublish(docId, status);
+            } else if (target.classList.contains('btn-delete')) {
+                const docId = target.getAttribute('data-id');
+                deleteRoutine(docId);
+            }
+        });
+
+        // ১. রুটিন আপলোড লজিক
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const fileInput = document.getElementById('pdfFile').files[0];
+
+            if (!fileInput) {
+                alert("দয়া করে একটি পিডিএফ ফাইল সিলেক্ট করুন।");
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = "আপলোড হচ্ছে, দয়া করে অপেক্ষা করুন...";
+            statusMsg.style.color = "#2a5298";
+            statusMsg.innerText = "ক্লাউডিনারিতে ফাইল আপলোড করা হচ্ছে...";
+
+            try {
+                const formData = new FormData();
+                formData.append('file', fileInput);
+                formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+                formData.append('resource_type', 'auto'); 
+
+                const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/raw/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const cloudinaryData = await cloudinaryResponse.json();
+
+                if (!cloudinaryResponse.ok) {
+                    throw new Error(cloudinaryData.error?.message || "ক্লাউডিনারি আপলোড ব্যর্থ হয়েছে।");
+                }
+
+                const pdfUrl = cloudinaryData.secure_url;
+
+                statusMsg.innerText = "ফায়ারবেসে ডাটা সেভ করা হচ্ছে...";
+
+                await addDoc(collection(db, "routines"), {
+                    title: title,
+                    description: description,
+                    pdfUrl: pdfUrl,
+                    isPublished: false,
+                    createdAt: new Date()
+                });
+
+                statusMsg.style.color = "green";
+                statusMsg.innerText = "রুটিন সফলভাবে আপলোড হয়েছে!";
+                form.reset();
+                fetchRoutines();
+
+            } catch (error) {
+                console.error("ত্রুটি:", error);
+                statusMsg.style.color = "red";
+                statusMsg.innerText = "সমস্যা হয়েছে: " + error.message;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "আপলোড ও সেভ করুন";
+            }
+        });
+
+        // পেজ লোড হলেই রুটিন লিস্ট ফেচ করবে
+        fetchRoutines();
+    </script>
+
+</body>
+</html>
