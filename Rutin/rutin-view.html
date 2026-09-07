@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>রুটিন পোর্টাল (Routine Portal)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            flex: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .routine-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+        }
+
+        .card h2 {
+            font-size: 1.4rem;
+            color: #1e3c72;
+            margin-bottom: 12px;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 8px;
+        }
+
+        .card p {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .btn-view {
+            background-color: #2a5298;
+            color: white;
+        }
+
+        .btn-view:hover {
+            background-color: #1e3c72;
+        }
+
+        .btn-download {
+            background-color: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-download:hover {
+            background-color: #cbd5e0;
+        }
+
+        /* Empty / No Routine State Style */
+        .no-routine {
+            text-align: center;
+            background: white;
+            padding: 50px 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+            margin: auto;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .no-routine h3 {
+            font-size: 1.5rem;
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+
+        .no-routine p {
+            color: #666;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ক্লাস রুটিন পোর্টাল</h1>
+        <p>আপনার প্রয়োজনীয় রুটিনটি দেখে নিন অথবা ডাউনলোড করুন</p>
+    </header>
+
+    <div class="container">
+        <div id="routineContainer" style="width: 100%;">
+            <!-- Dynamic Content Will Load Here -->
+        </div>
+    </div>
+
+    <!-- Firebase SDKs (Modular v10) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // আপনার ফায়ারবেস কনফিগারেশন এখানে যুক্ত করা আছে
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24"
+        };
+
+        // Firebase Initialize
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function loadRoutines() {
+            const container = document.getElementById('routineContainer');
+            
+            try {
+                container.innerHTML = `<div class="no-routine"><p>রুটিন লোড হচ্ছে...</p></div>`;
+
+                // শুধুমাত্র সেই রুটিনগুলো ফেচ করা হবে যেগুলোর isPublished স্ট্যাটাস true করা আছে
+                const q = query(collection(db, "routines"), where("isPublished", "==", true));
+                const querySnapshot = await getDocs(q);
+                
+                // যদি কোনো প্রকাশিত রুটিন না থাকে
+                if (querySnapshot.empty) {
+                    container.innerHTML = `
+                        <div class="no-routine">
+                            <h3>দুঃখিত!</h3>
+                            <p>এই মুহূর্তে কোনো রুটিন প্রকাশিত হয়নি।</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // যদি প্রকাশিত রুটিন থাকে তবে গ্রিড তৈরি হবে
+                let gridHTML = `<div class="routine-grid">`;
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const title = data.title || "রুটিন";
+                    const description = data.description || "বিস্তারিত রুটিন দেখতে ভিউ বাটন ক্লিক করুন।";
+                    const pdfUrl = data.pdfUrl || "#";
+
+                    gridHTML += `
+                        <div class="card">
+                            <div>
+                                <h2>${title}</h2>
+                                <p>${description}</p>
+                            </div>
+                            <div class="btn-container">
+                                <a href="${pdfUrl}" target="_blank" class="btn btn-view">View</a>
+                                <a href="${pdfUrl}" download class="btn btn-download">Download</a>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                gridHTML += `</div>`;
+                container.innerHTML = gridHTML;
+
+            } catch (error) {
+                console.error("ডেটা লোড করতে সমস্যা হয়েছে: ", error);
+                container.innerHTML = `
+                    <div class="no-routine">
+                        <h3 style="color: #d32f2f;">ত্রুটি ঘটেছে</h3>
+                        <p>রুটিন লোড করা সম্ভব হয়নি। ফায়ারবেস কনফিগারেশন বা ইনডেক্স চেক করুন।</p>
+                    </div>
+                `;
+            }
+        }
+
+        loadRoutines();
+    </script>
+
+</body>
+</html>
