@@ -2,163 +2,880 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Admission System | Current Session Based Storage | Cloudinary Upload</title>
-    <!-- Tailwind + Font Awesome + Cloudinary Upload Widget -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#6366f1">
+    <title>Admission System | Current Session</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '#3b82f6',
-                        secondary: '#6b7280',
+                        primary: '#6366f1',
+                        primaryDark: '#4f46e5',
+                        secondary: '#64748b',
                         success: '#10b981',
+                        warning: '#f59e0b',
                         error: '#ef4444'
                     },
                     fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        sans: ['Inter', 'Hind Siliguri', 'sans-serif']
                     }
                 }
             }
         }
     </script>
     <style>
-        body { background: #f1f5f9; }
-        .form-card { transition: all 0.2s ease; }
-        .border-error { border-color: #ef4444 !important; background-color: #fef2f2; }
-        .modal-backdrop { backdrop-filter: blur(2px); background-color: rgba(0,0,0,0.4); }
-        .step-circle.active { background-color: #3b82f6; border-color: #3b82f6; color: white; box-shadow: 0 4px 10px rgba(59,130,246,0.3); }
-        .step-circle.complete { background-color: #10b981; border-color: #10b981; color: white; }
-        .step-progress-line { transition: all 0.2s; }
-        .file-input-wrapper:hover { border-color: #3b82f6; }
-        .image-preview { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; border: 2px solid #ddd; }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f1f5f9;
+            --border: #e2e8f0;
+            --radius: 18px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+
+        body { 
+            background: var(--bg); 
+            font-family: 'Inter', 'Hind Siliguri', sans-serif;
+            color: #0f172a;
+            -webkit-font-smoothing: antialiased;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(99,102,241,0.07) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(139,92,246,0.05) 0%, transparent 40%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* ===== PAGE HEADER ===== */
+        .page-header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            border-radius: 20px;
+            padding: 24px 22px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 22px;
+            box-shadow: 0 12px 32px rgba(99,102,241,0.28);
+        }
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -60%; right: -15%;
+            width: 220px; height: 220px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: -70%; left: -10%;
+            width: 180px; height: 180px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 50%;
+        }
+        .page-header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .brand-icon {
+            width: 54px; height: 54px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .session-pill {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 18px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.2px;
+        }
+
+        /* ===== MAIN CARD ===== */
+        .main-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 4px 32px rgba(15,23,42,0.08);
+            border: 1px solid rgba(226,232,240,0.6);
+            overflow: hidden;
+        }
+        .main-card-body {
+            padding: 22px 20px;
+        }
+        @media (min-width: 768px) {
+            .main-card-body { padding: 32px 36px; }
+        }
+
+        /* ===== STEP INDICATORS ===== */
+        .steps-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 36px;
+            padding: 0 4px;
+        }
+
+        .step-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .step-circle {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: 3px solid #e2e8f0;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1rem;
+            color: #94a3b8;
+            transition: var(--transition);
+            position: relative;
+            z-index: 2;
+        }
+        .step-circle.active {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 8px 24px rgba(99,102,241,0.4);
+            transform: scale(1.1);
+        }
+        .step-circle.complete {
+            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 6px 18px rgba(16,185,129,0.35);
+        }
+        .step-circle.complete::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 16px;
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
+            border-radius: 50%;
+        }
+        .step-circle.complete span { display: none; }
+
+        .step-label {
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+        .step-label i { font-size: 10px; }
+        .step-label.active { color: #6366f1; }
+        .step-label.complete { color: #10b981; }
+
+        .step-connector {
+            position: absolute;
+            top: 23px;
+            left: 50%;
+            right: -50%;
+            height: 3px;
+            background: #e2e8f0;
+            z-index: 1;
+            transition: var(--transition);
+        }
+        .step-connector.complete {
+            background: linear-gradient(90deg, #10b981, #0d9488);
+        }
+
+        /* ===== FORM FIELDS ===== */
+        .field-group {
+            margin-bottom: 16px;
+        }
+
+        .field-label {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 7px;
+            letter-spacing: 0.1px;
+        }
+        .field-label i {
+            color: #6366f1;
+            font-size: 0.75rem;
+            width: 14px;
+            text-align: center;
+        }
+        .field-label .required {
+            color: #ef4444;
+            margin-left: 2px;
+        }
+
+        .field-input,
+        .field-select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background: #fafbfc;
+            color: #0f172a;
+            transition: var(--transition);
+            outline: none;
+            font-family: inherit;
+        }
+        .field-input:focus,
+        .field-select:focus {
+            border-color: #6366f1;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+        }
+        .field-input::placeholder { color: #94a3b8; }
+
+        .field-input.border-error,
+        .field-select.border-error {
+            border-color: #ef4444 !important;
+            background-color: #fef2f2 !important;
+            animation: shake 0.35s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        /* ===== IMAGE PREVIEW ===== */
+        .image-preview {
+            width: 88px;
+            height: 88px;
+            border-radius: 16px;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 6px 20px rgba(15,23,42,0.1);
+            background: linear-gradient(135deg, #eef2ff, #ddd6fe);
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+        .image-preview:hover { transform: scale(1.05); }
+
+        .upload-section {
+            padding: 16px;
+            border: 2px dashed #c7d2fe;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #f8fafc, #eef2ff);
+        }
+
+        /* ===== SECTION DIVIDERS ===== */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin: 24px 0 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        .section-title .title-icon {
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+            flex-shrink: 0;
+        }
+
+        /* ===== SUBJECT CARDS ===== */
+        .subject-box {
+            background: #f8fafc;
+            border: 2px solid #f1f5f9;
+            border-radius: 14px;
+            padding: 14px;
+            min-height: 100px;
+            transition: var(--transition);
+        }
+        .subject-box:hover {
+            border-color: #c7d2fe;
+            background: #eef2ff;
+        }
+        .subject-box-title {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #6366f1;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .subject-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 0;
+            font-size: 0.82rem;
+            cursor: pointer;
+        }
+        .subject-item input {
+            width: 16px;
+            height: 16px;
+            accent-color: #6366f1;
+            cursor: pointer;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 22px;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: 0 6px 18px rgba(99,102,241,0.35);
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(99,102,241,0.45);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
+            color: white;
+            box-shadow: 0 6px 18px rgba(16,185,129,0.35);
+        }
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(16,185,129,0.45);
+        }
+
+        .btn-ghost {
+            background: #f1f5f9;
+            color: #334155;
+            border: 2px solid #e2e8f0;
+        }
+        .btn-ghost:hover:not(:disabled) {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        .btn-danger-outline {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 2px solid #fecaca;
+        }
+        .btn-danger-outline:hover:not(:disabled) {
+            background: #fee2e2;
+        }
+
+        .btn-sm { padding: 9px 14px; font-size: 0.78rem; border-radius: 10px; }
+
+        /* ===== MODAL ===== */
+        .modal-backdrop {
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            background-color: rgba(15,23,42,0.55);
+            animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal-content {
+            animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ===== MESSAGE MODAL ICON ===== */
+        .msg-icon-success {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #047857;
+        }
+        .msg-icon-error {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #b91c1c;
+        }
+
+        /* ===== PARENT DROPDOWN ===== */
+        .parent-dropdown-item {
+            padding: 12px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .parent-dropdown-item:last-child { border-bottom: none; }
+        .parent-dropdown-item:hover {
+            background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+        }
+        .parent-avatar-sm {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        /* ===== INFO BOX ===== */
+        .info-box {
+            background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
+            border: 2px solid #c7d2fe;
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 0.82rem;
+            color: #3730a3;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .info-box i { color: #6366f1; flex-shrink: 0; margin-top: 2px; }
+        .info-box code {
+            background: white;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.78rem;
+            color: #4338ca;
+            font-weight: 700;
+            border: 1px solid #c7d2fe;
+        }
+
+        /* ===== SELECTED PARENT BADGE ===== */
+        .selected-parent {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border: 2px solid #6ee7b7;
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.82rem;
+            color: #047857;
+        }
+        .selected-parent i { color: #10b981; }
+        .selected-parent strong { color: #064e3b; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            .page-header { padding: 20px 16px; border-radius: 16px; }
+            .brand-icon { width: 46px; height: 46px; font-size: 18px; border-radius: 13px; }
+            .session-pill { padding: 8px 14px; font-size: 11px; }
+            .main-card { border-radius: 18px; }
+            .main-card-body { padding: 18px 14px; }
+            .step-circle { width: 38px; height: 38px; font-size: 0.85rem; border-width: 2px; }
+            .step-connector { top: 19px; }
+            .step-label { font-size: 10px; }
+            .step-label span { display: none; }
+            .step-label i { font-size: 12px; }
+            .field-input, .field-select { padding: 11px 12px; font-size: 0.82rem; }
+            .image-preview { width: 74px; height: 74px; border-radius: 14px; }
+            .btn { padding: 11px 16px; font-size: 0.82rem; }
+        }
+
+        @media (max-width: 400px) {
+            .step-label { font-size: 9px; }
+            .btn { padding: 10px 14px; font-size: 0.78rem; gap: 6px; }
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
+
+        /* ===== GRID UTILITY ===== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        @media (min-width: 640px) {
+            .form-grid { grid-template-columns: 1fr 1fr; }
+        }
     </style>
 </head>
-<body class="min-h-screen font-sans antialiased p-4 md:p-6">
+<body class="min-h-screen p-3 md:p-6 lg:p-8">
 
     <!-- Global Message Modal -->
-    <div id="message-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop transition-all duration-200">
-        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 transform transition-all scale-95 p-6">
-            <div class="flex items-start gap-3">
-                <div id="msg-icon" class="flex-shrink-0 rounded-full p-1.5 bg-green-100 text-green-600">
-                    <i class="fas fa-check-circle text-xl"></i>
+    <div id="message-modal" class="hidden fixed inset-0 z-[100001] flex items-center justify-center modal-backdrop p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full modal-content ring-1 ring-black/5 overflow-hidden">
+            <div class="p-5 flex items-start gap-4">
+                <div id="msg-icon" class="flex-shrink-0 rounded-2xl p-3 msg-icon-success">
+                    <i class="fas fa-check-circle text-2xl"></i>
                 </div>
-                <div class="flex-1">
-                    <h3 id="message-title" class="text-lg font-semibold text-gray-800">Success</h3>
-                    <p id="message-content" class="text-gray-600 mt-1 text-sm">Operation completed.</p>
+                <div class="flex-1 min-w-0">
+                    <h3 id="message-title" class="text-lg font-bold text-gray-800">Success</h3>
+                    <p id="message-content" class="text-gray-600 mt-1 text-sm leading-relaxed">Operation completed.</p>
                 </div>
-                <button onclick="hideMessage()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+                <button onclick="hideMessage()" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition flex-shrink-0">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
         </div>
     </div>
 
+    <!-- Main Container -->
     <div class="max-w-5xl mx-auto">
-        <header class="flex flex-wrap justify-between items-center mb-6 gap-3">
-            <h1 class="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
-                <span class="bg-primary text-white p-1.5 rounded-lg"><i class="fas fa-user-graduate"></i></span> 
-                Admit Student — Current Session
-            </h1>
-            <div class="bg-white px-4 py-2 rounded-full shadow-sm text-sm font-medium text-gray-700 border border-gray-200">
-                <i class="fas fa-calendar-alt text-primary mr-1"></i> 
-                <span id="current-session-badge">Loading...</span>
-            </div>
-        </header>
 
-        <div class="form-card bg-white rounded-2xl shadow-md overflow-hidden">
-            <div class="p-5 md:p-8">
-                <!-- Step Indicators -->
-                <div class="flex items-center justify-between relative mb-12 px-2">
-                    <div id="step-1-indicator" class="flex-1 flex flex-col items-center relative group">
-                        <div class="step-circle w-10 h-10 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center text-gray-500 font-bold text-lg z-10 transition-all">1</div>
-                        <span class="text-xs font-medium mt-2 text-gray-600"><i class="fas fa-user mr-1"></i>Personal Info</span>
-                        <div class="absolute top-5 left-1/2 w-full h-0.5 bg-gray-200 -z-0 step-progress-line"></div>
+        <!-- Page Header -->
+        <div class="page-header animate-fade-up">
+            <div class="page-header-content">
+                <div class="flex items-center gap-3">
+                    <div class="brand-icon">
+                        <i class="fas fa-user-graduate"></i>
                     </div>
-                    <div id="step-2-indicator" class="flex-1 flex flex-col items-center relative group">
-                        <div class="step-circle w-10 h-10 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center text-gray-500 font-bold text-lg z-10 transition-all">2</div>
-                        <span class="text-xs font-medium mt-2 text-gray-600"><i class="fas fa-chalkboard-user mr-1"></i>Academics & Parent</span>
-                        <div class="absolute top-5 left-0 w-full h-0.5 bg-gray-200 -z-0 step-progress-line"></div>
+                    <div>
+                        <h1 class="text-lg md:text-2xl lg:text-3xl font-extrabold tracking-tight">Admit Student</h1>
+                        <p class="text-xs md:text-sm opacity-90 mt-0.5 flex items-center gap-1.5">
+                            <i class="fas fa-circle text-[8px] text-yellow-300"></i>
+                            Current Session Admission
+                        </p>
+                    </div>
+                </div>
+                <div class="session-pill">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="current-session-badge">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Form Card -->
+        <div class="main-card animate-fade-up" style="animation-delay: 0.1s;">
+            <div class="main-card-body">
+
+                <!-- Step Indicators -->
+                <div class="steps-wrapper">
+                    <div id="step-1-indicator" class="step-item">
+                        <div class="step-circle active">
+                            <span>1</span>
+                        </div>
+                        <span class="step-label active">
+                            <i class="fas fa-user"></i>
+                            <span>Personal Info</span>
+                        </span>
+                        <div id="step-1-connector" class="step-connector"></div>
+                    </div>
+                    <div id="step-2-indicator" class="step-item">
+                        <div class="step-circle">
+                            <span>2</span>
+                        </div>
+                        <span class="step-label">
+                            <i class="fas fa-chalkboard-user"></i>
+                            <span>Academics & Parent</span>
+                        </span>
                     </div>
                 </div>
 
                 <form id="admission-form">
-                    <!-- Step 1 -->
-                    <div id="step-1-content" class="grid grid-cols-1 md:grid-cols-2 gap-5 transition-all">
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-user text-primary text-xs mr-1"></i> Full Name <span class="text-red-500">*</span></label><input type="text" id="fullName" class="input-text w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-primary/40" placeholder="Enter full name" required></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-map-marker-alt text-primary text-xs mr-1"></i> Address <span class="text-red-500">*</span></label><input type="text" id="address" class="input-text w-full border border-gray-300 rounded-lg p-2.5 mt-1" placeholder="Permanent Address" required></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-envelope text-primary text-xs mr-1"></i> Email</label><input type="email" id="email" class="input-text w-full border border-gray-300 rounded-lg p-2.5 mt-1" placeholder="student@example.com"></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-venus-mars text-primary text-xs mr-1"></i> Gender <span class="text-red-500">*</span></label><select id="gender" class="input-text w-full border border-gray-300 rounded-lg p-2.5 mt-1" required><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-cake-candles text-primary text-xs mr-1"></i> Date of Birth</label><input type="date" id="dateOfBirth" class="input-text w-full border border-gray-300 rounded-lg p-2.5 mt-1"></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-phone-alt text-primary text-xs mr-1"></i> Phone (Student) <span class="text-red-500">*</span></label><input type="tel" id="phone" class="input-text w-full border border-gray-300 rounded-lg p-2.5 mt-1" placeholder="+880XXXXXXXXX" required></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-flag text-primary text-xs mr-1"></i> Nationality <span class="text-red-500">*</span></label><select id="nationality" class="input-text w-full border border-gray-300 rounded-lg p-2.5 mt-1" required><option value="">Select</option><option value="Bangladeshi">Bangladeshi</option><option value="Indian">Indian</option><option value="American">American</option></select></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-phone-volume text-primary text-xs mr-1"></i> Telephone (Alt)</label><input type="tel" id="telephone" class="input-text w-full border border-gray-300 rounded-lg p-2.5 mt-1" placeholder="Home phone"></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-city text-primary text-xs mr-1"></i> State/Division <span class="text-red-500">*</span></label><select id="state" class="input-text w-full border border-gray-300 rounded-lg p-2.5 mt-1" required><option value="">Choose State</option><option value="Dhaka">Dhaka</option><option value="Chittagong">Chittagong</option><option value="Rajshahi">Rajshahi</option></select></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-location-dot text-primary text-xs mr-1"></i> District <span class="text-red-500">*</span></label><select id="district" class="input-text w-full border border-gray-300 rounded-lg p-2.5 mt-1" required><option value="">Select State first</option></select></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-droplet text-primary text-xs mr-1"></i> Blood Group</label><select id="bloodGroup" class="input-text w-full border border-gray-300 rounded-lg p-2.5 mt-1"><option value="">Not Specified</option><option value="A+">A+</option><option value="B+">B+</option><option value="O+">O+</option></select></div>
-                        
-                        <!-- Cloudinary Image Upload Section (Replaces file input) -->
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-camera text-primary mr-1"></i> Passport Photo (Max 2MB)</label>
-                            <div class="flex items-center gap-4 flex-wrap">
-                                <img id="imagePreview" src="https://via.placeholder.com/80?text=No+Image" class="image-preview">
-                                <div>
-                                    <button type="button" id="uploadPhotoBtn" class="bg-primary text-white px-4 py-2 rounded-lg text-sm">
-                                        <i class="fas fa-cloud-upload-alt"></i> Upload from Cloudinary
-                                    </button>
-                                    <button type="button" id="removePhotoBtn" class="ml-2 border border-red-300 text-red-600 px-4 py-2 rounded-lg text-sm">
-                                        <i class="fas fa-trash-alt"></i> Remove
-                                    </button>
-                                    <p class="text-xs text-gray-500 mt-2">Supported: JPG, PNG | Max 2MB</p>
+                    <!-- ========== STEP 1 ========== -->
+                    <div id="step-1-content">
+                        <!-- Section: Personal Information -->
+                        <div class="section-title">
+                            <div class="title-icon"><i class="fas fa-user-circle"></i></div>
+                            Personal Information
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-user"></i> Full Name <span class="required">*</span></label>
+                                <input type="text" id="fullName" class="field-input" placeholder="Enter full name" required>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-map-marker-alt"></i> Address <span class="required">*</span></label>
+                                <input type="text" id="address" class="field-input" placeholder="Permanent address" required>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-envelope"></i> Email</label>
+                                <input type="email" id="email" class="field-input" placeholder="student@example.com">
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-venus-mars"></i> Gender <span class="required">*</span></label>
+                                <select id="gender" class="field-select" required>
+                                    <option value="">Select gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-cake-candles"></i> Date of Birth</label>
+                                <input type="date" id="dateOfBirth" class="field-input">
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-phone-alt"></i> Phone (Student) <span class="required">*</span></label>
+                                <input type="tel" id="phone" class="field-input" placeholder="+880XXXXXXXXX" required>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-flag"></i> Nationality <span class="required">*</span></label>
+                                <select id="nationality" class="field-select" required>
+                                    <option value="">Select nationality</option>
+                                    <option value="Bangladeshi">Bangladeshi</option>
+                                    <option value="Indian">Indian</option>
+                                    <option value="American">American</option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-phone-volume"></i> Telephone (Alt)</label>
+                                <input type="tel" id="telephone" class="field-input" placeholder="Home phone">
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-city"></i> State/Division <span class="required">*</span></label>
+                                <select id="state" class="field-select" required>
+                                    <option value="">Choose state</option>
+                                    <option value="Dhaka">Dhaka</option>
+                                    <option value="Chittagong">Chittagong</option>
+                                    <option value="Rajshahi">Rajshahi</option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-location-dot"></i> District <span class="required">*</span></label>
+                                <select id="district" class="field-select" required>
+                                    <option value="">Select state first</option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-droplet"></i> Blood Group</label>
+                                <select id="bloodGroup" class="field-select">
+                                    <option value="">Not specified</option>
+                                    <option value="A+">A+</option>
+                                    <option value="B+">B+</option>
+                                    <option value="O+">O+</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Photo Upload -->
+                        <div class="field-group" style="grid-column: 1 / -1; margin-top: 8px;">
+                            <label class="field-label"><i class="fas fa-camera"></i> Passport Photo <span class="text-xs text-gray-400 font-normal ml-1">(Max 2MB)</span></label>
+                            <div class="upload-section">
+                                <div class="flex items-center gap-4 flex-wrap">
+                                    <img id="imagePreview" src="https://via.placeholder.com/80?text=No+Image" class="image-preview" alt="Preview">
+                                    <div class="flex-1 min-w-[200px]">
+                                        <div class="flex flex-wrap gap-2">
+                                            <button type="button" id="uploadPhotoBtn" class="btn btn-primary btn-sm">
+                                                <i class="fas fa-cloud-upload-alt"></i> Upload Photo
+                                            </button>
+                                            <button type="button" id="removePhotoBtn" class="btn btn-danger-outline btn-sm">
+                                                <i class="fas fa-trash-alt"></i> Remove
+                                            </button>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-2 flex items-center gap-1.5">
+                                            <i class="fas fa-info-circle text-indigo-400"></i>
+                                            Supported: JPG, PNG | Max 2MB
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                             <input type="hidden" id="passportPhotoURL" value="">
                         </div>
                     </div>
 
-                    <!-- Step 2 -->
-                    <div id="step-2-content" class="grid grid-cols-1 md:grid-cols-2 gap-5" style="display: none;">
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-school text-primary text-xs mr-1"></i> Class <span class="text-red-500">*</span></label><select id="class" class="input-text w-full border border-gray-300 rounded-lg p-2.5" required><option value="">Loading classes...</option></select></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-layer-group text-primary text-xs mr-1"></i> Section <span class="text-red-500">*</span></label><select id="section" class="input-text w-full border border-gray-300 rounded-lg p-2.5" required><option value="">Select class first</option></select></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-flask text-primary text-xs mr-1"></i> Group (if applicable)</label><select id="group" class="input-text w-full border border-gray-300 rounded-lg p-2.5"><option value="">None</option><option value="Science">Science</option><option value="Commerce">Commerce</option><option value="Arts">Arts</option></select></div>
-                        <div class="col-span-1 md:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1"><i class="fas fa-users text-primary mr-1"></i> Parent / Guardian Account <span class="text-red-500">*</span>
-                                <button type="button" id="addNewParent" class="ml-3 text-primary text-xs font-medium bg-primary/10 px-3 py-1 rounded-full hover:bg-primary/20 transition"><i class="fas fa-plus-circle mr-1"></i> Create Parent</button>
-                            </label>
-                            <div class="relative">
-                                <input type="text" id="parentSearchInput" class="input-text w-full border border-gray-300 rounded-lg p-2.5 pr-10" placeholder="Search parent by name or phone..." autocomplete="off">
-                                <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                                <div id="parentSuggestDropdown" class="hidden absolute z-50 w-full bg-white border border-gray-200 rounded-xl shadow-xl mt-1 max-h-64 overflow-y-auto"></div>
+                    <!-- ========== STEP 2 ========== -->
+                    <div id="step-2-content" style="display: none;">
+                        <!-- Section: Academic Info -->
+                        <div class="section-title">
+                            <div class="title-icon"><i class="fas fa-graduation-cap"></i></div>
+                            Academic Information
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-school"></i> Class <span class="required">*</span></label>
+                                <select id="class" class="field-select" required>
+                                    <option value="">Loading classes...</option>
+                                </select>
                             </div>
-                            <div id="parent-info-display" class="hidden mt-2 flex items-center gap-2 text-sm bg-green-50 p-2 rounded-lg border border-green-200">
-                                <i class="fas fa-check-circle text-green-600"></i> <span class="text-green-700 font-medium">Selected:</span> 
-                                <strong id="selected-parent-name"></strong> (<span id="selected-parent-phone"></span>)
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-layer-group"></i> Section <span class="required">*</span></label>
+                                <select id="section" class="field-select" required>
+                                    <option value="">Select class first</option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-flask"></i> Group (if applicable)</label>
+                                <select id="group" class="field-select">
+                                    <option value="">None</option>
+                                    <option value="Science">Science</option>
+                                    <option value="Commerce">Commerce</option>
+                                    <option value="Arts">Arts</option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-calendar-week"></i> Year Admitted <span class="required">*</span></label>
+                                <select id="yearAdmitted" class="field-select" required>
+                                    <option value="">Select year</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2024">2024</option>
+                                    <option value="2023">2023</option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-hashtag"></i> Roll Number <span class="text-xs text-gray-400 font-normal ml-1">(optional)</span></label>
+                                <input type="text" id="rollNumber" class="field-input" placeholder="Class roll">
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-id-card"></i> Admission Number</label>
+                                <input type="text" id="admissionNumber" class="field-input" placeholder="Auto/Manual ID">
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-building"></i> Dormitory</label>
+                                <select id="dormitory" class="field-select">
+                                    <option value="">None</option>
+                                    <option value="A-Block">A-Block</option>
+                                    <option value="B-Block">B-Block</option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i class="fas fa-bed"></i> Room No.</label>
+                                <input type="text" id="dormitoryRoomNo" class="field-input" placeholder="Room number">
+                            </div>
+                            <div class="field-group" style="grid-column: 1 / -1;">
+                                <label class="field-label"><i class="fas fa-futbol"></i> Sports House</label>
+                                <input type="text" id="sportHouse" class="field-input" placeholder="House name">
+                            </div>
+                        </div>
+
+                        <!-- Section: Parent / Guardian -->
+                        <div class="section-title">
+                            <div class="title-icon"><i class="fas fa-users"></i></div>
+                            Parent / Guardian
+                            <button type="button" id="addNewParent" class="ml-auto btn btn-primary btn-sm">
+                                <i class="fas fa-plus-circle"></i> Create Parent
+                            </button>
+                        </div>
+
+                        <div class="field-group" style="position: relative;">
+                            <label class="field-label"><i class="fas fa-user-friends"></i> Select Parent Account <span class="required">*</span></label>
+                            <div class="relative">
+                                <input type="text" id="parentSearchInput" class="field-input" style="padding-right: 42px;" placeholder="Search parent by name or phone..." autocomplete="off">
+                                <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
+                                <div id="parentSuggestDropdown" class="hidden absolute z-50 w-full bg-white border-2 border-indigo-100 rounded-xl shadow-2xl mt-1 max-h-64 overflow-y-auto"></div>
+                            </div>
+                            <div id="parent-info-display" class="selected-parent mt-2 hidden">
+                                <i class="fas fa-check-circle text-base"></i>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-xs opacity-80">Selected:</span>
+                                    <strong id="selected-parent-name" class="block truncate"></strong>
+                                    <span id="selected-parent-phone" class="text-xs opacity-80"></span>
+                                </div>
                             </div>
                             <input type="hidden" id="parentIdHidden">
                         </div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-calendar-week text-primary text-xs mr-1"></i> Year Admitted <span class="text-red-500">*</span></label><select id="yearAdmitted" class="input-text w-full border border-gray-300 rounded-lg p-2.5" required><option value="">Select year</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option></select></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-hashtag text-primary text-xs mr-1"></i> Roll Number (optional)</label><input type="text" id="rollNumber" class="input-text w-full border border-gray-300 rounded-lg p-2.5" placeholder="Class roll"></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-id-card text-primary text-xs mr-1"></i> Admission Number</label><input type="text" id="admissionNumber" class="input-text w-full border border-gray-300 rounded-lg p-2.5" placeholder="Auto/Manual ID"></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-building text-primary text-xs mr-1"></i> Dormitory</label><select id="dormitory" class="input-text w-full border border-gray-300 rounded-lg p-2.5"><option value="">None</option><option value="A-Block">A-Block</option><option value="B-Block">B-Block</option></select></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-bed text-primary text-xs mr-1"></i> Room No.</label><input type="text" id="dormitoryRoomNo" placeholder="Room number" class="input-text w-full border border-gray-300 rounded-lg p-2.5"></div>
-                        <div><label class="block text-sm font-semibold text-gray-700"><i class="fas fa-futbol text-primary text-xs mr-1"></i> Sports House</label><input type="text" id="sportHouse" placeholder="House name" class="input-text w-full border border-gray-300 rounded-lg p-2.5"></div>
-                        
-                        <div class="col-span-full mt-2 border-t pt-4">
-                            <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-book-open text-primary mr-1"></i> Subjects</h3>
-                            <div class="grid md:grid-cols-3 gap-4">
-                                <div><span class="text-sm font-medium">Mandatory</span><div id="mandatory-subjects-list" class="mt-1 space-y-1 text-sm"></div></div>
-                                <div><span class="text-sm font-medium">Additional (Electives)</span><div id="additional-subjects-list" class="mt-1 space-y-1 text-sm"></div></div>
-                                <div><label class="text-sm font-medium">Fourth Subject (Optional)</label><select id="fourthSubject" class="input-text w-full mt-1 border rounded-lg p-2"><option value="">Select</option></select></div>
+
+                        <!-- Section: Subjects -->
+                        <div class="section-title">
+                            <div class="title-icon"><i class="fas fa-book-open"></i></div>
+                            Subjects
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="subject-box">
+                                <div class="subject-box-title"><i class="fas fa-check-circle"></i> Mandatory</div>
+                                <div id="mandatory-subjects-list" class="space-y-0.5"></div>
+                            </div>
+                            <div class="subject-box">
+                                <div class="subject-box-title"><i class="fas fa-star"></i> Additional / Electives</div>
+                                <div id="additional-subjects-list" class="space-y-0.5"></div>
+                            </div>
+                            <div class="subject-box">
+                                <div class="subject-box-title"><i class="fas fa-bookmark"></i> Fourth Subject</div>
+                                <select id="fourthSubject" class="field-select" style="margin-top: 4px;">
+                                    <option value="">Select</option>
+                                </select>
                             </div>
                         </div>
                     </div>
 
-                    <div class="flex justify-between items-center mt-8 pt-4 border-t border-gray-100">
-                        <button type="button" id="prev-btn" class="hidden px-5 py-2.5 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition font-medium"><i class="fas fa-arrow-left mr-1"></i> Previous</button>
-                        <div class="flex gap-3 ml-auto">
-                            <button type="button" id="next-btn" class="px-6 py-2.5 bg-primary text-white rounded-xl hover:bg-blue-700 transition shadow-sm font-medium">Next <i class="fas fa-arrow-right ml-1"></i></button>
-                            <button type="submit" id="submit-btn" class="hidden px-6 py-2.5 bg-success text-white rounded-xl hover:bg-green-700 transition font-medium"><i class="fas fa-save mr-1"></i> Submit Admission</button>
+                    <!-- Navigation Buttons -->
+                    <div class="flex flex-col-reverse sm:flex-row justify-between items-center gap-3 mt-8 pt-5 border-t border-gray-100">
+                        <button type="button" id="prev-btn" class="btn btn-ghost hidden w-full sm:w-auto">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </button>
+                        <div class="flex gap-3 w-full sm:w-auto sm:ml-auto">
+                            <button type="button" id="next-btn" class="btn btn-primary flex-1 sm:flex-initial">
+                                Next <i class="fas fa-arrow-right"></i>
+                            </button>
+                            <button type="submit" id="submit-btn" class="btn btn-success hidden flex-1 sm:flex-initial">
+                                <i class="fas fa-save"></i> Submit Admission
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -166,32 +883,85 @@
         </div>
     </div>
 
-    <!-- Parent Modal -->
-    <div id="parent-modal" class="hidden fixed inset-0 z-50 items-center justify-center modal-backdrop p-4 overflow-auto">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-auto my-8 transform transition-all">
-            <div class="p-6 border-b flex justify-between items-center"><h3 class="text-xl font-bold"><i class="fas fa-user-plus text-primary mr-2"></i> Register Parent Account</h3><button onclick="closeParentModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button></div>
-            <form id="parent-form" class="p-6 space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div><label><i class="fas fa-male text-primary mr-1"></i> Father's Name</label><input type="text" id="fatherName" class="input-text w-full border rounded-lg p-2"></div>
-                    <div><label><i class="fas fa-phone-alt text-primary mr-1"></i> Father's Phone</label><input type="tel" id="fatherPhone" class="input-text w-full border rounded-lg p-2"></div>
-                    <div><label><i class="fas fa-female text-primary mr-1"></i> Mother's Name</label><input type="text" id="motherName" class="input-text w-full border rounded-lg p-2"></div>
-                    <div><label><i class="fas fa-phone-alt text-primary mr-1"></i> Mother's Phone</label><input type="tel" id="motherPhone" class="input-text w-full border rounded-lg p-2"></div>
-                </div>
-                <div class="border-t pt-4 mt-2">
-                    <h4 class="font-semibold"><i class="fas fa-user-shield text-primary mr-1"></i> Guardian (Primary Contact)</h4>
-                    <div class="grid sm:grid-cols-2 gap-4 mt-2">
-                        <div><span class="text-red-500">*</span> Guardian Name <input type="text" id="guardianName" required class="input-text w-full border rounded-lg p-2"></div>
-                        <div><span class="text-red-500">*</span> Guardian Phone <input type="tel" id="guardianPhone" required class="input-text w-full border rounded-lg p-2" placeholder="01XXXXXXXXX"></div>
+    <!-- Parent Registration Modal -->
+    <div id="parent-modal" class="hidden fixed inset-0 z-[100001] items-center justify-center modal-backdrop p-4 overflow-auto">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full mx-auto my-8 modal-content ring-1 ring-black/5">
+            <div class="p-5 md:p-6 border-b border-gray-100 flex justify-between items-center rounded-t-3xl"
+                 style="background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+                         style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 6px 16px rgba(99,102,241,0.35);">
+                        <i class="fas fa-user-plus text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">Register Parent Account</h3>
+                        <p class="text-xs text-gray-500">Create a new parent login</p>
                     </div>
                 </div>
-                <div class="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
-                    <i class="fas fa-info-circle mr-1"></i> <strong>Important:</strong> Parent credentials will be auto-generated.<br>
-                    📧 Email: <span class="font-mono" id="sampleEmail">parent_phone@schoolapp.com</span><br>
-                    🔑 Password: <strong>Phone number</strong> (e.g., 017XXXXXXXX)
+                <button onclick="closeParentModal()" class="w-9 h-9 rounded-full hover:bg-white/60 flex items-center justify-center text-gray-500 hover:text-gray-700 transition text-xl flex-shrink-0">&times;</button>
+            </div>
+
+            <form id="parent-form" class="p-5 md:p-6 space-y-5">
+                <!-- Parents Info -->
+                <div>
+                    <h4 class="text-sm font-bold text-indigo-700 mb-3 flex items-center gap-2">
+                        <i class="fas fa-user-friends"></i> Parents Information
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="field-group" style="margin-bottom: 0;">
+                            <label class="field-label"><i class="fas fa-male"></i> Father's Name</label>
+                            <input type="text" id="fatherName" class="field-input" placeholder="Father name">
+                        </div>
+                        <div class="field-group" style="margin-bottom: 0;">
+                            <label class="field-label"><i class="fas fa-phone-alt"></i> Father's Phone</label>
+                            <input type="tel" id="fatherPhone" class="field-input" placeholder="01XXXXXXXXX">
+                        </div>
+                        <div class="field-group" style="margin-bottom: 0;">
+                            <label class="field-label"><i class="fas fa-female"></i> Mother's Name</label>
+                            <input type="text" id="motherName" class="field-input" placeholder="Mother name">
+                        </div>
+                        <div class="field-group" style="margin-bottom: 0;">
+                            <label class="field-label"><i class="fas fa-phone-alt"></i> Mother's Phone</label>
+                            <input type="tel" id="motherPhone" class="field-input" placeholder="01XXXXXXXXX">
+                        </div>
+                    </div>
                 </div>
-                <div class="flex justify-end gap-3 pt-4">
-                    <button type="button" onclick="closeParentModal()" class="px-4 py-2 border rounded-lg"><i class="fas fa-times mr-1"></i> Cancel</button>
-                    <button type="submit" id="saveParentBtn" class="px-5 py-2 bg-primary text-white rounded-lg hover:bg-blue-700"><i class="fas fa-save mr-1"></i> Create Parent & Link</button>
+
+                <!-- Guardian Info -->
+                <div class="pt-4 border-t border-gray-100">
+                    <h4 class="text-sm font-bold text-emerald-700 mb-3 flex items-center gap-2">
+                        <i class="fas fa-user-shield"></i> Guardian (Primary Contact)
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="field-group" style="margin-bottom: 0;">
+                            <label class="field-label"><i class="fas fa-user"></i> Guardian Name <span class="required">*</span></label>
+                            <input type="text" id="guardianName" required class="field-input" placeholder="Guardian name">
+                        </div>
+                        <div class="field-group" style="margin-bottom: 0;">
+                            <label class="field-label"><i class="fas fa-phone"></i> Guardian Phone <span class="required">*</span></label>
+                            <input type="tel" id="guardianPhone" required class="field-input" placeholder="01XXXXXXXXX">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Box -->
+                <div class="info-box">
+                    <i class="fas fa-info-circle text-base"></i>
+                    <div>
+                        <strong>Important:</strong> Parent credentials will be auto-generated.<br>
+                        📧 Email: <code id="sampleEmail">parent_phone@schoolapp.com</code><br>
+                        🔑 Password: <strong>Phone number</strong>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
+                    <button type="button" onclick="closeParentModal()" class="btn btn-ghost w-full sm:w-auto">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" id="saveParentBtn" class="btn btn-primary w-full sm:w-auto">
+                        <i class="fas fa-save"></i> Create Parent & Link
+                    </button>
                 </div>
             </form>
         </div>
@@ -214,15 +984,13 @@
         };
         
         const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-// ✅ Secondary app — used ONLY for creating parent accounts
-// This keeps the admin's auth session intact
-const secondaryApp = initializeApp(firebaseConfig, "Secondary");
-const secondaryAuth = getAuth(secondaryApp);
+        // Secondary app — used ONLY for creating parent accounts
+        const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+        const secondaryAuth = getAuth(secondaryApp);
 
-        // Cloudinary Configuration
         const CLOUDINARY_CLOUD_NAME = "dhvtgzy5x";
         const CLOUDINARY_UPLOAD_PRESET = "Rosenews";
         let cloudinaryWidget = null;
@@ -233,7 +1001,7 @@ const secondaryAuth = getAuth(secondaryApp);
         let allClassesData = [];
         let CURRENT_SESSION = "2025-2026";
         
-        // Initialize Cloudinary Upload Widget
+        // ===== Cloudinary Widget =====
         function initCloudinaryWidget() {
             if (!window.cloudinary) {
                 console.warn("Cloudinary widget not loaded yet");
@@ -244,7 +1012,7 @@ const secondaryAuth = getAuth(secondaryApp);
                 uploadPreset: CLOUDINARY_UPLOAD_PRESET,
                 sources: ['local', 'camera', 'url'],
                 multiple: false,
-                maxFileSize: 2000000, // 2MB
+                maxFileSize: 2000000,
                 clientAllowedFormats: ['jpg', 'jpeg', 'png'],
                 maxImageFileSize: 2000000
             }, (error, result) => {
@@ -270,13 +1038,22 @@ const secondaryAuth = getAuth(secondaryApp);
                     CURRENT_SESSION = "2025-2026";
                 }
                 document.getElementById('current-session-badge').innerHTML = `<i class="fas fa-calendar-alt mr-1"></i>${CURRENT_SESSION}`;
-            } catch(e) { console.warn(e); CURRENT_SESSION = "2025-2026"; document.getElementById('current-session-badge').innerText = CURRENT_SESSION; }
+            } catch(e) { 
+                console.warn(e); 
+                CURRENT_SESSION = "2025-2026"; 
+                document.getElementById('current-session-badge').innerText = CURRENT_SESSION; 
+            }
         }
         
         const step1 = document.getElementById('step-1-content');
         const step2 = document.getElementById('step-2-content');
         const step1Ind = document.getElementById('step-1-indicator');
         const step2Ind = document.getElementById('step-2-indicator');
+        const step1Circle = step1Ind.querySelector('.step-circle');
+        const step2Circle = step2Ind.querySelector('.step-circle');
+        const step1Label = step1Ind.querySelector('.step-label');
+        const step2Label = step2Ind.querySelector('.step-label');
+        const step1Connector = document.getElementById('step-1-connector');
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
         const submitBtn = document.getElementById('submit-btn');
@@ -286,8 +1063,8 @@ const secondaryAuth = getAuth(secondaryApp);
             document.getElementById('message-title').innerText = title;
             document.getElementById('message-content').innerText = content;
             const iconDiv = document.getElementById('msg-icon');
-            iconDiv.className = `flex-shrink-0 rounded-full p-1.5 ${isSuccess ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`;
-            iconDiv.innerHTML = isSuccess ? '<i class="fas fa-check-circle text-xl"></i>' : '<i class="fas fa-exclamation-circle text-xl"></i>';
+            iconDiv.className = `flex-shrink-0 rounded-2xl p-3 ${isSuccess ? 'msg-icon-success' : 'msg-icon-error'}`;
+            iconDiv.innerHTML = isSuccess ? '<i class="fas fa-check-circle text-2xl"></i>' : '<i class="fas fa-exclamation-circle text-2xl"></i>';
             modal.classList.remove('hidden');
             setTimeout(() => { modal.classList.add('hidden'); }, 5000);
         }
@@ -318,7 +1095,10 @@ const secondaryAuth = getAuth(secondaryApp);
                 classSelect.innerHTML = '<option value="">Select Class</option>';
                 classesSnap.forEach(doc => { 
                     allClassesData.push({ id: doc.id, name: doc.data().name, sections: doc.data().sections || [] }); 
-                    const opt = document.createElement('option'); opt.value = doc.id; opt.textContent = doc.data().name; classSelect.appendChild(opt); 
+                    const opt = document.createElement('option'); 
+                    opt.value = doc.id; 
+                    opt.textContent = doc.data().name; 
+                    classSelect.appendChild(opt); 
                 });
             } catch(e) { console.error("Error loading classes:", e); }
         }
@@ -330,7 +1110,12 @@ const secondaryAuth = getAuth(secondaryApp);
             try {
                 const snap = await getDocs(query(collection(db, "sections"), where("classId", "==", classId)));
                 secSelect.innerHTML = '<option value="">Choose Section</option>';
-                snap.forEach(doc => { const opt = document.createElement('option'); opt.value = doc.data().name; opt.textContent = doc.data().name; secSelect.appendChild(opt); });
+                snap.forEach(doc => { 
+                    const opt = document.createElement('option'); 
+                    opt.value = doc.data().name; 
+                    opt.textContent = doc.data().name; 
+                    secSelect.appendChild(opt); 
+                });
             } catch(e) { secSelect.innerHTML = '<option value="">Error loading sections</option>'; }
         }
 
@@ -338,25 +1123,41 @@ const secondaryAuth = getAuth(secondaryApp);
             const additionalDiv = document.getElementById('additional-subjects-list');
             const fourthSelect = document.getElementById('fourthSubject');
             const mandatoryDiv = document.getElementById('mandatory-subjects-list');
-            if (!classId) { additionalDiv.innerHTML = '<div class="text-gray-400 text-xs">Select class</div>'; return; }
+            if (!classId) { 
+                additionalDiv.innerHTML = '<div class="text-gray-400 text-xs py-2">Select class</div>'; 
+                return; 
+            }
             try {
                 const q = query(collection(db, "subjects"), where("classId", "==", classId));
                 const snap = await getDocs(q);
                 additionalDiv.innerHTML = '';
-                mandatoryDiv.innerHTML = `<div class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500 text-xs"></i><span class="text-sm">Bangla (Mandatory)</span></div><div class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500 text-xs"></i><span class="text-sm">English (Mandatory)</span></div>`;
+                mandatoryDiv.innerHTML = `
+                    <div class="subject-item"><i class="fas fa-check-circle text-green-500 text-xs"></i><span>Bangla (Mandatory)</span></div>
+                    <div class="subject-item"><i class="fas fa-check-circle text-green-500 text-xs"></i><span>English (Mandatory)</span></div>
+                `;
                 fourthSelect.innerHTML = '<option value="">None</option>';
                 snap.forEach(doc => {
                     const sub = doc.data();
                     if (sub.type === 'mandatory' && sub.name !== 'Bangla' && sub.name !== 'English') {
-                        const div = document.createElement('div'); div.className = 'flex items-center gap-2'; div.innerHTML = `<input type="checkbox" name="mandatorySubject" value="${sub.name}" checked> <span class="text-sm">${sub.name}</span>`;
+                        const div = document.createElement('div'); 
+                        div.className = 'subject-item'; 
+                        div.innerHTML = `<input type="checkbox" name="mandatorySubject" value="${sub.name}" checked> <span>${sub.name}</span>`;
                         mandatoryDiv.appendChild(div);
                     } else if (sub.type === 'additional') {
-                        const div = document.createElement('div'); div.className = 'flex items-center gap-2'; div.innerHTML = `<input type="checkbox" name="additionalSubject" value="${sub.name}"> <span class="text-sm">${sub.name}</span>`;
+                        const div = document.createElement('div'); 
+                        div.className = 'subject-item'; 
+                        div.innerHTML = `<input type="checkbox" name="additionalSubject" value="${sub.name}"> <span>${sub.name}</span>`;
                         additionalDiv.appendChild(div);
                     } else if (sub.type === 'optional') {
-                        const opt = document.createElement('option'); opt.value = sub.name; opt.textContent = sub.name; fourthSelect.appendChild(opt);
+                        const opt = document.createElement('option'); 
+                        opt.value = sub.name; 
+                        opt.textContent = sub.name; 
+                        fourthSelect.appendChild(opt);
                     }
                 });
+                if (additionalDiv.innerHTML === '') {
+                    additionalDiv.innerHTML = '<div class="text-gray-400 text-xs py-2">No additional subjects</div>';
+                }
             } catch(e) { console.error(e); }
         }
 
@@ -364,7 +1165,10 @@ const secondaryAuth = getAuth(secondaryApp);
             try {
                 const snap = await getDocs(query(collection(db, "parents"), orderBy("guardianName")));
                 allParents = [];
-                snap.forEach(doc => { const d = doc.data(); allParents.push({ id: doc.id, name: d.guardianName, phone: d.guardianPhone, data: d }); });
+                snap.forEach(doc => { 
+                    const d = doc.data(); 
+                    allParents.push({ id: doc.id, name: d.guardianName, phone: d.guardianPhone, data: d }); 
+                });
             } catch(e) { console.error(e); }
         }
 
@@ -373,10 +1177,22 @@ const secondaryAuth = getAuth(secondaryApp);
             let filtered = allParents;
             if (term) filtered = allParents.filter(p => p.name?.toLowerCase().includes(term) || p.phone?.includes(term));
             const dropdown = document.getElementById('parentSuggestDropdown');
-            if (!filtered.length) { dropdown.innerHTML = '<div class="p-3 text-gray-500 text-center">No parents found</div>'; dropdown.classList.remove('hidden'); return; }
+            if (!filtered.length) { 
+                dropdown.innerHTML = '<div class="p-4 text-gray-500 text-center text-sm"><i class="fas fa-search mr-1"></i> No parents found</div>'; 
+                dropdown.classList.remove('hidden'); 
+                return; 
+            }
             dropdown.innerHTML = "";
             filtered.forEach(p => {
-                const div = document.createElement('div'); div.className = "p-3 border-b hover:bg-blue-50 cursor-pointer transition"; div.innerHTML = `<div class="font-medium"><i class="fas fa-user-circle mr-1"></i>${escapeHtml(p.name)}</div><div class="text-xs text-gray-500"><i class="fas fa-phone-alt mr-1"></i>${p.phone}</div>`;
+                const div = document.createElement('div'); 
+                div.className = "parent-dropdown-item"; 
+                div.innerHTML = `
+                    <div class="parent-avatar-sm"><i class="fas fa-user"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <div class="font-semibold text-gray-800 text-sm truncate">${escapeHtml(p.name)}</div>
+                        <div class="text-xs text-gray-500"><i class="fas fa-phone-alt mr-1"></i>${p.phone}</div>
+                    </div>
+                `;
                 div.onclick = () => { selectParent(p); dropdown.classList.add('hidden'); };
                 dropdown.appendChild(div);
             });
@@ -391,89 +1207,132 @@ const secondaryAuth = getAuth(secondaryApp);
             document.getElementById('selected-parent-phone').innerText = parent.phone;
             document.getElementById('parentIdHidden').value = parent.id;
             document.getElementById('parentSuggestDropdown').classList.add('hidden');
+            document.getElementById('parentSearchInput').classList.remove('border-error');
         }
         
-        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+        function escapeHtml(str) { 
+            if(!str) return ''; 
+            return str.replace(/[&<>"]/g, function(m){ 
+                if(m==='&') return '&amp;'; 
+                if(m==='<') return '&lt;'; 
+                if(m==='>') return '&gt;'; 
+                if(m==='"') return '&quot;'; 
+                return m;
+            }); 
+        }
 
-        // Parent creation with phone number as password
+        // ===== Parent Form =====
         document.getElementById('parent-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const gName = document.getElementById('guardianName').value.trim();
-    const gPhone = document.getElementById('guardianPhone').value.trim();
-    if (!gName || !gPhone) { showMsg("Error", "Guardian name & phone required", false); return; }
-    const phoneRegex = /^01[3-9]\d{8}$/;
-    if (!phoneRegex.test(gPhone)) { showMsg("Invalid Phone", "Enter valid Bangladeshi phone number", false); return; }
-    const saveBtn = document.getElementById('saveParentBtn');
-    saveBtn.disabled = true; saveBtn.innerText = "Creating...";
-    try {
-        const loginEmail = generateEmailFromPhone(gPhone);
-        const password = generatePasswordFromPhone(gPhone);
+            e.preventDefault();
+            const gName = document.getElementById('guardianName').value.trim();
+            const gPhone = document.getElementById('guardianPhone').value.trim();
+            if (!gName || !gPhone) { 
+                showMsg("Error", "Guardian name & phone required", false); 
+                return; 
+            }
+            const phoneRegex = /^01[3-9]\d{8}$/;
+            if (!phoneRegex.test(gPhone)) { 
+                showMsg("Invalid Phone", "Enter valid Bangladeshi phone number (e.g., 017XXXXXXXX)", false); 
+                return; 
+            }
+            const saveBtn = document.getElementById('saveParentBtn');
+            saveBtn.disabled = true; 
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            try {
+                const loginEmail = generateEmailFromPhone(gPhone);
+                const password = generatePasswordFromPhone(gPhone);
 
-        // ✅ KEY FIX: Use secondaryAuth instead of auth
-        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, loginEmail, password);
-        const authUid = userCredential.user.uid;
+                const userCredential = await createUserWithEmailAndPassword(secondaryAuth, loginEmail, password);
+                const authUid = userCredential.user.uid;
+                await secondaryAuth.signOut();
 
-        // ✅ Immediately sign out from secondary (cleanup, doesn't affect admin)
-        await secondaryAuth.signOut();
-
-        const parentDoc = {
-            fatherName: document.getElementById('fatherName').value,
-            fatherPhone: document.getElementById('fatherPhone').value,
-            motherName: document.getElementById('motherName').value,
-            motherPhone: document.getElementById('motherPhone').value,
-            guardianName: gName,
-            guardianPhone: gPhone,
-            loginEmail,
-            authUserId: authUid,
-            role: "parent",
-            createdAt: serverTimestamp()
-        };
-        const docRef = await addDoc(collection(db, "parents"), parentDoc);
-        await setDoc(doc(db, "users", authUid), {
-            uid: authUid,
-            email: loginEmail,
-            phone: gPhone,
-            name: gName,
-            role: "parent",
-            parentId: docRef.id,
-            createdAt: serverTimestamp()
+                const parentDoc = {
+                    fatherName: document.getElementById('fatherName').value,
+                    fatherPhone: document.getElementById('fatherPhone').value,
+                    motherName: document.getElementById('motherName').value,
+                    motherPhone: document.getElementById('motherPhone').value,
+                    guardianName: gName,
+                    guardianPhone: gPhone,
+                    loginEmail,
+                    authUserId: authUid,
+                    role: "parent",
+                    createdAt: serverTimestamp()
+                };
+                const docRef = await addDoc(collection(db, "parents"), parentDoc);
+                await setDoc(doc(db, "users", authUid), {
+                    uid: authUid,
+                    email: loginEmail,
+                    phone: gPhone,
+                    name: gName,
+                    role: "parent",
+                    parentId: docRef.id,
+                    createdAt: serverTimestamp()
+                });
+                await loadParentsList();
+                selectParent({ id: docRef.id, name: gName, phone: gPhone });
+                showMsg("Parent Created!", `Email: ${loginEmail} | Password: ${password}`, true);
+                closeParentModal();
+                document.getElementById('parent-form').reset();
+            } catch(err) {
+                showMsg("Creation Failed", err.message, false);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Create Parent & Link';
+            }
         });
-        await loadParentsList();
-        selectParent({ id: docRef.id, name: gName, phone: gPhone });
-        showMsg("Parent Created!", `Email: ${loginEmail} | Password: ${password}`, true);
-        closeParentModal();
-        document.getElementById('parent-form').reset();
-    } catch(err) {
-        showMsg("Creation Failed", err.message, false);
-    } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerText = "Create Parent & Link";
-    }
-});
 
-        // SUBMIT: Save student under current_session/classes/students with Cloudinary image URL
+        // ===== Admission Form Submit =====
         document.getElementById('admission-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!selectedParentObj.id) { showMsg("Missing Parent", "Select or create parent account.", false); return; }
-            if (!document.getElementById('class').value || !document.getElementById('section').value) { showMsg("Incomplete", "Class & section required", false); return; }
-            submitBtn.disabled = true; submitBtn.innerText = "Submitting...";
+            if (!selectedParentObj.id) { 
+                showMsg("Missing Parent", "Select or create parent account.", false); 
+                return; 
+            }
+            if (!document.getElementById('class').value || !document.getElementById('section').value) { 
+                showMsg("Incomplete", "Class & section required", false); 
+                return; 
+            }
+            submitBtn.disabled = true; 
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
             try {
-                const photoURL = document.getElementById('passportPhotoURL').value; // From Cloudinary
+                const photoURL = document.getElementById('passportPhotoURL').value;
                 const mandatory = Array.from(document.querySelectorAll('input[name="mandatorySubject"]:checked')).map(cb => cb.value);
                 const additional = Array.from(document.querySelectorAll('input[name="additionalSubject"]:checked')).map(cb => cb.value);
-                const fourth = document.getElementById('fourthSubject').value; if(fourth) additional.push(fourth);
+                const fourth = document.getElementById('fourthSubject').value; 
+                if(fourth) additional.push(fourth);
                 const classId = document.getElementById('class').value;
                 const className = document.querySelector('#class option:checked')?.textContent || '';
                 const section = document.getElementById('section').value;
                 
                 const studentPayload = {
-                    fullName: document.getElementById('fullName').value, address: document.getElementById('address').value, email: document.getElementById('email').value, gender: document.getElementById('gender').value,
-                    dateOfBirth: document.getElementById('dateOfBirth').value, phone: document.getElementById('phone').value, nationality: document.getElementById('nationality').value, telephone: document.getElementById('telephone').value,
-                    state: document.getElementById('state').value, district: document.getElementById('district').value, bloodGroup: document.getElementById('bloodGroup').value, passportPhotoURL: photoURL,
-                    classId, className, section, group: document.getElementById('group').value, parentID: selectedParentObj.id, parentName: selectedParentObj.name, parentPhone: selectedParentObj.phone,
-                    yearAdmitted: document.getElementById('yearAdmitted').value, rollNumber: document.getElementById('rollNumber').value, admissionNumber: document.getElementById('admissionNumber').value,
-                    dormitory: document.getElementById('dormitory').value, dormitoryRoomNo: document.getElementById('dormitoryRoomNo').value, sportHouse: document.getElementById('sportHouse').value,
-                    mandatorySubjects: mandatory, additionalSubjects: additional, session: CURRENT_SESSION, createdAt: serverTimestamp(), status: 'active'
+                    fullName: document.getElementById('fullName').value, 
+                    address: document.getElementById('address').value, 
+                    email: document.getElementById('email').value, 
+                    gender: document.getElementById('gender').value,
+                    dateOfBirth: document.getElementById('dateOfBirth').value, 
+                    phone: document.getElementById('phone').value, 
+                    nationality: document.getElementById('nationality').value, 
+                    telephone: document.getElementById('telephone').value,
+                    state: document.getElementById('state').value, 
+                    district: document.getElementById('district').value, 
+                    bloodGroup: document.getElementById('bloodGroup').value, 
+                    passportPhotoURL: photoURL,
+                    classId, className, section, 
+                    group: document.getElementById('group').value, 
+                    parentID: selectedParentObj.id, 
+                    parentName: selectedParentObj.name, 
+                    parentPhone: selectedParentObj.phone,
+                    yearAdmitted: document.getElementById('yearAdmitted').value, 
+                    rollNumber: document.getElementById('rollNumber').value, 
+                    admissionNumber: document.getElementById('admissionNumber').value,
+                    dormitory: document.getElementById('dormitory').value, 
+                    dormitoryRoomNo: document.getElementById('dormitoryRoomNo').value, 
+                    sportHouse: document.getElementById('sportHouse').value,
+                    mandatorySubjects: mandatory, 
+                    additionalSubjects: additional, 
+                    session: CURRENT_SESSION, 
+                    createdAt: serverTimestamp(), 
+                    status: 'active'
                 };
                 
                 const sessionStudentsRef = collection(db, `current_session/${CURRENT_SESSION}/classes/${classId}/students`);
@@ -501,48 +1360,140 @@ const secondaryAuth = getAuth(secondaryApp);
                 document.getElementById('passportPhotoURL').value = '';
                 document.getElementById('parent-info-display').classList.add('hidden'); 
                 document.getElementById('parentSearchInput').value = ''; 
+                document.getElementById('mandatory-subjects-list').innerHTML = '';
+                document.getElementById('additional-subjects-list').innerHTML = '';
                 selectedParentObj = { id: "", name: "", phone: "" }; 
-                currentStep = 1; updateStepUI();
-            } catch (err) { showMsg("Submit Error", err.message, false); } finally { submitBtn.disabled = false; submitBtn.innerText = "✓ Submit Admission"; }
+                currentStep = 1; 
+                updateStepUI();
+            } catch (err) { 
+                showMsg("Submit Error", err.message, false); 
+            } finally { 
+                submitBtn.disabled = false; 
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Submit Admission'; 
+            }
         });
 
         function validateStep(step) {
-            if(step === 1) { let ok = true; ['fullName','address','gender','phone','nationality','state','district'].forEach(id => { if(!document.getElementById(id).value.trim()) { document.getElementById(id).classList.add('border-error'); ok=false; } else document.getElementById(id).classList.remove('border-error'); }); return ok; }
-            if(step === 2) { let ok = !!document.getElementById('class').value && !!document.getElementById('section').value && !!selectedParentObj.id; if(!ok && !selectedParentObj.id) document.getElementById('parentSearchInput').classList.add('border-error'); else document.getElementById('parentSearchInput').classList.remove('border-error'); return ok; }
+            if(step === 1) { 
+                let ok = true; 
+                ['fullName','address','gender','phone','nationality','state','district'].forEach(id => { 
+                    const el = document.getElementById(id);
+                    if(!el.value.trim()) { 
+                        el.classList.add('border-error'); 
+                        ok=false; 
+                    } else {
+                        el.classList.remove('border-error'); 
+                    }
+                }); 
+                return ok; 
+            }
+            if(step === 2) { 
+                let ok = !!document.getElementById('class').value && 
+                        !!document.getElementById('section').value && 
+                        !!selectedParentObj.id; 
+                if(!selectedParentObj.id) {
+                    document.getElementById('parentSearchInput').classList.add('border-error');
+                } else {
+                    document.getElementById('parentSearchInput').classList.remove('border-error');
+                }
+                return ok; 
+            }
             return true;
         }
         
         function updateStepUI() {
-            step1.style.display = 'none'; step2.style.display = 'none';
-            step1Ind.classList.remove('active','complete'); step2Ind.classList.remove('active','complete');
-            prevBtn.classList.add('hidden'); nextBtn.classList.add('hidden'); submitBtn.classList.add('hidden');
-            if(currentStep===1) { step1.style.display = 'grid'; step1Ind.classList.add('active'); nextBtn.classList.remove('hidden'); } 
-            else { step2.style.display = 'grid'; step1Ind.classList.add('complete'); step2Ind.classList.add('active'); prevBtn.classList.remove('hidden'); submitBtn.classList.remove('hidden'); }
+            step1.style.display = 'none'; 
+            step2.style.display = 'none';
+            
+            step1Circle.classList.remove('active','complete'); 
+            step2Circle.classList.remove('active','complete');
+            step1Label.classList.remove('active','complete');
+            step2Label.classList.remove('active','complete');
+            step1Connector.classList.remove('complete');
+            
+            prevBtn.classList.add('hidden'); 
+            nextBtn.classList.add('hidden'); 
+            submitBtn.classList.add('hidden');
+            
+            if(currentStep===1) { 
+                step1.style.display = 'block'; 
+                step1Circle.classList.add('active'); 
+                step1Label.classList.add('active');
+                nextBtn.classList.remove('hidden'); 
+            } else { 
+                step2.style.display = 'block'; 
+                step1Circle.classList.add('complete'); 
+                step1Label.classList.add('complete');
+                step2Circle.classList.add('active'); 
+                step2Label.classList.add('active');
+                step1Connector.classList.add('complete');
+                prevBtn.classList.remove('hidden'); 
+                submitBtn.classList.remove('hidden'); 
+            }
         }
         
-        nextBtn.onclick = () => { if(validateStep(1)) { currentStep=2; updateStepUI(); } else showMsg("Missing Fields", "Fill all required fields in Personal Data", false); };
-        prevBtn.onclick = () => { currentStep=1; updateStepUI(); };
-        
-        document.getElementById('class').addEventListener('change', async (e) => { await loadSections(e.target.value); await loadSubjects(e.target.value); });
-        document.getElementById('state').addEventListener('change', (e) => { const distSelect = document.getElementById('district'); distSelect.innerHTML = '<option value="">Select District</option>'; if(e.target.value==='Dhaka') ['Dhaka North','Dhaka South','Gazipur'].forEach(d=>{let o=document.createElement('option'); o.value=d; o.text=d; distSelect.appendChild(o);}); else if(e.target.value==='Chittagong') ['Chittagong City','Cox\'s Bazar','Feni'].forEach(d=>{let o=document.createElement('option'); o.value=d; o.text=d; distSelect.appendChild(o);}); else if(e.target.value==='Rajshahi') ['Rajshahi City','Natore','Bogra'].forEach(d=>{let o=document.createElement('option'); o.value=d; o.text=d; distSelect.appendChild(o);}); });
-        
-        // Cloudinary button handlers
-        document.getElementById('uploadPhotoBtn').addEventListener('click', () => {
-            if (cloudinaryWidget) {
-                cloudinaryWidget.open();
+        nextBtn.onclick = () => { 
+            if(validateStep(1)) { 
+                currentStep=2; 
+                updateStepUI(); 
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
-                showMsg("Widget Error", "Cloudinary widget not initialized. Please refresh.", false);
+                showMsg("Missing Fields", "Please fill all required fields in Personal Info", false); 
+            }
+        };
+        prevBtn.onclick = () => { 
+            currentStep=1; 
+            updateStepUI(); 
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+        
+        document.getElementById('class').addEventListener('change', async (e) => { 
+            await loadSections(e.target.value); 
+            await loadSubjects(e.target.value); 
+        });
+        
+        document.getElementById('state').addEventListener('change', (e) => { 
+            const distSelect = document.getElementById('district'); 
+            distSelect.innerHTML = '<option value="">Select District</option>'; 
+            if(e.target.value==='Dhaka') {
+                ['Dhaka North','Dhaka South','Gazipur'].forEach(d=>{let o=document.createElement('option'); o.value=d; o.text=d; distSelect.appendChild(o);});
+            } else if(e.target.value==='Chittagong') {
+                ['Chittagong City',"Cox's Bazar",'Feni'].forEach(d=>{let o=document.createElement('option'); o.value=d; o.text=d; distSelect.appendChild(o);});
+            } else if(e.target.value==='Rajshahi') {
+                ['Rajshahi City','Natore','Bogra'].forEach(d=>{let o=document.createElement('option'); o.value=d; o.text=d; distSelect.appendChild(o);});
             }
         });
+        
+        document.getElementById('uploadPhotoBtn').addEventListener('click', () => {
+            if (cloudinaryWidget) cloudinaryWidget.open();
+            else showMsg("Widget Error", "Cloudinary widget not initialized. Please refresh.", false);
+        });
+        
         document.getElementById('removePhotoBtn').addEventListener('click', () => {
             document.getElementById('imagePreview').src = 'https://via.placeholder.com/80?text=No+Image';
             document.getElementById('passportPhotoURL').value = '';
             showMsg("Image Removed", "Photo has been removed", true);
         });
         
-        document.getElementById('parentSearchInput').addEventListener('input', (e)=>{ if(e.target.value.length>0) renderParentDropdown(e.target.value); else document.getElementById('parentSuggestDropdown').classList.add('hidden'); });
+        document.getElementById('parentSearchInput').addEventListener('input', (e)=>{ 
+            if(e.target.value.length>0) renderParentDropdown(e.target.value); 
+            else document.getElementById('parentSuggestDropdown').classList.add('hidden'); 
+        });
+        
         document.getElementById('addNewParent').addEventListener('click',()=>document.getElementById('parent-modal').classList.remove('hidden'));
-        document.addEventListener('click',(e)=>{ if(!document.getElementById('parentSearchInput').contains(e.target) && !document.getElementById('parentSuggestDropdown').contains(e.target)) document.getElementById('parentSuggestDropdown').classList.add('hidden'); });
+        
+        document.addEventListener('click',(e)=>{ 
+            if(!document.getElementById('parentSearchInput').contains(e.target) && 
+               !document.getElementById('parentSuggestDropdown').contains(e.target)) {
+                document.getElementById('parentSuggestDropdown').classList.add('hidden'); 
+            }
+        });
+        
+        // Update sample email preview
+        document.getElementById('guardianPhone').addEventListener('input', (e) => {
+            const phone = e.target.value.replace(/[^0-9]/g, '');
+            document.getElementById('sampleEmail').innerText = phone ? `parent_${phone.slice(-10)}@schoolapp.com` : 'parent_phone@schoolapp.com';
+        });
         
         (async () => { 
             await loadCurrentSession();
