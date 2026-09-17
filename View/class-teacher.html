@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#6366f1">
     <title>শিক্ষক-বিষয় ব্যবস্থাপক | ক্লাস নির্ধারণ</title>
-    <!-- Tailwind + Font Awesome + Google Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '#3b82f6',
+                        primary: '#6366f1',
+                        primaryDark: '#4f46e5',
+                        primaryLight: '#818cf8',
                         secondary: '#64748b',
                         success: '#10b981',
                         warning: '#f59e0b',
@@ -21,91 +23,195 @@
                         indigo: '#6366f1'
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif']
+                        sans: ['Inter', 'Hind Siliguri', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'soft': '0 2px 12px rgba(0,0,0,0.06)',
+                        'card': '0 4px 24px rgba(15,23,42,0.07)',
+                        'cardHover': '0 12px 40px rgba(15,23,42,0.12)',
+                        'glow': '0 0 0 3px rgba(99,102,241,0.15), 0 8px 24px rgba(99,102,241,0.18)'
                     }
                 }
             }
         }
     </script>
     <style>
-        body { background: #f1f5f9; font-family: 'Inter', sans-serif; }
-        .card-hover { transition: all 0.2s ease; }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --radius: 18px;
+            --radius-sm: 14px;
+            --radius-xs: 10px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { 
+            -webkit-tap-highlight-color: transparent; 
+            box-sizing: border-box;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+
+        body { 
+            background: var(--bg); 
+            font-family: 'Inter', 'Hind Siliguri', sans-serif;
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(99,102,241,0.06) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(139,92,246,0.05) 0%, transparent 40%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        /* ========== SCROLLBAR ========== */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* ========== CARDS & HOVER ========== */
+        .card-hover { transition: var(--transition); }
+        .card-hover:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(15,23,42,0.1); }
+
+        /* ========== RESPONSIVE TABLE ========== */
         .responsive-table { display: table; width: 100%; }
+        
         @media (max-width: 768px) {
             .responsive-table thead { display: none; }
             .responsive-table tbody tr { 
                 display: block; 
-                margin-bottom: 1rem; 
-                border: 1px solid #e2e8f0; 
-                border-radius: 1rem; 
+                margin-bottom: 0.85rem; 
+                border: 1px solid var(--border); 
+                border-radius: var(--radius-sm); 
                 background: white;
-                padding: 0.75rem;
+                padding: 0.5rem 0.85rem;
+                box-shadow: 0 2px 8px rgba(15,23,42,0.04);
+                transition: var(--transition);
+                position: relative;
+                overflow: hidden;
+            }
+            .responsive-table tbody tr::before {
+                content: '';
+                position: absolute;
+                left: 0; top: 0; bottom: 0;
+                width: 4px;
+                background: linear-gradient(180deg, var(--primary), #8b5cf6);
+                opacity: 0.7;
             }
             .responsive-table tbody td { 
                 display: flex; 
                 justify-content: space-between; 
                 align-items: center;
-                padding: 0.6rem 0.5rem;
-                border-bottom: 1px solid #f1f5f9;
+                padding: 0.75rem 0.5rem;
+                border-bottom: 1px dashed #f1f5f9;
                 text-align: right;
+                gap: 12px;
+                min-height: 48px;
             }
-            .responsive-table tbody td:last-child { border-bottom: none; }
+            .responsive-table tbody td:last-child { 
+                border-bottom: none; 
+                padding-top: 0.9rem;
+                padding-bottom: 0.5rem;
+                justify-content: flex-end;
+            }
+            .responsive-table tbody td:last-child::before { 
+                display: none;
+            }
             .responsive-table tbody td::before { 
                 content: attr(data-label); 
-                font-weight: 600; 
+                font-weight: 700; 
                 text-align: left;
-                color: #334155;
-                font-size: 0.8rem;
-                flex: 1;
+                color: #475569;
+                font-size: 0.75rem;
+                flex-shrink: 0;
+                text-transform: uppercase;
+                letter-spacing: 0.4px;
+                min-width: 90px;
             }
-            .responsive-table tbody td .content-right { text-align: right; }
-            .action-btns-mobile { justify-content: flex-end; }
-        }
-        .modal-backdrop { backdrop-filter: blur(3px); background-color: rgba(0,0,0,0.5); }
-        .teacher-suggestion { transition: 0.1s; cursor: pointer; }
-        .teacher-suggestion:hover { background: #eef2ff; }
-        .subject-row-mobile { transition: all 0.15s; }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
-        .suggestions-highlight {
-            border: 1px solid #3b82f6;
-            box-shadow: 0 2px 8px rgba(59,130,246,0.2);
         }
 
-        /* ====== Custom Dropdown Styles ====== */
-        .custom-dropdown-wrapper {
-            position: relative;
-            width: 100%;
+        /* ========== MODAL ========== */
+        .modal-backdrop { 
+            backdrop-filter: blur(6px); 
+            -webkit-backdrop-filter: blur(6px);
+            background-color: rgba(15,23,42,0.55); 
+            animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .modal-content {
+            animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ========== TEACHER SUGGESTIONS ========== */
+        .teacher-suggestion { transition: 0.15s ease; cursor: pointer; }
+        .teacher-suggestion:hover { background: #eef2ff; }
+        .teacher-suggestion:active { transform: scale(0.98); }
+
+        /* ========== TOAST ========== */
+        #toast { animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ========== GRADIENT TEXT ========== */
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ========== CUSTOM DROPDOWN ========== */
+        .custom-dropdown-wrapper { 
+            position: relative; 
+            width: 100%; 
+            z-index: 50;
         }
 
         .custom-dropdown-trigger {
             width: 100%;
-            padding: 14px 48px 14px 16px;
+            padding: 15px 52px 15px 18px;
             border: 2px solid #e5e7eb;
-            border-radius: 14px;
+            border-radius: var(--radius);
             background: white;
             font-size: 0.95rem;
             font-weight: 500;
             color: #1f2937;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: var(--transition);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             user-select: none;
             position: relative;
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            min-height: 58px;
         }
 
         .custom-dropdown-trigger:hover {
-            border-color: #93c5fd;
-            box-shadow: 0 4px 12px rgba(59,130,246,0.1);
+            border-color: #a5b4fc;
+            box-shadow: 0 4px 16px rgba(99,102,241,0.12);
         }
 
         .custom-dropdown-trigger.active {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.15), 0 4px 16px rgba(59,130,246,0.12);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.15), 0 4px 20px rgba(99,102,241,0.15);
         }
 
         .custom-dropdown-trigger .trigger-icon {
@@ -113,65 +219,89 @@
             right: 16px;
             top: 50%;
             transform: translateY(-50%);
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
             background: linear-gradient(135deg, #eff6ff, #e0e7ff);
-            border-radius: 8px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            color: #3b82f6;
-            font-size: 0.75rem;
+            border-radius: 9px;
+            transition: var(--transition);
+            color: var(--primary);
+            font-size: 0.8rem;
         }
 
         .custom-dropdown-trigger.active .trigger-icon {
             transform: translateY(-50%) rotate(180deg);
-            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
             color: white;
         }
 
         .custom-dropdown-trigger .placeholder-text {
             color: #9ca3af;
-            font-weight: 400;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .custom-dropdown-trigger .placeholder-text i {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            border-radius: 10px;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            flex-shrink: 0;
         }
 
         .custom-dropdown-trigger .selected-text {
-            color: #1f2937;
-            font-weight: 600;
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 0.95rem;
         }
 
         .custom-dropdown-trigger .selected-icon {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 10px;
-            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+            box-shadow: 0 3px 10px rgba(99,102,241,0.35);
         }
 
+        /* ========== DROPDOWN PANEL (Appended to body when open) ========== */
         .custom-dropdown-panel {
             position: absolute;
-            top: calc(100% + 8px);
+            top: calc(100% + 10px);
             left: 0;
             right: 0;
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(59,130,246,0.08);
-            z-index: 999;
+            border-radius: var(--radius);
+            box-shadow: 0 24px 64px rgba(15,23,42,0.2), 0 0 0 1px rgba(99,102,241,0.08);
+            z-index: 99999;
             opacity: 0;
             visibility: hidden;
             transform: translateY(-12px) scale(0.97);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.2s;
             overflow: hidden;
-            max-height: 340px;
+            max-height: 380px;
             display: flex;
             flex-direction: column;
+        }
+
+        /* When appended to body via JS */
+        .custom-dropdown-panel.body-attached {
+            position: fixed !important;
+            z-index: 99999 !important;
         }
 
         .custom-dropdown-panel.open {
@@ -181,56 +311,51 @@
         }
 
         .dropdown-panel-header {
-            padding: 14px 16px 10px;
-            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            padding: 14px 16px 12px;
+            background: linear-gradient(135deg, #f8fafc, #eef2ff);
             border-bottom: 1px solid #e2e8f0;
             flex-shrink: 0;
         }
 
         .dropdown-search-input {
             width: 100%;
-            padding: 10px 14px 10px 38px;
+            padding: 11px 14px 11px 42px;
             border: 2px solid #e2e8f0;
-            border-radius: 10px;
+            border-radius: 11px;
             font-size: 0.875rem;
             color: #1f2937;
             background: white;
-            transition: all 0.2s ease;
+            transition: var(--transition);
             outline: none;
+            font-family: inherit;
         }
 
         .dropdown-search-input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
         }
-
         .dropdown-search-input::placeholder { color: #94a3b8; }
-
         .dropdown-search-wrapper { position: relative; }
-
         .dropdown-search-icon {
             position: absolute;
-            left: 12px;
+            left: 14px;
             top: 50%;
             transform: translateY(-50%);
             color: #94a3b8;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             pointer-events: none;
         }
 
         .dropdown-options-list {
             overflow-y: auto;
-            padding: 6px;
+            padding: 8px;
             flex: 1;
+            min-height: 60px;
         }
-
-        .dropdown-options-list::-webkit-scrollbar { width: 5px; }
-        .dropdown-options-list::-webkit-scrollbar-track { background: transparent; }
-        .dropdown-options-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
         .dropdown-option {
             padding: 12px 14px;
-            border-radius: 10px;
+            border-radius: 11px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -240,45 +365,31 @@
             font-weight: 500;
             color: #374151;
             position: relative;
+            margin-bottom: 2px;
         }
 
         .dropdown-option:hover, .dropdown-option.highlighted {
-            background: linear-gradient(135deg, #eff6ff, #e0e7ff);
-            color: #1e40af;
-        }
-
-        .dropdown-option:active { transform: scale(0.98); }
-
-        .dropdown-option.selected {
-            background: linear-gradient(135deg, #3b82f6, #6366f1);
-            color: white;
-            box-shadow: 0 4px 12px rgba(59,130,246,0.3);
-        }
-
-        .dropdown-option.selected:hover { background: linear-gradient(135deg, #2563eb, #4f46e5); }
-
-        .dropdown-option .option-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            flex-shrink: 0;
-            background: linear-gradient(135deg, #f0f4ff, #dde4f8);
-            color: #4f46e5;
-            transition: all 0.15s ease;
-        }
-
-        .dropdown-option:hover .option-icon, .dropdown-option.highlighted .option-icon {
-            background: linear-gradient(135deg, #c7d2fe, #a5b4fc);
+            background: linear-gradient(135deg, #eef2ff, #e0e7ff);
             color: #3730a3;
         }
 
-        .dropdown-option.selected .option-icon {
-            background: rgba(255,255,255,0.25);
+        .dropdown-option.selected {
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
             color: white;
+            box-shadow: 0 6px 16px rgba(99,102,241,0.35);
+        }
+
+        .dropdown-option .option-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            color: white;
+            box-shadow: 0 2px 6px rgba(99,102,241,0.2);
         }
 
         .dropdown-option .option-check {
@@ -292,108 +403,334 @@
             font-size: 0.65rem;
             opacity: 0;
             transform: scale(0.5);
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
             background: rgba(255,255,255,0.3);
             color: white;
+            flex-shrink: 0;
         }
-
         .dropdown-option.selected .option-check { opacity: 1; transform: scale(1); }
-        .dropdown-option .option-label { flex: 1; }
+        .dropdown-option .option-label { flex: 1; min-width: 0; }
 
         .dropdown-no-results {
-            padding: 24px 16px;
+            padding: 30px 16px;
             text-align: center;
             color: #9ca3af;
             font-size: 0.875rem;
         }
-
-        .dropdown-no-results i { font-size: 1.5rem; display: block; margin-bottom: 8px; color: #d1d5db; }
+        .dropdown-no-results i { font-size: 1.8rem; display: block; margin-bottom: 10px; color: #d1d5db; }
 
         .dropdown-panel-footer {
-            padding: 8px 14px;
+            padding: 10px 16px;
             background: #f8fafc;
             border-top: 1px solid #e2e8f0;
             font-size: 0.75rem;
             color: #94a3b8;
             text-align: center;
             flex-shrink: 0;
+            font-weight: 500;
+        }
+
+        /* ========== BUTTONS ========== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            border-radius: var(--radius-xs);
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .btn:active { transform: scale(0.97); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 8px 24px rgba(99,102,241,0.45);
+            transform: translateY(-2px);
+        }
+
+        /* ========== BADGE ========== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+        .badge-primary {
+            background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+            color: var(--primary-dark);
+            border: 1px solid #c7d2fe;
+        }
+
+        /* ========== ANIMATIONS ========== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
+
+        /* ========== EMPTY STATE ========== */
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: #94a3b8;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #c7d2fe, #ddd6fe);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ========== HEADER BRAND ICON ========== */
+        .brand-icon-wrapper {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 22px;
+            flex-shrink: 0;
+            box-shadow: 0 8px 24px rgba(99,102,241,0.35);
+        }
+
+        .filter-icon-wrapper {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #e0e7ff, #ddd6fe);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6366f1;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+
+        .list-icon-wrapper {
+            width: 44px;
+            height: 44px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            flex-shrink: 0;
+            box-shadow: 0 6px 16px rgba(99,102,241,0.3);
+        }
+
+        .modal-header-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .modal-header-icon.indigo {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            box-shadow: 0 6px 16px rgba(99,102,241,0.35);
+        }
+        .modal-header-icon.blue {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            box-shadow: 0 6px 16px rgba(59,130,246,0.35);
+        }
+        .modal-header-icon.red {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 6px 16px rgba(239,68,68,0.35);
+        }
+
+        /* ========== MOBILE OPTIMIZATIONS ========== */
+        @media (max-width: 640px) {
+            .custom-dropdown-trigger {
+                padding: 12px 46px 12px 14px;
+                font-size: 0.875rem;
+                border-radius: var(--radius-sm);
+                min-height: 54px;
+            }
+            .custom-dropdown-trigger .trigger-icon { 
+                width: 28px; 
+                height: 28px; 
+                right: 10px; 
+                font-size: 0.7rem;
+            }
+            .custom-dropdown-trigger .selected-icon { 
+                width: 32px; 
+                height: 32px; 
+                font-size: 0.75rem; 
+            }
+            .custom-dropdown-trigger .placeholder-text i {
+                width: 30px;
+                height: 30px;
+                font-size: 0.75rem;
+            }
+            .dropdown-option { padding: 10px 12px; font-size: 0.85rem; }
+            .dropdown-option .option-icon { width: 34px; height: 34px; font-size: 0.75rem; }
+
+            .brand-icon-wrapper {
+                width: 44px;
+                height: 44px;
+                border-radius: 14px;
+                font-size: 18px;
+            }
+            .filter-icon-wrapper {
+                width: 34px;
+                height: 34px;
+                border-radius: 10px;
+                font-size: 13px;
+            }
+            .list-icon-wrapper {
+                width: 38px;
+                height: 38px;
+                border-radius: 11px;
+                font-size: 14px;
+            }
+            .modal-header-icon {
+                width: 38px;
+                height: 38px;
+                border-radius: 12px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .custom-dropdown-trigger .selected-text { font-size: 0.85rem; }
+            .custom-dropdown-trigger .placeholder-text { font-size: 0.85rem; }
         }
     </style>
 </head>
-<body class="min-h-screen p-3 md:p-6">
+<body class="min-h-screen p-3 md:p-6 lg:p-8">
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed top-4 right-4 left-4 md:left-auto z-50 hidden transition-all duration-300 max-w-sm mx-auto md:mx-0">
-        <div class="bg-white rounded-xl shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success">
-            <i id="toast-icon" class="fas fa-check-circle text-success text-lg"></i>
-            <p id="toast-text" class="text-gray-700 text-sm font-medium flex-1">Success</p>
-            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    <div id="toast" class="fixed top-4 right-4 left-4 md:left-auto z-[100000] hidden transition-all duration-300 max-w-sm mx-auto md:mx-0">
+        <div id="toastContainer" class="bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-success ring-1 ring-black/5">
+            <div class="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                <i id="toast-icon" class="fas fa-check-circle text-success text-base"></i>
+            </div>
+            <p id="toast-text" class="text-gray-700 text-sm font-semibold flex-1">Success</p>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600 transition p-1 flex-shrink-0"><i class="fas fa-times text-sm"></i></button>
         </div>
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 transition-all">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-auto p-6">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                    <i class="fas fa-trash-alt text-danger"></i>
+    <div id="deleteModal" class="hidden fixed inset-0 z-[100001] flex items-center justify-center modal-backdrop p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full mx-auto p-6 modal-content ring-1 ring-black/5">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="modal-header-icon red">
+                    <i class="fas fa-trash-alt"></i>
                 </div>
-                <h3 class="text-lg font-bold text-gray-800">নিশ্চিত করুন</h3>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">নিশ্চিত করুন</h3>
+                    <p class="text-xs text-gray-400">এই কাজটি স্থায়ী</p>
+                </div>
             </div>
-            <p class="text-gray-600 mb-2">আপনি কি <strong id="deleteItemName"></strong> ডিলিট করতে চান?</p>
-            <p class="text-sm text-gray-500 mb-5">এই কাজ পূর্বাবস্থায় ফেরানো যাবে না।</p>
+            <p class="text-gray-600 mb-3 text-sm leading-relaxed">আপনি কি <strong id="deleteItemName" class="text-gray-900"></strong> ডিলিট করতে চান?</p>
+            <p class="text-xs text-gray-500 mb-6 bg-red-50 p-3 rounded-xl border border-red-100 flex items-start gap-2">
+                <i class="fas fa-exclamation-triangle text-red-500 mt-0.5 flex-shrink-0"></i>
+                <span>এই কাজ পূর্বাবস্থায় ফেরানো যাবে না।</span>
+            </p>
             <div class="flex justify-end gap-3">
-                <button id="cancelDelete" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">বাতিল</button>
-                <button id="confirmDelete" class="px-4 py-2 bg-danger text-white rounded-lg hover:bg-red-700 transition">মুছুন</button>
+                <button id="cancelDelete" class="px-5 py-2.5 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition font-semibold text-sm text-gray-700">বাতিল</button>
+                <button id="confirmDelete" class="px-5 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition font-semibold text-sm shadow-lg shadow-red-500/30 inline-flex items-center gap-2">
+                    <i class="fas fa-trash-alt text-xs"></i> মুছুন
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Class Form Modal (Add/Edit) -->
-    <div id="classModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-auto">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full">
-            <div class="p-5 border-b flex justify-between items-center">
-                <h3 class="text-xl font-bold"><i class="fas fa-school text-primary mr-2"></i> <span id="classModalTitle">নতুন ক্লাস যুক্ত করুন</span></h3>
-                <button onclick="closeClassModal()" class="text-gray-500 hover:text-gray-700 text-2xl leading-5">&times;</button>
+    <!-- Class Form Modal -->
+    <div id="classModal" class="hidden fixed inset-0 z-[100001] flex items-center justify-center modal-backdrop p-4 overflow-auto">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full modal-content ring-1 ring-black/5 my-auto">
+            <div class="p-5 md:p-6 border-b border-gray-100 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="modal-header-icon indigo">
+                        <i class="fas fa-school"></i>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-bold text-gray-800"><span id="classModalTitle">নতুন ক্লাস যুক্ত করুন</span></h3>
+                </div>
+                <button onclick="closeClassModal()" class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition text-xl flex-shrink-0">&times;</button>
             </div>
-            <form id="classForm" class="p-5 space-y-4">
+            <form id="classForm" class="p-5 md:p-6 space-y-5">
                 <input type="hidden" id="editClassId">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">ক্লাসের নাম <span class="text-red-500">*</span></label>
-                    <input type="text" id="className" class="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-primary/40" placeholder="যেমন: প্রথম শ্রেণি, পঞ্চম শ্রেণি" required>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">ক্লাসের নাম <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <i class="fas fa-graduation-cap absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input type="text" id="className" class="w-full border-2 border-gray-200 rounded-xl p-3 pl-11 focus:ring-2 focus:ring-primary/30 focus:border-primary transition outline-none text-sm font-medium" placeholder="যেমন: প্রথম শ্রেণি, পঞ্চম শ্রেণি" required>
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">ক্রম (Display Order)</label>
-                    <input type="number" id="classOrder" class="w-full border border-gray-300 rounded-xl p-2.5" placeholder="ছোট সংখ্যা আগে দেখাবে" value="0">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">ক্রম (Display Order)</label>
+                    <div class="relative">
+                        <i class="fas fa-sort-numeric-up absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input type="number" id="classOrder" class="w-full border-2 border-gray-200 rounded-xl p-3 pl-11 focus:ring-2 focus:ring-primary/30 focus:border-primary transition outline-none text-sm font-medium" placeholder="ছোট সংখ্যা আগে দেখাবে" value="0">
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1.5 ml-1 flex items-center gap-1"><i class="fas fa-info-circle"></i> ছোট সংখ্যা আগে দেখানো হবে</p>
                 </div>
-                <div class="flex justify-end gap-3 pt-3">
-                    <button type="button" onclick="closeClassModal()" class="px-4 py-2 border rounded-xl hover:bg-gray-50 transition">বাতিল</button>
-                    <button type="submit" class="px-5 py-2 bg-primary text-white rounded-xl hover:bg-blue-700 transition">সংরক্ষণ করুন</button>
+                <div class="flex justify-end gap-3 pt-3 border-t border-gray-100">
+                    <button type="button" onclick="closeClassModal()" class="px-5 py-2.5 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition font-semibold text-sm text-gray-700">বাতিল</button>
+                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:from-indigo-600 hover:to-purple-700 transition font-semibold text-sm shadow-lg shadow-indigo-500/30 inline-flex items-center gap-2">
+                        <i class="fas fa-save"></i> সংরক্ষণ করুন
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Teacher Assignment Modal -->
-    <div id="teacherAssignModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
-            <div class="p-5 border-b flex justify-between items-center">
-                <h3 class="text-xl font-bold"><i class="fas fa-user-graduate text-primary mr-2"></i> শিক্ষক নিযুক্ত করুন</h3>
-                <button onclick="closeTeacherModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+    <div id="teacherAssignModal" class="hidden fixed inset-0 z-[100001] flex items-center justify-center modal-backdrop p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full modal-content ring-1 ring-black/5">
+            <div class="p-5 md:p-6 border-b border-gray-100 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="modal-header-icon blue">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800">শিক্ষক নিযুক্ত করুন</h3>
+                </div>
+                <button onclick="closeTeacherModal()" class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition text-xl flex-shrink-0">&times;</button>
             </div>
-            <div class="p-5">
+            <div class="p-5 md:p-6">
                 <input type="hidden" id="assignSubjectId">
                 <input type="hidden" id="assignClassId">
-                <div class="mb-4">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">বিষয়: <span id="modalSubjectName" class="text-primary font-bold"></span></label>
-                    <label class="block text-sm font-medium text-gray-600 mb-1">শিক্ষক নির্বাচন করুন / সার্চ করুন</label>
-                    <input type="text" id="teacherSearchInput" class="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-primary focus:border-primary transition" placeholder="শিক্ষকের নাম টাইপ করুন..." autocomplete="off">
-                    <div id="teacherSuggestionsList" class="mt-2 max-h-56 overflow-y-auto border border-gray-200 rounded-xl bg-white shadow-md hidden divide-y divide-gray-100"></div>
-                    <p id="suggestionHelper" class="text-xs text-gray-400 mt-1 hidden">↳ মিলেছে এমন শিক্ষক তালিকা থেকে নির্বাচন করুন</p>
+                <div class="mb-5 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">নির্বাচিত বিষয়</label>
+                    <p class="font-bold text-indigo-700 text-base flex items-center gap-2"><i class="fas fa-book-open text-sm"></i> <span id="modalSubjectName"></span></p>
                 </div>
-                <div class="flex justify-end gap-3 mt-4">
-                    <button onclick="closeTeacherModal()" class="px-4 py-2 border rounded-xl hover:bg-gray-50">বাতিল</button>
-                    <button id="saveTeacherAssignmentBtn" class="px-5 py-2 bg-primary text-white rounded-xl hover:bg-blue-700 transition shadow-sm">সংরক্ষণ করুন</button>
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">শিক্ষক নির্বাচন করুন</label>
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm z-10"></i>
+                        <input type="text" id="teacherSearchInput" class="w-full border-2 border-gray-200 rounded-xl p-3 pl-11 focus:ring-2 focus:ring-primary/30 focus:border-primary transition outline-none text-sm font-medium" placeholder="শিক্ষকের নাম টাইপ করুন..." autocomplete="off">
+                    </div>
+                    <div id="teacherSuggestionsList" class="mt-2 max-h-56 overflow-y-auto border-2 border-gray-100 rounded-xl bg-white shadow-lg hidden divide-y divide-gray-50"></div>
+                    <p id="suggestionHelper" class="text-xs text-indigo-500 mt-2 hidden font-medium flex items-center gap-1"><i class="fas fa-hand-point-down"></i> মিলেছে এমন শিক্ষক তালিকা থেকে নির্বাচন করুন</p>
+                </div>
+                <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+                    <button onclick="closeTeacherModal()" class="px-5 py-2.5 border-2 border-gray-200 rounded-xl hover:bg-gray-50 font-semibold text-sm text-gray-700 transition">বাতিল</button>
+                    <button id="saveTeacherAssignmentBtn" class="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:from-indigo-600 hover:to-purple-700 transition font-semibold text-sm shadow-lg shadow-indigo-500/30 inline-flex items-center gap-2">
+                        <i class="fas fa-check"></i> সংরক্ষণ
+                    </button>
                 </div>
             </div>
         </div>
@@ -402,34 +739,46 @@
     <!-- MAIN LAYOUT -->
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
-        <div class="flex flex-wrap justify-between items-center mb-5 gap-3">
-            <div class="flex items-center gap-2">
-                <h1 class="text-xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
-                    <span class="bg-primary text-white p-2 rounded-xl"><i class="fas fa-chalkboard-user"></i></span>
-                    <span class="hidden sm:inline">বিষয় ও শিক্ষক নির্ধারণী</span>
-                    <span class="sm:hidden">শিক্ষক-বিষয়</span>
-                </h1>
-                <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full">অ্যাসাইনমেন্ট</span>
+        <div class="flex flex-wrap justify-between items-center mb-6 gap-4 animate-fade-up">
+            <div class="flex items-center gap-3">
+                <div class="brand-icon-wrapper">
+                    <i class="fas fa-chalkboard-user"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-2xl lg:text-3xl font-extrabold gradient-text flex items-center gap-2">
+                        <span class="hidden sm:inline">বিষয় ও শিক্ষক নির্ধারণী</span>
+                        <span class="sm:hidden">শিক্ষক-বিষয়</span>
+                    </h1>
+                    <span class="badge badge-primary mt-1">
+                        <i class="fas fa-circle text-[6px]"></i> অ্যাসাইনমেন্ট সিস্টেম
+                    </span>
+                </div>
             </div>
-            <button id="addClassBtn" class="bg-primary text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition shadow-sm text-sm md:text-base">
-                <i class="fas fa-plus-circle mr-1"></i> নতুন ক্লাস
+            <button id="addClassBtn" class="btn btn-primary px-4 md:px-5 py-2.5 md:py-3 text-sm md:text-base">
+                <i class="fas fa-plus-circle"></i> <span>নতুন ক্লাস</span>
             </button>
         </div>
 
-        <!-- Class Filter Card -->
-        <div class="bg-white rounded-2xl shadow-sm p-4 md:p-5 mb-6 border border-gray-100">
-            <label class="block text-sm font-semibold text-gray-600 mb-2"><i class="fas fa-filter mr-1"></i> ক্লাস নির্বাচন করুন</label>
+        <!-- Class Filter Card - overflow visible & high z-index -->
+        <div id="classFilterCard" class="bg-white rounded-3xl shadow-card p-4 md:p-6 mb-6 border border-gray-100 card-hover animate-fade-up" style="animation-delay:0.1s; overflow: visible; position: relative; z-index: 40;">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="filter-icon-wrapper">
+                    <i class="fas fa-filter"></i>
+                </div>
+                <label class="block text-sm md:text-base font-bold text-gray-700">ক্লাস নির্বাচন করুন</label>
+            </div>
             
-            <!-- Custom Dropdown Replaces Select -->
+            <!-- Custom Dropdown -->
             <div class="custom-dropdown-wrapper" id="classDropdownWrapper">
                 <div class="custom-dropdown-trigger" id="dropdownTrigger" tabindex="0" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-label="ক্লাস নির্বাচন করুন">
                     <span id="triggerContent" class="placeholder-text">
-                        <i class="fas fa-graduation-cap mr-1 opacity-50"></i> একটি ক্লাস বাছাই করুন
+                        <i class="fas fa-graduation-cap"></i> একটি ক্লাস বাছাই করুন
                     </span>
                     <span class="trigger-icon">
                         <i class="fas fa-chevron-down"></i>
                     </span>
                 </div>
+                <!-- Dropdown panel - will be moved to body via JS when opened -->
                 <div class="custom-dropdown-panel" id="dropdownPanel" role="listbox">
                     <div class="dropdown-panel-header">
                         <div class="dropdown-search-wrapper">
@@ -443,19 +792,29 @@
                     </div>
                 </div>
             </div>
-            <!-- End Custom Dropdown -->
 
             <div id="deleteClassButtonContainer" class="mt-3 flex justify-end"></div>
         </div>
 
-        <!-- Subject & Teacher Assignment Panel -->
-        <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-            <div class="bg-gradient-to-r from-slate-50 to-gray-50 px-4 md:px-6 py-3 md:py-4 border-b">
-                <h2 class="font-semibold text-gray-800 text-base md:text-lg"><i class="fas fa-list-ul text-primary mr-2"></i> বিষয় ও শিক্ষক নিয়োগ</h2>
-                <p class="text-xs text-gray-500 mt-0.5">প্রতিটি বিষয়ে শিক্ষক নিয়োগ দিতে ✎ আইকনে ক্লিক করুন</p>
+        <!-- Subject & Teacher Assignment Panel - overflow visible, lower z-index -->
+        <div class="bg-white rounded-3xl shadow-card border border-gray-100 animate-fade-up" style="animation-delay:0.2s; overflow: visible; position: relative; z-index: 10;">
+            <div class="bg-gradient-to-r from-slate-50 via-indigo-50/50 to-purple-50/50 px-4 md:px-6 py-4 md:py-5 border-b border-gray-100 rounded-t-3xl">
+                <div class="flex items-center gap-3">
+                    <div class="list-icon-wrapper">
+                        <i class="fas fa-list-ul"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-gray-800 text-base md:text-lg">বিষয় ও শিক্ষক নিয়োগ</h2>
+                        <p class="text-xs text-gray-500 mt-0.5">প্রতিটি বিষয়ে শিক্ষক নিয়োগ দিতে <i class="fas fa-edit text-indigo-500"></i> আইকনে ক্লিক করুন</p>
+                    </div>
+                </div>
             </div>
-            <div id="subjectTeacherList" class="p-3 md:p-5">
-                <div class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-pulse mr-2"></i> দয়া করে একটি ক্লাস নির্বাচন করুন</div>
+            <div id="subjectTeacherList" class="p-3 md:p-6">
+                <div class="empty-state">
+                    <i class="fas fa-hand-pointer"></i>
+                    <p class="font-semibold text-gray-500 text-sm">দয়া করে একটি ক্লাস নির্বাচন করুন</p>
+                    <p class="text-xs text-gray-400 mt-1">উপরের ড্রপডাউন থেকে ক্লাস বেছে নিন</p>
+                </div>
             </div>
         </div>
     </div>
@@ -488,10 +847,18 @@
             const toast = document.getElementById('toast');
             const toastText = document.getElementById('toast-text');
             const toastIcon = document.getElementById('toast-icon');
-            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' : 'fas fa-exclamation-circle text-danger text-lg';
+            const toastContainer = document.getElementById('toastContainer');
+            
+            if (type === 'success') {
+                toastIcon.className = 'fas fa-check-circle text-success text-base';
+                toastContainer.className = 'bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-success ring-1 ring-black/5';
+            } else {
+                toastIcon.className = 'fas fa-exclamation-circle text-danger text-base';
+                toastContainer.className = 'bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-danger ring-1 ring-black/5';
+            }
             toastText.innerText = message;
             toast.classList.remove('hidden');
-            toast.style.display = 'flex';
+            toast.style.display = 'block';
             setTimeout(() => { toast.classList.add('hidden'); setTimeout(() => { toast.style.display = 'none'; }, 200); }, 2800);
         }
         window.hideToast = () => { document.getElementById('toast').classList.add('hidden'); };
@@ -500,6 +867,8 @@
 
         /* ============================================
            CUSTOM DROPDOWN ENGINE
+           - Dropdown panel is moved to <body> when opened
+             so it's never hidden behind other elements
         ============================================ */
         const dropdownWrapper = document.getElementById('classDropdownWrapper');
         const dropdownTrigger = document.getElementById('dropdownTrigger');
@@ -530,13 +899,46 @@
 
         function getClassStyle(index) { return classColors[index % classColors.length]; }
 
+        // Position the dropdown panel below the trigger
+        function positionDropdownPanel() {
+            if (!dropdownPanel.classList.contains('body-attached')) return;
+            const rect = dropdownTrigger.getBoundingClientRect();
+            const panelMaxHeight = 380;
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            
+            dropdownPanel.style.left = rect.left + 'px';
+            dropdownPanel.style.width = rect.width + 'px';
+            
+            // If not enough space below, open upward
+            if (spaceBelow < panelMaxHeight + 20 && spaceAbove > spaceBelow) {
+                dropdownPanel.style.top = 'auto';
+                dropdownPanel.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+                dropdownPanel.style.maxHeight = Math.min(panelMaxHeight, spaceAbove - 20) + 'px';
+            } else {
+                dropdownPanel.style.bottom = 'auto';
+                dropdownPanel.style.top = (rect.bottom + 10) + 'px';
+                dropdownPanel.style.maxHeight = Math.min(panelMaxHeight, spaceBelow - 20) + 'px';
+            }
+        }
+
         function openDropdown() {
             if (isDropdownOpen) return;
             isDropdownOpen = true;
             highlightedIndex = -1;
+            
+            // Move panel to body to escape overflow/stacking contexts
+            if (dropdownPanel.parentElement !== document.body) {
+                document.body.appendChild(dropdownPanel);
+                dropdownPanel.classList.add('body-attached');
+            }
+            
             dropdownTrigger.classList.add('active');
             dropdownTrigger.setAttribute('aria-expanded', 'true');
+            
+            positionDropdownPanel();
             dropdownPanel.classList.add('open');
+            
             dropdownSearch.value = '';
             renderDropdownOptions(allClasses);
             setTimeout(() => dropdownSearch.focus(), 100);
@@ -549,6 +951,19 @@
             dropdownTrigger.classList.remove('active');
             dropdownTrigger.setAttribute('aria-expanded', 'false');
             dropdownPanel.classList.remove('open');
+            
+            // Move panel back to wrapper after transition
+            setTimeout(() => {
+                if (!isDropdownOpen && dropdownPanel.parentElement === document.body) {
+                    dropdownPanel.classList.remove('body-attached');
+                    dropdownPanel.style.top = '';
+                    dropdownPanel.style.bottom = '';
+                    dropdownPanel.style.left = '';
+                    dropdownPanel.style.width = '';
+                    dropdownPanel.style.maxHeight = '';
+                    dropdownWrapper.appendChild(dropdownPanel);
+                }
+            }, 260);
         }
 
         function toggleDropdown() { isDropdownOpen ? closeDropdown() : openDropdown(); }
@@ -565,7 +980,7 @@
                 `;
                 triggerContent.classList.remove('placeholder-text');
             } else {
-                triggerContent.innerHTML = `<i class="fas fa-graduation-cap mr-1 opacity-50"></i> একটি ক্লাস বাছাই করুন`;
+                triggerContent.innerHTML = `<i class="fas fa-graduation-cap"></i> একটি ক্লাস বাছাই করুন`;
                 triggerContent.classList.add('placeholder-text');
             }
         }
@@ -592,7 +1007,7 @@
                          data-index="${idx}"
                          role="option"
                          aria-selected="${isSelected}">
-                        <span class="option-icon" style="background:${isSelected ? 'rgba(255,255,255,0.25)' : style.bg}; color:white">
+                        <span class="option-icon" style="background:${style.bg}; ${isSelected ? 'opacity:0.3' : ''}">
                             <i class="fas ${style.icon}"></i>
                         </span>
                         <span class="option-label">${escapeHtml(cls.name)} ${cls.order !== undefined ? `<span class="text-xs opacity-70">(ক্রম ${cls.order})</span>` : ''}</span>
@@ -602,7 +1017,10 @@
             }).join('');
 
             dropdownOptionsList.querySelectorAll('.dropdown-option').forEach(opt => {
-                opt.addEventListener('click', () => selectClass(opt.dataset.value));
+                opt.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectClass(opt.dataset.value);
+                });
                 opt.addEventListener('mouseenter', () => {
                     clearHighlight();
                     opt.classList.add('highlighted');
@@ -639,10 +1057,11 @@
             }
         }
 
-        // Trigger click
-        dropdownTrigger.addEventListener('click', (e) => { e.stopPropagation(); toggleDropdown(); });
+        dropdownTrigger.addEventListener('click', (e) => { 
+            e.stopPropagation(); 
+            toggleDropdown(); 
+        });
         
-        // Search input
         dropdownSearch.addEventListener('input', (e) => {
             const searchVal = e.target.value.trim().toLowerCase();
             if (!searchVal) { renderDropdownOptions(allClasses); return; }
@@ -662,7 +1081,16 @@
             else if (e.key === 'Escape') closeDropdown();
         });
 
-        document.addEventListener('click', (e) => { if (!dropdownWrapper.contains(e.target)) closeDropdown(); });
+        // Close on outside click
+        document.addEventListener('click', (e) => { 
+            if (!dropdownWrapper.contains(e.target) && !dropdownPanel.contains(e.target)) {
+                closeDropdown();
+            }
+        });
+
+        // Reposition on scroll/resize when open
+        window.addEventListener('scroll', () => { if (isDropdownOpen) positionDropdownPanel(); }, true);
+        window.addEventListener('resize', () => { if (isDropdownOpen) positionDropdownPanel(); });
 
         /* ============================================
            FIREBASE & APP LOGIC
@@ -699,7 +1127,7 @@
                 } else if (currentSelectedClassId) {
                     currentSelectedClassId = null;
                     updateTriggerDisplay(null, null);
-                    document.getElementById("subjectTeacherList").innerHTML = `<div class="text-center text-gray-400 py-8"><i class="fas fa-exclamation-circle"></i> পূর্বে নির্বাচিত ক্লাস মুছে গেছে। নতুন ক্লাস নির্বাচন করুন।</div>`;
+                    document.getElementById("subjectTeacherList").innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p class="font-semibold text-gray-500 text-sm">পূর্বে নির্বাচিত ক্লাস মুছে গেছে</p><p class="text-xs text-gray-400 mt-1">নতুন ক্লাস নির্বাচন করুন</p></div>`;
                 } 
                 addClassDeleteButton();
             } catch (err) { console.error(err); }
@@ -707,7 +1135,7 @@
         
         async function loadSubjectsWithTeachers(classId) {
             if (!classId) {
-                document.getElementById('subjectTeacherList').innerHTML = `<div class="text-center text-gray-400 py-10"><i class="fas fa-hand-point-left mr-2"></i>বিষয় দেখতে ক্লাস নির্বাচন করুন</div>`;
+                document.getElementById('subjectTeacherList').innerHTML = `<div class="empty-state"><i class="fas fa-hand-point-left"></i><p class="font-semibold text-gray-500 text-sm">বিষয় দেখতে ক্লাস নির্বাচন করুন</p></div>`;
                 currentSubjectsList = [];
                 return;
             }
@@ -730,48 +1158,52 @@
                 }));
                 currentSubjectsList = subjectsWithTeacher;
                 renderSubjectTeacherListResponsive(currentSubjectsList, classId);
-            } catch (err) { console.error(err); document.getElementById('subjectTeacherList').innerHTML = `<div class="text-red-400 text-center p-5">বিষয় লোড করতে সমস্যা হয়েছে</div>`; }
+            } catch (err) { console.error(err); document.getElementById('subjectTeacherList').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle" style="background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent"></i><p class="text-red-400 font-semibold text-sm">বিষয় লোড করতে সমস্যা হয়েছে</p></div>`; }
         }
         
         function renderSubjectTeacherListResponsive(subjects, classId) {
             const container = document.getElementById('subjectTeacherList');
             if (!subjects.length) {
-                container.innerHTML = `<div class="text-center text-gray-400 py-12 bg-gray-50 rounded-xl"><i class="fas fa-folder-open fa-2x mb-2 block"></i> এই ক্লাসের জন্য কোন বিষয় নেই।<br><span class="text-xs">প্রথমে ‘বিষয়’ যোগ করুন (অন্য প্যানেল)</span></div>`;
+                container.innerHTML = `<div class="empty-state bg-gradient-to-br from-slate-50 to-indigo-50/30 rounded-2xl border-2 border-dashed border-gray-200"><i class="fas fa-folder-open"></i><p class="font-bold text-gray-600 text-sm">এই ক্লাসের জন্য কোন বিষয় নেই</p><p class="text-xs text-gray-400 mt-1">প্রথমে ‘বিষয়’ যোগ করুন (অন্য প্যানেল)</p></div>`;
                 return;
             }
             container.innerHTML = `
                 <div class="overflow-x-auto">
                     <table class="responsive-table w-full">
-                        <thead class="bg-gray-50 text-gray-700 text-sm font-semibold">
-                            <tr><th class="px-4 py-3 text-left">বিষয়ের নাম</th><th class="px-4 py-3 text-left">নিযুক্ত শিক্ষক</th><th class="px-4 py-3 text-center w-24">কর্ম</th></tr>
+                        <thead class="bg-gradient-to-r from-slate-50 to-indigo-50/50 text-gray-700 text-sm font-bold">
+                            <tr>
+                                <th class="px-4 py-3.5 text-left rounded-l-xl"><i class="fas fa-book text-indigo-500 mr-2"></i>বিষয়ের নাম</th>
+                                <th class="px-4 py-3.5 text-left"><i class="fas fa-user-tie text-indigo-500 mr-2"></i>নিযুক্ত শিক্ষক</th>
+                                <th class="px-4 py-3.5 text-center w-28 rounded-r-xl"><i class="fas fa-cog text-indigo-500 mr-2"></i>কর্ম</th>
+                            </tr>
                         </thead>
-                        <tbody id="subjectTableBodyResp"></tbody>
+                        <tbody id="subjectTableBodyResp" class="divide-y divide-gray-50"></tbody>
                     </table>
                 </div>
             `;
             const tbody = document.getElementById('subjectTableBodyResp');
             subjects.forEach(sub => {
                 const teacherDisplay = sub.teacherName ? 
-                    `<span class="inline-flex items-center gap-1 bg-green-50 text-green-700 px-2 py-1 rounded-full text-xs md:text-sm"><i class="fas fa-user-check"></i> ${escapeHtml(sub.teacherName)}</span>` : 
-                    `<span class="text-amber-600 text-xs md:text-sm"><i class="fas fa-user-slash"></i> নিয়োগ করা হয়নি</span>`;
+                    `<span class="inline-flex items-center gap-1.5 bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 px-3 py-1.5 rounded-full text-xs md:text-sm font-semibold border border-green-200/60"><i class="fas fa-user-check text-green-500"></i> ${escapeHtml(sub.teacherName)}</span>` : 
+                    `<span class="inline-flex items-center gap-1.5 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full text-xs md:text-sm font-semibold border border-amber-200/60"><i class="fas fa-user-slash"></i> নিয়োগ করা হয়নি</span>`;
                 const row = document.createElement('tr');
-                row.className = 'border-b border-gray-100 hover:bg-slate-50 transition';
+                row.className = 'border-b border-gray-50 hover:bg-indigo-50/30 transition-all';
                 
                 const subjectCell = document.createElement('td');
                 subjectCell.setAttribute('data-label', 'বিষয়ের নাম');
-                subjectCell.className = 'px-3 py-3 md:px-4 font-medium text-gray-800';
+                subjectCell.className = 'px-3 py-3.5 md:px-4 font-semibold text-gray-800 text-sm';
                 subjectCell.innerHTML = `<span class="break-words">${escapeHtml(sub.name)}</span>`;
                 
                 const teacherCell = document.createElement('td');
                 teacherCell.setAttribute('data-label', 'নিযুক্ত শিক্ষক');
-                teacherCell.className = 'px-3 py-3 md:px-4';
+                teacherCell.className = 'px-3 py-3.5 md:px-4';
                 teacherCell.innerHTML = teacherDisplay;
                 
                 const actionCell = document.createElement('td');
                 actionCell.setAttribute('data-label', 'কর্ম');
-                actionCell.className = 'px-3 py-3 md:px-4 text-center';
+                actionCell.className = 'px-3 py-3.5 md:px-4 text-center';
                 actionCell.innerHTML = `
-                    <button class="edit-teacher-btn bg-indigo-50 text-indigo-700 hover:bg-indigo-100 p-2 rounded-xl transition text-sm md:text-base inline-flex items-center gap-1 shadow-sm" 
+                    <button class="edit-teacher-btn bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 hover:from-indigo-100 hover:to-purple-100 p-2.5 rounded-xl transition-all text-sm md:text-base inline-flex items-center gap-1.5 shadow-sm border border-indigo-100/60 font-semibold hover:scale-105 active:scale-95" 
                         data-subject-id="${sub.id}" 
                         data-subject-name="${escapeHtml(sub.name)}" 
                         data-class-id="${classId}" 
@@ -838,15 +1270,15 @@
             suggestionsDiv.innerHTML = '';
             filtered.forEach(teacher => {
                 const item = document.createElement('div');
-                item.className = 'teacher-suggestion px-4 py-2.5 hover:bg-indigo-50 flex justify-between items-center border-b last:border-0 transition';
-                item.innerHTML = `<span><i class="fas fa-chalkboard-user text-gray-500 mr-3"></i><span class="font-medium">${escapeHtml(teacher.name)}</span></span><span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">নির্বাচন</span>`;
+                item.className = 'teacher-suggestion px-4 py-3 hover:bg-indigo-50 flex justify-between items-center border-b border-gray-50 last:border-0 transition-all gap-3';
+                item.innerHTML = `<span class="flex items-center gap-3 min-w-0 flex-1"><span class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-chalkboard-user text-indigo-600 text-xs"></i></span><span class="font-semibold text-gray-700 text-sm truncate">${escapeHtml(teacher.name)}</span></span><span class="text-[10px] bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-2.5 py-1 rounded-full font-bold shadow-sm flex-shrink-0">নির্বাচন</span>`;
                 item.addEventListener('click', () => {
                     document.getElementById('teacherSearchInput').value = teacher.name;
                     suggestionsDiv.classList.add('hidden');
                     if(helperSpan) helperSpan.classList.add('hidden');
                     currentAssignSubject.selectedTeacherId = teacher.id;
                     currentAssignSubject.selectedTeacherName = teacher.name;
-                    showToast(`"${teacher.name}" নির্বাচিত হয়েছে`, 'success');
+                    showToast(`"${teacher.name}" নির্বাচিত হয়েছে`, 'success');
                 });
                 suggestionsDiv.appendChild(item);
             });
@@ -918,8 +1350,8 @@
                 const clsName = allClasses.find(c => c.id === currentSelectedClassId)?.name || '';
                 const delBtn = document.createElement('button');
                 delBtn.id = "inlineClassDelBtn";
-                delBtn.className = "text-xs text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full transition shadow-sm";
-                delBtn.innerHTML = `<i class="fas fa-trash-alt mr-1"></i> নির্বাচিত ক্লাস "${escapeHtml(clsName)}" মুছুন`;
+                delBtn.className = "text-xs text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-full transition-all shadow-sm border border-red-100 font-semibold inline-flex items-center gap-1.5 hover:scale-105 active:scale-95";
+                delBtn.innerHTML = `<i class="fas fa-trash-alt"></i> <span>নির্বাচিত ক্লাস "${escapeHtml(clsName)}" মুছুন</span>`;
                 delBtn.addEventListener('click', () => {
                     if (!currentSelectedClassId) { showToast("ক্লাস নির্বাচন করা হয়নি", "error"); return; }
                     const cls = allClasses.find(c => c.id === currentSelectedClassId);
@@ -928,8 +1360,8 @@
                 container.appendChild(delBtn);
             } else {
                 const placeholder = document.createElement('div');
-                placeholder.className = 'text-xs text-gray-400 text-right';
-                placeholder.innerText = 'ক্লাস নির্বাচন করলে ডিলিট অপশন দেখাবে';
+                placeholder.className = 'text-xs text-gray-400 text-right font-medium';
+                placeholder.innerHTML = '<i class="fas fa-info-circle mr-1"></i> <span>ক্লাস নির্বাচন করলে ডিলিট অপশন দেখাবে</span>';
                 container.appendChild(placeholder);
             }
         }
@@ -953,8 +1385,8 @@
                 showToast(`"${pendingDelete.name}" ক্লাস মুছে ফেলা হয়েছে`);
                 if (currentSelectedClassId === cid) {
                     currentSelectedClassId = null;
-                    updateTriggerDisplay(null, null); // Reset custom dropdown
-                    document.getElementById('subjectTeacherList').innerHTML = `<div class="text-center text-gray-400 py-8">ক্লাস ডিলিট হয়েছে। নতুন ক্লাস নির্বাচন করুন।</div>`;
+                    updateTriggerDisplay(null, null);
+                    document.getElementById('subjectTeacherList').innerHTML = `<div class="empty-state"><i class="fas fa-check-circle" style="background:linear-gradient(135deg,#10b981,#34d399);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent"></i><p class="font-semibold text-gray-500 text-sm">ক্লাস ডিলিট হয়েছে</p><p class="text-xs text-gray-400 mt-1">নতুন ক্লাস নির্বাচন করুন</p></div>`;
                 }
                 await loadClasses();
             }
@@ -983,12 +1415,15 @@
         });
         
         document.getElementById('saveTeacherAssignmentBtn').addEventListener('click', saveTeacherAssignment);
-        window.addEventListener('click', (e) => { if(e.target === document.getElementById('teacherAssignModal')) closeTeacherModal(); if(e.target === classModal) closeClassModal(); });
+        window.addEventListener('click', (e) => { 
+            if(e.target === document.getElementById('teacherAssignModal')) closeTeacherModal(); 
+            if(e.target === classModal) closeClassModal(); 
+        });
         
         (async function init() {
             await loadTeachers();
             await loadClasses();
-            if(!currentSelectedClassId) document.getElementById('subjectTeacherList').innerHTML = `<div class="text-center text-gray-400 py-8"><i class="fas fa-info-circle mr-2"></i>উপরের ড্রপডাউন থেকে ক্লাস বেছে নিন</div>`;
+            if(!currentSelectedClassId) document.getElementById('subjectTeacherList').innerHTML = `<div class="empty-state"><i class="fas fa-hand-pointer"></i><p class="font-semibold text-gray-500 text-sm">উপরের ড্রপডাউন থেকে ক্লাস বেছে নিন</p><p class="text-xs text-gray-400 mt-1">শুরু করতে একটি ক্লাস নির্বাচন করুন</p></div>`;
         })();
     </script>
 </body>
