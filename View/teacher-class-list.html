@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#6366f1">
     <title>Teacher List | Class & Subject Count</title>
-    <!-- Tailwind + Font Awesome -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '#3b82f6',
+                        primary: '#6366f1',
+                        primaryDark: '#4f46e5',
+                        primaryLight: '#818cf8',
                         success: '#10b981',
                         warning: '#f59e0b',
                         danger: '#ef4444',
@@ -21,98 +23,354 @@
                         purple: '#8b5cf6'
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif']
+                        sans: ['Inter', 'Hind Siliguri', 'sans-serif']
                     }
                 }
             }
         }
     </script>
     <style>
-        body { background: #f1f5f9; font-family: 'Inter', sans-serif; }
-        .teacher-list-item {
-            transition: all 0.2s ease;
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg: #f1f5f9;
+            --text-primary: #0f172a;
+            --border: #e2e8f0;
+            --radius: 18px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .teacher-list-item:hover {
-            background-color: #fefce8;
-            transform: translateX(3px);
+
+        * { 
+            -webkit-tap-highlight-color: transparent; 
+            box-sizing: border-box;
         }
-        .count-badge {
-            transition: all 0.2s;
+
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
         }
+
+        body { 
+            background: var(--bg); 
+            font-family: 'Inter', 'Hind Siliguri', sans-serif;
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(99,102,241,0.06) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(139,92,246,0.05) 0%, transparent 40%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* ========== STAT CARDS — INLINE STYLE SAFE ========== */
+        .stat-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            border-radius: 18px;
+            padding: 16px 18px;
+            color: #ffffff;
+            box-shadow: 0 10px 30px rgba(15,23,42,0.15);
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 130px;
+            height: 130px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 50%;
+            transition: all 0.4s ease;
+            pointer-events: none;
+        }
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: -60%;
+            left: -20%;
+            width: 110px;
+            height: 110px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+            transition: all 0.4s ease;
+            pointer-events: none;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 40px rgba(15,23,42,0.22);
+        }
+        .stat-card:hover::before {
+            transform: scale(1.4);
+        }
+        .stat-card:hover::after {
+            transform: scale(1.3);
+        }
+
+        .stat-card-teachers {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        }
+        .stat-card-assignments {
+            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
+        }
+
+        .stat-icon-box {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.25);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #ffffff;
+            font-size: 18px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ========== TEACHER ROW ========== */
+        .teacher-row {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .teacher-row:hover {
+            background: linear-gradient(90deg, rgba(254,252,232,0.6) 0%, rgba(254,243,199,0.3) 100%);
+        }
+        .teacher-row::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%) scaleY(0);
+            width: 3px;
+            height: 60%;
+            background: linear-gradient(180deg, var(--primary), #8b5cf6);
+            border-radius: 0 4px 4px 0;
+            transition: transform 0.25s ease;
+        }
+        .teacher-row:hover::before {
+            transform: translateY(-50%) scaleY(1);
+        }
+
+        /* ========== ANIMATIONS ========== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
+
         @keyframes fadeSlide {
-            from { opacity: 0; transform: translateY(5px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-item {
-            animation: fadeSlide 0.25s ease-out;
+            animation: fadeSlide 0.35s ease-out forwards;
+            opacity: 0;
+        }
+
+        /* ========== TOAST ========== */
+        #toast { animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ========== GRADIENT TEXT ========== */
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ========== AVATAR ========== */
+        .avatar-img {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, #eef2ff, #ddd6fe);
+        }
+        .teacher-row:hover .avatar-img {
+            transform: scale(1.08) rotate(-3deg);
+            box-shadow: 0 8px 20px rgba(99,102,241,0.25);
+        }
+
+        /* ========== BADGE ========== */
+        .count-badge {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .count-badge:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(15,23,42,0.12);
+        }
+
+        /* ========== MOBILE / DESKTOP SWITCH ========== */
+        @media (max-width: 640px) {
+            .teacher-desktop-table { display: none !important; }
+            .teacher-mobile-cards { display: block !important; }
+        }
+        @media (min-width: 641px) {
+            .teacher-desktop-table { display: block !important; }
+            .teacher-mobile-cards { display: none !important; }
+        }
+
+        /* ========== MOBILE CARD COLORS ========== */
+        .mobile-badge-class { 
+            border-radius: 12px; 
+            border-width: 1px; 
+            padding: 12px 8px; 
+            text-align: center;
+        }
+        .mobile-badge-subject { 
+            border-radius: 12px; 
+            border-width: 1px; 
+            padding: 12px 8px; 
+            text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            .gradient-text { font-size: 1.35rem; }
+            .stat-icon-box { width: 40px; height: 40px; font-size: 15px; }
+            .stat-card { padding: 14px 14px; border-radius: 16px; }
         }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-6">
+<body class="min-h-screen p-3 md:p-6 lg:p-8">
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed top-5 right-5 left-5 md:left-auto z-50 hidden transition-all duration-300 max-w-sm shadow-2xl">
-        <div class="bg-white rounded-xl shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success">
-            <i class="fas fa-check-circle text-success text-lg"></i>
-            <p id="toast-text" class="text-gray-700 text-sm font-medium flex-1">Success</p>
-            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    <div id="toast" class="fixed top-4 right-4 left-4 md:left-auto z-[100] hidden transition-all duration-300 max-w-sm mx-auto md:mx-0">
+        <div id="toastContainer" class="bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-success ring-1 ring-black/5">
+            <div class="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                <i id="toast-icon" class="fas fa-check-circle text-success text-base"></i>
+            </div>
+            <p id="toast-text" class="text-gray-700 text-sm font-semibold flex-1">Success</p>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600 transition p-1 flex-shrink-0"><i class="fas fa-times text-sm"></i></button>
         </div>
     </div>
 
     <!-- Main Container -->
-    <div class="max-w-5xl mx-auto">
-        <!-- Header -->
-        <div class="mb-6 flex flex-wrap justify-between items-center gap-3">
-            <div>
-                <h1 class="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fas fa-chalkboard-user text-primary"></i>
-                    Teachers Overview
-                </h1>
-                <p class="text-sm text-gray-500 mt-1">Total classes & subjects assigned per teacher</p>
-            </div>
-            <div class="bg-white px-4 py-2 rounded-xl shadow-sm text-sm flex gap-3">
-                <span><i class="fas fa-users text-primary mr-1"></i><span id="totalTeacherCount" class="font-bold">0</span> Teachers</span>
-                <span class="w-px h-4 bg-gray-300"></span>
-                <span><i class="fas fa-book text-indigo-500 mr-1"></i><span id="totalAssignmentsCount" class="font-bold">0</span> Assignments</span>
+    <div class="max-w-6xl mx-auto">
+
+        <!-- ============ HEADER ============ -->
+        <div class="mb-6 animate-fade-up">
+            <div class="flex flex-wrap justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white flex-shrink-0"
+                         style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); box-shadow: 0 10px 30px rgba(99,102,241,0.35);">
+                        <i class="fas fa-chalkboard-user text-xl md:text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl md:text-2xl lg:text-3xl font-extrabold gradient-text flex items-center gap-2">
+                            Teachers Overview
+                        </h1>
+                        <p class="text-xs md:text-sm text-gray-500 mt-0.5 flex items-center gap-1.5">
+                            <i class="fas fa-chart-simple text-indigo-400"></i>
+                            Total classes & subjects assigned per teacher
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-indigo-700 border border-indigo-200"
+                          style="background: linear-gradient(135deg, #eef2ff 0%, #f3e8ff 100%);">
+                        <i class="fas fa-circle text-[6px] text-indigo-500"></i>
+                        LIVE DATA
+                    </span>
+                </div>
             </div>
         </div>
 
-        <!-- Teacher List Card -->
-        <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-            <!-- Search Bar -->
-            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
-                <div class="relative">
-                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                    <input type="text" id="searchTeacherInput" placeholder="Search teacher by name..." 
-                           class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition">
+        <!-- ============ STAT CARDS ============ -->
+        <div class="grid grid-cols-2 gap-3 md:gap-4 mb-6 animate-fade-up" style="animation-delay:0.1s">
+            <!-- Total Teachers Card -->
+            <div class="stat-card stat-card-teachers">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-[10px] md:text-xs font-bold uppercase tracking-wider opacity-90 mb-1 truncate">Total Teachers</p>
+                        <p class="text-2xl md:text-3xl font-extrabold leading-none" id="totalTeacherCount">0</p>
+                    </div>
+                    <div class="stat-icon-box">
+                        <i class="fas fa-users"></i>
+                    </div>
                 </div>
             </div>
-
-            <!-- Teacher List Container -->
-            <div id="teachersListContainer" class="divide-y divide-gray-100">
-                <!-- Loading State -->
-                <div id="initialLoader" class="flex justify-center items-center py-16">
-                    <div class="text-center">
-                        <i class="fas fa-spinner fa-pulse text-primary text-3xl mb-3"></i>
-                        <p class="text-gray-400 text-sm">Loading teachers data...</p>
+            <!-- Total Assignments Card -->
+            <div class="stat-card stat-card-assignments">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-[10px] md:text-xs font-bold uppercase tracking-wider opacity-90 mb-1 truncate">Assignments</p>
+                        <p class="text-2xl md:text-3xl font-extrabold leading-none" id="totalAssignmentsCount">0</p>
+                    </div>
+                    <div class="stat-icon-box">
+                        <i class="fas fa-book"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Refresh Button -->
-        <div class="mt-4 text-center">
-            <button id="refreshBtn" class="text-xs text-gray-400 hover:text-primary transition bg-white px-4 py-1.5 rounded-full shadow-sm">
-                <i class="fas fa-sync-alt mr-1"></i> Refresh Data
+        <!-- ============ TEACHER LIST CARD ============ -->
+        <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden animate-fade-up" style="animation-delay:0.2s; box-shadow: 0 4px 24px rgba(15,23,42,0.07);">
+            
+            <!-- Card Header with Search -->
+            <div class="p-4 md:p-5 border-b border-gray-100"
+                 style="background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f3e8ff 100%);">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+                         style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); box-shadow: 0 6px 16px rgba(99,102,241,0.3);">
+                        <i class="fas fa-list-ul text-sm"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-gray-800 text-base md:text-lg">Teacher Statistics</h2>
+                        <p class="text-xs text-gray-500 mt-0.5">Class & subject assignments breakdown</p>
+                    </div>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
+                    <input type="text" id="searchTeacherInput" placeholder="Search teacher by name..." 
+                           class="w-full pl-11 pr-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition font-medium bg-white">
+                </div>
+            </div>
+
+            <!-- Teacher List Container -->
+            <div id="teachersListContainer">
+                <!-- Loading State -->
+                <div id="initialLoader" class="flex justify-center items-center py-20">
+                    <div class="text-center">
+                        <div class="inline-block relative">
+                            <div class="w-14 h-14 border-4 border-indigo-100 border-t-indigo-500 rounded-full animate-spin"></div>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <i class="fas fa-chalkboard-user text-indigo-500 text-base"></i>
+                            </div>
+                        </div>
+                        <p class="text-gray-400 text-sm mt-4 font-medium">Loading teachers data...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ REFRESH BUTTON ============ -->
+        <div class="mt-5 text-center animate-fade-up" style="animation-delay:0.3s">
+            <button id="refreshBtn" class="inline-flex items-center gap-2 text-xs font-bold text-indigo-600 bg-white px-5 py-2.5 rounded-full border border-indigo-100 active:scale-95 transition-all"
+                    style="box-shadow: 0 2px 12px rgba(0,0,0,0.06);"
+                    onmouseover="this.style.background='linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'; this.style.color='white'; this.style.borderColor='transparent';"
+                    onmouseout="this.style.background='white'; this.style.color='#4f46e5'; this.style.borderColor='#e0e7ff';">
+                <i class="fas fa-sync-alt"></i> Refresh Data
             </button>
         </div>
+
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         
-        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
             authDomain: "school-menejment.firebaseapp.com",
@@ -127,7 +385,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        // Global data
         let allTeachers = [];           
         let teacherStatsList = [];      
         let totalAssignmentsAcrossAll = 0;
@@ -137,14 +394,21 @@
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastContainer = document.getElementById('toastContainer');
             if (!toast) return;
-            const icon = toast.querySelector('i');
-            if(type === 'error') icon.className = 'fas fa-exclamation-circle text-danger text-lg';
-            else icon.className = 'fas fa-check-circle text-success text-lg';
+            
+            if (type === 'error') {
+                toastIcon.className = 'fas fa-exclamation-circle text-danger text-base';
+                toastContainer.className = 'bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-danger ring-1 ring-black/5';
+            } else {
+                toastIcon.className = 'fas fa-check-circle text-success text-base';
+                toastContainer.className = 'bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-success ring-1 ring-black/5';
+            }
             
             toastText.innerText = message;
             toast.classList.remove('hidden');
-            toast.style.display = 'flex';
+            toast.style.display = 'block';
             setTimeout(() => {
                 toast.classList.add('hidden');
                 setTimeout(() => { toast.style.display = 'none'; }, 300);
@@ -157,15 +421,15 @@
         
         function escapeHtml(str) {
             if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
+            return str.replace(/[&<>"]/g, function(m) {
                 if (m === '&') return '&amp;';
                 if (m === '<') return '&lt;';
                 if (m === '>') return '&gt;';
+                if (m === '"') return '&quot;';
                 return m;
             });
         }
 
-        // ===== Local Storage Functions =====
         function loadFromCache() {
             try {
                 const cached = localStorage.getItem(CACHE_KEY);
@@ -189,7 +453,6 @@
             } catch (e) { console.error("Cache save error", e); }
         }
         
-        // Load all teachers from 'teachers' collection (NO DEMO DATA)
         async function loadTeachersFromDB() {
             try {
                 const teachersSnap = await getDocs(collection(db, "teachers"));
@@ -200,11 +463,10 @@
                 }));
             } catch (error) {
                 console.error("Error loading teachers:", error);
-                return []; // Return empty on failure
+                return [];
             }
         }
         
-        // Compute total classes AND total subjects per teacher
         async function computeTeacherStats(teachers) {
             try {
                 const assignmentsSnap = await getDocs(collection(db, "teacher_subject"));
@@ -265,7 +527,45 @@
             }
         }
         
-        // Render Teacher List
+        // ========== Badge style functions - returns inline styles for reliability ==========
+        function getClassBadge(total) {
+            if (total === 0) return { 
+                style: 'background:#f1f5f9; color:#94a3b8; border-color:#e2e8f0;', 
+                icon: 'fa-ban'
+            };
+            if (total <= 2) return { 
+                style: 'background:#dbeafe; color:#1d4ed8; border-color:#bfdbfe;', 
+                icon: 'fa-layer-group'
+            };
+            if (total <= 4) return { 
+                style: 'background:#d1fae5; color:#047857; border-color:#a7f3d0;', 
+                icon: 'fa-chalkboard'
+            };
+            return { 
+                style: 'background:#e0e7ff; color:#4338ca; border-color:#c7d2fe;', 
+                icon: 'fa-school'
+            };
+        }
+
+        function getSubjectBadge(total) {
+            if (total === 0) return { 
+                style: 'background:#f1f5f9; color:#94a3b8; border-color:#e2e8f0;', 
+                icon: 'fa-book-open'
+            };
+            if (total <= 3) return { 
+                style: 'background:#f3e8ff; color:#7c3aed; border-color:#e9d5ff;', 
+                icon: 'fa-book'
+            };
+            if (total <= 6) return { 
+                style: 'background:#fef3c7; color:#b45309; border-color:#fde68a;', 
+                icon: 'fa-bookmark'
+            };
+            return { 
+                style: 'background:#ffe4e6; color:#be123c; border-color:#fecdd3;', 
+                icon: 'fa-graduation-cap'
+            };
+        }
+        
         function renderTeacherList(teacherStats, searchTerm = "") {
             const container = document.getElementById('teachersListContainer');
             if (!container) return;
@@ -281,96 +581,159 @@
             
             if (filteredData.length === 0) {
                 container.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-16 text-gray-400">
-                        <i class="fas fa-user-graduate text-5xl mb-3 opacity-40"></i>
-                        <p class="text-sm font-medium">No teachers found</p>
-                        <p class="text-xs mt-1">Add teachers or try a different search term</p>
+                    <div class="flex flex-col items-center justify-center py-20 px-4 text-gray-400">
+                        <div class="w-20 h-20 rounded-full flex items-center justify-center mb-4"
+                             style="background: linear-gradient(135deg, #eef2ff, #f3e8ff);">
+                            <i class="fas fa-user-graduate text-4xl text-indigo-300"></i>
+                        </div>
+                        <p class="text-base font-bold text-gray-600">No teachers found</p>
+                        <p class="text-xs mt-1 text-center max-w-xs">${searchTerm ? 'Try a different search term' : 'Add teachers to get started'}</p>
                     </div>
                 `;
                 return;
             }
             
-            let html = `
-                <div class="overflow-x-auto">
+            // ============ DESKTOP TABLE VIEW ============
+            let desktopHtml = `
+                <div class="teacher-desktop-table overflow-x-auto">
                     <table class="min-w-full">
-                        <thead class="bg-gray-50 border-b border-gray-100">
+                        <thead style="background: linear-gradient(90deg, #f8fafc 0%, #eef2ff 100%); border-bottom: 1px solid #e2e8f0;">
                             <tr>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Teacher Name</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Classes</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Subjects</th>
+                                <th class="px-5 py-4 text-left text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">
+                                    <i class="fas fa-hashtag mr-1.5 text-indigo-400"></i>#
+                                </th>
+                                <th class="px-5 py-4 text-left text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">
+                                    <i class="fas fa-user-tie mr-1.5 text-indigo-400"></i>Teacher Name
+                                </th>
+                                <th class="px-5 py-4 text-center text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">
+                                    <i class="fas fa-building mr-1.5 text-indigo-400"></i>Total Classes
+                                </th>
+                                <th class="px-5 py-4 text-center text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">
+                                    <i class="fas fa-book mr-1.5 text-indigo-400"></i>Total Subjects
+                                </th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-gray-50">
             `;
+            
+            // ============ MOBILE CARDS VIEW ============
+            let mobileHtml = `<div class="teacher-mobile-cards p-3 space-y-3">`;
             
             filteredData.forEach((item, idx) => {
                 const serial = idx + 1;
-                const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.teacherName || 'T')}&background=3b82f6&color=fff`;
+                const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.teacherName || 'T')}&background=6366f1&color=fff&bold=true&size=128`;
                 const imgSrc = item.photoURL || defaultImg;
                 
-                let classBadgeColor = "bg-gray-100 text-gray-700";
-                let classIcon = "fa-building";
-                if (item.totalClasses === 0) { classBadgeColor = "bg-gray-100 text-gray-400"; classIcon = "fa-ban"; }
-                else if (item.totalClasses <= 2) { classBadgeColor = "bg-blue-100 text-blue-700"; classIcon = "fa-layer-group"; }
-                else if (item.totalClasses <= 4) { classBadgeColor = "bg-green-100 text-green-700"; classIcon = "fa-chalkboard"; }
-                else { classBadgeColor = "bg-indigo-100 text-indigo-700"; classIcon = "fa-school"; }
+                const classBadge = getClassBadge(item.totalClasses);
+                const subjectBadge = getSubjectBadge(item.totalSubjects);
                 
-                let subjectBadgeColor = "bg-gray-100 text-gray-700";
-                let subjectIcon = "fa-book";
-                if (item.totalSubjects === 0) { subjectBadgeColor = "bg-gray-100 text-gray-400"; subjectIcon = "fa-book-open"; }
-                else if (item.totalSubjects <= 3) { subjectBadgeColor = "bg-purple-100 text-purple-700"; subjectIcon = "fa-book"; }
-                else if (item.totalSubjects <= 6) { subjectBadgeColor = "bg-amber-100 text-amber-700"; subjectIcon = "fa-books"; }
-                else { subjectBadgeColor = "bg-rose-100 text-rose-700"; subjectIcon = "fa-graduation-cap"; }
-                
-                html += `
-                    <tr class="teacher-list-item hover:bg-yellow-50/40 transition animate-item">
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">${serial}</td>
-                        <td class="px-4 py-4">
+                // Desktop Row
+                desktopHtml += `
+                    <tr class="teacher-row animate-item" style="animation-delay: ${Math.min(idx * 0.03, 0.6)}s">
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-xs">${serial}</span>
+                        </td>
+                        <td class="px-5 py-4">
                             <div class="flex items-center gap-3">
                                 <img src="${imgSrc}" alt="${escapeHtml(item.teacherName)}" 
-                                     class="w-9 h-9 rounded-full object-cover border-2 border-gray-200 shadow-sm bg-blue-50" 
+                                     class="avatar-img w-11 h-11 rounded-xl object-cover border-2 border-white shadow-md flex-shrink-0" 
                                      referrerpolicy="no-referrer" 
-                                     onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=T&background=3b82f6&color=fff';">
-                                <span class="font-semibold text-gray-800">${escapeHtml(item.teacherName)}</span>
-                            </div>
-                        </td>
-                        <td class="px-4 py-4 text-center">
-                            <div class="flex justify-center">
-                                <div class="${classBadgeColor} px-3 py-1.5 rounded-full inline-flex items-center gap-2 shadow-sm">
-                                    <i class="fas ${classIcon} text-xs"></i>
-                                    <span class="font-bold text-base">${item.totalClasses}</span>
-                                    <span class="text-xs">class${item.totalClasses !== 1 ? 'es' : ''}</span>
+                                     onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=T&background=6366f1&color=fff&bold=true&size=128';">
+                                <div class="min-w-0">
+                                    <p class="font-bold text-gray-800 text-sm truncate">${escapeHtml(item.teacherName)}</p>
+                                    <p class="text-[11px] text-gray-400">ID: ${item.teacherId.slice(0, 8)}...</p>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-4 py-4 text-center">
+                        <td class="px-5 py-4 text-center">
                             <div class="flex justify-center">
-                                <div class="${subjectBadgeColor} px-3 py-1.5 rounded-full inline-flex items-center gap-2 shadow-sm">
-                                    <i class="fas ${subjectIcon} text-xs"></i>
-                                    <span class="font-bold text-base">${item.totalSubjects}</span>
-                                    <span class="text-xs">subject${item.totalSubjects !== 1 ? 's' : ''}</span>
+                                <div class="count-badge border px-3.5 py-2 rounded-xl inline-flex items-center gap-2 shadow-sm" style="${classBadge.style}">
+                                    <i class="fas ${classBadge.icon} text-xs"></i>
+                                    <span class="font-extrabold text-base">${item.totalClasses}</span>
+                                    <span class="text-[10px] font-semibold uppercase tracking-wider opacity-80">${item.totalClasses !== 1 ? 'classes' : 'class'}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-5 py-4 text-center">
+                            <div class="flex justify-center">
+                                <div class="count-badge border px-3.5 py-2 rounded-xl inline-flex items-center gap-2 shadow-sm" style="${subjectBadge.style}">
+                                    <i class="fas ${subjectBadge.icon} text-xs"></i>
+                                    <span class="font-extrabold text-base">${item.totalSubjects}</span>
+                                    <span class="text-[10px] font-semibold uppercase tracking-wider opacity-80">${item.totalSubjects !== 1 ? 'subjects' : 'subject'}</span>
                                 </div>
                             </div>
                         </td>
                     </tr>
                 `;
+                
+                // Mobile Card
+                mobileHtml += `
+                    <div class="teacher-card animate-item bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden" style="animation-delay: ${Math.min(idx * 0.03, 0.6)}s">
+                        <div class="p-4">
+                            <div class="flex items-center gap-3 mb-4">
+                                <img src="${imgSrc}" alt="${escapeHtml(item.teacherName)}" 
+                                     class="w-12 h-12 rounded-xl object-cover border-2 border-white shadow-md flex-shrink-0" 
+                                     referrerpolicy="no-referrer" 
+                                     onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=T&background=6366f1&color=fff&bold=true&size=128';">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-indigo-50 text-indigo-700 font-bold text-[10px] flex-shrink-0">${serial}</span>
+                                        <p class="font-bold text-gray-800 text-sm truncate">${escapeHtml(item.teacherName)}</p>
+                                    </div>
+                                    <p class="text-[10px] text-gray-400 mt-0.5">ID: ${item.teacherId.slice(0, 8)}...</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="mobile-badge-class" style="${classBadge.style}">
+                                    <i class="fas ${classBadge.icon} text-sm mb-1"></i>
+                                    <p class="text-2xl font-extrabold leading-none">${item.totalClasses}</p>
+                                    <p class="text-[10px] font-bold uppercase tracking-wider opacity-80 mt-1">${item.totalClasses !== 1 ? 'Classes' : 'Class'}</p>
+                                </div>
+                                <div class="mobile-badge-subject" style="${subjectBadge.style}">
+                                    <i class="fas ${subjectBadge.icon} text-sm mb-1"></i>
+                                    <p class="text-2xl font-extrabold leading-none">${item.totalSubjects}</p>
+                                    <p class="text-[10px] font-bold uppercase tracking-wider opacity-80 mt-1">${item.totalSubjects !== 1 ? 'Subjects' : 'Subject'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             });
             
-            html += `
+            desktopHtml += `
                         </tbody>
                     </table>
-                </div>
-                <div class="bg-gray-50 px-5 py-2.5 text-xs text-gray-500 border-t flex justify-between items-center">
-                    <span><i class="fas fa-chalkboard-user mr-1"></i> ${filteredData.length} teacher${filteredData.length !== 1 ? 's' : ''}</span>
-                    <span><i class="fas fa-chart-line text-primary"></i> Total subject assignments: ${totalAssignmentsAcrossAll}</span>
+                    <div class="px-5 py-3 text-xs text-gray-600 border-t border-gray-100 flex justify-between items-center flex-wrap gap-2"
+                         style="background: linear-gradient(90deg, #f8fafc 0%, #eef2ff 100%);">
+                        <span class="inline-flex items-center gap-1.5 font-semibold">
+                            <i class="fas fa-chalkboard-user text-indigo-500"></i> 
+                            Showing ${filteredData.length} teacher${filteredData.length !== 1 ? 's' : ''}
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 font-semibold">
+                            <i class="fas fa-chart-line text-emerald-500"></i> 
+                            Total assignments: <span class="font-extrabold text-emerald-700">${totalAssignmentsAcrossAll}</span>
+                        </span>
+                    </div>
                 </div>
             `;
             
-            container.innerHTML = html;
+            mobileHtml += `
+                <div class="rounded-xl px-4 py-2.5 text-xs text-gray-600 flex justify-between items-center flex-wrap gap-2 mt-2"
+                     style="background: linear-gradient(90deg, #f8fafc 0%, #eef2ff 100%);">
+                    <span class="inline-flex items-center gap-1.5 font-semibold">
+                        <i class="fas fa-chalkboard-user text-indigo-500"></i> 
+                        ${filteredData.length} teacher${filteredData.length !== 1 ? 's' : ''}
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 font-semibold">
+                        <i class="fas fa-chart-line text-emerald-500"></i> 
+                        ${totalAssignmentsAcrossAll} assignments
+                    </span>
+                </div>
+            </div>`;
+            
+            container.innerHTML = desktopHtml + mobileHtml;
         }
 
-        // Fetch Fresh Data from Firebase
         async function fetchFreshData() {
             try {
                 const teachers = await loadTeachersFromDB();
@@ -378,7 +741,7 @@
                 const stats = await computeTeacherStats(teachers);
                 teacherStatsList = stats;
                 
-                saveToCache(); // Save to local storage for next time
+                saveToCache();
                 
                 const searchInput = document.getElementById('searchTeacherInput');
                 const searchTerm = searchInput ? searchInput.value : "";
@@ -389,9 +752,12 @@
                 const container = document.getElementById('teachersListContainer');
                 if (container && teacherStatsList.length === 0) {
                     container.innerHTML = `
-                        <div class="text-center py-12 text-red-500">
-                            <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
-                            <p class="text-sm">Failed to load data. Please refresh.</p>
+                        <div class="text-center py-16 px-4">
+                            <div class="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
+                            </div>
+                            <p class="text-base font-bold text-red-600">Failed to load data</p>
+                            <p class="text-xs text-gray-500 mt-1">Please check your connection and refresh</p>
                         </div>
                     `;
                 }
@@ -399,21 +765,17 @@
             }
         }
         
-        // Main load function
         async function loadAndDisplay() {
             const hasCache = loadFromCache();
             
             if (hasCache) {
-                // If cache exists, render immediately without showing loader
                 const searchInput = document.getElementById('searchTeacherInput');
                 const searchTerm = searchInput ? searchInput.value : "";
                 renderTeacherList(teacherStatsList, searchTerm);
             }
             
-            // Then fetch fresh data from Firebase in the background
             await fetchFreshData();
             
-            // Setup search functionality once on initial load
             const searchInput = document.getElementById('searchTeacherInput');
             if (searchInput && !searchInput.dataset.listenerAdded) {
                 searchInput.addEventListener('input', (e) => {
@@ -423,17 +785,21 @@
             }
         }
         
-        // Refresh button handler
         const refreshBtn = document.getElementById('refreshBtn');
         if (refreshBtn) {
             refreshBtn.addEventListener('click', async () => {
-                localStorage.removeItem(CACHE_KEY); // Clear cache to force refresh
+                localStorage.removeItem(CACHE_KEY);
                 const container = document.getElementById('teachersListContainer');
                 container.innerHTML = `
-                    <div id="initialLoader" class="flex justify-center items-center py-16">
+                    <div class="flex justify-center items-center py-20">
                         <div class="text-center">
-                            <i class="fas fa-spinner fa-pulse text-primary text-3xl mb-3"></i>
-                            <p class="text-gray-400 text-sm">Refreshing data...</p>
+                            <div class="inline-block relative">
+                                <div class="w-14 h-14 border-4 border-indigo-100 border-t-indigo-500 rounded-full animate-spin"></div>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <i class="fas fa-sync-alt text-indigo-500 text-base"></i>
+                                </div>
+                            </div>
+                            <p class="text-gray-400 text-sm mt-4 font-medium">Refreshing data...</p>
                         </div>
                     </div>
                 `;
@@ -442,7 +808,6 @@
             });
         }
         
-        // Initialize on page load
         loadAndDisplay();
     </script>
 </body>
