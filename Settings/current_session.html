@@ -2,107 +2,745 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#6366f1">
     <title>System Settings | Manage Current Session</title>
-    <!-- Tailwind + Font Awesome -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '#3b82f6',
-                        secondary: '#6b7280',
+                        primary: '#6366f1',
+                        primaryDark: '#4f46e5',
                         success: '#10b981',
                         warning: '#f59e0b',
                         danger: '#ef4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Hind Siliguri', 'sans-serif']
                     }
                 }
             }
         }
     </script>
     <style>
-        body { background: #f1f5f9; }
-        .settings-card { transition: all 0.2s ease; }
-        .session-badge { transition: all 0.2s; }
-        .save-animation { animation: pulse-green 0.5s ease; }
-        @keyframes pulse-green {
-            0% { background-color: #10b981; transform: scale(1); }
-            100% { background-color: #3b82f6; transform: scale(1); }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f1f5f9;
+            --border: #e2e8f0;
+            --radius: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+
+        body { 
+            background: var(--bg); 
+            font-family: 'Inter', 'Hind Siliguri', sans-serif;
+            color: #0f172a;
+            -webkit-font-smoothing: antialiased;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(99,102,241,0.06) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(139,92,246,0.05) 0%, transparent 40%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* ===== PAGE HEADER ===== */
+        .page-header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            border-radius: 20px;
+            padding: 24px 22px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 22px;
+            box-shadow: 0 12px 32px rgba(99,102,241,0.28);
+        }
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -60%; right: -15%;
+            width: 220px; height: 220px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: -70%; left: -10%;
+            width: 180px; height: 180px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 50%;
+        }
+        .page-header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .brand-icon {
+            width: 54px; height: 54px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .back-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            flex-shrink: 0;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-3px);
+        }
+        .admin-badge {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 18px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.2px;
+        }
+
+        /* ===== CARDS ===== */
+        .glass-card {
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 24px rgba(15,23,42,0.06);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        .glass-card:hover {
+            box-shadow: 0 8px 32px rgba(15,23,42,0.1);
+        }
+
+        .card-header {
+            padding: 20px 22px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .card-header-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            flex-shrink: 0;
+            box-shadow: 0 6px 18px rgba(99,102,241,0.35);
+        }
+
+        .card-header-icon.success {
+            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
+            box-shadow: 0 6px 18px rgba(16,185,129,0.35);
+        }
+
+        .card-header-icon.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 6px 18px rgba(245,158,11,0.35);
+        }
+
+        .card-header-icon.info {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            box-shadow: 0 6px 18px rgba(6,182,212,0.35);
+        }
+
+        .card-header-text h2 {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.3px;
+            margin-bottom: 2px;
+        }
+
+        .card-header-text p {
+            font-size: 0.78rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* ===== ACTIVE SESSION CARD ===== */
+        .active-session-box {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            border-radius: 18px;
+            padding: 24px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 12px 32px rgba(99,102,241,0.35);
+        }
+
+        .active-session-box::before {
+            content: '';
+            position: absolute;
+            top: -50%; right: -20%;
+            width: 200px; height: 200px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 50%;
+        }
+
+        .active-session-box::after {
+            content: '';
+            position: absolute;
+            bottom: -60%; left: -10%;
+            width: 180px; height: 180px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+        }
+
+        .active-session-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .active-session-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.85;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .active-session-value {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            line-height: 1.1;
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        @media (min-width: 768px) {
+            .active-session-value { font-size: 2.5rem; }
+        }
+
+        .active-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            background: rgba(255,255,255,0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+
+        .active-badge .dot-pulse {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 0 3px rgba(74,222,128,0.4);
+            animation: pulse-live 1.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse-live {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+        }
+
+        /* ===== FORM FIELDS ===== */
+        .field-label {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 7px;
+            letter-spacing: 0.1px;
+        }
+
+        .field-label i {
+            color: var(--primary);
+            font-size: 0.72rem;
+            width: 14px;
+            text-align: center;
+        }
+
+        .field-input,
+        .field-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background: #fafbfc;
+            color: #0f172a;
+            transition: var(--transition);
+            outline: none;
+            font-family: inherit;
+        }
+
+        .field-input:focus,
+        .field-select:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+        }
+
+        .field-input::placeholder { color: #94a3b8; }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 22px;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: 0 6px 18px rgba(99,102,241,0.35);
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(99,102,241,0.45);
+        }
+
+        .btn-ghost {
+            background: #f1f5f9;
+            color: #334155;
+            border: 2px solid #e2e8f0;
+        }
+        .btn-ghost:hover:not(:disabled) {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
+            color: white;
+            box-shadow: 0 6px 18px rgba(16,185,129,0.35);
+        }
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(16,185,129,0.45);
+        }
+
+        /* ===== WARNING BOX ===== */
+        .warning-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #fcd34d;
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .warning-box-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #d97706;
+            font-size: 18px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(217,119,6,0.15);
+        }
+
+        /* ===== INFO BOX ===== */
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px;
+            border-radius: 12px;
+            transition: var(--transition);
+        }
+
+        .info-row:hover {
+            background: #f8fafc;
+        }
+
+        .info-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .info-icon.indigo {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+        }
+        .info-icon.emerald {
+            background: linear-gradient(135deg, #10b981, #0d9488);
+            box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+        }
+        .info-icon.amber {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+        }
+        .info-icon.sky {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            box-shadow: 0 4px 12px rgba(6,182,212,0.3);
+        }
+
+        .info-text-title {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 3px;
+            letter-spacing: -0.1px;
+        }
+
+        .info-text-desc {
+            font-size: 0.72rem;
+            color: #64748b;
+            line-height: 1.5;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* ===== STAT CARD ===== */
+        .stat-mini-card {
+            padding: 16px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-mini-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; right: -20%;
+            width: 100px; height: 100px;
+            background: rgba(99,102,241,0.06);
+            border-radius: 50%;
+        }
+
+        .stat-mini-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 26px rgba(15,23,42,0.08);
+        }
+
+        .stat-mini-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            flex-shrink: 0;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-mini-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #64748b;
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-mini-value {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #0f172a;
+            line-height: 1.1;
+            letter-spacing: -0.5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== QUICK GUIDE ===== */
+        .quick-guide {
+            background: linear-gradient(135deg, #eef2ff 0%, #f3e8ff 100%);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid #c7d2fe;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-guide::before {
+            content: '';
+            position: absolute;
+            top: -30%; right: -10%;
+            width: 140px; height: 140px;
+            background: rgba(99,102,241,0.08);
+            border-radius: 50%;
+        }
+
+        .quick-guide-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 0.8rem;
+            color: #334155;
+            line-height: 1.5;
+        }
+
+        .guide-item i {
+            color: #10b981;
+            font-size: 12px;
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+
+        /* ===== MODAL ===== */
+        .modal-backdrop {
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            background-color: rgba(15,23,42,0.6);
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal-content {
+            animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ===== TOAST ===== */
+        #toast-message {
+            animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-up {
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            .page-header { padding: 20px 16px; border-radius: 16px; }
+            .brand-icon { width: 46px; height: 46px; font-size: 18px; border-radius: 13px; }
+            .back-btn { width: 40px; height: 40px; border-radius: 12px; }
+            .admin-badge { padding: 8px 14px; font-size: 11px; }
+            .glass-card { border-radius: 16px; }
+            .card-header { padding: 16px 18px; }
+            .card-header-icon { width: 40px; height: 40px; font-size: 16px; border-radius: 12px; }
+            .card-header-text h2 { font-size: 0.95rem; }
+            .active-session-box { padding: 20px; border-radius: 16px; }
+            .active-session-value { font-size: 1.6rem; }
+            .btn { padding: 11px 16px; font-size: 0.82rem; }
+            .field-input, .field-select { padding: 11px 14px; font-size: 0.82rem; }
+            .stat-mini-value { font-size: 1.25rem; }
+        }
+
+        @media (max-width: 400px) {
+            .page-header { padding: 16px 14px; }
+            .brand-icon { width: 42px; height: 42px; font-size: 16px; }
+            .active-session-value { font-size: 1.4rem; }
+            .btn { padding: 10px 14px; font-size: 0.78rem; gap: 6px; }
+            .stat-mini-value { font-size: 1.15rem; }
         }
     </style>
 </head>
-<body class="min-h-screen font-sans antialiased p-4 md:p-6">
+<body class="min-h-screen p-3 md:p-6 lg:p-8">
 
     <!-- Global Toast Message -->
-    <div id="toast-message" class="fixed top-20 right-4 z-50 hidden transition-all duration-300 transform translate-x-0">
-        <div class="bg-white rounded-lg shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success">
-            <i id="toast-icon" class="fas fa-check-circle text-success text-lg"></i>
-            <p id="toast-text" class="text-gray-700 text-sm font-medium">Operation successful</p>
-            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    <div id="toast-message" class="fixed top-4 right-4 left-4 md:left-auto z-[100] hidden max-w-sm mx-auto md:mx-0">
+        <div class="bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-success ring-1 ring-black/5">
+            <div class="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                <i id="toast-icon" class="fas fa-check-circle text-success text-base"></i>
+            </div>
+            <p id="toast-text" class="text-gray-700 text-sm font-semibold flex-1">Operation successful</p>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600 transition p-1 flex-shrink-0">
+                <i class="fas fa-times text-sm"></i>
+            </button>
         </div>
     </div>
 
-    <div class="max-w-5xl mx-auto">
-        <!-- Header -->
-        <header class="flex flex-wrap justify-between items-center mb-6 gap-3">
-            <div class="flex items-center gap-3">
-                <a href="admission.html" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition">
-                    <i class="fas fa-arrow-left text-primary"></i>
-                </a>
-                <h1 class="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
-                    <span class="bg-primary text-white p-1.5 rounded-lg"><i class="fas fa-sliders-h"></i></span> 
-                    System Settings
-                </h1>
-            </div>
-            <div class="bg-white px-4 py-2 rounded-full shadow-sm text-sm font-medium text-gray-700 border border-gray-200">
-                <i class="fas fa-user-shield text-primary mr-1"></i> Admin Panel
-            </div>
-        </header>
+    <div class="max-w-6xl mx-auto">
 
-        <div class="grid md:grid-cols-3 gap-6">
-            <!-- Main Settings Card -->
-            <div class="md:col-span-2">
-                <div class="settings-card bg-white rounded-2xl shadow-md overflow-hidden">
-                    <div class="p-6 border-b border-gray-100">
-                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                            <i class="fas fa-calendar-alt text-primary"></i> 
-                            Current Academic Session
-                        </h2>
-                        <p class="text-gray-500 text-sm mt-1">Manage the active session for student admissions, fee collection, and academic records.</p>
+        <!-- ===== PAGE HEADER ===== -->
+        <div class="page-header animate-fade-up">
+            <div class="page-header-content">
+                <div class="flex items-center gap-3">
+                    <a href="admission.html" class="back-btn" title="Go back">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div class="brand-icon">
+                        <i class="fas fa-sliders-h"></i>
                     </div>
-                    
-                    <div class="p-6 space-y-6">
-                        <!-- Current Session Display -->
-                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100">
-                            <div class="flex items-center justify-between flex-wrap gap-3">
-                                <div>
-                                    <p class="text-xs font-semibold text-primary uppercase tracking-wide">Active Session</p>
-                                    <div class="flex items-center gap-3 mt-1">
-                                        <span id="active-session-display" class="text-2xl md:text-3xl font-bold text-gray-800">2025-2026</span>
-                                        <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full"><i class="fas fa-check-circle mr-1"></i> Active</span>
-                                    </div>
-                                    <p class="text-gray-500 text-sm mt-2">All admissions, fees, and reports will use this session.</p>
+                    <div>
+                        <h1 class="text-lg md:text-2xl lg:text-3xl font-extrabold tracking-tight">System Settings</h1>
+                        <p class="text-xs md:text-sm opacity-90 mt-0.5 flex items-center gap-1.5">
+                            <i class="fas fa-circle text-[8px] text-yellow-300"></i>
+                            Manage Current Academic Session
+                        </p>
+                    </div>
+                </div>
+                <div class="admin-badge">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Admin Panel</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== MAIN GRID ===== -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6">
+
+            <!-- ===== LEFT: MAIN SETTINGS ===== -->
+            <div class="lg:col-span-2 space-y-5 md:space-y-6">
+
+                <!-- Current Session Card -->
+                <div class="glass-card animate-fade-up" style="animation-delay: 0.1s;">
+                    <div class="card-header">
+                        <div class="card-header-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="card-header-text">
+                            <h2>Current Academic Session</h2>
+                            <p>Manage active session for admissions & records</p>
+                        </div>
+                    </div>
+
+                    <div class="p-5 md:p-6 space-y-5 md:space-y-6">
+
+                        <!-- Active Session Display Box -->
+                        <div class="active-session-box">
+                            <div class="active-session-content">
+                                <div class="active-session-label">
+                                    <i class="fas fa-circle text-[6px]"></i>
+                                    Active Session
                                 </div>
-                                <div class="text-right">
-                                    <i class="fas fa-school text-4xl text-primary/20"></i>
+                                <div class="active-session-value">
+                                    <span id="active-session-display">2025-2026</span>
+                                    <span class="active-badge">
+                                        <span class="dot-pulse"></span>
+                                        Active
+                                    </span>
                                 </div>
+                                <p class="text-xs md:text-sm opacity-90 mt-2 leading-relaxed">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    All admissions, fees, and reports will use this session.
+                                </p>
                             </div>
                         </div>
 
                         <!-- Update Session Form -->
-                        <div class="border-t pt-5">
-                            <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                <i class="fas fa-edit text-warning"></i> Update Session
+                        <div class="pt-5 border-t border-gray-100">
+                            <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2 text-sm md:text-base">
+                                <i class="fas fa-edit text-amber-500"></i>
+                                Update Session
                             </h3>
+
                             <form id="updateSessionForm" class="space-y-4">
-                                <div class="grid md:grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-1">
-                                            <i class="fas fa-calendar-plus text-primary mr-1"></i> New Session Year
+                                        <label class="field-label">
+                                            <i class="fas fa-calendar-plus"></i>
+                                            New Session Year
                                         </label>
-                                        <select id="sessionYear" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary/40">
+                                        <select id="sessionYear" class="field-select">
                                             <option value="">Select Year Range</option>
                                             <option value="2024-2025">2024-2025</option>
                                             <option value="2025-2026">2025-2026</option>
@@ -112,30 +750,38 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-1">
-                                            <i class="fas fa-tag text-primary mr-1"></i> Session Name (Optional)
+                                        <label class="field-label">
+                                            <i class="fas fa-tag"></i>
+                                            Session Name (Optional)
                                         </label>
-                                        <input type="text" id="customSessionName" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="e.g., Summer 2025-2026">
-                                        <p class="text-xs text-gray-400 mt-1">Leave empty to use year range as session name</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="bg-amber-50 p-4 rounded-lg border border-amber-200">
-                                    <div class="flex gap-3">
-                                        <i class="fas fa-exclamation-triangle text-amber-600 text-xl"></i>
-                                        <div>
-                                            <p class="text-sm font-medium text-amber-800">⚠️ Important Notice</p>
-                                            <p class="text-xs text-amber-700 mt-1">Changing the current session will affect all new admissions & fee structures. Previous session data remains intact.</p>
-                                        </div>
+                                        <input type="text" id="customSessionName" class="field-input" placeholder="e.g., Summer 2025-2026">
+                                        <p class="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
+                                            <i class="fas fa-info-circle"></i>
+                                            Leave empty to use year range
+                                        </p>
                                     </div>
                                 </div>
 
-                                <div class="flex gap-3 pt-2">
-                                    <button type="submit" id="saveSessionBtn" class="px-6 py-2.5 bg-primary text-white rounded-xl hover:bg-blue-700 transition shadow-sm font-medium">
-                                        <i class="fas fa-save mr-2"></i> Update Current Session
+                                <div class="warning-box">
+                                    <div class="warning-box-icon">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-amber-800">Important Notice</p>
+                                        <p class="text-xs text-amber-700 mt-1 leading-relaxed">
+                                            Changing the current session will affect all new admissions & fee structures. Previous session data remains intact.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row gap-3 pt-1">
+                                    <button type="submit" id="saveSessionBtn" class="btn btn-primary flex-1 sm:flex-initial">
+                                        <i class="fas fa-save"></i>
+                                        Update Current Session
                                     </button>
-                                    <button type="button" id="refreshBtn" class="px-6 py-2.5 border border-gray-300 rounded-xl hover:bg-gray-50 transition font-medium text-gray-700">
-                                        <i class="fas fa-sync-alt mr-2"></i> Refresh
+                                    <button type="button" id="refreshBtn" class="btn btn-ghost flex-1 sm:flex-initial">
+                                        <i class="fas fa-sync-alt"></i>
+                                        Refresh
                                     </button>
                                 </div>
                             </form>
@@ -144,145 +790,230 @@
                 </div>
 
                 <!-- Session Info Card -->
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden mt-6">
-                    <div class="p-5">
-                        <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                            <i class="fas fa-info-circle text-primary"></i> Session Information
-                        </h3>
-                        <div class="grid md:grid-cols-2 gap-4 text-sm">
-                            <div class="flex items-start gap-2">
-                                <i class="fas fa-database text-gray-400 mt-0.5"></i>
-                                <div>
-                                    <p class="font-medium text-gray-700">Student Records Path</p>
-                                    <p class="text-gray-500 text-xs">current_session/{session}/classes/{classId}/students</p>
-                                </div>
+                <div class="glass-card animate-fade-up" style="animation-delay: 0.2s;">
+                    <div class="card-header">
+                        <div class="card-header-icon info">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="card-header-text">
+                            <h2>Session Information</h2>
+                            <p>Data storage & structure details</p>
+                        </div>
+                    </div>
+
+                    <div class="p-3 md:p-4 space-y-1">
+                        <div class="info-row">
+                            <div class="info-icon indigo">
+                                <i class="fas fa-database"></i>
                             </div>
-                            <div class="flex items-start gap-2">
-                                <i class="fas fa-users text-gray-400 mt-0.5"></i>
-                                <div>
-                                    <p class="font-medium text-gray-700">Parent Records Path</p>
-                                    <p class="text-gray-500 text-xs">current_session/{session}/classes/{classId}/parents</p>
-                                </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="info-text-title">Student Records Path</p>
+                                <p class="info-text-desc break-all">current_session/{session}/classes/{classId}/students</p>
                             </div>
-                            <div class="flex items-start gap-2">
-                                <i class="fas fa-chart-line text-gray-400 mt-0.5"></i>
-                                <div>
-                                    <p class="font-medium text-gray-700">Reports Scope</p>
-                                    <p class="text-gray-500 text-xs">All reports filtered by active session</p>
-                                </div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-icon emerald">
+                                <i class="fas fa-users"></i>
                             </div>
-                            <div class="flex items-start gap-2">
-                                <i class="fas fa-shield-alt text-gray-400 mt-0.5"></i>
-                                <div>
-                                    <p class="font-medium text-gray-700">Data Isolation</p>
-                                    <p class="text-gray-500 text-xs">Sessions are completely isolated for accurate history</p>
-                                </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="info-text-title">Parent Records Path</p>
+                                <p class="info-text-desc break-all">current_session/{session}/classes/{classId}/parents</p>
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-icon amber">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="info-text-title">Reports Scope</p>
+                                <p class="info-text-desc">All reports filtered by active session</p>
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-icon sky">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="info-text-title">Data Isolation</p>
+                                <p class="info-text-desc">Sessions are completely isolated for accurate history</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Sidebar - Quick Actions & Stats -->
-            <div class="space-y-5">
+            <!-- ===== RIGHT: SIDEBAR ===== -->
+            <div class="space-y-5 md:space-y-6">
+
                 <!-- Session Stats Card -->
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-                    <div class="p-5 border-b border-gray-100">
-                        <h3 class="font-semibold text-gray-800 flex items-center gap-2">
-                            <i class="fas fa-chart-simple text-primary"></i> Session Stats
-                        </h3>
+                <div class="glass-card animate-fade-up" style="animation-delay: 0.15s;">
+                    <div class="card-header">
+                        <div class="card-header-icon success">
+                            <i class="fas fa-chart-simple"></i>
+                        </div>
+                        <div class="card-header-text">
+                            <h2>Session Stats</h2>
+                            <p>Live statistics</p>
+                        </div>
                     </div>
-                    <div class="p-5 space-y-4">
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600 text-sm"><i class="fas fa-calendar-week mr-1"></i> Current Session:</span>
-                            <span id="stat-session" class="font-bold text-primary">--</span>
+
+                    <div class="p-4 space-y-3">
+                        <div class="stat-mini-card">
+                            <div class="stat-mini-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 12px rgba(99,102,241,0.3);">
+                                <i class="fas fa-calendar-week"></i>
+                            </div>
+                            <p class="stat-mini-label">Current Session</p>
+                            <p class="stat-mini-value" id="stat-session">--</p>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600 text-sm"><i class="fas fa-user-graduate mr-1"></i> Total Students:</span>
-                            <span id="stat-students" class="font-semibold text-gray-800">Loading...</span>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="stat-mini-card">
+                                <div class="stat-mini-icon" style="background: linear-gradient(135deg, #10b981, #0d9488); box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
+                                    <i class="fas fa-user-graduate"></i>
+                                </div>
+                                <p class="stat-mini-label">Students</p>
+                                <p class="stat-mini-value" id="stat-students">--</p>
+                            </div>
+                            <div class="stat-mini-card">
+                                <div class="stat-mini-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 12px rgba(245,158,11,0.3);">
+                                    <i class="fas fa-chalkboard"></i>
+                                </div>
+                                <p class="stat-mini-label">Classes</p>
+                                <p class="stat-mini-value" id="stat-classes">--</p>
+                            </div>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600 text-sm"><i class="fas fa-chalkboard mr-1"></i> Active Classes:</span>
-                            <span id="stat-classes" class="font-semibold text-gray-800">--</span>
-                        </div>
-                        <div class="pt-3 border-t">
-                            <button id="viewReportsBtn" class="w-full py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition">
-                                <i class="fas fa-chart-line mr-1"></i> View Session Reports
+
+                        <div class="pt-2">
+                            <button id="viewReportsBtn" class="btn btn-ghost w-full">
+                                <i class="fas fa-chart-line"></i>
+                                View Session Reports
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Quick Setup Guide -->
-                <div class="bg-gradient-to-br from-primary/5 to-indigo-50 rounded-2xl p-5 border border-primary/10">
-                    <div class="flex items-center gap-2 mb-3">
-                        <i class="fas fa-rocket text-primary"></i>
-                        <h4 class="font-semibold text-gray-800">Quick Guide</h4>
-                    </div>
-                    <ul class="space-y-2 text-sm text-gray-600">
-                        <li class="flex gap-2"><i class="fas fa-check-circle text-green-500 text-xs mt-1"></i> <span>Session determines academic year for admissions</span></li>
-                        <li class="flex gap-2"><i class="fas fa-check-circle text-green-500 text-xs mt-1"></i> <span>All new students saved under current session path</span></li>
-                        <li class="flex gap-2"><i class="fas fa-check-circle text-green-500 text-xs mt-1"></i> <span>Previous session data remains accessible</span></li>
-                        <li class="flex gap-2"><i class="fas fa-check-circle text-green-500 text-xs mt-1"></i> <span>Fee structures can be session-specific</span></li>
-                    </ul>
-                    <div class="mt-4 pt-3 border-t border-primary/20">
-                        <a href="admission.html" class="text-primary text-sm font-medium hover:underline flex items-center gap-1">
-                            <i class="fas fa-arrow-right"></i> Go to Admission Page
-                        </a>
+                <!-- Quick Guide -->
+                <div class="quick-guide animate-fade-up" style="animation-delay: 0.25s;">
+                    <div class="quick-guide-content">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+                                 style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 6px 16px rgba(99,102,241,0.35);">
+                                <i class="fas fa-rocket text-sm"></i>
+                            </div>
+                            <h4 class="font-bold text-gray-800 text-sm">Quick Guide</h4>
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="guide-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Session determines academic year for admissions</span>
+                            </div>
+                            <div class="guide-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>All new students saved under current session path</span>
+                            </div>
+                            <div class="guide-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Previous session data remains accessible</span>
+                            </div>
+                            <div class="guide-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Fee structures can be session-specific</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-indigo-200/50">
+                            <a href="admission.html" class="inline-flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-800 transition group">
+                                <i class="fas fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+                                Go to Admission Page
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Confirmation Modal -->
-    <div id="confirmModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop bg-black/50 transition-all">
-        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 transform transition-all scale-95 p-5">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                    <i class="fas fa-exclamation-triangle text-amber-600"></i>
+    <!-- ===== CONFIRMATION MODAL ===== -->
+    <div id="confirmModal" class="hidden fixed inset-0 z-[100001] flex items-center justify-center modal-backdrop p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full modal-content ring-1 ring-black/5 overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center gap-4 mb-5">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+                         style="background: linear-gradient(135deg, #fef3c7, #fde68a); box-shadow: 0 6px 16px rgba(245,158,11,0.25);">
+                        <i class="fas fa-exclamation-triangle text-amber-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-extrabold text-gray-800">Confirm Session Change</h3>
+                        <p class="text-xs text-gray-500">This action affects all new records</p>
+                    </div>
                 </div>
-                <h3 class="text-lg font-bold text-gray-800">Confirm Session Change</h3>
-            </div>
-            <p class="text-gray-600 mb-4">Are you sure you want to change the current academic session to <strong id="confirmSessionName"></strong>?</p>
-            <p class="text-sm text-gray-500 bg-gray-50 p-2 rounded mb-4">This will affect all new admissions. Old session data remains unchanged.</p>
-            <div class="flex justify-end gap-3">
-                <button id="cancelConfirm" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancel</button>
-                <button id="proceedConfirm" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition">Proceed & Update</button>
+
+                <p class="text-gray-600 mb-3 text-sm leading-relaxed">
+                    Are you sure you want to change the current academic session to 
+                    <strong id="confirmSessionName" class="text-indigo-600"></strong>?
+                </p>
+
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 mb-5 flex gap-2 items-start">
+                    <i class="fas fa-info-circle text-amber-600 mt-0.5 flex-shrink-0 text-sm"></i>
+                    <p class="text-xs text-amber-700 leading-relaxed">
+                        This will affect all new admissions. Old session data remains unchanged.
+                    </p>
+                </div>
+
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+                    <button id="cancelConfirm" class="btn btn-ghost w-full sm:w-auto">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button id="proceedConfirm" class="btn btn-primary w-full sm:w-auto">
+                        <i class="fas fa-check"></i> Proceed & Update
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         
         const firebaseConfig = {
-  apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
-  authDomain: "school-menejment.firebaseapp.com",
-  databaseURL: "https://school-menejment-default-rtdb.firebaseio.com",
-  projectId: "school-menejment",
-  storageBucket: "school-menejment.firebasestorage.app",
-  messagingSenderId: "348342436525",
-  appId: "1:348342436525:web:c339fe6216c4516aa3bc24",
-  measurementId: "G-SQT1N4PVD3"
-};
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            databaseURL: "https://school-menejment-default-rtdb.firebaseio.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:c339fe6216c4516aa3bc24",
+            measurementId: "G-SQT1N4PVD3"
+        };
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
         let currentSessionData = { sessionName: "2025-2026" };
         
-        // Toast functions
+        // ===== Toast Functions =====
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast-message');
             const toastText = document.getElementById('toast-text');
             const toastIcon = document.getElementById('toast-icon');
+            const toastContainer = toast.querySelector('div');
             
-            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' : 'fas fa-exclamation-circle text-danger text-lg';
+            if (type === 'success') {
+                toastIcon.className = 'fas fa-check-circle text-success text-base';
+                toastContainer.className = 'bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-success ring-1 ring-black/5';
+            } else {
+                toastIcon.className = 'fas fa-exclamation-circle text-danger text-base';
+                toastContainer.className = 'bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-danger ring-1 ring-black/5';
+            }
+            
             toastText.innerText = message;
             toast.classList.remove('hidden');
-            toast.style.display = 'flex';
+            toast.style.display = 'block';
             
             setTimeout(() => {
                 toast.classList.add('hidden');
@@ -296,7 +1027,7 @@
             setTimeout(() => { toast.style.display = 'none'; }, 300);
         };
         
-        // Load current session from Firebase
+        // ===== Load current session =====
         async function loadCurrentSession() {
             try {
                 const sessionDoc = await getDoc(doc(db, "config", "activeSession"));
@@ -305,7 +1036,7 @@
                     const sessionName = currentSessionData.sessionName || "2025-2026";
                     document.getElementById('active-session-display').innerText = sessionName;
                     document.getElementById('stat-session').innerText = sessionName;
-                    // Set select value if matches predefined
+                    
                     const select = document.getElementById('sessionYear');
                     if (select.querySelector(`option[value="${sessionName}"]`)) {
                         select.value = sessionName;
@@ -314,7 +1045,6 @@
                         document.getElementById('customSessionName').value = sessionName;
                     }
                 } else {
-                    // Create default session
                     await setDoc(doc(db, "config", "activeSession"), { 
                         sessionName: "2025-2026", 
                         updatedAt: serverTimestamp(),
@@ -325,7 +1055,6 @@
                     document.getElementById('stat-session').innerText = "2025-2026";
                     document.getElementById('sessionYear').value = "2025-2026";
                 }
-                // Load stats after session is known
                 await loadSessionStats();
             } catch (error) {
                 console.error("Error loading session:", error);
@@ -333,16 +1062,14 @@
             }
         }
         
-        // Load statistics for current session
+        // ===== Load statistics =====
         async function loadSessionStats() {
             try {
                 const sessionName = currentSessionData.sessionName || "2025-2026";
-                // Get all classes
                 const classesSnap = await getDocs(collection(db, "classes"));
                 const totalClasses = classesSnap.size;
                 document.getElementById('stat-classes').innerText = totalClasses;
                 
-                // Count students across all classes in current session
                 let totalStudents = 0;
                 for (const classDoc of classesSnap.docs) {
                     const classId = classDoc.id;
@@ -353,12 +1080,12 @@
                 document.getElementById('stat-students').innerHTML = totalStudents;
             } catch (error) {
                 console.error("Error loading stats:", error);
-                document.getElementById('stat-students').innerHTML = 'Error';
+                document.getElementById('stat-students').innerHTML = 'Err';
                 document.getElementById('stat-classes').innerHTML = '--';
             }
         }
         
-        // Update session in Firebase
+        // ===== Update session =====
         async function updateSession(newSessionName) {
             try {
                 const sessionRef = doc(db, "config", "activeSession");
@@ -374,7 +1101,7 @@
                 document.getElementById('stat-session').innerText = newSessionName;
                 
                 showToast(`Session updated to ${newSessionName} successfully!`, 'success');
-                await loadSessionStats(); // Refresh stats
+                await loadSessionStats();
                 return true;
             } catch (error) {
                 console.error("Update error:", error);
@@ -383,7 +1110,7 @@
             }
         }
         
-        // Handle form submission with confirmation
+        // ===== Confirmation modal =====
         let pendingSession = null;
         const confirmModal = document.getElementById('confirmModal');
         const confirmSessionSpan = document.getElementById('confirmSessionName');
@@ -404,12 +1131,12 @@
                 confirmModal.classList.add('hidden');
                 const saveBtn = document.getElementById('saveSessionBtn');
                 saveBtn.disabled = true;
-                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Updating...';
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
                 await updateSession(pendingSession);
                 saveBtn.disabled = false;
-                saveBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Update Current Session';
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Current Session';
                 pendingSession = null;
-                // Clear custom input if session matches preset
+                
                 const select = document.getElementById('sessionYear');
                 if (select.value === currentSessionData.sessionName) {
                     document.getElementById('customSessionName').value = '';
@@ -417,7 +1144,7 @@
             }
         };
         
-        // Form submit
+        // ===== Form submit =====
         document.getElementById('updateSessionForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const sessionSelect = document.getElementById('sessionYear').value;
@@ -438,47 +1165,36 @@
                 return;
             }
             
-            // Show confirmation modal
             showConfirmModal(finalSessionName);
         });
         
-        // Refresh button
+        // ===== Refresh button =====
         document.getElementById('refreshBtn').addEventListener('click', async () => {
             const btn = document.getElementById('refreshBtn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Refreshing...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
             btn.disabled = true;
             await loadCurrentSession();
-            btn.innerHTML = '<i class="fas fa-sync-alt mr-2"></i> Refresh';
+            btn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
             btn.disabled = false;
             showToast("Session data refreshed", 'success');
         });
         
-        // View Reports button (demo action)
+        // ===== View Reports (demo) =====
         document.getElementById('viewReportsBtn').addEventListener('click', () => {
             const session = currentSessionData.sessionName || "2025-2026";
             showToast(`Reports for session ${session} - Feature coming soon`, 'success');
         });
         
-        // Initialize page
+        // ===== Init =====
         (async () => {
             await loadCurrentSession();
         })();
         
-        // Close modal on outside click
+        // ===== Close modal on outside click =====
         confirmModal.addEventListener('click', (e) => {
             if (e.target === confirmModal) {
                 confirmModal.classList.add('hidden');
                 pendingSession = null;
-            }
-        });
-        
-        // Auto-update custom session name when select changes
-        document.getElementById('sessionYear').addEventListener('change', (e) => {
-            if (e.target.value) {
-                // If a preset is selected, optionally clear custom field
-                if (document.getElementById('customSessionName').value === '') {
-                    // Do nothing
-                }
             }
         });
     </script>
