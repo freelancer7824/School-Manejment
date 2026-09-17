@@ -2,578 +2,1392 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#6366f1">
     <title>শিক্ষক সাইনআপ | নতুন একাউন্ট তৈরি করুন</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { bengali: ['"Noto Sans Bengali"', 'system-ui', 'sans-serif'] },
+                    fontFamily: { 
+                        sans: ['Inter', 'Hind Siliguri', 'system-ui', 'sans-serif'] 
+                    },
                     colors: {
-                        primary: '#3b82f6',
-                        'primary-dark': '#2563eb',
-                        'primary-light': '#93bbfd',
-                        secondary: '#6b7280',
+                        primary: '#6366f1',
+                        'primary-dark': '#4f46e5',
+                        'primary-light': '#818cf8',
                         success: '#10b981',
                         warning: '#f59e0b',
-                        danger: '#ef4444',
-                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' }
+                        danger: '#ef4444'
                     }
                 }
             }
         }
     </script>
     <style>
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f1f5f9;
+            --border: #e2e8f0;
+            --radius: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
+        }
+
         body {
-            font-family: 'Noto Sans Bengali', system-ui, sans-serif;
-            background: #f1f5f9;
+            font-family: 'Inter', 'Hind Siliguri', system-ui, sans-serif;
+            background: var(--bg);
             min-height: 100vh;
+            color: #0f172a;
+            -webkit-font-smoothing: antialiased;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(99,102,241,0.07) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(139,92,246,0.05) 0%, transparent 40%);
+            background-attachment: fixed;
         }
 
-        /* হেডার গ্র্যাডিয়েন্ট */
-        .header-bg {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* ========== FULL WIDTH WRAPPER ========== */
+        .full-width-wrapper {
+            width: 100%;
+            max-width: 100%;
+            padding: 0 16px;
         }
 
-        /* স্টেপ ইন্ডিকেটর */
+        @media (min-width: 640px) {
+            .full-width-wrapper { padding: 0 24px; }
+        }
+
+        @media (min-width: 1024px) {
+            .full-width-wrapper { padding: 0 32px; }
+        }
+
+        @media (min-width: 1280px) {
+            .full-width-wrapper { padding: 0 48px; }
+        }
+
+        @media (min-width: 1536px) {
+            .full-width-wrapper { padding: 0 64px; }
+        }
+
+        /* ========== DESKTOP GRID LAYOUT ========== */
+        .form-layout {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 1024px) {
+            .form-layout {
+                grid-template-columns: 380px 1fr;
+                gap: 28px;
+                align-items: start;
+            }
+        }
+
+        @media (min-width: 1280px) {
+            .form-layout {
+                grid-template-columns: 420px 1fr;
+                gap: 32px;
+            }
+        }
+
+        /* ========== HEADER (Full Width) ========== */
+        .page-header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            padding: 22px 0 90px;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -40%; right: -15%;
+            width: 300px; height: 300px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: -50%; left: -10%;
+            width: 260px; height: 260px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 50%;
+        }
+
+        .header-inner {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            padding: 0 16px;
+        }
+
+        @media (min-width: 640px) {
+            .header-inner { padding: 0 24px; }
+        }
+
+        @media (min-width: 1024px) {
+            .header-inner { padding: 0 32px; }
+        }
+
+        @media (min-width: 1280px) {
+            .header-inner { padding: 0 48px; }
+        }
+
+        .header-curve {
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: var(--bg);
+            border-radius: 30px 30px 0 0;
+        }
+
+        .back-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 15px;
+            transition: var(--transition);
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-3px);
+        }
+
+        .session-badge {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 50px;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            border: 1.5px solid rgba(255,255,255,0.3);
+            white-space: nowrap;
+        }
+
+        .brand-icon-hero {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            flex-shrink: 0;
+        }
+
+        /* ========== STICKY SIDEBAR (Desktop) ========== */
+        .sticky-sidebar {
+            width: 100%;
+        }
+
+        @media (min-width: 1024px) {
+            .sticky-sidebar {
+                position: sticky;
+                top: 24px;
+            }
+        }
+
+        /* ========== CARDS ========== */
+        .glass-card {
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 24px rgba(15,23,42,0.06);
+            transition: var(--transition);
+        }
+
+        /* ========== STEP INDICATOR ========== */
+        .step-indicator-wrapper {
+            padding: 18px 16px;
+        }
+
+        @media (min-width: 1024px) {
+            .step-indicator-wrapper {
+                padding: 22px 20px;
+            }
+        }
+
         .step-circle {
-            width: 36px; height: 36px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 14px;
-            border: 2.5px solid #cbd5e1; color: #94a3b8;
-            background: #fff; transition: all 0.35s ease; position: relative; z-index: 2;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            border: 2.5px solid #e2e8f0;
+            color: #94a3b8;
+            background: white;
+            transition: var(--transition);
+            position: relative;
+            z-index: 2;
+            flex-shrink: 0;
         }
-        .step-circle.active {
-            border-color: #3b82f6; color: #fff; background: #3b82f6;
-            box-shadow: 0 0 0 4px rgba(59,130,246,0.2);
-        }
-        .step-circle.done {
-            border-color: #10b981; color: #fff; background: #10b981;
-            box-shadow: 0 0 0 4px rgba(16,185,129,0.15);
-        }
-        .step-connector {
-            height: 3px; flex: 1; background: #e2e8f0; border-radius: 2px;
-            transition: background 0.4s ease; position: relative; z-index: 1;
-        }
-        .step-connector.active { background: #3b82f6; }
-        .step-connector.done { background: #10b981; }
 
-        /* স্টেপ প্যানেল */
+        .step-circle.active {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 8px 24px rgba(99,102,241,0.4);
+            transform: scale(1.08);
+        }
+
+        .step-circle.done {
+            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 6px 18px rgba(16,185,129,0.35);
+        }
+
+        .step-connector {
+            height: 3px;
+            flex: 1;
+            background: #e2e8f0;
+            border-radius: 2px;
+            transition: var(--transition);
+            margin: 0 -4px;
+        }
+
+        .step-connector.active { background: #6366f1; }
+        .step-connector.done { 
+            background: linear-gradient(90deg, #10b981, #0d9488);
+        }
+
+        /* ========== STEP PANEL ========== */
         .step-panel { display: none; }
-        .step-panel.active { display: block; animation: fadeSlideUp 0.3s ease; }
+        .step-panel.active { 
+            display: block; 
+            animation: fadeSlideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         @keyframes fadeSlideUp {
-            from { opacity: 0; transform: translateY(12px); }
+            from { opacity: 0; transform: translateY(14px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ইনপুট ফিল্ড */
-        .form-input {
-            width: 100%; padding: 10px 12px; border: 1.5px solid #e2e8f0;
-            border-radius: 10px; font-size: 14px; color: #1e293b;
-            background: #fff; transition: all 0.25s ease; outline: none;
-            font-family: 'Noto Sans Bengali', system-ui, sans-serif;
-        }
-        .form-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
-        .form-input::placeholder { color: #94a3b8; }
-        .form-input.error { border-color: #ef4444; background: #fef2f2; box-shadow: 0 0 0 3px rgba(239,68,68,0.08); }
-        .form-input.success { border-color: #10b981; }
-        .form-input:disabled { background: #f8fafc; color: #94a3b8; cursor: not-allowed; }
-
-        /* লেবেল */
-        .form-label {
-            display: block; font-size: 13px; font-weight: 600;
-            color: #334155; margin-bottom: 4px;
-        }
-        .form-label .required { color: #ef4444; margin-left: 2px; }
-
-        /* এরর টেক্সট */
-        .field-error { font-size: 11px; color: #ef4444; margin-top: 3px; display: none; }
-        .field-error.show { display: block; }
-
-        /* বাটন */
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: #fff; font-weight: 700; padding: 12px 28px;
-            border-radius: 12px; border: none; cursor: pointer;
-            transition: all 0.25s ease; font-size: 14px;
-            box-shadow: 0 4px 14px rgba(59,130,246,0.3);
-        }
-        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,0.4); }
-        .btn-primary:active { transform: translateY(0); }
-        .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
-
-        .btn-outline {
-            background: #fff; color: #475569; font-weight: 600;
-            padding: 12px 24px; border-radius: 12px;
-            border: 1.5px solid #e2e8f0; cursor: pointer;
-            transition: all 0.2s ease; font-size: 14px;
-        }
-        .btn-outline:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
-
-        .btn-success {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: #fff; font-weight: 700; padding: 12px 28px;
-            border-radius: 12px; border: none; cursor: pointer;
-            transition: all 0.25s ease; font-size: 14px;
-            box-shadow: 0 4px 14px rgba(16,185,129,0.3);
-        }
-        .btn-success:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
-
-        /* টোস্ট */
-        .toast-box {
-            position: fixed; top: 16px; right: 16px; z-index: 9999;
-            max-width: 380px; padding: 14px 18px; border-radius: 12px;
-            display: flex; align-items: center; gap: 10px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-            animation: toastSlide 0.3s ease-out;
-            font-size: 13px; font-weight: 500;
-        }
-        .toast-box.success { background: #ecfdf5; border-left: 4px solid #10b981; color: #065f46; }
-        .toast-box.error { background: #fef2f2; border-left: 4px solid #ef4444; color: #991b1b; }
-        .toast-box.info { background: #eff6ff; border-left: 4px solid #3b82f6; color: #1e40af; }
-        @keyframes toastSlide { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(110%); opacity: 0; } }
-
-        /* পাসওয়ার্ড শক্তি */
-        .pw-bar { height: 4px; border-radius: 2px; transition: all 0.3s ease; background: #e2e8f0; }
-
-        /* কার্ড */
-        .card {
-            background: #fff; border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+        /* ========== FORM PANEL PADDING ========== */
+        .form-panel {
+            padding: 20px 18px;
         }
 
-        /* সাকসেস এনিমেশন */
-        .success-bounce { animation: bounceIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275); }
-        @keyframes bounceIn { 0% { transform: scale(0); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
-
-        /* পালস */
-        .pulse-ring {
-            animation: pulseRing 1.5s ease-out infinite;
-        }
-        @keyframes pulseRing {
-            0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.3); }
-            100% { box-shadow: 0 0 0 20px rgba(16,185,129,0); }
+        @media (min-width: 640px) {
+            .form-panel { padding: 24px 22px; }
         }
 
-        /* সেকশন টাইটেল */
+        @media (min-width: 1024px) {
+            .form-panel { padding: 28px 32px; }
+        }
+
+        @media (min-width: 1280px) {
+            .form-panel { padding: 32px 40px; }
+        }
+
+        /* ========== DESKTOP: 2 COLUMN FORM GRID ========== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        @media (min-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 16px 20px;
+            }
+
+            .form-grid .full-span {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (min-width: 1280px) {
+            .form-grid {
+                gap: 18px 24px;
+            }
+        }
+
+        /* ========== SECTION TITLE ========== */
         .section-title {
-            display: flex; align-items: center; gap: 8px;
-            font-size: 15px; font-weight: 700; color: #1e293b;
-            padding-bottom: 10px; margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
             border-bottom: 1.5px solid #f1f5f9;
+            letter-spacing: -0.2px;
         }
+
         .section-icon {
-            width: 30px; height: 30px; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+            color: white;
+        }
+
+        .section-icon.indigo {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            box-shadow: 0 6px 16px rgba(99,102,241,0.35);
+        }
+
+        .section-icon.amber {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            box-shadow: 0 6px 16px rgba(245,158,11,0.35);
+        }
+
+        .section-icon.emerald {
+            background: linear-gradient(135deg, #10b981, #0d9488);
+            box-shadow: 0 6px 16px rgba(16,185,129,0.35);
+        }
+
+        /* ========== FORM FIELDS ========== */
+        .form-label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 7px;
+            letter-spacing: 0.1px;
+        }
+
+        .form-label .required { 
+            color: var(--danger); 
+            margin-left: 2px; 
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #0f172a;
+            background: #fafbfc;
+            transition: var(--transition);
+            outline: none;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+        }
+
+        .form-input::placeholder { 
+            color: #94a3b8; 
+            font-weight: 400;
+        }
+
+        .form-input.error {
+            border-color: var(--danger);
+            background: #fef2f2;
+            box-shadow: 0 0 0 4px rgba(239,68,68,0.08);
+            animation: shake 0.35s ease;
+        }
+
+        .form-input.success { 
+            border-color: var(--success); 
+            background: #f0fdf4;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .input-icon-wrapper {
+            position: relative;
+        }
+
+        .input-icon-wrapper .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 13px;
+            pointer-events: none;
+            transition: var(--transition);
+        }
+
+        .form-input.with-icon {
+            padding-left: 40px;
+        }
+
+        .input-icon-wrapper.has-action .form-input {
+            padding-right: 44px;
+        }
+
+        .input-action-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+            transition: var(--transition);
             font-size: 13px;
         }
 
-        /* প্রোফাইল ছবি আপলোড */
+        .input-action-btn:hover {
+            color: var(--primary);
+            background: #eef2ff;
+        }
+
+        .field-error {
+            font-size: 0.72rem;
+            color: var(--danger);
+            margin-top: 5px;
+            display: none;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+        }
+
+        .field-error.show { 
+            display: flex; 
+            animation: fadeSlideUp 0.25s ease;
+        }
+
+        .field-hint {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 500;
+        }
+
+        /* ========== BUTTONS ========== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: 0 6px 18px rgba(99,102,241,0.35);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(99,102,241,0.45);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
+            color: white;
+            box-shadow: 0 6px 18px rgba(16,185,129,0.35);
+        }
+
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(16,185,129,0.45);
+        }
+
+        .btn-ghost {
+            background: #f1f5f9;
+            color: #334155;
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-ghost:hover:not(:disabled) {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        /* ========== PROFILE UPLOAD ========== */
+        .profile-upload-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .profile-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 10px 30px rgba(99,102,241,0.2);
+            background: linear-gradient(135deg, #eef2ff, #ddd6fe);
+            transition: var(--transition);
+        }
+
+        .profile-upload-wrapper:hover .profile-preview {
+            transform: scale(1.03);
+        }
+
         .upload-btn {
-            transition: all 0.3s ease;
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(99,102,241,0.45);
+            transition: var(--transition);
+            border: 3px solid white;
+            font-size: 14px;
         }
+
         .upload-btn:hover {
-            transform: scale(1.1);
+            transform: scale(1.1) rotate(-8deg);
+            box-shadow: 0 8px 24px rgba(99,102,241,0.55);
         }
 
-        /* স্ক্রলবার */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+        /* ========== PASSWORD STRENGTH ========== */
+        .pw-bar {
+            height: 4px;
+            border-radius: 2px;
+            transition: var(--transition);
+            background: #e2e8f0;
+            flex: 1;
+        }
 
+        /* ========== INFO BOX ========== */
+        .info-box {
+            background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
+            border: 2px solid #c7d2fe;
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .info-box-title {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #4f46e5;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.82rem;
+            margin-bottom: 8px;
+        }
+
+        .info-row:last-child { margin-bottom: 0; }
+
+        .info-row .label {
+            color: #64748b;
+            font-weight: 600;
+            min-width: 70px;
+            flex-shrink: 0;
+        }
+
+        .info-row .value {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            color: #1e293b;
+            word-break: break-all;
+            min-width: 0;
+        }
+
+        /* ========== WARNING BOX ========== */
+        .warning-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #fcd34d;
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .warning-box i {
+            color: #d97706;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .warning-box p {
+            font-size: 0.72rem;
+            color: #92400e;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        /* ========== CHECKBOX ========== */
+        .custom-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* ========== TOAST ========== */
+        .toast-box {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            left: 16px;
+            z-index: 9999;
+            max-width: 380px;
+            margin: 0 auto;
+            padding: 14px 18px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 14px 40px rgba(0,0,0,0.15);
+            animation: toastSlide 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-size: 0.82rem;
+            font-weight: 600;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        @media (min-width: 640px) {
+            .toast-box {
+                left: auto;
+                right: 20px;
+                margin: 0;
+                max-width: 400px;
+            }
+        }
+
+        .toast-box.success {
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border-left: 4px solid #10b981;
+            color: #065f46;
+        }
+
+        .toast-box.error {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+        }
+
+        .toast-box.info {
+            background: linear-gradient(135deg, #eff6ff, #e0e7ff);
+            border-left: 4px solid #6366f1;
+            color: #3730a3;
+        }
+
+        @keyframes toastSlide {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes toastOut {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(-20px); opacity: 0; }
+        }
+
+        /* ========== SUCCESS SCREEN ========== */
+        .success-icon-wrapper {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 92px;
+            height: 92px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
+            box-shadow: 0 14px 40px rgba(16,185,129,0.4);
+            animation: successBounce 0.6s cubic-bezier(0.175,0.885,0.32,1.275);
+            position: relative;
+        }
+
+        .success-icon-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 2px solid rgba(16,185,129,0.3);
+            animation: pulseRing 2s ease-out infinite;
+        }
+
+        @keyframes successBounce {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.15); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes pulseRing {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+
+        .success-info-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+            border-radius: 16px;
+            padding: 18px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .success-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            gap: 12px;
+        }
+
+        .success-info-row:not(:last-child) {
+            border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .success-info-row .label {
+            color: #64748b;
+            font-size: 0.78rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .success-info-row .value {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 0.85rem;
+            text-align: right;
+            word-break: break-all;
+            min-width: 0;
+        }
+
+        .success-info-row .value.mono {
+            font-family: 'Courier New', monospace;
+            color: #4f46e5;
+            font-size: 0.75rem;
+        }
+
+        /* ========== ANIMATIONS ========== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-up {
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 640px) {
+            .page-header { padding: 18px 0 80px; }
+            .brand-icon-hero { width: 56px; height: 56px; font-size: 24px; border-radius: 18px; }
+            .back-btn { width: 38px; height: 38px; font-size: 14px; border-radius: 12px; }
+            .session-badge { padding: 6px 12px; font-size: 11px; }
+            .step-circle { width: 36px; height: 36px; font-size: 12px; border-width: 2px; }
+            .section-icon { width: 34px; height: 34px; border-radius: 10px; font-size: 13px; }
+            .section-title { font-size: 14px; padding-bottom: 10px; margin-bottom: 16px; }
+            .form-input { padding: 11px 12px; font-size: 0.82rem; }
+            .form-input.with-icon { padding-left: 38px; }
+            .input-icon-wrapper .input-icon { left: 12px; font-size: 12px; }
+            .btn { padding: 11px 18px; font-size: 0.82rem; }
+            .profile-upload-wrapper, .profile-preview { width: 100px; height: 100px; }
+            .upload-btn { width: 34px; height: 34px; font-size: 12px; }
+        }
+
+        @media (max-width: 400px) {
+            .brand-icon-hero { width: 50px; height: 50px; font-size: 20px; border-radius: 16px; }
+            .btn { padding: 10px 14px; font-size: 0.78rem; gap: 6px; }
+            .step-circle { width: 32px; height: 32px; font-size: 11px; }
+        }
+
+        /* ========== REDUCE MOTION ========== */
         @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+            *, *::before, *::after { 
+                animation-duration: 0.01ms !important; 
+                transition-duration: 0.01ms !important; 
+            }
+        }
+
+        /* ========== SPINNER ========== */
+        .spinner-inline {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ========== SCROLL ANCHOR ========== */
+        #formCard {
+            scroll-margin-top: 20px;
         }
     </style>
 </head>
 <body>
 
-    <!-- টোস্ট কন্টেইনার -->
+    <!-- Toast Container -->
     <div id="toastContainer"></div>
 
-    <!-- হেডার -->
-    <div class="header-bg px-4 pt-4 pb-20 relative">
-        <div class="max-w-lg mx-auto">
-            <!-- টপ বার -->
-            <div class="flex items-center justify-between mb-5">
-                <a href="#" class="w-9 h-9 bg-white/20 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-white/30 transition">
-                    <i class="fas fa-arrow-left text-sm"></i>
+    <!-- ============ HEADER (Full Width) ============ -->
+    <header class="page-header">
+        <div class="header-inner">
+            <!-- Top Bar - Full width with max-content -->
+            <div class="flex items-center justify-between mb-6">
+                <a href="#" class="back-btn" title="Go back">
+                    <i class="fas fa-arrow-left"></i>
                 </a>
-                <div class="bg-white/20 backdrop-blur px-3 py-1.5 rounded-full text-xs font-semibold text-white flex items-center gap-1.5">
+                <div class="session-badge">
                     <i class="fas fa-calendar-alt"></i>
                     <span id="sessionBadge">২০২৬-২০২৭</span>
                 </div>
             </div>
-            <!-- টাইটেল -->
-            <div class="text-white text-center">
-                <div class="inline-flex items-center justify-center w-14 h-14 bg-white/20 backdrop-blur rounded-2xl mb-3">
-                    <i class="fas fa-chalkboard-teacher text-2xl text-white"></i>
-                </div>
-                <h1 class="text-xl font-extrabold tracking-tight">শিক্ষক সাইনআপ</h1>
-                <p class="text-blue-100 text-xs mt-1">নতুন শিক্ষক একাউন্ট তৈরি করুন</p>
-            </div>
-        </div>
-        <!-- বটম কার্ভ -->
-        <div class="absolute bottom-0 left-0 right-0 h-6 bg-slate-100 rounded-t-3xl"></div>
-    </div>
 
-    <!-- মেইন কন্টেন্ট -->
-    <div class="max-w-lg mx-auto px-4 -mt-10 pb-8 relative z-10">
-
-        <!-- স্টেপ ইন্ডিকেটর -->
-        <div class="card p-4 mb-4">
-            <div class="flex items-center gap-0">
-                <div class="flex flex-col items-center" style="min-width:50px">
-                    <div class="step-circle active" id="stepCircle1">১</div>
-                    <span class="text-[10px] font-semibold mt-1 text-primary" id="stepLabel1">ব্যক্তিগত</span>
-                </div>
-                <div class="step-connector" id="connector1"></div>
-                <div class="flex flex-col items-center" style="min-width:50px">
-                    <div class="step-circle" id="stepCircle2">২</div>
-                    <span class="text-[10px] font-semibold mt-1 text-slate-400" id="stepLabel2">পেশাগত</span>
-                </div>
-                <div class="step-connector" id="connector2"></div>
-                <div class="flex flex-col items-center" style="min-width:50px">
-                    <div class="step-circle" id="stepCircle3">৩</div>
-                    <span class="text-[10px] font-semibold mt-1 text-slate-400" id="stepLabel3">একাউন্ট</span>
+            <!-- Title - Responsive: left-aligned on desktop, centered on mobile -->
+            <div class="text-white">
+                <div class="flex flex-col items-center lg:flex-row lg:items-center lg:justify-start lg:gap-5 text-center lg:text-left">
+                    <div class="brand-icon-hero mb-4 lg:mb-0">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold tracking-tight mb-1">
+                            শিক্ষক সাইনআপ
+                        </h1>
+                        <p class="text-xs md:text-sm lg:text-base text-white/85 flex items-center justify-center lg:justify-start gap-2">
+                            <i class="fas fa-circle text-[7px] text-yellow-300"></i>
+                            নতুন শিক্ষক একাউন্ট তৈরি করুন
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
+        <div class="header-curve"></div>
+    </header>
 
-        <!-- ফর্ম কার্ড -->
-        <div class="card overflow-hidden" id="formCard">
+    <!-- ============ MAIN ============ -->
+    <main class="full-width-wrapper -mt-12 pb-10 relative z-20">
 
-            <!-- ===== স্টেপ ১: ব্যক্তিগত তথ্য ===== -->
-            <div class="step-panel active p-5" id="step1">
-                <div class="section-title">
-                    <div class="section-icon bg-blue-50 text-primary"><i class="fas fa-user"></i></div>
-                    ব্যক্তিগত তথ্য
+        <div class="form-layout">
+
+            <!-- ========== LEFT SIDEBAR (Step Indicator) ========== -->
+            <div class="sticky-sidebar">
+                <div class="glass-card step-indicator-wrapper animate-fade-up" style="animation-delay: 0.05s;">
+                    <div class="flex items-center">
+                        <div class="flex flex-col items-center" style="min-width: 56px;">
+                            <div class="step-circle active" id="stepCircle1">১</div>
+                            <span class="text-[10px] font-bold mt-1.5 text-indigo-600" id="stepLabel1">ব্যক্তিগত</span>
+                        </div>
+                        <div class="step-connector" id="connector1"></div>
+                        <div class="flex flex-col items-center" style="min-width: 56px;">
+                            <div class="step-circle" id="stepCircle2">২</div>
+                            <span class="text-[10px] font-bold mt-1.5 text-slate-400" id="stepLabel2">পেশাগত</span>
+                        </div>
+                        <div class="step-connector" id="connector2"></div>
+                        <div class="flex flex-col items-center" style="min-width: 56px;">
+                            <div class="step-circle" id="stepCircle3">৩</div>
+                            <span class="text-[10px] font-bold mt-1.5 text-slate-400" id="stepLabel3">একাউন্ট</span>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- প্রোফাইল ছবি আপলোড -->
-                <div class="flex flex-col items-center mb-5">
-                    <div class="relative w-28 h-28 mb-2">
-                        <img id="profilePreview" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="w-28 h-28 rounded-full object-cover border-4 border-white shadow-md" alt="Profile">
-                        <label for="profileImage" class="upload-btn absolute bottom-1 right-1 w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-primary-dark transition">
-                            <i class="fas fa-camera text-sm"></i>
-                        </label>
-                        <input type="file" id="profileImage" class="hidden" accept="image/*" onchange="previewAndUploadImage(event)">
-                    </div>
-                    <div id="uploadStatus" class="text-[11px] text-slate-400 mt-1">প্রোফাইল ছবি নির্বাচন করুন (ঐচ্ছিক)</div>
-                </div>
-
-                <div class="space-y-4">
-                    <!-- পূর্ণ নাম -->
-                    <div>
-                        <label class="form-label">পূর্ণ নাম <span class="required">*</span></label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-primary text-sm"><i class="fas fa-user"></i></span>
-                            <input type="text" id="fullName" class="form-input pl-9" placeholder="শিক্ষকের পূর্ণ নাম লিখুন">
-                        </div>
-                        <div class="field-error" id="fullNameError">পূর্ণ নাম আবশ্যক</div>
-                    </div>
-
-                    <!-- পিতার/স্বামীর নাম -->
-                    <div>
-                        <label class="form-label">পিতা/স্বামীর নাম</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><i class="fas fa-user-tie"></i></span>
-                            <input type="text" id="fatherName" class="form-input pl-9" placeholder="পিতা বা স্বামীর নাম">
-                        </div>
-                    </div>
-
-                    <!-- মোবাইল নম্বর -->
-                    <div>
-                        <label class="form-label">মোবাইল নম্বর <span class="required">*</span></label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-primary text-sm"><i class="fas fa-phone-alt"></i></span>
-                            <input type="tel" id="phone" class="form-input pl-9" placeholder="01XXXXXXXXX" maxlength="11">
-                        </div>
-                        <div class="field-error" id="phoneError">সঠিক বাংলাদেশী মোবাইল নম্বর দিন</div>
-                    </div>
-
-                    <!-- ইমেইল -->
-                    <div>
-                        <label class="form-label">ইমেইল</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><i class="fas fa-envelope"></i></span>
-                            <input type="email" id="email" class="form-input pl-9" placeholder="teacher@school.com">
-                        </div>
-                        <div class="field-error" id="emailError">সঠিক ইমেইল ফরম্যাট দিন</div>
-                    </div>
-
-                    <!-- লিঙ্গ ও জন্ম তারিখ -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="form-label">লিঙ্গ</label>
-                            <select id="gender" class="form-input">
-                                <option value="">নির্বাচন</option>
-                                <option value="Male">পুরুষ</option>
-                                <option value="Female">মহিলা</option>
-                                <option value="Other">অন্যান্য</option>
-                            </select>
+                <!-- Extra Info Card (Desktop Only) -->
+                <div class="glass-card p-5 mt-5 hidden lg:block animate-fade-up" style="animation-delay: 0.15s;">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+                             style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 6px 16px rgba(99,102,241,0.3);">
+                            <i class="fas fa-info-circle text-sm"></i>
                         </div>
                         <div>
-                            <label class="form-label">জন্ম তারিখ</label>
-                            <input type="date" id="dob" class="form-input">
+                            <h3 class="text-sm font-extrabold text-slate-800">নির্দেশনা</h3>
+                            <p class="text-xs text-slate-500">সাইনআপ প্রক্রিয়া</p>
                         </div>
                     </div>
-
-                    <!-- ঠিকানা -->
-                    <div>
-                        <label class="form-label">ঠিকানা</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-3 text-slate-400 text-sm"><i class="fas fa-map-marker-alt"></i></span>
-                            <textarea id="address" class="form-input pl-9 resize-none" rows="2" placeholder="বর্তমান ঠিকানা লিখুন"></textarea>
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-2.5 text-xs text-slate-600">
+                            <i class="fas fa-check-circle text-emerald-500 mt-0.5 flex-shrink-0"></i>
+                            <span>সব তথ্য সঠিকভাবে পূরণ করুন</span>
+                        </div>
+                        <div class="flex items-start gap-2.5 text-xs text-slate-600">
+                            <i class="fas fa-check-circle text-emerald-500 mt-0.5 flex-shrink-0"></i>
+                            <span>মোবাইল নম্বর অবশ্যই সচল থাকতে হবে</span>
+                        </div>
+                        <div class="flex items-start gap-2.5 text-xs text-slate-600">
+                            <i class="fas fa-check-circle text-emerald-500 mt-0.5 flex-shrink-0"></i>
+                            <span>পাসওয়ার্ড সংরক্ষণ করুন নিরাপদে</span>
+                        </div>
+                        <div class="flex items-start gap-2.5 text-xs text-slate-600">
+                            <i class="fas fa-check-circle text-emerald-500 mt-0.5 flex-shrink-0"></i>
+                            <span>একাউন্ট তৈরি হলে অ্যাডমিন verify করবেন</span>
                         </div>
                     </div>
-                </div>
-
-                <!-- বাটন -->
-                <div class="flex justify-end mt-6 pt-4 border-t border-slate-100">
-                    <button type="button" onclick="goToStep(2)" class="btn-primary">
-                        পরবর্তী ধাপ <i class="fas fa-arrow-right ml-1.5"></i>
-                    </button>
                 </div>
             </div>
 
-            <!-- ===== স্টেপ ২: পেশাগত তথ্য ===== -->
-            <div class="step-panel p-5" id="step2">
-                <div class="section-title">
-                    <div class="section-icon bg-amber-50 text-amber-500"><i class="fas fa-graduation-cap"></i></div>
-                    পেশাগত তথ্য
-                </div>
+            <!-- ========== RIGHT: FORM CARD ========== -->
+            <div class="min-w-0">
+                <div class="glass-card overflow-hidden animate-fade-up" id="formCard" style="animation-delay: 0.1s;">
 
-                <div class="space-y-4">
-                    <!-- শিক্ষক আইডি -->
-                    <div>
-                        <label class="form-label">শিক্ষক আইডি</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 text-sm"><i class="fas fa-id-badge"></i></span>
-                            <input type="text" id="employeeId" class="form-input pl-9" placeholder="TCH-001">
+                    <!-- ========== STEP 1 ========== -->
+                    <div class="step-panel active form-panel" id="step1">
+                        <div class="section-title">
+                            <div class="section-icon indigo"><i class="fas fa-user"></i></div>
+                            ব্যক্তিগত তথ্য
                         </div>
-                        <div class="text-[10px] text-slate-400 mt-1">প্রতিষ্ঠান কর্তৃক প্রদত্ত আইডি (ঐচ্ছিক)</div>
-                    </div>
 
-                    <!-- বিভাগ -->
-                    <div>
-                        <label class="form-label">বিভাগ <span class="required">*</span></label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 text-sm"><i class="fas fa-book"></i></span>
-                            <input type="text" id="department" class="form-input pl-9" placeholder="বিজ্ঞান, গণিত, বাংলা...">
-                        </div>
-                        <div class="field-error" id="departmentError">বিভাগের নাম আবশ্যক</div>
-                    </div>
-
-                    <!-- শিক্ষাগত যোগ্যতা -->
-                    <div>
-                        <label class="form-label">শিক্ষাগত যোগ্যতা <span class="required">*</span></label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 text-sm"><i class="fas fa-award"></i></span>
-                            <input type="text" id="qualification" class="form-input pl-9" placeholder="এম.এসসি, বি.এড">
-                        </div>
-                        <div class="field-error" id="qualificationError">শিক্ষাগত যোগ্যতা আবশ্যক</div>
-                    </div>
-
-                    <!-- বিষয়/বিষয়সমূহ -->
-                    <div>
-                        <label class="form-label">পড়ানোর বিষয়</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 text-sm"><i class="fas fa-book-open"></i></span>
-                            <input type="text" id="subjects" class="form-input pl-9" placeholder="গণিত, পদার্থবিজ্ঞান...">
-                        </div>
-                    </div>
-
-                    <!-- যোগদানের তারিখ -->
-                    <div>
-                        <label class="form-label">যোগদানের তারিখ</label>
-                        <input type="date" id="joiningDate" class="form-input">
-                    </div>
-
-                    <!-- বেতন -->
-                    <div>
-                        <label class="form-label">মাসিক বেতন</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">৳</span>
-                            <input type="number" id="salary" class="form-input pl-9" placeholder="০">
-                        </div>
-                    </div>
-
-                    <!-- রক্তের গ্রুপ -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="form-label">রক্তের গ্রুপ</label>
-                            <select id="bloodGroup" class="form-input">
-                                <option value="">নির্বাচন</option>
-                                <option>A+</option><option>A-</option>
-                                <option>B+</option><option>B-</option>
-                                <option>AB+</option><option>AB-</option>
-                                <option>O+</option><option>O-</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="form-label">জাতীয়তা</label>
-                            <input type="text" id="nationality" class="form-input" placeholder="বাংলাদেশী" value="বাংলাদেশী">
-                        </div>
-                    </div>
-
-                    <!-- এনআইডি -->
-                    <div>
-                        <label class="form-label">জাতীয় পরিচয়পত্র নম্বর</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><i class="fas fa-id-card"></i></span>
-                            <input type="text" id="nid" class="form-input pl-9" placeholder="NID নম্বর">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- বাটন -->
-                <div class="flex justify-between mt-6 pt-4 border-t border-slate-100">
-                    <button type="button" onclick="goToStep(1)" class="btn-outline">
-                        <i class="fas fa-arrow-left mr-1.5"></i> পূর্ববর্তী
-                    </button>
-                    <button type="button" onclick="goToStep(3)" class="btn-primary">
-                        পরবর্তী ধাপ <i class="fas fa-arrow-right ml-1.5"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- ===== স্টেপ ৩: একাউন্ট সেটআপ ===== -->
-            <div class="step-panel p-5" id="step3">
-                <div class="section-title">
-                    <div class="section-icon bg-emerald-50 text-emerald-500"><i class="fas fa-lock"></i></div>
-                    একাউন্ট সেটআপ
-                </div>
-
-                <div class="space-y-4">
-                    <!-- লগইন তথ্য প্রিভিউ -->
-                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                        <div class="text-xs font-bold text-primary mb-2"><i class="fas fa-info-circle mr-1"></i> লগইন তথ্য প্রিভিউ</div>
-                        <div class="space-y-1.5 text-sm">
-                            <div class="flex items-center gap-2">
-                                <span class="text-slate-500 w-16">ইমেইল:</span>
-                                <span class="font-mono font-semibold text-slate-800" id="previewEmail">—</span>
+                        <!-- Profile Photo -->
+                        <div class="flex flex-col items-center mb-6">
+                            <div class="profile-upload-wrapper">
+                                <img id="profilePreview" 
+                                     src="https://ui-avatars.com/api/?name=T&background=6366f1&color=fff&bold=true&size=200" 
+                                     class="profile-preview" 
+                                     alt="Profile">
+                                <label for="profileImage" class="upload-btn" title="ছবি আপলোড করুন">
+                                    <i class="fas fa-camera"></i>
+                                </label>
+                                <input type="file" id="profileImage" class="hidden" accept="image/*" onchange="previewAndUploadImage(event)">
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-slate-500 w-16">মোবাইল:</span>
-                                <span class="font-mono font-semibold text-slate-800" id="previewPhone">—</span>
+                            <div id="uploadStatus" class="text-[11px] text-slate-400 mt-3 font-medium">
+                                প্রোফাইল ছবি নির্বাচন করুন (ঐচ্ছিক)
                             </div>
                         </div>
+
+                        <div class="form-grid">
+                            <!-- Full Name -->
+                            <div class="full-span">
+                                <label class="form-label">পূর্ণ নাম <span class="required">*</span></label>
+                                <div class="input-icon-wrapper">
+                                    <input type="text" id="fullName" class="form-input with-icon" placeholder="শিক্ষকের পূর্ণ নাম লিখুন">
+                                    <span class="input-icon"><i class="fas fa-user"></i></span>
+                                </div>
+                                <div class="field-error" id="fullNameError">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <span>পূর্ণ নাম আবশ্যক</span>
+                                </div>
+                            </div>
+
+                            <!-- Father Name -->
+                            <div>
+                                <label class="form-label">পিতা / স্বামীর নাম</label>
+                                <div class="input-icon-wrapper">
+                                    <input type="text" id="fatherName" class="form-input with-icon" placeholder="পিতা বা স্বামীর নাম">
+                                    <span class="input-icon"><i class="fas fa-user-tie"></i></span>
+                                </div>
+                            </div>
+
+                            <!-- Phone -->
+                            <div>
+                                <label class="form-label">মোবাইল নম্বর <span class="required">*</span></label>
+                                <div class="input-icon-wrapper">
+                                    <input type="tel" id="phone" class="form-input with-icon" placeholder="01XXXXXXXXX" maxlength="11">
+                                    <span class="input-icon"><i class="fas fa-phone-alt"></i></span>
+                                </div>
+                                <div class="field-error" id="phoneError">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <span>সঠিক বাংলাদেশী মোবাইল নম্বর দিন</span>
+                                </div>
+                            </div>
+
+                            <!-- Email -->
+                            <div>
+                                <label class="form-label">ইমেইল</label>
+                                <div class="input-icon-wrapper">
+                                    <input type="email" id="email" class="form-input with-icon" placeholder="teacher@school.com">
+                                    <span class="input-icon"><i class="fas fa-envelope"></i></span>
+                                </div>
+                                <div class="field-error" id="emailError">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <span>সঠিক ইমেইল ফরম্যাট দিন</span>
+                                </div>
+                            </div>
+
+                            <!-- Gender -->
+                            <div>
+                                <label class="form-label">লিঙ্গ</label>
+                                <select id="gender" class="form-input">
+                                    <option value="">নির্বাচন</option>
+                                    <option value="Male">পুরুষ</option>
+                                    <option value="Female">মহিলা</option>
+                                    <option value="Other">অন্যান্য</option>
+                                </select>
+                            </div>
+
+                            <!-- DOB -->
+                            <div>
+                                <label class="form-label">জন্ম তারিখ</label>
+                                <input type="date" id="dob" class="form-input">
+                            </div>
+
+                            <!-- Address -->
+                            <div class="full-span">
+                                <label class="form-label">ঠিকানা</label>
+                                <div class="input-icon-wrapper">
+                                    <textarea id="address" class="form-input with-icon resize-none" rows="2" placeholder="বর্তমান ঠিকানা লিখুন" style="padding-top: 14px;"></textarea>
+                                    <span class="input-icon" style="top: 22px; transform: none;"><i class="fas fa-map-marker-alt"></i></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex justify-end mt-6 pt-5 border-t border-slate-100">
+                            <button type="button" onclick="goToStep(2)" class="btn btn-primary">
+                                পরবর্তী ধাপ
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- পাসওয়ার্ড -->
-                    <div>
-                        <label class="form-label">পাসওয়ার্ড <span class="required">*</span></label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 text-sm"><i class="fas fa-key"></i></span>
-                            <input type="password" id="password" class="form-input pl-9 pr-10" placeholder="কমপক্ষে ৬ অক্ষর">
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 cursor-pointer hover:text-slate-600" onclick="togglePw('password', this)">
-                                <i class="fas fa-eye text-sm"></i>
-                            </span>
+                    <!-- ========== STEP 2 ========== -->
+                    <div class="step-panel form-panel" id="step2">
+                        <div class="section-title">
+                            <div class="section-icon amber"><i class="fas fa-graduation-cap"></i></div>
+                            পেশাগত তথ্য
                         </div>
-                        <!-- পাসওয়ার্ড শক্তি -->
-                        <div class="flex gap-1.5 mt-2">
-                            <div class="pw-bar flex-1" id="pw1"></div>
-                            <div class="pw-bar flex-1" id="pw2"></div>
-                            <div class="pw-bar flex-1" id="pw3"></div>
-                            <div class="pw-bar flex-1" id="pw4"></div>
+
+                        <div class="form-grid">
+                            <!-- Employee ID -->
+                            <div>
+                                <label class="form-label">শিক্ষক আইডি</label>
+                                <div class="input-icon-wrapper">
+                                    <input type="text" id="employeeId" class="form-input with-icon" placeholder="TCH-001">
+                                    <span class="input-icon"><i class="fas fa-id-badge"></i></span>
+                                </div>
+                                <div class="field-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    প্রতিষ্ঠান কর্তৃক প্রদত্ত আইডি (ঐচ্ছিক)
+                                </div>
+                            </div>
+
+                            <!-- Department -->
+                            <div>
+                                <label class="form-label">বিভাগ <span class="required">*</span></label>
+                                <div class="input-icon-wrapper">
+                                    <input type="text" id="department" class="form-input with-icon" placeholder="বিজ্ঞান, গণিত, বাংলা...">
+                                    <span class="input-icon"><i class="fas fa-book"></i></span>
+                                </div>
+                                <div class="field-error" id="departmentError">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <span>বিভাগের নাম আবশ্যক</span>
+                                </div>
+                            </div>
+
+                            <!-- Qualification -->
+                            <div>
+                                <label class="form-label">শিক্ষাগত যোগ্যতা <span class="required">*</span></label>
+                                <div class="input-icon-wrapper">
+                                    <input type="text" id="qualification" class="form-input with-icon" placeholder="এম.এসসি, বি.এড">
+                                    <span class="input-icon"><i class="fas fa-award"></i></span>
+                                </div>
+                                <div class="field-error" id="qualificationError">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <span>শিক্ষাগত যোগ্যতা আবশ্যক</span>
+                                </div>
+                            </div>
+
+                            <!-- Subjects -->
+                            <div>
+                                <label class="form-label">পড়ানোর বিষয়</label>
+                                <div class="input-icon-wrapper">
+                                    <input type="text" id="subjects" class="form-input with-icon" placeholder="গণিত, পদার্থবিজ্ঞান...">
+                                    <span class="input-icon"><i class="fas fa-book-open"></i></span>
+                                </div>
+                            </div>
+
+                            <!-- Joining Date -->
+                            <div>
+                                <label class="form-label">যোগদানের তারিখ</label>
+                                <input type="date" id="joiningDate" class="form-input">
+                            </div>
+
+                            <!-- Salary -->
+                            <div>
+                                <label class="form-label">মাসিক বেতন</label>
+                                <div class="input-icon-wrapper">
+                                    <input type="number" id="salary" class="form-input with-icon" placeholder="০">
+                                    <span class="input-icon"><i class="fas fa-taka-sign"></i></span>
+                                </div>
+                            </div>
+
+                            <!-- Blood Group -->
+                            <div>
+                                <label class="form-label">রক্তের গ্রুপ</label>
+                                <select id="bloodGroup" class="form-input">
+                                    <option value="">নির্বাচন</option>
+                                    <option>A+</option><option>A-</option>
+                                    <option>B+</option><option>B-</option>
+                                    <option>AB+</option><option>AB-</option>
+                                    <option>O+</option><option>O-</option>
+                                </select>
+                            </div>
+
+                            <!-- Nationality -->
+                            <div>
+                                <label class="form-label">জাতীয়তা</label>
+                                <input type="text" id="nationality" class="form-input" placeholder="বাংলাদেশী" value="বাংলাদেশী">
+                            </div>
+
+                            <!-- NID -->
+                            <div class="full-span">
+                                <label class="form-label">জাতীয় পরিচয়পত্র নম্বর</label>
+                                <div class="input-icon-wrapper">
+                                    <input type="text" id="nid" class="form-input with-icon" placeholder="NID নম্বর">
+                                    <span class="input-icon"><i class="fas fa-id-card"></i></span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex justify-between mt-1">
-                            <span class="text-[10px] text-slate-400">পাসওয়ার্ড শক্তি</span>
-                            <span class="text-[10px] font-semibold" id="pwStrengthText" style="color:#94a3b8">—</span>
+
+                        <!-- Actions -->
+                        <div class="flex justify-between gap-3 mt-6 pt-5 border-t border-slate-100">
+                            <button type="button" onclick="goToStep(1)" class="btn btn-ghost">
+                                <i class="fas fa-arrow-left"></i>
+                                পূর্ববর্তী
+                            </button>
+                            <button type="button" onclick="goToStep(3)" class="btn btn-primary">
+                                পরবর্তী ধাপ
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
                         </div>
-                        <div class="field-error" id="passwordError">পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে</div>
                     </div>
 
-                    <!-- পাসওয়ার্ড কনফার্ম -->
-                    <div>
-                        <label class="form-label">পাসওয়ার্ড নিশ্চিত করুন <span class="required">*</span></label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 text-sm"><i class="fas fa-lock"></i></span>
-                            <input type="password" id="confirmPassword" class="form-input pl-9 pr-10" placeholder="পুনরায় পাসওয়ার্ড লিখুন">
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 cursor-pointer hover:text-slate-600" onclick="togglePw('confirmPassword', this)">
-                                <i class="fas fa-eye text-sm"></i>
-                            </span>
+                    <!-- ========== STEP 3 ========== -->
+                    <div class="step-panel form-panel" id="step3">
+                        <div class="section-title">
+                            <div class="section-icon emerald"><i class="fas fa-lock"></i></div>
+                            একাউন্ট সেটআপ
                         </div>
-                        <div class="field-error" id="confirmPasswordError">পাসওয়ার্ড মিলছে না</div>
+
+                        <div class="form-grid">
+                            <!-- Login Info Preview -->
+                            <div class="full-span">
+                                <div class="info-box">
+                                    <div class="info-box-title">
+                                        <i class="fas fa-shield-alt"></i>
+                                        লগইন তথ্য প্রিভিউ
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="label">ইমেইল</span>
+                                        <span class="value" id="previewEmail">—</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="label">মোবাইল</span>
+                                        <span class="value" id="previewPhone">—</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Password -->
+                            <div>
+                                <label class="form-label">পাসওয়ার্ড <span class="required">*</span></label>
+                                <div class="input-icon-wrapper has-action">
+                                    <input type="password" id="password" class="form-input with-icon" placeholder="কমপক্ষে ৬ অক্ষর">
+                                    <span class="input-icon"><i class="fas fa-key"></i></span>
+                                    <span class="input-action-btn" onclick="togglePw('password', this)">
+                                        <i class="fas fa-eye"></i>
+                                    </span>
+                                </div>
+                                <div class="flex gap-1.5 mt-2.5">
+                                    <div class="pw-bar" id="pw1"></div>
+                                    <div class="pw-bar" id="pw2"></div>
+                                    <div class="pw-bar" id="pw3"></div>
+                                    <div class="pw-bar" id="pw4"></div>
+                                </div>
+                                <div class="flex justify-between items-center mt-1.5">
+                                    <span class="text-[10px] text-slate-400 font-semibold">পাসওয়ার্ড শক্তি</span>
+                                    <span class="text-[10px] font-bold" id="pwStrengthText" style="color:#94a3b8">—</span>
+                                </div>
+                                <div class="field-error" id="passwordError">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <span>পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে</span>
+                                </div>
+                            </div>
+
+                            <!-- Confirm Password -->
+                            <div>
+                                <label class="form-label">পাসওয়ার্ড নিশ্চিত করুন <span class="required">*</span></label>
+                                <div class="input-icon-wrapper has-action">
+                                    <input type="password" id="confirmPassword" class="form-input with-icon" placeholder="পুনরায় পাসওয়ার্ড লিখুন">
+                                    <span class="input-icon"><i class="fas fa-lock"></i></span>
+                                    <span class="input-action-btn" onclick="togglePw('confirmPassword', this)">
+                                        <i class="fas fa-eye"></i>
+                                    </span>
+                                </div>
+                                <div class="field-error" id="confirmPasswordError">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <span>পাসওয়ার্ড মিলছে না</span>
+                                </div>
+                            </div>
+
+                            <!-- Terms -->
+                            <div class="full-span">
+                                <label class="flex items-start gap-3 cursor-pointer select-none mt-2 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-indigo-50 hover:border-indigo-100 transition">
+                                    <input type="checkbox" id="agreeTerms" class="custom-checkbox">
+                                    <span class="text-xs text-slate-600 leading-relaxed font-medium">
+                                        আমি <span class="text-indigo-600 font-bold underline">শর্তাবলী</span> পড়েছি এবং সম্মত আছি। আমার দেওয়া সমস্ত তথ্য সঠিক।
+                                    </span>
+                                </label>
+                                <div class="field-error" id="agreeError" style="margin-top: 4px;">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <span>শর্তাবলীতে সম্মতি আবশ্যক</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex justify-between gap-3 mt-6 pt-5 border-t border-slate-100">
+                            <button type="button" onclick="goToStep(2)" class="btn btn-ghost">
+                                <i class="fas fa-arrow-left"></i>
+                                পূর্ববর্তী
+                            </button>
+                            <button type="button" id="submitBtn" onclick="submitForm()" class="btn btn-success">
+                                <i class="fas fa-user-plus"></i>
+                                একাউন্ট তৈরি করুন
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- শর্তাবলী -->
-                    <label class="flex items-start gap-2.5 cursor-pointer select-none mt-3">
-                        <input type="checkbox" id="agreeTerms" class="mt-0.5 w-4 h-4 accent-blue-500 rounded">
-                        <span class="text-xs text-slate-500 leading-relaxed">
-                            আমি <span class="text-primary font-semibold underline">শর্তাবলী</span> পড়েছি এবং সম্মত আছি। আমার দেওয়া তথ্য সঠিক।
-                        </span>
-                    </label>
-                    <div class="field-error" id="agreeError">শর্তাবলীতে সম্মতি আবশ্যক</div>
+                    <!-- ========== SUCCESS SCREEN ========== -->
+                    <div class="step-panel form-panel text-center" id="successScreen">
+                        <div class="max-w-2xl mx-auto">
+                            <div class="success-icon-wrapper mb-5">
+                                <i class="fas fa-check text-3xl text-white"></i>
+                            </div>
+                            <h2 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">
+                                একাউন্ট তৈরি সফল!
+                            </h2>
+                            <p class="text-xs md:text-sm text-slate-500 mb-6 font-medium">
+                                আপনার শিক্ষক একাউন্ট সফলভাবে তৈরি হয়েছে
+                            </p>
+
+                            <!-- Info Card -->
+                            <div class="success-info-card text-left mb-5">
+                                <div class="success-info-row">
+                                    <span class="label">নাম</span>
+                                    <span class="value" id="successName">—</span>
+                                </div>
+                                <div class="success-info-row">
+                                    <span class="label">লগইন ইমেইল</span>
+                                    <span class="value mono" id="successEmail">—</span>
+                                </div>
+                                <div class="success-info-row">
+                                    <span class="label">বিভাগ</span>
+                                    <span class="value" id="successDept">—</span>
+                                </div>
+                                <div class="success-info-row">
+                                    <span class="label">শিক্ষক আইডি</span>
+                                    <span class="value mono" id="successId">—</span>
+                                </div>
+                            </div>
+
+                            <!-- Warning -->
+                            <div class="warning-box mb-5 text-left">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>
+                                    এই তথ্য সংরক্ষণ করুন। লগইন করতে উপরের ইমেইল ও আপনার পাসওয়ার্ড ব্যবহার করুন।
+                                </p>
+                            </div>
+
+                            <button type="button" onclick="resetForm()" class="btn btn-primary w-full">
+                                <i class="fas fa-redo"></i>
+                                আরেকটি একাউন্ট তৈরি করুন
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- বাটন -->
-                <div class="flex justify-between mt-6 pt-4 border-t border-slate-100">
-                    <button type="button" onclick="goToStep(2)" class="btn-outline">
-                        <i class="fas fa-arrow-left mr-1.5"></i> পূর্ববর্তী
-                    </button>
-                    <button type="button" id="submitBtn" onclick="submitForm()" class="btn-success">
-                        <i class="fas fa-user-plus mr-1.5"></i> একাউন্ট তৈরি করুন
-                    </button>
-                </div>
-            </div>
-
-            <!-- ===== সাকসেস স্ক্রিন ===== -->
-            <div class="step-panel p-6 text-center" id="successScreen">
-                <div class="success-bounce inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 mb-5 pulse-ring">
-                    <i class="fas fa-check text-3xl text-white"></i>
-                </div>
-                <h2 class="text-xl font-extrabold text-slate-800 mb-1">একাউন্ট তৈরি সফল!</h2>
-                <p class="text-xs text-slate-500 mb-5">আপনার শিক্ষক একাউন্ট সফলভাবে তৈরি হয়েছে</p>
-
-                <!-- তথ্য কার্ড -->
-                <div class="bg-slate-50 rounded-xl p-4 text-left text-sm space-y-2.5 mb-5 border border-slate-100">
-                    <div class="flex justify-between items-center">
-                        <span class="text-slate-500">নাম</span>
-                        <span class="font-bold text-slate-800" id="successName">—</span>
-                    </div>
-                    <div class="border-t border-dashed border-slate-200"></div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-slate-500">লগইন ইমেইল</span>
-                        <span class="font-mono text-xs font-semibold text-primary" id="successEmail">—</span>
-                    </div>
-                    <div class="border-t border-dashed border-slate-200"></div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-slate-500">বিভাগ</span>
-                        <span class="font-semibold text-slate-800" id="successDept">—</span>
-                    </div>
-                    <div class="border-t border-dashed border-slate-200"></div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-slate-500">শিক্ষক আইডি</span>
-                        <span class="font-mono font-semibold text-slate-800" id="successId">—</span>
-                    </div>
-                </div>
-
-                <!-- সতর্কতা -->
-                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-5 text-left">
-                    <p class="text-[11px] text-amber-700 leading-relaxed">
-                        <i class="fas fa-exclamation-triangle mr-1"></i>
-                        এই তথ্য সংরক্ষণ করুন। লগইন করতে উপরের ইমেইল ও আপনার পাসওয়ার্ড ব্যবহার করুন।
+                <!-- Footer -->
+                <div class="text-center mt-6 text-xs text-slate-400 font-medium animate-fade-up" style="animation-delay: 0.15s;">
+                    <p>
+                        ইতিমধ্যে একাউন্ট আছে? 
+                        <a href="#" class="text-indigo-600 font-bold hover:underline transition">
+                            লগইন করুন
+                            <i class="fas fa-arrow-right ml-1 text-[10px]"></i>
+                        </a>
                     </p>
                 </div>
-
-                <button type="button" onclick="resetForm()" class="btn-primary w-full">
-                    <i class="fas fa-redo mr-1.5"></i> আরেকটি একাউন্ট তৈরি করুন
-                </button>
             </div>
         </div>
-
-        <!-- ফুটার -->
-        <div class="text-center mt-5 text-xs text-slate-400">
-            <p>ইতিমধ্যে একাউন্ট আছে? <a href="#" class="text-primary font-semibold hover:underline">লগইন করুন</a></p>
-        </div>
-    </div>
+    </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
@@ -592,23 +1406,18 @@
         };
 
         const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-// ✅ সেকেন্ডারি অ্যাপ — শুধুমাত্র নতুন শিক্ষক একাউন্ট তৈরি করতে ব্যবহৃত হবে
-// এতে অ্যাডমিনের অথ সেশন নিরাপদ থাকবে, লগআউট হবে না
-const secondaryApp = initializeApp(firebaseConfig, "Secondary");
-const secondaryAuth = getAuth(secondaryApp);
+        const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+        const secondaryAuth = getAuth(secondaryApp);
 
-        // ===== ক্লাউডিনারি কনফিগারেশন =====
-        // আপনার Cloudinary ড্যাশবোর্ড থেকে Cloud Name এবং Unsigned Upload Preset এখানে বসান
-        const CLOUDINARY_CLOUD_NAME = 'dhvtgzy5x'; 
-        const CLOUDINARY_UPLOAD_PRESET = 'Rosenews'; 
+        const CLOUDINARY_CLOUD_NAME = 'dhvtgzy5x';
+        const CLOUDINARY_UPLOAD_PRESET = 'Rosenews';
 
         let currentStep = 1;
-        let profileImageUrl = null; // আপলোড হওয়া ছবির URL সংরক্ষণের জন্য
+        let profileImageUrl = null;
 
-        // ===== সেশন লোড =====
         async function loadSession() {
             try {
                 const snap = await getDoc(doc(db, "config", "activeSession"));
@@ -619,13 +1428,19 @@ const secondaryAuth = getAuth(secondaryApp);
         }
         loadSession();
 
-        // ===== টোস্ট =====
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            const icons = { success: 'fa-check-circle text-emerald-500', error: 'fa-exclamation-circle text-red-500', info: 'fa-info-circle text-blue-500' };
+            const icons = { 
+                success: 'fa-check-circle', 
+                error: 'fa-exclamation-circle', 
+                info: 'fa-info-circle' 
+            };
             toast.className = `toast-box ${type}`;
-            toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i><span>${message}</span>`;
+            toast.innerHTML = `
+                <i class="fas ${icons[type] || icons.info} text-base"></i>
+                <span class="flex-1">${message}</span>
+            `;
             container.appendChild(toast);
             setTimeout(() => {
                 toast.style.animation = 'toastOut 0.3s ease forwards';
@@ -633,24 +1448,20 @@ const secondaryAuth = getAuth(secondaryApp);
             }, 4500);
         }
 
-        // ===== ইমেজ আপলোড ফাংশন (Cloudinary) =====
         window.previewAndUploadImage = async function(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            // প্রিভিউ দেখানো
             const reader = new FileReader();
             reader.onload = function(e) {
                 document.getElementById('profilePreview').src = e.target.result;
-            }
+            };
             reader.readAsDataURL(file);
 
-            // আপলোড স্ট্যাটাস আপডেট
             const statusEl = document.getElementById('uploadStatus');
-            statusEl.textContent = 'ছবি আপলোড হচ্ছে...';
-            statusEl.className = 'text-xs text-amber-500 mt-1 font-semibold';
+            statusEl.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> ছবি আপলোড হচ্ছে...';
+            statusEl.className = 'text-[11px] text-amber-500 mt-3 font-semibold';
 
-            // Cloudinary তে আপলোড
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
@@ -660,25 +1471,23 @@ const secondaryAuth = getAuth(secondaryApp);
                     method: 'POST',
                     body: formData
                 });
-
                 const data = await response.json();
                 if (data.secure_url) {
                     profileImageUrl = data.secure_url;
-                    statusEl.textContent = 'আপলোড সফল!';
-                    statusEl.className = 'text-xs text-emerald-500 mt-1 font-semibold';
+                    statusEl.innerHTML = '<i class="fas fa-check-circle mr-1"></i> ছবি আপলোড সফল';
+                    statusEl.className = 'text-[11px] text-emerald-500 mt-3 font-semibold';
                     showToast('প্রোফাইল ছবি সফলভাবে আপলোড হয়েছে', 'success');
                 } else {
                     throw new Error('Cloudinary upload failed');
                 }
             } catch (error) {
                 console.error('Cloudinary upload error:', error);
-                statusEl.textContent = 'আপলোড ব্যর্থ, আবার চেষ্টা করুন';
-                statusEl.className = 'text-xs text-red-500 mt-1 font-semibold';
+                statusEl.innerHTML = '<i class="fas fa-times-circle mr-1"></i> আপলোড ব্যর্থ, আবার চেষ্টা করুন';
+                statusEl.className = 'text-[11px] text-red-500 mt-3 font-semibold';
                 showToast('ছবি আপলোডে সমস্যা হয়েছে', 'error');
             }
         };
 
-        // ===== স্টেপ নেভিগেশন =====
         window.goToStep = function(step) {
             if (step > currentStep && !validateStep(currentStep)) return;
             currentStep = step;
@@ -686,12 +1495,10 @@ const secondaryAuth = getAuth(secondaryApp);
         };
 
         function updateStepUI() {
-            // প্যানেল
             document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
             const panel = document.getElementById('step' + currentStep);
             if (panel) panel.classList.add('active');
 
-            // সার্কেল ও লেবেল
             for (let i = 1; i <= 3; i++) {
                 const circle = document.getElementById('stepCircle' + i);
                 const label = document.getElementById('stepLabel' + i);
@@ -699,18 +1506,17 @@ const secondaryAuth = getAuth(secondaryApp);
                 if (i < currentStep) {
                     circle.classList.add('done');
                     circle.innerHTML = '<i class="fas fa-check text-xs"></i>';
-                    label.className = 'text-[10px] font-semibold mt-1 text-emerald-500';
+                    label.className = 'text-[10px] font-bold mt-1.5 text-emerald-500';
                 } else if (i === currentStep) {
                     circle.classList.add('active');
                     circle.textContent = i === 1 ? '১' : i === 2 ? '২' : '৩';
-                    label.className = 'text-[10px] font-semibold mt-1 text-primary';
+                    label.className = 'text-[10px] font-bold mt-1.5 text-indigo-600';
                 } else {
                     circle.textContent = i === 1 ? '১' : i === 2 ? '২' : '৩';
-                    label.className = 'text-[10px] font-semibold mt-1 text-slate-400';
+                    label.className = 'text-[10px] font-bold mt-1.5 text-slate-400';
                 }
             }
 
-            // কানেক্টর
             for (let i = 1; i <= 2; i++) {
                 const conn = document.getElementById('connector' + i);
                 conn.classList.remove('active', 'done');
@@ -718,10 +1524,7 @@ const secondaryAuth = getAuth(secondaryApp);
                 else if (i === currentStep) conn.classList.add('active');
             }
 
-            // স্টেপ ৩ হলে প্রিভিউ আপডেট
             if (currentStep === 3) updatePreview();
-
-            // কার্ডে স্ক্রল
             document.getElementById('formCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
@@ -732,22 +1535,32 @@ const secondaryAuth = getAuth(secondaryApp);
             document.getElementById('previewPhone').textContent = phone || '—';
         }
 
-        // ===== ভ্যালিডেশন =====
         function showErr(id, msg) {
             const field = document.getElementById(id);
             const err = document.getElementById(id + 'Error');
             if (field) field.classList.add('error');
-            if (err) { err.textContent = msg; err.classList.add('show'); }
+            if (err) { 
+                if (msg) {
+                    const span = err.querySelector('span');
+                    if (span) span.textContent = msg;
+                }
+                err.classList.add('show'); 
+            }
         }
+
         function clearErr(id) {
             const field = document.getElementById(id);
             const err = document.getElementById(id + 'Error');
             if (field) field.classList.remove('error');
             if (err) err.classList.remove('show');
         }
+
         function markOk(id) {
             const field = document.getElementById(id);
-            if (field) { field.classList.remove('error'); field.classList.add('success'); }
+            if (field) { 
+                field.classList.remove('error'); 
+                field.classList.add('success'); 
+            }
             clearErr(id);
         }
 
@@ -758,32 +1571,36 @@ const secondaryAuth = getAuth(secondaryApp);
                 const phone = document.getElementById('phone').value.trim();
                 const email = document.getElementById('email').value.trim();
 
-                if (!name) { showErr('fullName', 'পূর্ণ নাম আবশ্যক'); ok = false; } else markOk('fullName');
+                if (!name) { showErr('fullName', 'পূর্ণ নাম আবশ্যক'); ok = false; } 
+                else markOk('fullName');
 
                 if (!phone) { showErr('phone', 'মোবাইল নম্বর আবশ্যক'); ok = false; }
                 else if (!/^01[3-9]\d{8}$/.test(phone)) { showErr('phone', 'সঠিক বাংলাদেশী নম্বর দিন (01XXXXXXXXX)'); ok = false; }
                 else markOk('phone');
 
-                if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('email', 'সঠিক ইমেইল ফরম্যাট দিন'); ok = false; }
-                else if (email) markOk('email'); else clearErr('email');
+                if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { 
+                    showErr('email', 'সঠিক ইমেইল ফরম্যাট দিন'); ok = false; 
+                }
+                else if (email) markOk('email'); 
+                else clearErr('email');
             }
             if (step === 2) {
                 const dept = document.getElementById('department').value.trim();
                 const qual = document.getElementById('qualification').value.trim();
-                if (!dept) { showErr('department', 'বিভাগের নাম আবশ্যক'); ok = false; } else markOk('department');
-                if (!qual) { showErr('qualification', 'শিক্ষাগত যোগ্যতা আবশ্যক'); ok = false; } else markOk('qualification');
+                if (!dept) { showErr('department', 'বিভাগের নাম আবশ্যক'); ok = false; } 
+                else markOk('department');
+                if (!qual) { showErr('qualification', 'শিক্ষাগত যোগ্যতা আবশ্যক'); ok = false; } 
+                else markOk('qualification');
             }
             if (!ok) showToast('অনুগ্রহ করে আবশ্যক তথ্য পূরণ করুন', 'error');
             return ok;
         }
 
-        // ইনপুটে টাইপ করলে এরর ক্লিয়ার
         ['fullName','phone','email','department','qualification','password','confirmPassword'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.addEventListener('input', () => clearErr(id));
         });
 
-        // ===== পাসওয়ার্ড শক্তি =====
         document.getElementById('password').addEventListener('input', function() {
             const v = this.value;
             let s = 0;
@@ -791,11 +1608,15 @@ const secondaryAuth = getAuth(secondaryApp);
             if (v.length >= 10) s++;
             if (/[A-Z]/.test(v) && /[a-z]/.test(v)) s++;
             if (/\d/.test(v) && /[^A-Za-z0-9]/.test(v)) s++;
-            const colors = ['#e2e8f0', '#ef4444', '#f59e0b', '#3b82f6', '#10b981'];
+            
+            const colors = ['#e2e8f0', '#ef4444', '#f59e0b', '#6366f1', '#10b981'];
             const labels = ['—', 'দুর্বল', 'মাঝারি', 'ভালো', 'শক্তিশালী'];
+            
             for (let i = 1; i <= 4; i++) {
-                document.getElementById('pw' + i).style.background = i <= s ? colors[s] : '#e2e8f0';
+                const bar = document.getElementById('pw' + i);
+                bar.style.background = i <= s ? colors[s] : '#e2e8f0';
             }
+            
             const txt = document.getElementById('pwStrengthText');
             txt.textContent = v ? labels[s] : '—';
             txt.style.color = v ? colors[s] : '#94a3b8';
@@ -809,21 +1630,24 @@ const secondaryAuth = getAuth(secondaryApp);
             else clearErr('confirmPassword');
         });
 
-        // ===== পাসওয়ার্ড টগল =====
         window.togglePw = function(fieldId, el) {
             const f = document.getElementById(fieldId);
             const icon = el.querySelector('i');
-            if (f.type === 'password') { f.type = 'text'; icon.className = 'fas fa-eye-slash text-sm'; }
-            else { f.type = 'password'; icon.className = 'fas fa-eye text-sm'; }
+            if (f.type === 'password') { 
+                f.type = 'text'; 
+                icon.className = 'fas fa-eye-slash'; 
+            }
+            else { 
+                f.type = 'password'; 
+                icon.className = 'fas fa-eye'; 
+            }
         };
 
-        // ===== ইমেইল জেনারেটর =====
         function generateEmail(phone, role) {
             const c = phone.replace(/\D/g, '');
             return `${role}_${c.slice(-10)}@schoolapp.com`;
         }
 
-        // ===== ডুপ্লিকেট চেক =====
         async function isPhoneUsed(phone) {
             try {
                 const q = query(collection(db, 'users'), where('phone', '==', phone));
@@ -832,7 +1656,6 @@ const secondaryAuth = getAuth(secondaryApp);
             } catch(e) { return false; }
         }
 
-        // ===== ফর্ম সাবমিট =====
         window.submitForm = async function() {
             if (!validateStep(1) || !validateStep(2)) return;
 
@@ -840,16 +1663,24 @@ const secondaryAuth = getAuth(secondaryApp);
             const cpw = document.getElementById('confirmPassword').value;
             const agree = document.getElementById('agreeTerms').checked;
 
-            if (!pw || pw.length < 6) { showErr('password', 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে'); return; }
+            if (!pw || pw.length < 6) { 
+                showErr('password', 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে'); 
+                return; 
+            }
             else markOk('password');
 
-            if (pw !== cpw) { showErr('confirmPassword', 'পাসওয়ার্ড মিলছে না'); return; }
+            if (pw !== cpw) { 
+                showErr('confirmPassword', 'পাসওয়ার্ড মিলছে না'); 
+                return; 
+            }
             else markOk('confirmPassword');
 
-            if (!agree) { document.getElementById('agreeError').classList.add('show'); return; }
+            if (!agree) { 
+                document.getElementById('agreeError').classList.add('show'); 
+                return; 
+            }
             else document.getElementById('agreeError').classList.remove('show');
 
-            // ডাটা সংগ্রহ
             const fullName = document.getElementById('fullName').value.trim();
             const fatherName = document.getElementById('fatherName').value.trim();
             const phone = document.getElementById('phone').value.trim();
@@ -869,10 +1700,9 @@ const secondaryAuth = getAuth(secondaryApp);
 
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> তৈরি হচ্ছে...';
+            btn.innerHTML = '<span class="spinner-inline"></span> তৈরি হচ্ছে...';
 
             try {
-                // ডুপ্লিকেট চেক
                 if (await isPhoneUsed(phone)) {
                     showErr('phone', 'এই মোবাইল নম্বর দিয়ে আগেই একাউন্ট আছে');
                     goToStep(1);
@@ -880,43 +1710,57 @@ const secondaryAuth = getAuth(secondaryApp);
                 }
 
                 const userEmail = emailVal || generateEmail(phone, 'teacher');
-                // ✅ মূল অথ (auth) এর বদলে সেকেন্ডারি অথ (secondaryAuth) ব্যবহার করা হচ্ছে
-const cred = await createUserWithEmailAndPassword(secondaryAuth, userEmail, pw);
-const uid = cred.user.uid;
+                
+                const cred = await createUserWithEmailAndPassword(secondaryAuth, userEmail, pw);
+                const uid = cred.user.uid;
+                await secondaryAuth.signOut();
 
-// ✅ সেকেন্ডারি ইনস্ট্যান্স থেকে শিক্ষককে সাথে সাথে সাইনআউট করে দিচ্ছি (ক্লিনআপ)
-// এতে অ্যাডমিনের সেশনে কোনো প্রভাব পড়বে না
-await secondaryAuth.signOut();
-
-                // users কালেকশন
                 const userData = {
-                    uid, name: fullName, fatherName: fatherName || null,
-                    email: userEmail, phone, role: 'teacher',
-                    photoURL: profileImageUrl || null, // ক্লাউডিনারি থেকে পাওয়া ছবির URL
-                    gender: gender || null, dateOfBirth: dob || null,
-                    address: address || null, employeeId, department,
-                    qualification, subjects: subjects || null,
-                    joiningDate, salary: salary || null,
+                    uid, 
+                    name: fullName, 
+                    fatherName: fatherName || null,
+                    email: userEmail, 
+                    phone, 
+                    role: 'teacher',
+                    photoURL: profileImageUrl || null,
+                    gender: gender || null, 
+                    dateOfBirth: dob || null,
+                    address: address || null, 
+                    employeeId, 
+                    department,
+                    qualification, 
+                    subjects: subjects || null,
+                    joiningDate, 
+                    salary: salary || null,
                     bloodGroup: bloodGroup || null,
-                    nationality: nationality || null, nid: nid || null,
+                    nationality: nationality || null, 
+                    nid: nid || null,
                     status: 'active',
-                    createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+                    createdAt: serverTimestamp(), 
+                    updatedAt: serverTimestamp()
                 };
+                
                 await setDoc(doc(db, 'users', uid), userData);
 
-                // teachers কালেকশন সিঙ্ক
                 await setDoc(doc(db, 'teachers', uid), {
-                    name: fullName, phone, email: userEmail,
-                    photoURL: profileImageUrl || null, // ক্লাউডিনারি থেকে পাওয়া ছবির URL
-                    employeeId, department, qualification,
+                    name: fullName, 
+                    phone, 
+                    email: userEmail,
+                    photoURL: profileImageUrl || null,
+                    employeeId, 
+                    department, 
+                    qualification,
                     subjects: subjects || null,
-                    joiningDate, salary: salary || null,
+                    joiningDate, 
+                    salary: salary || null,
                     bloodGroup: bloodGroup || null,
-                    nationality: nationality || null, nid: nid || null,
-                    uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+                    nationality: nationality || null, 
+                    nid: nid || null,
+                    uid, 
+                    createdAt: serverTimestamp(), 
+                    updatedAt: serverTimestamp()
                 }, { merge: true });
 
-                // সাকসেস স্ক্রিন
                 document.getElementById('successName').textContent = fullName;
                 document.getElementById('successEmail').textContent = userEmail;
                 document.getElementById('successDept').textContent = department;
@@ -925,15 +1769,18 @@ await secondaryAuth.signOut();
                 document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
                 document.getElementById('successScreen').classList.add('active');
 
-                // সব স্টেপ সবুজ
                 for (let i = 1; i <= 3; i++) {
                     const c = document.getElementById('stepCircle' + i);
-                    c.classList.remove('active'); c.classList.add('done');
+                    c.classList.remove('active'); 
+                    c.classList.add('done');
                     c.innerHTML = '<i class="fas fa-check text-xs"></i>';
-                    document.getElementById('stepLabel' + i).className = 'text-[10px] font-semibold mt-1 text-emerald-500';
+                    document.getElementById('stepLabel' + i).className = 'text-[10px] font-bold mt-1.5 text-emerald-500';
                 }
-                document.getElementById('connector1').classList.remove('active'); document.getElementById('connector1').classList.add('done');
-                document.getElementById('connector2').classList.remove('active'); document.getElementById('connector2').classList.add('done');
+                
+                document.getElementById('connector1').classList.remove('active'); 
+                document.getElementById('connector1').classList.add('done');
+                document.getElementById('connector2').classList.remove('active'); 
+                document.getElementById('connector2').classList.add('done');
 
                 showToast('শিক্ষক একাউন্ট সফলভাবে তৈরি হয়েছে!', 'success');
 
@@ -947,34 +1794,35 @@ await secondaryAuth.signOut();
                 showToast(msg, 'error');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-user-plus mr-1.5"></i> একাউন্ট তৈরি করুন';
+                btn.innerHTML = '<i class="fas fa-user-plus"></i> একাউন্ট তৈরি করুন';
             }
         };
 
-        // ===== রিসেট =====
         window.resetForm = function() {
             document.querySelectorAll('.form-input').forEach(el => {
-                el.value = ''; el.classList.remove('error', 'success');
+                el.value = ''; 
+                el.classList.remove('error', 'success');
             });
             document.getElementById('agreeTerms').checked = false;
             document.querySelectorAll('.field-error').forEach(e => e.classList.remove('show'));
-            for (let i = 1; i <= 4; i++) document.getElementById('pw' + i).style.background = '#e2e8f0';
+            
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById('pw' + i).style.background = '#e2e8f0';
+            }
             document.getElementById('pwStrengthText').textContent = '—';
             document.getElementById('pwStrengthText').style.color = '#94a3b8';
             document.getElementById('nationality').value = 'বাংলাদেশী';
             
-            // ইমেজ রিসেট
             profileImageUrl = null;
             document.getElementById('profileImage').value = '';
-            document.getElementById('profilePreview').src = 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png';
-            document.getElementById('uploadStatus').textContent = 'প্রোফাইল ছবি নির্বাচন করুন (ঐচ্ছিক)';
-            document.getElementById('uploadStatus').className = 'text-[11px] text-slate-400 mt-1';
+            document.getElementById('profilePreview').src = 'https://ui-avatars.com/api/?name=T&background=6366f1&color=fff&bold=true&size=200';
+            document.getElementById('uploadStatus').innerHTML = 'প্রোফাইল ছবি নির্বাচন করুন (ঐচ্ছিক)';
+            document.getElementById('uploadStatus').className = 'text-[11px] text-slate-400 mt-3 font-medium';
             
             currentStep = 1;
             updateStepUI();
         };
 
-        // ===== কীবোর্ড =====
         document.addEventListener('keydown', function(e) {
             if (e.key !== 'Enter') return;
             const active = document.querySelector('.step-panel.active');
