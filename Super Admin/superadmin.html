@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#6366f1">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -17,23 +17,17 @@
             --sidebar-width: 268px;
             --sidebar-collapsed-width: 76px;
             --header-height: 68px;
-            /* Dark theme — shared by sidebar AND header */
-            --dark-1: #0f172a;
-            --dark-2: #1e293b;
-            --dark-3: #334155;
-            --dark-border: rgba(255,255,255,0.06);
-            --dark-border-strong: rgba(255,255,255,0.1);
             --sidebar-bg: #0f172a;
             --sidebar-bg-2: #1e293b;
             --sidebar-hover: #334155;
-            --header-bg: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-            --header-text: #ffffff;
-            --text-light: #e2e8f0;
-            --text-muted: #94a3b8;
+            --header-bg: #ffffff;
+            --header-text: #0f172a;
             --main-bg: #f1f5f9;
             --primary: #6366f1;
             --primary-dark: #4f46e5;
             --accent: #8b5cf6;
+            --text-light: #e2e8f0;
+            --text-muted: #94a3b8;
             --border: #e2e8f0;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -88,7 +82,7 @@
             display: flex;
             align-items: center;
             padding: 18px 18px;
-            border-bottom: 1px solid var(--dark-border);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
             position: relative;
             transition: var(--transition);
             gap: 12px;
@@ -362,19 +356,21 @@
             width: calc(100% - var(--sidebar-collapsed-width));
         }
 
-        /* =================== HEADER — DARK THEME (matching sidebar) =================== */
+        /* =================== HEADER =================== */
         .header {
-            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-            color: #ffffff;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: var(--header-text);
             padding: 0 22px;
-            border-bottom: 1px solid var(--dark-border);
+            border-bottom: 1px solid rgba(226,232,240,0.8);
             display: flex;
             justify-content: space-between;
             align-items: center;
             height: var(--header-height);
             flex-shrink: 0;
             z-index: 999;
-            box-shadow: 0 4px 20px rgba(15,23,42,0.25);
+            box-shadow: 0 1px 3px rgba(15,23,42,0.04);
         }
 
         .header-left {
@@ -387,7 +383,7 @@
 
         .header-left h3 {
             font-size: 15px;
-            color: #ffffff;
+            color: var(--header-text);
             margin: 0;
             white-space: nowrap;
             overflow: hidden;
@@ -406,13 +402,13 @@
             border-radius: 50%;
             background: linear-gradient(135deg, #6366f1, #8b5cf6);
             flex-shrink: 0;
-            box-shadow: 0 0 0 4px rgba(99,102,241,0.25);
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
         }
 
         .menu-toggle {
             font-size: 18px;
             cursor: pointer;
-            color: #ffffff;
+            color: var(--header-text);
             width: 40px;
             height: 40px;
             display: flex;
@@ -420,16 +416,13 @@
             justify-content: center;
             border-radius: 10px;
             transition: var(--transition);
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: #f1f5f9;
             flex-shrink: 0;
         }
 
         .menu-toggle:hover {
-            background: rgba(99,102,241,0.2);
-            color: #a5b4fc;
-            border-color: rgba(99,102,241,0.35);
-            transform: translateY(-1px);
+            background: #e0e7ff;
+            color: var(--primary);
         }
 
         .header-right {
@@ -438,25 +431,18 @@
             gap: 12px;
         }
 
-        /* Session Badge — dark themed */
         .session-info {
             font-size: 12px;
             font-weight: 700;
             padding: 8px 14px;
             border-radius: 50px;
-            background: rgba(99,102,241,0.15);
-            color: #a5b4fc;
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            color: #4f46e5;
             white-space: nowrap;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            border: 1px solid rgba(99,102,241,0.3);
-            transition: var(--transition);
-        }
-
-        .session-info:hover {
-            background: rgba(99,102,241,0.25);
-            border-color: rgba(99,102,241,0.5);
+            gap: 7px;
+            border: 1px solid rgba(99,102,241,0.2);
         }
 
         .session-info::before {
@@ -465,7 +451,7 @@
             height: 7px;
             border-radius: 50%;
             background: #10b981;
-            box-shadow: 0 0 0 3px rgba(16,185,129,0.3);
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.25);
             animation: pulse-dot 1.8s ease-in-out infinite;
         }
 
@@ -481,14 +467,11 @@
             padding: 6px 10px;
             border-radius: 12px;
             transition: var(--transition);
-            gap: 8px;
-            border: 1px solid rgba(255,255,255,0.08);
-            background: rgba(255,255,255,0.05);
+            gap: 6px;
         }
 
         .user-avatar-group:hover {
-            background: rgba(99,102,241,0.15);
-            border-color: rgba(99,102,241,0.35);
+            background: #f1f5f9;
         }
 
         .header-profile-img {
@@ -496,35 +479,35 @@
             height: 36px;
             border-radius: 10px;
             object-fit: cover;
-            border: 2px solid rgba(255,255,255,0.2);
-            box-shadow: 0 3px 10px rgba(15,23,42,0.3);
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: 2px solid white;
+            box-shadow: 0 3px 10px rgba(15,23,42,0.1);
+            background: linear-gradient(135deg, #eef2ff, #ddd6fe);
         }
 
         .user-avatar-group .user-icon {
             font-size: 22px;
-            color: #a5b4fc;
+            color: #6366f1;
         }
 
         .user-avatar-group .fa-caret-down {
             font-size: 12px !important;
-            color: var(--text-muted);
+            color: #94a3b8;
             transition: var(--transition);
         }
 
         .user-avatar-group:hover .fa-caret-down {
-            color: #a5b4fc;
+            color: var(--primary);
             transform: translateY(2px);
         }
 
-        /* ===== User Dropdown (kept light for readability) ===== */
+        /* ===== User Dropdown ===== */
         .user-dropdown-menu {
             position: absolute;
             top: calc(var(--header-height) - 8px);
             right: 22px;
             background: #ffffff;
             border: 1px solid var(--border);
-            box-shadow: 0 20px 50px rgba(15,23,42,0.25), 0 0 0 1px rgba(99,102,241,0.05);
+            box-shadow: 0 20px 50px rgba(15,23,42,0.15), 0 0 0 1px rgba(99,102,241,0.05);
             z-index: 1011;
             min-width: 200px;
             display: none;
