@@ -2,145 +2,443 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#6366f1">
     <title>রুটিন ম্যানেজমেন্ট প্যানেল</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --radius: 20px;
+            --radius-sm: 14px;
+            --radius-xs: 10px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', 'Hind Siliguri', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
         }
 
         body {
-            background-color: #f0f2f5;
-            color: #333;
+            background: var(--bg);
+            color: var(--text-primary);
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(99,102,241,0.07) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(139,92,246,0.05) 0%, transparent 40%);
+            background-attachment: fixed;
         }
 
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* ============ HEADER ============ */
         header {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
             color: white;
-            padding: 25px 20px;
+            padding: 40px 20px 30px;
             text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: -60%;
+            left: -10%;
+            width: 350px;
+            height: 350px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 50%;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            font-size: 28px;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
         }
 
         header h1 {
-            font-size: 2rem;
+            font-size: 1.5rem;
+            font-weight: 800;
             margin-bottom: 8px;
+            letter-spacing: -0.5px;
         }
 
         header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
+            font-size: 0.9rem;
+            opacity: 0.92;
+            font-weight: 500;
         }
 
+        /* ============ CONTAINER ============ */
         .container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
+            max-width: 900px;
+            margin: -20px auto 40px;
+            padding: 0 16px;
             flex: 1;
             width: 100%;
+            position: relative;
+            z-index: 2;
         }
 
+        /* ============ CARDS ============ */
         .form-card, .list-card {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-            margin-bottom: 30px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 28px;
+            box-shadow: 0 4px 24px rgba(15,23,42,0.07);
+            border: 1px solid rgba(226,232,240,0.6);
+            margin-bottom: 24px;
+            transition: var(--transition);
         }
 
-        .form-card h2, .list-card h2 {
-            font-size: 1.3rem;
-            color: #1e3c72;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #edf2f7;
-            padding-bottom: 10px;
+        .form-card:hover, .list-card:hover {
+            box-shadow: 0 8px 32px rgba(15,23,42,0.09);
         }
 
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+            padding-bottom: 18px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .card-header-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            box-shadow: 0 6px 16px rgba(99,102,241,0.3);
+        }
+
+        .card-header-icon.list {
+            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
+            box-shadow: 0 6px 16px rgba(16,185,129,0.3);
+        }
+
+        .card-header-text h2 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+            margin-bottom: 2px;
+        }
+
+        .card-header-text p {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* ============ FORM ============ */
         .form-group {
             margin-bottom: 20px;
         }
 
         .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #1e3c72;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .form-group label i {
+            color: var(--primary);
+            font-size: 0.85rem;
+            width: 16px;
+            text-align: center;
         }
 
         .form-group input[type="text"],
         .form-group textarea,
         .form-group input[type="file"] {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #cbd5e0;
-            border-radius: 6px;
-            font-size: 1rem;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: var(--radius-xs);
+            font-size: 0.9rem;
+            font-weight: 500;
             outline: none;
-            transition: border-color 0.2s;
+            transition: var(--transition);
+            background: #fafbfc;
+            font-family: inherit;
+            color: var(--text-primary);
         }
 
         .form-group input[type="text"]:focus,
         .form-group textarea:focus {
-            border-color: #2a5298;
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
         }
 
         .form-group textarea {
             resize: vertical;
             height: 100px;
+            min-height: 90px;
         }
 
-        .btn-submit {
-            background-color: #2a5298;
+        /* File Input Custom */
+        .form-group input[type="file"] {
+            padding: 11px 14px;
+            cursor: pointer;
+            background: #f8fafc;
+            border-style: dashed;
+            border-color: #cbd5e1;
+        }
+
+        .form-group input[type="file"]:hover {
+            border-color: var(--primary);
+            background: #eef2ff;
+        }
+
+        .form-group input[type="file"]::file-selector-button {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             color: white;
             border: none;
-            padding: 12px 20px;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.78rem;
+            cursor: pointer;
+            margin-right: 12px;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .form-group input[type="file"]::file-selector-button:hover {
+            box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            padding: 15px 24px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            border-radius: var(--radius-xs);
             cursor: pointer;
             width: 100%;
-            transition: background-color 0.2s;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 6px 20px rgba(99,102,241,0.35);
+            letter-spacing: 0.2px;
         }
 
-        .btn-submit:hover {
-            background-color: #1e3c72;
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(99,102,241,0.45);
         }
 
+        .btn-submit:active:not(:disabled) {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            box-shadow: none;
+        }
+
+        /* Status Message */
         .status-msg {
-            margin-top: 15px;
+            margin-top: 16px;
             text-align: center;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.875rem;
+            padding: 12px 16px;
+            border-radius: var(--radius-xs);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        /* Routine Item List Style */
+        .status-msg:not(:empty) {
+            display: flex;
+        }
+
+        .status-msg.info {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        .status-msg.success {
+            background: #d1fae5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+        }
+
+        .status-msg.error {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        /* ============ ROUTINE LIST ============ */
         .routine-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            background: #fafbfc;
-            gap: 15px;
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin-bottom: 14px;
+            background: #ffffff;
+            gap: 16px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .routine-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%);
+            opacity: 0.7;
+        }
+
+        .routine-item:hover {
+            border-color: #c7d2fe;
+            box-shadow: 0 6px 24px rgba(99,102,241,0.1);
+            transform: translateX(3px);
+        }
+
+        .routine-info {
+            flex: 1;
+            min-width: 0;
         }
 
         .routine-info h4 {
-            font-size: 1.1rem;
-            color: #1e3c72;
-            margin-bottom: 5px;
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .routine-info h4 i {
+            color: var(--primary);
+            font-size: 0.85rem;
         }
 
         .routine-info p {
-            font-size: 0.9rem;
-            color: #666;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            line-height: 1.5;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .status-badge.published {
+            background: #d1fae5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+        }
+
+        .status-badge.unpublished {
+            background: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+
+        .status-badge i {
+            font-size: 0.6rem;
         }
 
         .action-btns {
@@ -150,86 +448,364 @@
         }
 
         .btn-action {
-            padding: 8px 14px;
+            padding: 10px 14px;
             border: none;
-            border-radius: 5px;
-            font-size: 0.85rem;
-            font-weight: 600;
+            border-radius: var(--radius-xs);
+            font-size: 0.78rem;
+            font-weight: 700;
             cursor: pointer;
             color: white;
-            transition: opacity 0.2s;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+            white-space: nowrap;
         }
 
-        .btn-action:hover {
-            opacity: 0.85;
+        .btn-action i {
+            font-size: 0.75rem;
+        }
+
+        .btn-action:active {
+            transform: scale(0.95);
         }
 
         .btn-publish {
-            background-color: #319795;
+            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
+            box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+        }
+
+        .btn-publish:hover {
+            box-shadow: 0 6px 18px rgba(16,185,129,0.45);
+            transform: translateY(-1px);
         }
 
         .btn-unpublish {
-            background-color: #dd6b20;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+        }
+
+        .btn-unpublish:hover {
+            box-shadow: 0 6px 18px rgba(245,158,11,0.45);
+            transform: translateY(-1px);
         }
 
         .btn-delete {
-            background-color: #e53e3e;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 4px 12px rgba(239,68,68,0.3);
         }
 
+        .btn-delete:hover {
+            box-shadow: 0 6px 18px rgba(239,68,68,0.45);
+            transform: translateY(-1px);
+        }
+
+        /* Empty / Loading State */
         .no-data {
             text-align: center;
-            color: #666;
-            padding: 20px;
+            padding: 48px 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .no-data-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #c7d2fe;
+            background: linear-gradient(135deg, #eef2ff, #f3e8ff);
+        }
+
+        .no-data strong {
+            display: block;
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e0e7ff;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============ ANIMATIONS ============ */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-up {
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        .routine-item {
+            animation: fadeIn 0.4s ease forwards;
+            opacity: 0;
+        }
+
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 640px) {
+            header {
+                padding: 32px 16px 24px;
+            }
+
+            .header-icon {
+                width: 56px;
+                height: 56px;
+                font-size: 24px;
+                border-radius: 16px;
+            }
+
+            header h1 {
+                font-size: 1.25rem;
+            }
+
+            header p {
+                font-size: 0.8rem;
+            }
+
+            .container {
+                padding: 0 12px;
+                margin-top: -16px;
+            }
+
+            .form-card, .list-card {
+                padding: 20px 18px;
+                border-radius: 16px;
+                margin-bottom: 18px;
+            }
+
+            .card-header {
+                gap: 12px;
+                margin-bottom: 20px;
+                padding-bottom: 14px;
+            }
+
+            .card-header-icon {
+                width: 42px;
+                height: 42px;
+                border-radius: 12px;
+                font-size: 16px;
+            }
+
+            .card-header-text h2 {
+                font-size: 1rem;
+            }
+
+            .card-header-text p {
+                font-size: 0.72rem;
+            }
+
+            .form-group {
+                margin-bottom: 16px;
+            }
+
+            .form-group label {
+                font-size: 0.82rem;
+                margin-bottom: 8px;
+            }
+
+            .form-group input[type="text"],
+            .form-group textarea,
+            .form-group input[type="file"] {
+                padding: 12px 14px;
+                font-size: 0.85rem;
+                border-radius: 9px;
+            }
+
+            .btn-submit {
+                padding: 13px 20px;
+                font-size: 0.875rem;
+                border-radius: 9px;
+            }
+
+            /* Routine Item - Mobile Card Layout */
+            .routine-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 14px;
+                padding: 16px;
+            }
+
+            .routine-info h4 {
+                font-size: 0.95rem;
+            }
+
+            .routine-info p {
+                font-size: 0.78rem;
+                margin-bottom: 8px;
+            }
+
+            .action-btns {
+                width: 100%;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .btn-action {
+                justify-content: center;
+                padding: 11px 12px;
+                font-size: 0.75rem;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 400px) {
+            header h1 {
+                font-size: 1.1rem;
+            }
+
+            .form-card, .list-card {
+                padding: 16px 14px;
+            }
+
+            .card-header-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 14px;
+            }
+
+            .card-header-text h2 {
+                font-size: 0.95rem;
+            }
+
+            .btn-action {
+                font-size: 0.7rem;
+                padding: 10px 8px;
+            }
+
+            .btn-action span {
+                display: inline;
+            }
+        }
+
+        /* ============ FOOTER ============ */
+        footer {
+            text-align: center;
+            padding: 24px 16px;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        footer i {
+            color: var(--primary);
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>রুটিন ম্যানেজমেন্ট প্যানেল</h1>
-        <p>নতুন রুটিন আপলোড, পাবলিশ এবং ডিলিট করুন</p>
+        <div class="header-content">
+            <div class="header-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <h1>রুটিন ম্যানেজমেন্ট প্যানেল</h1>
+            <p>নতুন রুটিন আপলোড, পাবলিশ এবং ডিলিট করুন</p>
+        </div>
     </header>
 
     <div class="container">
-        <!-- আপলোড ফর্ম -->
-        <div class="form-card">
-            <h2>নতুন রুটিন আপলোড করুন</h2>
+        <!-- Upload Form Card -->
+        <div class="form-card animate-fade-up" style="animation-delay: 0.1s;">
+            <div class="card-header">
+                <div class="card-header-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <div class="card-header-text">
+                    <h2>নতুন রুটিন আপলোড করুন</h2>
+                    <p>PDF ফাইল আপলোড করে সেভ করুন</p>
+                </div>
+            </div>
+
             <form id="routineForm">
                 <div class="form-group">
-                    <label for="title">রুটিনের শিরোনাম (Title):</label>
+                    <label for="title">
+                        <i class="fas fa-heading"></i>
+                        রুটিনের শিরোনাম (Title)
+                    </label>
                     <input type="text" id="title" placeholder="যেমন: ১. ক্লাস রুটিন (২০২৬)" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="description">বিস্তারিত বিবরণ (Description):</label>
+                    <label for="description">
+                        <i class="fas fa-align-left"></i>
+                        বিস্তারিত বিবরণ (Description)
+                    </label>
                     <textarea id="description" placeholder="রুটিন সম্পর্কে সংক্ষিপ্ত বিবরণ লিখুন..." required></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="pdfFile">পিডিএফ ফাইল সিলেক্ট করুন (PDF):</label>
+                    <label for="pdfFile">
+                        <i class="fas fa-file-pdf"></i>
+                        পিডিএফ ফাইল সিলেক্ট করুন
+                    </label>
                     <input type="file" id="pdfFile" accept="application/pdf" required>
                 </div>
 
-                <button type="submit" id="submitBtn" class="btn-submit">আপলোড ও সেভ করুন</button>
+                <button type="submit" id="submitBtn" class="btn-submit">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span>আপলোড ও সেভ করুন</span>
+                </button>
                 <div id="statusMsg" class="status-msg"></div>
             </form>
         </div>
 
-        <!-- রুটিন লিস্ট ও ম্যানেজমেন্ট সেকশন -->
-        <div class="list-card">
-            <h2>সকল রুটিনের তালিকা</h2>
+        <!-- Routine List Card -->
+        <div class="list-card animate-fade-up" style="animation-delay: 0.2s;">
+            <div class="card-header">
+                <div class="card-header-icon list">
+                    <i class="fas fa-list-ul"></i>
+                </div>
+                <div class="card-header-text">
+                    <h2>সকল রুটিনের তালিকা</h2>
+                    <p>আপলোড করা সব রুটিন দেখুন ও ম্যানেজ করুন</p>
+                </div>
+            </div>
+
             <div id="routineListContainer">
-                <p class="no-data">রুটিন লোড হচ্ছে...</p>
+                <div class="no-data">
+                    <div class="loading-spinner"></div>
+                    <strong>রুটিন লোড হচ্ছে...</strong>
+                    <p>অনুগ্রহ করে অপেক্ষা করুন</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDKs (Modular v10) -->
+    <footer>
+        <p><i class="fas fa-shield-alt"></i> Powered by Firebase & Cloudinary</p>
+    </footer>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // ফায়ারবেস কনফিগারেশন
         const firebaseConfig = {
             apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
             authDomain: "school-menejment.firebaseapp.com",
@@ -241,7 +817,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // ক্লাউডিনারি সেটিংস
         const CLOUDINARY_UPLOAD_PRESET = "Rosenews";
         const CLOUDINARY_CLOUD_NAME = "dhvtgzy5x";
 
@@ -250,117 +825,242 @@
         const statusMsg = document.getElementById('statusMsg');
         const routineListContainer = document.getElementById('routineListContainer');
 
-        // ডাটাবেজ থেকে রুটিন ফেচ করে লিস্টে দেখানোর ফাংশন
+        // Status message helper
+        function setStatus(msg, type = 'info') {
+            statusMsg.className = 'status-msg ' + type;
+            const icons = {
+                info: 'fa-spinner fa-spin',
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle'
+            };
+            statusMsg.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${msg}`;
+        }
+
+        function clearStatus() {
+            statusMsg.className = 'status-msg';
+            statusMsg.innerHTML = '';
+        }
+
+        // Escape HTML for safe rendering
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"']/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                if (m === '"') return '&quot;';
+                if (m === "'") return '&#39;';
+                return m;
+            });
+        }
+
+        // Fetch routines
         async function fetchRoutines() {
             try {
-                const querySnapshot = await getDocs(collection(db, "routines"));
-                
+                routineListContainer.innerHTML = `
+                    <div class="no-data">
+                        <div class="loading-spinner"></div>
+                        <strong>রুটিন লোড হচ্ছে...</strong>
+                        <p>অনুগ্রহ করে অপেক্ষা করুন</p>
+                    </div>
+                `;
+
+                let querySnapshot;
+                try {
+                    const q = query(collection(db, "routines"), orderBy("createdAt", "desc"));
+                    querySnapshot = await getDocs(q);
+                } catch (orderErr) {
+                    // Fallback if createdAt missing
+                    querySnapshot = await getDocs(collection(db, "routines"));
+                }
+
                 if (querySnapshot.empty) {
-                    routineListContainer.innerHTML = `<p class="no-data">কোনো রুটিন পাওয়া যায়নি।</p>`;
+                    routineListContainer.innerHTML = `
+                        <div class="no-data">
+                            <div class="no-data-icon">
+                                <i class="fas fa-folder-open"></i>
+                            </div>
+                            <strong>কোনো রুটিন পাওয়া যায়নি</strong>
+                            <p>উপরের ফর্ম থেকে নতুন রুটিন যুক্ত করুন</p>
+                        </div>
+                    `;
                     return;
                 }
 
                 let html = "";
+                let idx = 0;
                 querySnapshot.forEach((documentSnapshot) => {
                     const data = documentSnapshot.data();
                     const docId = documentSnapshot.id;
                     const isPublished = data.isPublished || false;
+                    const delay = Math.min(idx * 0.05, 0.6);
 
                     html += `
-                        <div class="routine-item">
+                        <div class="routine-item" style="animation-delay: ${delay}s;">
                             <div class="routine-info">
-                                <h4>${data.title}</h4>
-                                <p>${data.description ? data.description.substring(0, 60) : ''}...</p>
-                                <small>স্ট্যাটাস: <b>${isPublished ? 'পাবলিশড (Published)' : 'আনপাবলিশড (Unpublished)'}</b></small>
+                                <h4>
+                                    <i class="fas fa-file-pdf"></i>
+                                    ${escapeHtml(data.title || 'Untitled')}
+                                </h4>
+                                <p>${escapeHtml(data.description || 'কোনো বিবরণ নেই')}</p>
+                                <span class="status-badge ${isPublished ? 'published' : 'unpublished'}">
+                                    <i class="fas ${isPublished ? 'fa-check-circle' : 'fa-clock'}"></i>
+                                    ${isPublished ? 'Published' : 'Unpublished'}
+                                </span>
                             </div>
                             <div class="action-btns">
                                 ${isPublished 
-                                    ? `<button class="btn-action btn-unpublish" data-id="${docId}" data-status="false">Unpublish</button>`
-                                    : `<button class="btn-action btn-publish" data-id="${docId}" data-status="true">Publish</button>`
+                                    ? `<button class="btn-action btn-unpublish" data-id="${docId}" data-status="false">
+                                        <i class="fas fa-eye-slash"></i>
+                                        <span>Unpublish</span>
+                                       </button>`
+                                    : `<button class="btn-action btn-publish" data-id="${docId}" data-status="true">
+                                        <i class="fas fa-check"></i>
+                                        <span>Publish</span>
+                                       </button>`
                                 }
-                                <button class="btn-action btn-delete" data-id="${docId}">Delete</button>
+                                <button class="btn-action btn-delete" data-id="${docId}">
+                                    <i class="fas fa-trash-alt"></i>
+                                    <span>Delete</span>
+                                </button>
                             </div>
                         </div>
                     `;
+                    idx++;
                 });
 
                 routineListContainer.innerHTML = html;
 
             } catch (error) {
                 console.error("লিস্ট লোড করতে সমস্যা:", error);
-                routineListContainer.innerHTML = `<p class="no-data" style="color:red;">রুটিন তালিকা লোড করা যায়নি।</p>`;
+                routineListContainer.innerHTML = `
+                    <div class="no-data">
+                        <div class="no-data-icon" style="background: #fee2e2; color: #ef4444;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <strong style="color:#ef4444;">তালিকা লোড করা যায়নি</strong>
+                        <p>পুনরায় চেষ্টা করুন</p>
+                    </div>
+                `;
             }
         }
 
-        // পাবলিশ স্ট্যাটাস টগল (Publish / Unpublish) করার ফাংশন
+        // Toggle publish
         async function togglePublish(docId, status) {
             try {
                 const docRef = doc(db, "routines", docId);
                 const boolStatus = (status === 'true' || status === true);
                 await updateDoc(docRef, { isPublished: boolStatus });
-                alert(boolStatus ? "রুটিনটি সফলভাবে পাবলিশ করা হয়েছে!" : "রুটিনটি আনপাবলিশ করা হয়েছে!");
+
+                // Toast-style notification
+                showToast(
+                    boolStatus ? "✅ রুটিনটি পাবলিশ করা হয়েছে!" : "📝 রুটিনটি আনপাবলিশ করা হয়েছে!",
+                    boolStatus ? 'success' : 'info'
+                );
                 fetchRoutines();
             } catch (error) {
-                console.error("স্ট্যাটাস আপডেট করতে সমস্যা:", error);
-                alert("স্ট্যাটাস পরিবর্তন করা সম্ভব হয়নি।");
+                console.error("স্ট্যাটাস আপডেট সমস্যা:", error);
+                showToast("❌ স্ট্যাটাস পরিবর্তন করা সম্ভব হয়নি", 'error');
             }
         }
 
-        // রুটিন ডিলিট করার ফাংশন
+        // Delete routine
         async function deleteRoutine(docId) {
-            if (confirm("আপনি কি নিশ্চিতভাবে এই রুটিনটি ডিলিট করতে চান?")) {
-                try {
-                    await deleteDoc(doc(db, "routines", docId));
-                    alert("রুটিন সফলভাবে ডিলিট করা হয়েছে!");
-                    fetchRoutines();
-                } catch (error) {
-                    console.error("ডিলিট করতে সমস্যা:", error);
-                    alert("রুটিন ডিলিট করা যায়নি।");
-                }
+            if (!confirm("আপনি কি নিশ্চিতভাবে এই রুটিনটি ডিলিট করতে চান?")) return;
+            try {
+                await deleteDoc(doc(db, "routines", docId));
+                showToast("🗑️ রুটিন সফলভাবে ডিলিট করা হয়েছে", 'success');
+                fetchRoutines();
+            } catch (error) {
+                console.error("ডিলিট করতে সমস্যা:", error);
+                showToast("❌ রুটিন ডিলিট করা যায়নি", 'error');
             }
         }
 
-        // ইভেন্ট ডেলিগেশনের মাধ্যমে বাটন ক্লিকের হ্যান্ডেলিং (TypeError এড়ানোর জন্য সুরক্ষিত পদ্ধতি)
+        // Simple toast
+        function showToast(message, type = 'info') {
+            const colors = {
+                success: 'linear-gradient(135deg, #10b981, #0d9488)',
+                error: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                info: 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+            };
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%) translateY(-20px);
+                background: ${colors[type]};
+                color: white;
+                padding: 14px 24px;
+                border-radius: 12px;
+                font-weight: 700;
+                font-size: 0.85rem;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                z-index: 9999;
+                opacity: 0;
+                transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+                max-width: 90vw;
+                text-align: center;
+                font-family: 'Inter', 'Hind Siliguri', sans-serif;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateX(-50%) translateY(0)';
+            });
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(-50%) translateY(-20px)';
+                setTimeout(() => toast.remove(), 400);
+            }, 2500);
+        }
+
+        // Event delegation
         routineListContainer.addEventListener('click', (e) => {
-            const target = e.target;
-            if (target.classList.contains('btn-publish') || target.classList.contains('btn-unpublish')) {
-                const docId = target.getAttribute('data-id');
-                const status = target.getAttribute('data-status');
+            const btn = e.target.closest('button');
+            if (!btn) return;
+
+            if (btn.classList.contains('btn-publish') || btn.classList.contains('btn-unpublish')) {
+                const docId = btn.getAttribute('data-id');
+                const status = btn.getAttribute('data-status');
                 togglePublish(docId, status);
-            } else if (target.classList.contains('btn-delete')) {
-                const docId = target.getAttribute('data-id');
+            } else if (btn.classList.contains('btn-delete')) {
+                const docId = btn.getAttribute('data-id');
                 deleteRoutine(docId);
             }
         });
 
-        // ১. রুটিন আপলোড লজিক
+        // Form submit
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const title = document.getElementById('title').value;
-            const description = document.getElementById('description').value;
+
+            const title = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
             const fileInput = document.getElementById('pdfFile').files[0];
 
             if (!fileInput) {
-                alert("দয়া করে একটি পিডিএফ ফাইল সিলেক্ট করুন।");
+                setStatus("দয়া করে একটি পিডিএফ ফাইল সিলেক্ট করুন।", "error");
                 return;
             }
 
             submitBtn.disabled = true;
-            submitBtn.innerText = "আপলোড হচ্ছে, দয়া করে অপেক্ষা করুন...";
-            statusMsg.style.color = "#2a5298";
-            statusMsg.innerText = "ক্লাউডিনারিতে ফাইল আপলোড করা হচ্ছে...";
+            submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>আপলোড হচ্ছে...</span>`;
+            setStatus("ক্লাউডিনারিতে ফাইল আপলোড করা হচ্ছে...", "info");
 
             try {
                 const formData = new FormData();
                 formData.append('file', fileInput);
                 formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-                formData.append('resource_type', 'auto'); 
+                formData.append('resource_type', 'auto');
 
-                const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/raw/upload`, {
-                    method: 'POST',
-                    body: formData
-                });
+                const cloudinaryResponse = await fetch(
+                    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/raw/upload`,
+                    { method: 'POST', body: formData }
+                );
 
                 const cloudinaryData = await cloudinaryResponse.json();
 
@@ -369,8 +1069,7 @@
                 }
 
                 const pdfUrl = cloudinaryData.secure_url;
-
-                statusMsg.innerText = "ফায়ারবেসে ডাটা সেভ করা হচ্ছে...";
+                setStatus("ফায়ারবেসে ডাটা সেভ করা হচ্ছে...", "info");
 
                 await addDoc(collection(db, "routines"), {
                     title: title,
@@ -380,22 +1079,21 @@
                     createdAt: new Date()
                 });
 
-                statusMsg.style.color = "green";
-                statusMsg.innerText = "রুটিন সফলভাবে আপলোড হয়েছে!";
+                setStatus("✅ রুটিন সফলভাবে আপলোড হয়েছে!", "success");
                 form.reset();
                 fetchRoutines();
 
+                setTimeout(() => clearStatus(), 4000);
             } catch (error) {
                 console.error("ত্রুটি:", error);
-                statusMsg.style.color = "red";
-                statusMsg.innerText = "সমস্যা হয়েছে: " + error.message;
+                setStatus("সমস্যা হয়েছে: " + error.message, "error");
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerText = "আপলোড ও সেভ করুন";
+                submitBtn.innerHTML = `<i class="fas fa-cloud-upload-alt"></i> <span>আপলোড ও সেভ করুন</span>`;
             }
         });
 
-        // পেজ লোড হলেই রুটিন লিস্ট ফেচ করবে
+        // Init
         fetchRoutines();
     </script>
 
