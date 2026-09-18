@@ -1,19 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#6366f1">
     <title>Academic Settings | Manage Holidays</title>
-    <!-- Tailwind + Font Awesome -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Hind Siliguri', 'system-ui', 'sans-serif']
+                    },
                     colors: {
-                        primary: '#3b82f6',
-                        secondary: '#6b7280',
+                        primary: '#6366f1',
+                        primaryDark: '#4f46e5',
                         success: '#10b981',
                         warning: '#f59e0b',
                         danger: '#ef4444'
@@ -23,135 +27,770 @@
         }
     </script>
     <style>
-        body { background: #f1f5f9; }
-        .settings-card { transition: all 0.2s ease; }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f1f5f9;
+            --border: #e2e8f0;
+            --radius: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+
+        body {
+            font-family: 'Inter', 'Hind Siliguri', system-ui, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            color: #0f172a;
+            -webkit-font-smoothing: antialiased;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(99,102,241,0.06) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(139,92,246,0.05) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* ========== PAGE HEADER ========== */
+        .page-header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            border-radius: 20px;
+            padding: 22px 20px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 22px;
+            box-shadow: 0 12px 32px rgba(99,102,241,0.28);
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -60%; right: -15%;
+            width: 220px; height: 220px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: -70%; left: -10%;
+            width: 180px; height: 180px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 50%;
+        }
+
+        .page-header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .back-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 15px;
+            transition: var(--transition);
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-3px);
+        }
+
+        .brand-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .admin-pill {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+        }
+
+        /* ========== GLASS CARD ========== */
+        .glass-card {
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 24px rgba(15,23,42,0.06);
+            transition: var(--transition);
+            overflow: hidden;
+        }
+
+        /* ========== STATS BAR ========== */
+        .stat-mini {
+            padding: 12px 16px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .stat-mini:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(15,23,42,0.06);
+        }
+
+        .stat-mini-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        /* ========== FORM FIELDS ========== */
+        .field-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        .field-label i { 
+            color: var(--primary); 
+            font-size: 0.72rem; 
+            width: 14px; 
+            text-align: center; 
+        }
+
+        .field-label .required { 
+            color: var(--danger); 
+            margin-left: 2px; 
+        }
+
+        .field-input, .field-select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background: #fafbfc;
+            color: #0f172a;
+            transition: var(--transition);
+            outline: none;
+            font-family: inherit;
+        }
+
+        .field-input:focus, .field-select:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+        }
+
+        .field-input::placeholder { color: #94a3b8; }
+
+        /* ========== BUTTONS ========== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 22px;
+            border-radius: 12px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            box-shadow: 0 6px 18px rgba(99,102,241,0.35);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(99,102,241,0.45);
+        }
+
+        .btn-ghost {
+            background: #f1f5f9;
+            color: #334155;
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-ghost:hover:not(:disabled) {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 6px 18px rgba(239,68,68,0.35);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(239,68,68,0.45);
+        }
+
+        /* ========== TABLE ========== */
+        .holiday-table thead th {
+            background: linear-gradient(135deg, #f8fafc, #eef2ff);
+            color: #64748b;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .holiday-table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: var(--transition);
+        }
+
+        .holiday-table tbody tr:hover {
+            background: linear-gradient(90deg, #f8fafc 0%, #eef2ff 100%);
+        }
+
+        .holiday-table tbody td {
+            padding: 16px;
+            vertical-align: middle;
+        }
+
+        /* ========== HOLIDAY CARDS (Mobile) ========== */
+        .holiday-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+            box-shadow: 0 2px 12px rgba(15,23,42,0.04);
+        }
+
+        .holiday-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #6366f1, #8b5cf6, #ec4899);
+            opacity: 0.85;
+        }
+
+        .holiday-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(99,102,241,0.12);
+        }
+
+        /* ========== TYPE BADGES ========== */
+        .type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .type-badge.government { 
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0); 
+            color: #047857; 
+            border: 1px solid #6ee7b7;
+        }
+
+        .type-badge.institutional { 
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe); 
+            color: #1d4ed8; 
+            border: 1px solid #93c5fd;
+        }
+
+        .type-badge.emergency { 
+            background: linear-gradient(135deg, #fef3c7, #fde68a); 
+            color: #b45309; 
+            border: 1px solid #fcd34d;
+        }
+
+        /* ========== ACTION BUTTONS ========== */
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .action-btn:hover { transform: translateY(-2px); }
+        .action-btn:active { transform: scale(0.95); }
+
+        .action-btn.delete { 
+            background: rgba(239,68,68,0.12); 
+            color: #ef4444; 
+        }
+        .action-btn.delete:hover { 
+            background: #ef4444; 
+            color: white; 
+            box-shadow: 0 6px 16px rgba(239,68,68,0.35);
+        }
+
+        /* ========== DATE DISPLAY ========== */
+        .date-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #334155;
+            background: #f8fafc;
+            padding: 5px 10px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .date-display i {
+            color: #6366f1;
+            font-size: 0.72rem;
+        }
+
+        /* ========== MODAL ========== */
+        .modal-backdrop {
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            background-color: rgba(15,23,42,0.55);
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal-content {
+            animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-header-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .modal-header-icon.red {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 6px 16px rgba(239,68,68,0.35);
+        }
+
+        /* ========== TOAST ========== */
+        #toast-message { 
+            animation: toastIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== EMPTY STATE ========== */
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state-icon {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #eef2ff, #f3e8ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 36px;
+            color: #a5b4fc;
+        }
+
+        /* ========== LOADING SPINNER ========== */
+        .loading-spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e0e7ff;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ========== SESSION BADGE ========== */
+        .session-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+            color: #4f46e5;
+            border: 1px solid #c7d2fe;
+            letter-spacing: 0.2px;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 640px) {
+            .page-header { padding: 18px 16px; border-radius: 16px; }
+            .brand-icon { width: 46px; height: 46px; font-size: 18px; border-radius: 13px; }
+            .back-btn { width: 38px; height: 38px; border-radius: 12px; }
+            .admin-pill { padding: 6px 12px; font-size: 10px; }
+            .holiday-table tbody td { padding: 14px 12px; }
+            .holiday-table thead th { padding: 12px; font-size: 0.65rem; }
+        }
+
+        @media (max-width: 400px) {
+            .brand-icon { width: 42px; height: 42px; font-size: 16px; border-radius: 12px; }
+        }
+
+        /* ========== ANIMATIONS ========== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-up {
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes itemFade {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-item {
+            animation: itemFade 0.35s ease-out forwards;
+            opacity: 0;
+        }
+
+        /* ========== STICKY FORM ========== */
+        @media (min-width: 768px) {
+            .sticky-form {
+                position: sticky;
+                top: 20px;
+            }
+        }
     </style>
 </head>
-<body class="min-h-screen font-sans antialiased p-4 md:p-6">
+<body class="min-h-screen p-3 md:p-6 lg:p-8">
 
-    <!-- Global Toast Message -->
-    <div id="toast-message" class="fixed top-20 right-4 z-50 hidden transition-all duration-300 transform translate-x-0">
-        <div class="bg-white rounded-lg shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success">
-            <i id="toast-icon" class="fas fa-check-circle text-success text-lg"></i>
-            <p id="toast-text" class="text-gray-700 text-sm font-medium">Operation successful</p>
-            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    <!-- Toast Notification -->
+    <div id="toast-message" class="fixed top-4 right-4 left-4 md:left-auto z-[100001] hidden max-w-sm mx-auto md:mx-0">
+        <div id="toastBox" class="bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-success ring-1 ring-black/5">
+            <div id="toastIconWrap" class="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                <i id="toast-icon" class="fas fa-check-circle text-success text-base"></i>
+            </div>
+            <p id="toast-text" class="text-gray-700 text-sm font-semibold flex-1">Operation successful</p>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600 transition p-1 flex-shrink-0">
+                <i class="fas fa-times text-sm"></i>
+            </button>
         </div>
     </div>
 
-    <div class="max-w-5xl mx-auto">
-        <!-- Header -->
-        <header class="flex flex-wrap justify-between items-center mb-6 gap-3">
-            <div class="flex items-center gap-3">
-                <a href="admission.html" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition">
-                    <i class="fas fa-arrow-left text-primary"></i>
-                </a>
-                <h1 class="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
-                    <span class="bg-primary text-white p-1.5 rounded-lg"><i class="fas fa-umbrella-beach"></i></span> 
-                    ছুটির তালিকা (Holidays)
-                </h1>
-            </div>
-            <div class="bg-white px-4 py-2 rounded-full shadow-sm text-sm font-medium text-gray-700 border border-gray-200">
-                <i class="fas fa-user-shield text-primary mr-1"></i> Admin Panel
-            </div>
-        </header>
-
-        <div class="grid md:grid-cols-3 gap-6">
-            <!-- Left: Form to Add Holiday -->
-            <div class="md:col-span-1">
-                <div class="settings-card bg-white rounded-2xl shadow-md overflow-hidden sticky top-6">
-                    <div class="p-5 border-b border-gray-100">
-                        <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                            <i class="fas fa-calendar-plus text-primary"></i> নতুন ছুটি যুক্ত করুন
-                        </h2>
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 z-[100001] flex items-center justify-center modal-backdrop p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full modal-content ring-1 ring-black/5 overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center gap-4 mb-5">
+                    <div class="modal-header-icon red">
+                        <i class="fas fa-trash-alt"></i>
                     </div>
-                    
+                    <div>
+                        <h3 class="text-lg font-extrabold text-gray-800">ছুটি মুছে ফেলার নিশ্চিতকরণ</h3>
+                        <p class="text-xs text-gray-500">এই কাজটি স্থায়ী</p>
+                    </div>
+                </div>
+                <p class="text-gray-600 mb-3 text-sm">আপনি কি নিশ্চিত যে <strong id="deleteItemName" class="text-gray-900">এই ছুটির রেকর্ডটি</strong> স্থায়ীভাবে মুছে ফেলতে চান?</p>
+                <p class="text-xs text-gray-500 mb-6 bg-red-50 p-3 rounded-xl border border-red-100 flex items-start gap-2">
+                    <i class="fas fa-exclamation-triangle text-red-500 mt-0.5 flex-shrink-0"></i>
+                    <span>এই কাজ পূর্বাবস্থায় ফেরানো যাবে না।</span>
+                </p>
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+                    <button id="cancelDelete" class="btn btn-ghost w-full sm:w-auto">
+                        <i class="fas fa-times"></i> বাতিল
+                    </button>
+                    <button id="confirmDelete" class="btn btn-danger w-full sm:w-auto">
+                        <i class="fas fa-trash-alt"></i> মুছে ফেলুন
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ MAIN CONTAINER ============ -->
+    <div class="max-w-7xl mx-auto">
+
+        <!-- PAGE HEADER -->
+        <div class="page-header animate-fade-up">
+            <div class="page-header-content">
+                <div class="flex items-center gap-3">
+                    <a href="admission.html" class="back-btn" title="ফিরে যান">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div class="brand-icon">
+                        <i class="fas fa-umbrella-beach"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg md:text-2xl lg:text-3xl font-extrabold tracking-tight">ছুটির তালিকা</h1>
+                        <p class="text-xs md:text-sm opacity-90 mt-0.5 flex items-center gap-1.5">
+                            <i class="fas fa-circle text-[8px] text-yellow-300"></i>
+                            Holidays Management
+                        </p>
+                    </div>
+                </div>
+                <div class="admin-pill">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Admin Panel</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATS BAR -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-5 animate-fade-up" style="animation-delay: 0.05s;">
+            <div class="stat-mini">
+                <div class="stat-mini-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Total Holidays</p>
+                    <p class="text-lg font-extrabold text-slate-800" id="statTotal">0</p>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-icon" style="background: linear-gradient(135deg, #10b981, #0d9488);">
+                    <i class="fas fa-landmark"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Government</p>
+                    <p class="text-lg font-extrabold text-slate-800" id="statGov">0</p>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-icon" style="background: linear-gradient(135deg, #3b82f6, #6366f1);">
+                    <i class="fas fa-school"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Institutional</p>
+                    <p class="text-lg font-extrabold text-slate-800" id="statInst">0</p>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Emergency</p>
+                    <p class="text-lg font-extrabold text-slate-800" id="statEmerg">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6">
+
+            <!-- LEFT: Add Holiday Form -->
+            <div class="lg:col-span-1">
+                <div class="glass-card sticky-form animate-fade-up" style="animation-delay: 0.1s;">
+                    <div class="p-5 border-b border-gray-100" style="background: linear-gradient(135deg, #f8fafc, #eef2ff);">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+                                 style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 6px 16px rgba(99,102,241,0.3);">
+                                <i class="fas fa-calendar-plus text-sm"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-base font-extrabold text-gray-800">নতুন ছুটি যুক্ত করুন</h2>
+                                <p class="text-xs text-gray-500 mt-0.5">Holiday details</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <form id="addHolidayForm" class="p-5 space-y-4">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">ছুটির নাম (Title)</label>
-                            <input type="text" id="holidayTitle" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary/40 outline-none" placeholder="উদা: ঈদ-উল-ফিতর, শীতকালীন ছুটি">
+                            <label class="field-label"><i class="fas fa-heading"></i> ছুটির নাম <span class="required">*</span></label>
+                            <input type="text" id="holidayTitle" required class="field-input" placeholder="উদা: ঈদ-উল-ফিতর">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">ছুটির ধরন (Type)</label>
-                            <select id="holidayType" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary/40 outline-none">
-                                <option value="Government">সরকারি ছুটি (Government)</option>
-                                <option value="Institutional">প্রাতিষ্ঠানিক ছুটি (Institutional)</option>
-                                <option value="Emergency">জরুরি ছুটি (Emergency)</option>
+                            <label class="field-label"><i class="fas fa-tag"></i> ছুটির ধরন <span class="required">*</span></label>
+                            <select id="holidayType" required class="field-select">
+                                <option value="Government">🏛️ সরকারি ছুটি (Government)</option>
+                                <option value="Institutional">🏫 প্রাতিষ্ঠানিক ছুটি (Institutional)</option>
+                                <option value="Emergency">⚠️ জরুরি ছুটি (Emergency)</option>
                             </select>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">শুরুর তারিখ (Start Date)</label>
-                            <input type="date" id="startDate" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary/40 outline-none">
+                            <label class="field-label"><i class="fas fa-calendar-check"></i> শুরুর তারিখ <span class="required">*</span></label>
+                            <input type="date" id="startDate" required class="field-input">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">শেষের তারিখ (End Date)</label>
-                            <input type="date" id="endDate" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary/40 outline-none">
+                            <label class="field-label"><i class="fas fa-calendar-xmark"></i> শেষের তারিখ <span class="required">*</span></label>
+                            <input type="date" id="endDate" required class="field-input">
                         </div>
 
-                        <button type="submit" id="saveHolidayBtn" class="w-full py-2.5 bg-primary text-white rounded-xl hover:bg-blue-700 transition shadow-sm font-medium flex items-center justify-center gap-2">
+                        <button type="submit" id="saveHolidayBtn" class="btn btn-primary w-full">
                             <i class="fas fa-plus"></i> তালিকাভুক্ত করুন
                         </button>
                     </form>
                 </div>
             </div>
 
-            <!-- Right: Holiday List Table -->
-            <div class="md:col-span-2">
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-                    <div class="p-5 border-b border-gray-100 flex justify-between items-center flex-wrap gap-2">
-                        <div>
-                            <h3 class="font-bold text-gray-800 text-lg flex items-center gap-2">
-                                <i class="fas fa-list text-primary"></i> সেশন ভিত্তিক ছুটির দিনসমূহ
-                            </h3>
-                            <p class="text-xs text-gray-500 mt-0.5">চলতি সেশন: <span id="active-session-text" class="font-semibold text-primary">Loading...</span></p>
+            <!-- RIGHT: Holiday List -->
+            <div class="lg:col-span-2">
+                <div class="glass-card animate-fade-up" style="animation-delay: 0.15s;">
+                    <!-- Header -->
+                    <div class="p-5 border-b border-gray-100" style="background: linear-gradient(135deg, #f8fafc, #eef2ff);">
+                        <div class="flex justify-between items-start gap-3 flex-wrap">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+                                     style="background: linear-gradient(135deg, #8b5cf6, #ec4899); box-shadow: 0 6px 16px rgba(139,92,246,0.3);">
+                                    <i class="fas fa-list text-sm"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <h3 class="font-extrabold text-gray-800 text-base">সেশন ভিত্তিক ছুটির দিনসমূহ</h3>
+                                    <div class="flex items-center gap-2 mt-1 flex-wrap">
+                                        <span class="session-badge">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span id="active-session-text">Loading...</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button id="refreshHolidays" class="btn btn-ghost !px-4 !py-2.5">
+                                <i class="fas fa-sync-alt"></i>
+                                <span class="hidden sm:inline">রিলোড</span>
+                            </button>
                         </div>
-                        <button id="refreshHolidays" class="px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition">
-                            <i class="fas fa-sync-alt"></i> রিলোড
-                        </button>
                     </div>
 
-                    <!-- Responsive Table -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-sm">
+                    <!-- Desktop Table -->
+                    <div class="hidden md:block overflow-x-auto">
+                        <table class="w-full holiday-table">
                             <thead>
-                                <tr class="bg-slate-50 border-b border-gray-100 text-gray-600 font-semibold">
-                                    <th class="p-4">ছুটির বিবরণ</th>
-                                    <th class="p-4">ধরন</th>
-                                    <th class="p-4">তারিখ ও সময়কাল</th>
-                                    <th class="p-4 text-center">অ্যাকশন</th>
+                                <tr>
+                                    <th style="width: 55%;">ছুটির বিবরণ</th>
+                                    <th style="width: 20%;">ধরন</th>
+                                    <th style="width: 25%;">তারিখ ও সময়কাল</th>
+                                    <th style="width: 60px; text-align: center;">অ্যাকশন</th>
                                 </tr>
                             </thead>
-                            <tbody id="holidayTableBody" class="divide-y divide-gray-50 text-gray-700">
+                            <tbody id="holidayTableBody">
                                 <tr>
-                                    <td colspan="4" class="p-8 text-center text-gray-400">
-                                        <i class="fas fa-spinner fa-spin text-xl mb-2 block"></i> ডাটা লোড হচ্ছে...
+                                    <td colspan="4" class="text-center py-16">
+                                        <div class="loading-spinner"></div>
+                                        <p class="mt-3 text-gray-400 text-sm font-medium">ডাটা লোড হচ্ছে...</p>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-5 transform transition-all scale-95">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-danger">
-                    <i class="fas fa-trash-alt"></i>
+                    <!-- Mobile Cards -->
+                    <div class="md:hidden p-3" id="holidayMobileContainer">
+                        <div class="text-center py-16">
+                            <div class="loading-spinner"></div>
+                            <p class="mt-3 text-gray-400 text-sm font-medium">ডাটা লোড হচ্ছে...</p>
+                        </div>
+                    </div>
                 </div>
-                <h3 class="text-lg font-bold text-gray-800">ছুটি মুছে ফেলার নিশ্চিতকরণ</h3>
-            </div>
-            <p class="text-gray-600 mb-4 text-sm">আপনি কি নিশ্চিত যে এই ছুটির রেকর্ডটি তালিকা থেকে স্থায়ীভাবে মুছে ফেলতে চান?</p>
-            <div class="flex justify-end gap-3 text-sm">
-                <button id="cancelDelete" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">বাতিল</button>
-                <button id="confirmDelete" class="px-4 py-2 bg-danger text-white rounded-lg hover:bg-red-700 transition">মুছে ফেলুন</button>
             </div>
         </div>
+
     </div>
 
     <script type="module">
@@ -174,18 +813,30 @@
         
         let currentSession = "2025-2026";
         let deleteIdPending = null;
+        let deleteTitlePending = null;
+        let allHolidays = [];
 
-        // Toast Handler
+        // ===== Toast Handler =====
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast-message');
             const toastText = document.getElementById('toast-text');
             const toastIcon = document.getElementById('toast-icon');
+            const toastBox = document.getElementById('toastBox');
+            const iconWrap = document.getElementById('toastIconWrap');
             
-            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' : 'fas fa-exclamation-circle text-danger text-lg';
+            if (type === 'success') {
+                toastIcon.className = 'fas fa-check-circle text-success text-base';
+                toastBox.className = 'bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-success ring-1 ring-black/5';
+                iconWrap.className = 'w-9 h-9 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0';
+            } else {
+                toastIcon.className = 'fas fa-exclamation-circle text-danger text-base';
+                toastBox.className = 'bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-danger ring-1 ring-black/5';
+                iconWrap.className = 'w-9 h-9 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0';
+            }
+            
             toastText.innerText = message;
             toast.classList.remove('hidden');
-            toast.style.display = 'flex';
-            
+            toast.style.display = 'block';
             setTimeout(() => {
                 toast.classList.add('hidden');
                 setTimeout(() => { toast.style.display = 'none'; }, 300);
@@ -197,7 +848,14 @@
             toast.classList.add('hidden');
         };
 
-        // Fetch Current Session Config
+        function escapeHtml(str) { 
+            if (!str) return ''; 
+            return String(str).replace(/[&<>"]/g, m => ({ 
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' 
+            }[m])); 
+        }
+
+        // ===== Fetch Current Session =====
         async function fetchActiveSession() {
             try {
                 const sessionDoc = await getDoc(doc(db, "config", "activeSession"));
@@ -208,64 +866,227 @@
                 await loadHolidays();
             } catch (error) {
                 console.error("Error fetching session:", error);
-                showToast("সেশন লোড করতে ব্যর্থ হয়েছে", "error");
+                showToast("সেশন লোড করতে ব্যর্থ হয়েছে", "error");
             }
         }
 
-        // Load Holiday Records from Path Isolation
+        // ===== Update Stats =====
+        function updateStats(holidays) {
+            document.getElementById('statTotal').textContent = holidays.length;
+            document.getElementById('statGov').textContent = holidays.filter(h => h.type === 'Government').length;
+            document.getElementById('statInst').textContent = holidays.filter(h => h.type === 'Institutional').length;
+            document.getElementById('statEmerg').textContent = holidays.filter(h => h.type === 'Emergency').length;
+        }
+
+        // ===== Get Type Config =====
+        function getTypeConfig(type) {
+            const config = {
+                'Government': { 
+                    class: 'government', 
+                    icon: 'fa-landmark', 
+                    label: 'Government',
+                    gradient: 'linear-gradient(135deg, #10b981, #0d9488)'
+                },
+                'Institutional': { 
+                    class: 'institutional', 
+                    icon: 'fa-school', 
+                    label: 'Institutional',
+                    gradient: 'linear-gradient(135deg, #3b82f6, #6366f1)'
+                },
+                'Emergency': { 
+                    class: 'emergency', 
+                    icon: 'fa-exclamation-triangle', 
+                    label: 'Emergency',
+                    gradient: 'linear-gradient(135deg, #f59e0b, #d97706)'
+                }
+            };
+            return config[type] || config.Government;
+        }
+
+        // ===== Format Date =====
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            try {
+                const d = new Date(dateStr);
+                const months = ['জানু', 'ফেব্রু', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্ট', 'অক্টো', 'নভে', 'ডিসে'];
+                return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+            } catch(e) { return dateStr; }
+        }
+
+        // ===== Calculate Days =====
+        function calculateDays(start, end) {
+            try {
+                const s = new Date(start);
+                const e = new Date(end);
+                const diff = Math.ceil((e - s) / (1000 * 60 * 60 * 24)) + 1;
+                return diff > 0 ? diff : 1;
+            } catch(e) { return 1; }
+        }
+
+        // ===== Load Holidays =====
         async function loadHolidays() {
             const tableBody = document.getElementById('holidayTableBody');
+            const mobileContainer = document.getElementById('holidayMobileContainer');
+            
             try {
-                // Isolation Path: current_session/{session}/holidays
                 const holidaysRef = collection(db, `current_session/${currentSession}/holidays`);
                 const q = query(holidaysRef, orderBy("startDate", "asc"));
                 const querySnapshot = await getDocs(q);
                 
-                tableBody.innerHTML = '';
+                allHolidays = [];
+                querySnapshot.forEach((doc) => {
+                    allHolidays.push({ id: doc.id, ...doc.data() });
+                });
+
+                updateStats(allHolidays);
                 
-                if (querySnapshot.empty) {
-                    tableBody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-400"><i class="fas fa-folder-open text-2xl block mb-1"></i>কোনো ছুটির দিন রেকর্ড করা নেই।</td></tr>`;
+                if (allHolidays.length === 0) {
+                    const emptyHtml = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-folder-open"></i>
+                            </div>
+                            <p class="text-base font-bold text-gray-600">কোনো ছুটির দিন নেই</p>
+                            <p class="text-xs text-gray-400 mt-1">বাম দিকের ফর্ম থেকে নতুন ছুটি যোগ করুন</p>
+                        </div>
+                    `;
+                    tableBody.innerHTML = `<tr><td colspan="4">${emptyHtml}</td></tr>`;
+                    mobileContainer.innerHTML = emptyHtml;
                     return;
                 }
 
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const badgeColor = data.type === 'Government' ? 'bg-green-100 text-green-700' : data.type === 'Institutional' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700';
-                    
-                    const row = document.createElement('tr');
-                    row.className = 'hover:bg-slate-50 transition';
-                    row.innerHTML = `
-                        <td class="p-4 font-semibold text-gray-800">${data.title}</td>
-                        <td class="p-4">
-                            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeColor}">${data.type}</span>
-                        </td>
-                        <td class="p-4 text-xs text-gray-600">
-                            <i class="far fa-calendar-alt text-primary mr-1"></i> ${data.startDate} থেকে ${data.endDate}
-                        </td>
-                        <td class="p-4 text-center">
-                            <button data-id="${doc.id}" class="delete-btn text-danger hover:text-red-700 p-2 text-sm bg-red-50 hover:bg-red-100 rounded-lg transition">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </td>
+                // Desktop Table
+                let tableHtml = '';
+                let mobileHtml = '';
+
+                allHolidays.forEach((holiday, index) => {
+                    const config = getTypeConfig(holiday.type);
+                    const days = calculateDays(holiday.startDate, holiday.endDate);
+                    const delay = Math.min(index * 0.05, 0.5);
+
+                    // Desktop row
+                    tableHtml += `
+                        <tr class="animate-item" style="animation-delay: ${delay}s;">
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+                                         style="background: ${config.gradient}; box-shadow: 0 4px 12px rgba(99,102,241,0.25);">
+                                        <i class="fas ${config.icon} text-sm"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="font-bold text-gray-800 text-sm">${escapeHtml(holiday.title)}</div>
+                                        <div class="text-[11px] text-gray-500 mt-0.5">
+                                            <i class="fas fa-clock text-indigo-400 mr-1"></i>
+                                            ${days} দিন${days > 1 ? 'ের' : ''} ছুটি
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="type-badge ${config.class}">
+                                    <i class="fas ${config.icon}"></i>
+                                    ${config.label}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="space-y-1.5">
+                                    <div class="date-display">
+                                        <i class="fas fa-play"></i>
+                                        ${formatDate(holiday.startDate)}
+                                    </div>
+                                    <div class="date-display">
+                                        <i class="fas fa-stop"></i>
+                                        ${formatDate(holiday.endDate)}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <button class="action-btn delete delete-btn" data-id="${holiday.id}" data-title="${escapeHtml(holiday.title)}" title="মুছুন">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
                     `;
-                    tableBody.appendChild(row);
+
+                    // Mobile card
+                    mobileHtml += `
+                        <div class="holiday-card animate-item" style="animation-delay: ${delay}s;">
+                            <div class="flex items-start gap-3 mb-3">
+                                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+                                     style="background: ${config.gradient}; box-shadow: 0 6px 16px rgba(99,102,241,0.3);">
+                                    <i class="fas ${config.icon} text-base"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-indigo-50 text-indigo-700 font-bold text-[10px] flex-shrink-0">${index + 1}</span>
+                                        <p class="font-bold text-gray-800 truncate text-sm">${escapeHtml(holiday.title)}</p>
+                                    </div>
+                                    <span class="type-badge ${config.class}">
+                                        <i class="fas ${config.icon}"></i>
+                                        ${config.label}
+                                    </span>
+                                </div>
+                                <button class="action-btn delete delete-btn flex-shrink-0" data-id="${holiday.id}" data-title="${escapeHtml(holiday.title)}" title="মুছুন">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="p-2.5 rounded-lg" style="background: #eef2ff;">
+                                    <p class="text-[9px] font-bold text-indigo-600 uppercase tracking-wide mb-1 flex items-center gap-1">
+                                        <i class="fas fa-play"></i> শুরুর তারিখ
+                                    </p>
+                                    <p class="text-xs font-bold text-gray-800">${formatDate(holiday.startDate)}</p>
+                                </div>
+                                <div class="p-2.5 rounded-lg" style="background: #fce7f3;">
+                                    <p class="text-[9px] font-bold text-pink-600 uppercase tracking-wide mb-1 flex items-center gap-1">
+                                        <i class="fas fa-stop"></i> শেষের তারিখ
+                                    </p>
+                                    <p class="text-xs font-bold text-gray-800">${formatDate(holiday.endDate)}</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 p-2.5 rounded-lg flex items-center gap-2" style="background: linear-gradient(135deg, #ecfdf5, #d1fae5);">
+                                <i class="fas fa-clock text-emerald-600"></i>
+                                <p class="text-xs font-bold text-emerald-700">
+                                    মোট ${days} দিন${days > 1 ? 'ের' : ''} ছুটি
+                                </p>
+                            </div>
+                        </div>
+                    `;
                 });
 
-                // Attach delete triggers
+                tableBody.innerHTML = tableHtml;
+                mobileContainer.innerHTML = mobileHtml;
+
+                // Attach delete handlers
                 document.querySelectorAll('.delete-btn').forEach(btn => {
                     btn.onclick = (e) => {
+                        e.stopPropagation();
                         deleteIdPending = btn.getAttribute('data-id');
+                        deleteTitlePending = btn.getAttribute('data-title');
+                        document.getElementById('deleteItemName').textContent = deleteTitlePending;
                         document.getElementById('deleteModal').classList.remove('hidden');
                     };
                 });
 
             } catch (error) {
                 console.error("Error loading holidays:", error);
-                tableBody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-danger">ডাটাবেজ কানেকশন ত্রুটি!</td></tr>`;
+                const errHtml = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon" style="background: linear-gradient(135deg, #fee2e2, #fecaca); color: #ef4444;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <p class="text-base font-bold text-red-600">ডাটাবেজ কানেকশন ত্রুটি!</p>
+                        <p class="text-xs text-gray-400 mt-1">আবার চেষ্টা করুন</p>
+                    </div>
+                `;
+                tableBody.innerHTML = `<tr><td colspan="4">${errHtml}</td></tr>`;
+                mobileContainer.innerHTML = errHtml;
             }
         }
 
-        // Form Submit Actions
+        // ===== Form Submit =====
         document.getElementById('addHolidayForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const saveBtn = document.getElementById('saveHolidayBtn');
@@ -276,12 +1097,12 @@
             const endDate = document.getElementById('endDate').value;
 
             if(new Date(startDate) > new Date(endDate)) {
-                showToast("শুরুর তারিখ শেষ তারিখের চেয়ে বড় হতে পারে না!", "error");
+                showToast("শুরুর তারিখ শেষ তারিখের চেয়ে বড় হতে পারে না!", "error");
                 return;
             }
 
             saveBtn.disabled = true;
-            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> প্রসেসিং...';
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> প্রসেসিং...';
 
             try {
                 const holidaysRef = collection(db, `current_session/${currentSession}/holidays`);
@@ -293,49 +1114,77 @@
                     createdAt: serverTimestamp()
                 });
 
-                showToast("ছুটি সফলভাবে তালিকাভুক্ত হয়েছে", "success");
+                showToast("ছুটি সফলভাবে তালিকাভুক্ত হয়েছে", "success");
                 document.getElementById('addHolidayForm').reset();
                 await loadHolidays();
             } catch (error) {
                 console.error("Insert error:", error);
-                showToast("সংরক্ষণ করা সম্ভব হয়নি", "error");
+                showToast("সংরক্ষণ করা সম্ভব হয়নি", "error");
             } finally {
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = '<i class="fas fa-plus"></i> তালিকাভুক্ত করুন';
             }
         });
 
-        // Delete Operational Logic
+        // ===== Delete Operations =====
         document.getElementById('cancelDelete').onclick = () => {
             document.getElementById('deleteModal').classList.add('hidden');
             deleteIdPending = null;
+            deleteTitlePending = null;
         };
 
         document.getElementById('confirmDelete').onclick = async () => {
             if (deleteIdPending) {
+                const confirmBtn = document.getElementById('confirmDelete');
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> মুছছে...';
+                
                 document.getElementById('deleteModal').classList.add('hidden');
                 try {
                     await deleteDoc(doc(db, `current_session/${currentSession}/holidays`, deleteIdPending));
-                    showToast("রেকর্ডটি মুছে ফেলা হয়েছে", "success");
+                    showToast("রেকর্ডটি মুছে ফেলা হয়েছে", "success");
                     await loadHolidays();
                 } catch (error) {
-                    showToast("মুছে ফেলতে ব্যর্থ হয়েছে", "error");
+                    showToast("মুছে ফেলতে ব্যর্থ হয়েছে", "error");
                 } finally {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '<i class="fas fa-trash-alt"></i> মুছে ফেলুন';
                     deleteIdPending = null;
+                    deleteTitlePending = null;
                 }
             }
         };
 
-        // Manual Reload Click
+        // ===== Refresh Button =====
         document.getElementById('refreshHolidays').onclick = async () => {
             const btn = document.getElementById('refreshHolidays');
+            btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             await loadHolidays();
-            btn.innerHTML = '<i class="fas fa-sync-alt"></i> রিলোড';
-            showToast("তথ্য রিফ্রেশ করা হয়েছে");
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sync-alt"></i> <span class="hidden sm:inline">রিলোড</span>';
+            showToast("তথ্য রিফ্রেশ করা হয়েছে", "success");
         };
 
-        // Fire Initial Scripts
+        // ===== Close Modal on Outside Click =====
+        document.getElementById('deleteModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('deleteModal')) {
+                document.getElementById('deleteModal').classList.add('hidden');
+                deleteIdPending = null;
+                deleteTitlePending = null;
+            }
+        });
+
+        // ===== ESC Key Close =====
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !document.getElementById('deleteModal').classList.contains('hidden')) {
+                document.getElementById('deleteModal').classList.add('hidden');
+                deleteIdPending = null;
+                deleteTitlePending = null;
+            }
+        });
+
+        // ===== Fire Initial Scripts =====
         fetchActiveSession();
     </script>
 </body>
