@@ -2,197 +2,869 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>পূর্ণাঙ্গ ব্যবহারকারী ব্যবস্থাপনা | অ্যাডমিন, শিক্ষক ও অ্যাকাউন্ট্যান্ট তৈরি</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#6366f1">
+    <title>ব্যবহারকারী ব্যবস্থাপনা | ইউজার তৈরি ও নিয়ন্ত্রণ</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Hind Siliguri', 'system-ui', 'sans-serif']
+                    },
                     colors: {
-                        primary: '#3b82f6',
-                        secondary: '#6b7280',
+                        primary: '#6366f1',
+                        primaryDark: '#4f46e5',
                         success: '#10b981',
                         warning: '#f59e0b',
-                        danger: '#ef4444',
-                        indigo: '#6366f1'
+                        danger: '#ef4444'
                     }
                 }
             }
         }
     </script>
     <style>
-        body { background: #f1f5f9; font-family: 'Inter', system-ui, sans-serif; }
-        .form-card { transition: all 0.2s ease; }
-        .border-error { border-color: #ef4444 !important; background-color: #fef2f2; }
-        .modal-backdrop { backdrop-filter: blur(2px); background-color: rgba(0,0,0,0.4); }
-        .user-row { transition: all 0.2s ease; }
-        .user-row:hover { background-color: #f8fafc; }
-        .toast-slide { animation: slideInRight 0.25s ease-out; }
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #f1f5f9;
+            --border: #e2e8f0;
+            --radius: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* ===== Toggle Switch CSS ===== */
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+
+        body {
+            font-family: 'Inter', 'Hind Siliguri', system-ui, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            color: #0f172a;
+            -webkit-font-smoothing: antialiased;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(99,102,241,0.06) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(139,92,246,0.05) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* ========== PAGE HEADER ========== */
+        .page-header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            border-radius: 20px;
+            padding: 22px 20px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 22px;
+            box-shadow: 0 12px 32px rgba(99,102,241,0.28);
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -60%; right: -15%;
+            width: 220px; height: 220px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: -70%; left: -10%;
+            width: 180px; height: 180px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 50%;
+        }
+
+        .page-header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .brand-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .back-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 15px;
+            transition: var(--transition);
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-3px);
+        }
+
+        .session-pill {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+        }
+
+        /* ========== CARDS ========== */
+        .glass-card {
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 24px rgba(15,23,42,0.06);
+            transition: var(--transition);
+            overflow: hidden;
+        }
+
+        /* ========== ROLE TABS ========== */
+        .role-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 22px;
+            border-radius: 12px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            white-space: nowrap;
+            flex: 1;
+            justify-content: center;
+            letter-spacing: 0.2px;
+        }
+
+        .role-tab i { font-size: 0.85rem; }
+        .role-tab:active { transform: scale(0.97); }
+
+        .role-tab.active {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            box-shadow: 0 8px 20px rgba(99,102,241,0.35);
+        }
+
+        .role-tab.inactive {
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1.5px solid #e2e8f0;
+        }
+
+        .role-tab.inactive:hover {
+            background: #e2e8f0;
+            color: #334155;
+            border-color: #cbd5e1;
+        }
+
+        /* ========== FORM FIELDS ========== */
+        .field-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        .field-label i { color: var(--primary); font-size: 0.72rem; width: 14px; text-align: center; }
+        .field-label .required { color: var(--danger); margin-left: 2px; }
+
+        .field-input, .field-select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background: #fafbfc;
+            color: #0f172a;
+            transition: var(--transition);
+            outline: none;
+            font-family: inherit;
+        }
+
+        .field-input:focus, .field-select:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+        }
+
+        .field-input::placeholder { color: #94a3b8; }
+
+        /* ========== IMAGE UPLOAD ========== */
+        .upload-img {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 10px 30px rgba(99,102,241,0.2);
+            background: linear-gradient(135deg, #eef2ff, #ddd6fe);
+            transition: var(--transition);
+        }
+
+        .upload-wrapper:hover .upload-img { transform: scale(1.03); }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 9px 18px;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+            border: none;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(99,102,241,0.45);
+        }
+
+        /* ========== BUTTONS ========== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            box-shadow: 0 6px 18px rgba(99,102,241,0.35);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(99,102,241,0.45);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #0d9488);
+            color: white;
+            box-shadow: 0 6px 18px rgba(16,185,129,0.35);
+        }
+
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(16,185,129,0.45);
+        }
+
+        .btn-ghost {
+            background: #f1f5f9;
+            color: #334155;
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-ghost:hover:not(:disabled) {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 6px 18px rgba(239,68,68,0.35);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(239,68,68,0.45);
+        }
+
+        /* ========== TOGGLE SWITCH ========== */
         .toggle-switch {
             position: relative;
             width: 56px;
-            height: 28px;
+            height: 30px;
             cursor: pointer;
+            flex-shrink: 0;
         }
+
         .toggle-switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
+
         .toggle-slider {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #d1d5db;
-            border-radius: 28px;
-            transition: all 0.3s ease;
+            background-color: #cbd5e1;
+            border-radius: 30px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         .toggle-slider:before {
             content: "";
             position: absolute;
-            height: 22px;
-            width: 22px;
+            height: 24px;
+            width: 24px;
             left: 3px;
             bottom: 3px;
             background-color: white;
             border-radius: 50%;
-            transition: all 0.3s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
+
         .toggle-switch input:checked + .toggle-slider {
-            background-color: #10b981;
+            background: linear-gradient(135deg, #10b981, #0d9488);
         }
+
         .toggle-switch input:checked + .toggle-slider:before {
-            transform: translateX(28px);
-        }
-        .toggle-switch input:focus + .toggle-slider {
-            box-shadow: 0 0 0 3px rgba(16,185,129,0.3);
+            transform: translateX(26px);
         }
 
-        /* Inactive row styling */
-        .user-row.inactive-user {
+        /* ========== USER CARDS (Mobile) ========== */
+        .user-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(15,23,42,0.04);
+        }
+
+        .user-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #6366f1, #8b5cf6);
+            opacity: 0.7;
+        }
+
+        .user-card.inactive-user::before {
+            background: linear-gradient(180deg, #ef4444, #dc2626);
+        }
+
+        .user-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(15,23,42,0.08);
+        }
+
+        .user-card.inactive-user {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        /* ========== TABLE ========== */
+        .user-table thead th {
+            background: linear-gradient(135deg, #f8fafc, #eef2ff);
+            color: #64748b;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: var(--transition);
+        }
+
+        .user-table tbody tr:hover {
+            background: linear-gradient(90deg, #f8fafc 0%, #eef2ff 100%);
+        }
+
+        .user-table tbody tr.inactive-user {
             opacity: 0.6;
-            background-color: #fef2f2;
-        }
-        .user-row.inactive-user:hover {
-            background-color: #fee2e2;
+            background: #fef2f2;
         }
 
-        /* Power toggle button in table */
-        .power-toggle {
-            transition: all 0.3s ease;
-        }
-        .power-toggle.is-active {
-            background-color: rgba(16,185,129,0.15);
-            color: #10b981;
-        }
-        .power-toggle.is-active:hover {
-            background-color: #10b981;
-            color: white;
-        }
-        .power-toggle.is-inactive {
-            background-color: rgba(239,68,68,0.15);
-            color: #ef4444;
-        }
-        .power-toggle.is-inactive:hover {
-            background-color: #ef4444;
-            color: white;
+        .user-table tbody td {
+            padding: 14px 16px;
+            vertical-align: middle;
         }
 
-        /* Pulse animation for active status */
+        /* ========== ROLE BADGES ========== */
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .role-badge.admin { background: #dbeafe; color: #1d4ed8; }
+        .role-badge.superadmin { background: #f3e8ff; color: #7c3aed; }
+        .role-badge.teacher { background: #d1fae5; color: #047857; }
+        .role-badge.accountant { background: #fed7aa; color: #c2410c; }
+
+        /* ========== STATUS BADGES ========== */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+        }
+
+        .status-badge.active { background: #d1fae5; color: #047857; }
+        .status-badge.inactive { background: #fee2e2; color: #b91c1c; }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .status-badge.active .status-dot {
+            animation: pulse-dot 1.8s ease-in-out infinite;
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.25);
+        }
+
         @keyframes pulse-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
         }
-        .pulse-dot {
-            animation: pulse-dot 2s ease-in-out infinite;
+
+        /* ========== ACTION BUTTONS ========== */
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .action-btn:hover { transform: translateY(-2px); }
+        .action-btn:active { transform: scale(0.95); }
+
+        .action-btn.power-active { background: rgba(16,185,129,0.15); color: #10b981; }
+        .action-btn.power-active:hover { background: #10b981; color: white; }
+
+        .action-btn.power-inactive { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .action-btn.power-inactive:hover { background: #ef4444; color: white; }
+
+        .action-btn.edit { background: rgba(99,102,241,0.15); color: #6366f1; }
+        .action-btn.edit:hover { background: #6366f1; color: white; }
+
+        .action-btn.delete { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .action-btn.delete:hover { background: #ef4444; color: white; }
+
+        /* ========== MODAL ========== */
+        .modal-backdrop {
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            background-color: rgba(15,23,42,0.55);
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal-content {
+            animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ========== MODAL HEADER ICON ========== */
+        .modal-header-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .modal-header-icon.indigo {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            box-shadow: 0 6px 16px rgba(99,102,241,0.35);
+        }
+
+        .modal-header-icon.red {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 6px 16px rgba(239,68,68,0.35);
+        }
+
+        .modal-header-icon.amber {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            box-shadow: 0 6px 16px rgba(245,158,11,0.35);
+        }
+
+        /* ========== TOAST ========== */
+        #toast {
+            animation: toastIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== LOGIN CODE SECTION ========== */
+        .code-block {
+            background: #0f172a;
+            color: #6ee7b7;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.72rem;
+            line-height: 1.7;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #1e293b;
+        }
+
+        .code-block pre { margin: 0; white-space: pre-wrap; word-break: break-all; }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .role-tab { padding: 10px 14px; font-size: 0.75rem; gap: 5px; }
+            .role-tab i { font-size: 0.75rem; }
+            .page-header { padding: 18px 16px; border-radius: 16px; }
+            .brand-icon { width: 46px; height: 46px; font-size: 18px; border-radius: 13px; }
+            .back-btn { width: 38px; height: 38px; border-radius: 12px; }
+        }
+
+        @media (max-width: 400px) {
+            .role-tab { padding: 9px 10px; font-size: 0.7rem; }
+            .role-tab i { font-size: 0.7rem; }
+            .role-tab span { display: none; }
+            .role-tab i { font-size: 1rem; }
+        }
+
+        /* ========== ANIMATIONS ========== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-up {
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        /* ========== FORM GRID ========== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        @media (min-width: 768px) {
+            .form-grid { grid-template-columns: 1fr 1fr; }
+            .form-grid .full-span { grid-column: 1 / -1; }
+        }
+
+        /* ========== SECTION DIVIDER ========== */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-top: 20px;
+            margin-top: 20px;
+            border-top: 1.5px solid #f1f5f9;
+        }
+
+        .section-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .section-icon.indigo {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            box-shadow: 0 6px 16px rgba(99,102,241,0.3);
+        }
+
+        .section-icon.amber {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            box-shadow: 0 6px 16px rgba(245,158,11,0.3);
+        }
+
+        .section-icon.emerald {
+            background: linear-gradient(135deg, #10b981, #0d9488);
+            box-shadow: 0 6px 16px rgba(16,185,129,0.3);
+        }
+
+        .section-title-text {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.2px;
+        }
+
+        /* ========== STATUS TOGGLE BOX ========== */
+        .status-toggle-box {
+            background: linear-gradient(135deg, #f8fafc, #eef2ff);
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        /* ========== EMPTY STATE ========== */
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state-icon {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #eef2ff, #f3e8ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 36px;
+            color: #a5b4fc;
+        }
+
+        /* ========== STAT MINI CARDS ========== */
+        .stat-mini {
+            padding: 12px 16px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .stat-mini:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(15,23,42,0.06);
+        }
+
+        .stat-mini-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
         }
     </style>
 </head>
-<body class="min-h-screen antialiased p-4 md:p-6">
+<body class="min-h-screen p-3 md:p-6 lg:p-8">
 
-    <!-- Toast Message -->
-    <div id="toast" class="fixed top-20 right-4 z-50 hidden transition-all duration-300">
-        <div class="bg-white rounded-lg shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success toast-slide">
-            <i id="toast-icon" class="fas fa-check-circle text-success text-lg"></i>
-            <p id="toast-text" class="text-gray-700 text-sm font-medium">সফল হয়েছে</p>
-            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    <!-- Toast -->
+    <div id="toast" class="fixed top-4 right-4 left-4 md:left-auto z-[100001] hidden max-w-sm mx-auto md:mx-0">
+        <div id="toastBox" class="bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-success ring-1 ring-black/5">
+            <div id="toastIconWrap" class="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                <i id="toast-icon" class="fas fa-check-circle text-success text-base"></i>
+            </div>
+            <p id="toast-text" class="text-gray-700 text-sm font-semibold flex-1">সফল হয়েছে</p>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600 transition p-1 flex-shrink-0"><i class="fas fa-times text-sm"></i></button>
         </div>
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop transition-all">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                    <i class="fas fa-trash-alt text-danger"></i>
+    <div id="deleteModal" class="hidden fixed inset-0 z-[100001] flex items-center justify-center modal-backdrop p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full modal-content ring-1 ring-black/5 overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center gap-4 mb-5">
+                    <div class="modal-header-icon red">
+                        <i class="fas fa-trash-alt"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-extrabold text-gray-800">ব্যবহারকারী মুছুন</h3>
+                        <p class="text-xs text-gray-500">এই কাজ স্থায়ী</p>
+                    </div>
                 </div>
-                <h3 class="text-lg font-bold text-gray-800">ব্যবহারকারী মুছুন</h3>
-            </div>
-            <p class="text-gray-600 mb-2">আপনি কি <strong id="deleteUserName"></strong> কে স্থায়ীভাবে মুছতে চান?</p>
-            <p class="text-sm text-gray-500 mb-4">এই কাজ পূর্বাবস্থায় ফেরানো যাবে না।</p>
-            <div class="flex justify-end gap-3">
-                <button id="cancelDelete" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">বাতিল</button>
-                <button id="confirmDelete" class="px-4 py-2 bg-danger text-white rounded-lg hover:bg-red-700 transition">মুছুন</button>
+                <p class="text-gray-600 mb-3 text-sm">আপনি কি <strong id="deleteUserName" class="text-gray-900"></strong> কে স্থায়ীভাবে মুছতে চান?</p>
+                <p class="text-xs text-gray-500 mb-6 bg-red-50 p-3 rounded-xl border border-red-100 flex items-start gap-2">
+                    <i class="fas fa-exclamation-triangle text-red-500 mt-0.5 flex-shrink-0"></i>
+                    <span>এই কাজ পূর্বাবস্থায় ফেরানো যাবে না। ইউজার আর লগইন করতে পারবে না।</span>
+                </p>
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+                    <button id="cancelDelete" class="btn btn-ghost w-full sm:w-auto">
+                        <i class="fas fa-times"></i> বাতিল
+                    </button>
+                    <button id="confirmDelete" class="btn btn-danger w-full sm:w-auto">
+                        <i class="fas fa-trash-alt"></i> মুছুন
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Status Toggle Confirmation Modal -->
-    <div id="statusToggleModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop transition-all">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
-            <div class="flex items-center gap-3 mb-4">
-                <div id="statusToggleIcon" class="w-10 h-10 rounded-full flex items-center justify-center">
-                    <i class="fas fa-power-off"></i>
+    <div id="statusToggleModal" class="hidden fixed inset-0 z-[100001] flex items-center justify-center modal-backdrop p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full modal-content ring-1 ring-black/5 overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center gap-4 mb-5">
+                    <div id="statusToggleIcon" class="modal-header-icon amber">
+                        <i class="fas fa-power-off"></i>
+                    </div>
+                    <div>
+                        <h3 id="statusToggleTitle" class="text-lg font-extrabold text-gray-800">অ্যাকাউন্ট স্ট্যাটাস পরিবর্তন</h3>
+                        <p class="text-xs text-gray-500">কনফার্ম করুন</p>
+                    </div>
                 </div>
-                <h3 id="statusToggleTitle" class="text-lg font-bold text-gray-800">অ্যাকাউন্ট স্ট্যাটাস পরিবর্তন</h3>
-            </div>
-            <p id="statusToggleMessage" class="text-gray-600 mb-2"></p>
-            <p id="statusToggleWarning" class="text-sm text-orange-600 mb-4 bg-orange-50 p-2 rounded-lg"></p>
-            <div class="flex justify-end gap-3">
-                <button id="cancelStatusToggle" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">বাতিল</button>
-                <button id="confirmStatusToggle" class="px-4 py-2 text-white rounded-lg transition">নিশ্চিত করুন</button>
+                <p id="statusToggleMessage" class="text-gray-600 mb-3 text-sm"></p>
+                <p id="statusToggleWarning" class="text-xs mb-6 p-3 rounded-xl border flex items-start gap-2"></p>
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+                    <button id="cancelStatusToggle" class="btn btn-ghost w-full sm:w-auto">
+                        <i class="fas fa-times"></i> বাতিল
+                    </button>
+                    <button id="confirmStatusToggle" class="btn w-full sm:w-auto">
+                        <i class="fas fa-power-off"></i> নিশ্চিত করুন
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Edit User Modal -->
-    <div id="editModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-auto">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-auto">
-            <div class="p-5 border-b flex justify-between items-center">
-                <h3 class="text-xl font-bold"><i class="fas fa-edit text-primary mr-2"></i> তথ্য সম্পাদনা করুন</h3>
-                <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+    <div id="editModal" class="hidden fixed inset-0 z-[100001] flex items-start md:items-center justify-center modal-backdrop p-3 md:p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full my-4 md:my-0 modal-content ring-1 ring-black/5">
+            <div class="p-5 md:p-6 border-b border-gray-100 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="modal-header-icon indigo">
+                        <i class="fas fa-user-edit"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-extrabold text-gray-800">তথ্য সম্পাদনা করুন</h3>
+                        <p class="text-xs text-gray-500">ব্যবহারকারীর তথ্য আপডেট করুন</p>
+                    </div>
+                </div>
+                <button onclick="closeEditModal()" class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition text-xl flex-shrink-0">&times;</button>
             </div>
-            <form id="editUserForm" class="p-5 space-y-4">
+
+            <form id="editUserForm" class="p-5 md:p-6 space-y-5">
                 <input type="hidden" id="editUserId">
                 <input type="hidden" id="editUserRole">
                 <input type="hidden" id="editStatusValue" value="active">
                 
-                <!-- Image Upload in Edit Modal -->
-                <div class="flex flex-col items-center mb-4">
-                    <img id="editImagePreview" src="https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff" class="w-24 h-24 rounded-full object-cover border-4 border-gray-100 shadow-sm mb-3 bg-blue-50" alt="Preview" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff';">
-                    <label class="bg-primary text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-700 transition text-sm">
-                        <i class="fas fa-camera mr-1"></i> ছবি পরিবর্তন করুন
+                <!-- Image Upload -->
+                <div class="flex flex-col items-center">
+                    <div class="upload-wrapper">
+                        <img id="editImagePreview" 
+                             src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff&bold=true&size=200" 
+                             class="upload-img" 
+                             alt="Preview" 
+                             referrerpolicy="no-referrer" 
+                             onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=User&background=6366f1&color=fff&bold=true&size=200';">
+                    </div>
+                    <label class="upload-btn mt-3">
+                        <i class="fas fa-camera"></i> ছবি পরিবর্তন করুন
                         <input type="file" id="editImageFile" accept="image/*" class="hidden">
                     </label>
                 </div>
 
-                <!-- ===== Account Active/Inactive Toggle Switch ===== -->
-                <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <div>
+                <!-- Status Toggle -->
+                <div class="status-toggle-box">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="min-w-0 flex-1">
                             <label class="text-sm font-bold text-gray-700 flex items-center gap-2">
-                                <i class="fas fa-shield-alt text-primary"></i> অ্যাকাউন্ট স্ট্যাটাস
+                                <i class="fas fa-shield-alt text-indigo-500"></i> অ্যাকাউন্ট স্ট্যাটাস
                             </label>
-                            <p id="editStatusText" class="text-xs text-green-600 mt-1 font-medium">
-                                <i class="fas fa-check-circle"></i> এই অ্যাকাউন্টটি সক্রিয় আছে — ইউজার লগইন করতে পারবে
+                            <p id="editStatusText" class="text-xs text-green-600 mt-1.5 font-medium flex items-center gap-1.5">
+                                <i class="fas fa-check-circle"></i> অ্যাকাউন্ট সক্রিয় — ইউজার লগইন করতে পারবে
                             </p>
                         </div>
                         <label class="toggle-switch">
@@ -200,108 +872,181 @@
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
-                    <div id="editStatusWarning" class="hidden mt-3 bg-red-50 border border-red-200 rounded-lg p-2.5">
-                        <p class="text-xs text-red-600 font-medium">
-                            <i class="fas fa-exclamation-triangle mr-1"></i>
-                            সতর্কতা: অ্যাকাউন্ট নিষ্ক্রিয় করলে এই ইউজার আর লগইন করতে পারবে না!
+                    <div id="editStatusWarning" class="hidden mt-3 bg-red-50 border border-red-200 rounded-xl p-3">
+                        <p class="text-xs text-red-600 font-semibold flex items-start gap-2">
+                            <i class="fas fa-exclamation-triangle mt-0.5 flex-shrink-0"></i>
+                            <span>সতর্কতা: অ্যাকাউন্ট নিষ্ক্রিয় করলে এই ইউজার আর লগইন করতে পারবে না!</span>
                         </p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-4">
-                    <div><label class="block text-sm font-semibold text-gray-700">পূর্ণ নাম *</label><input type="text" id="editFullName" class="w-full border border-gray-300 rounded-lg p-2.5" required></div>
-                    <div><label class="block text-sm font-semibold text-gray-700">মোবাইল নম্বর *</label><input type="tel" id="editPhone" class="w-full border border-gray-300 rounded-lg p-2.5" required></div>
-                    <div><label class="block text-sm font-semibold text-gray-700">ইমেইল</label><input type="email" id="editEmail" class="w-full border border-gray-300 rounded-lg p-2.5"></div>
-                    <div><label class="block text-sm font-semibold text-gray-700">লিঙ্গ</label><select id="editGender" class="w-full border border-gray-300 rounded-lg p-2.5"><option value="">নির্বাচন করুন</option><option value="Male">পুরুষ</option><option value="Female">মহিলা</option><option value="Other">অন্যান্য</option></select></div>
-                    <div><label class="block text-sm font-semibold text-gray-700">ঠিকানা</label><input type="text" id="editAddress" class="w-full border border-gray-300 rounded-lg p-2.5"></div>
+                <div class="form-grid">
+                    <div class="full-span">
+                        <label class="field-label"><i class="fas fa-user"></i> পূর্ণ নাম <span class="required">*</span></label>
+                        <input type="text" id="editFullName" class="field-input" required>
+                    </div>
+                    <div>
+                        <label class="field-label"><i class="fas fa-phone-alt"></i> মোবাইল নম্বর <span class="required">*</span></label>
+                        <input type="tel" id="editPhone" class="field-input" required>
+                    </div>
+                    <div>
+                        <label class="field-label"><i class="fas fa-envelope"></i> ইমেইল</label>
+                        <input type="email" id="editEmail" class="field-input">
+                    </div>
+                    <div>
+                        <label class="field-label"><i class="fas fa-venus-mars"></i> লিঙ্গ</label>
+                        <select id="editGender" class="field-select">
+                            <option value="">নির্বাচন করুন</option>
+                            <option value="Male">পুরুষ</option>
+                            <option value="Female">মহিলা</option>
+                            <option value="Other">অন্যান্য</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="field-label"><i class="fas fa-map-marker-alt"></i> ঠিকানা</label>
+                        <input type="text" id="editAddress" class="field-input">
+                    </div>
                 </div>
-                <div class="flex justify-end gap-3 pt-3 border-t">
-                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition">বাতিল</button>
-                    <button type="submit" id="editSubmitBtn" class="px-5 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition"><i class="fas fa-save mr-1"></i> হালনাগাদ করুন</button>
+
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-5 border-t border-gray-100">
+                    <button type="button" onclick="closeEditModal()" class="btn btn-ghost w-full sm:w-auto">
+                        <i class="fas fa-times"></i> বাতিল
+                    </button>
+                    <button type="submit" id="editSubmitBtn" class="btn btn-primary w-full sm:w-auto">
+                        <i class="fas fa-save"></i> হালনাগাদ করুন
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- ============ MAIN CONTAINER ============ -->
     <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <header class="flex flex-wrap justify-between items-center mb-6 gap-3">
-            <div class="flex items-center gap-3">
-                <a href="#" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition">
-                    <i class="fas fa-arrow-left text-primary"></i>
-                </a>
-                <h1 class="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
-                    <span class="bg-primary text-white p-1.5 rounded-lg"><i class="fas fa-user-plus"></i></span> 
-                    ব্যবহারকারী ব্যবস্থাপনা
-                </h1>
-            </div>
-            <div class="bg-white px-4 py-2 rounded-full shadow-sm text-sm font-medium text-gray-700 border border-gray-200">
-                <i class="fas fa-calendar-alt text-primary mr-1"></i> 
-                <span id="current-session-badge">২০২৫-২০২৬</span>
-            </div>
-        </header>
 
-        <!-- Main Form Card -->
-        <div class="bg-white rounded-2xl shadow-md overflow-hidden mb-8">
-            <div class="p-6 md:p-8">
-                <!-- Role Selection Tabs -->
-                <div class="flex gap-3 mb-8 border-b pb-3 flex-wrap">
-                    <button type="button" id="roleAdminBtn" class="role-tab px-6 py-2 rounded-lg font-semibold transition bg-primary text-white">
-                        <i class="fas fa-user-cog mr-2"></i> অ্যাডমিন
+        <!-- PAGE HEADER -->
+        <div class="page-header animate-fade-up">
+            <div class="page-header-content">
+                <div class="flex items-center gap-3">
+                    <a href="#" class="back-btn" title="Go back">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div class="brand-icon">
+                        <i class="fas fa-users-cog"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg md:text-2xl lg:text-3xl font-extrabold tracking-tight">ব্যবহারকারী ব্যবস্থাপনা</h1>
+                        <p class="text-xs md:text-sm opacity-90 mt-0.5 flex items-center gap-1.5">
+                            <i class="fas fa-circle text-[8px] text-yellow-300"></i>
+                            অ্যাডমিন, শিক্ষক ও অ্যাকাউন্ট্যান্ট তৈরি ও নিয়ন্ত্রণ
+                        </p>
+                    </div>
+                </div>
+                <div class="session-pill">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="current-session-badge">২০২৫-২০২৬</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATS BAR -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-5 animate-fade-up" style="animation-delay: 0.05s;">
+            <div class="stat-mini">
+                <div class="stat-mini-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                    <i class="fas fa-user-cog"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">অ্যাডমিন</p>
+                    <p class="text-lg font-extrabold text-slate-800" id="stat-admins">0</p>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-icon" style="background: linear-gradient(135deg, #10b981, #0d9488);">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">শিক্ষক</p>
+                    <p class="text-lg font-extrabold text-slate-800" id="stat-teachers">0</p>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                    <i class="fas fa-calculator"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">অ্যাকাউন্ট্যান্ট</p>
+                    <p class="text-lg font-extrabold text-slate-800" id="stat-accountants">0</p>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                    <i class="fas fa-user-slash"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">নিষ্ক্রিয়</p>
+                    <p class="text-lg font-extrabold text-slate-800" id="stat-inactive">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CREATE USER CARD -->
+        <div class="glass-card animate-fade-up mb-6" style="animation-delay: 0.1s;">
+            <div class="p-5 md:p-6">
+                <!-- Role Tabs -->
+                <div class="flex gap-2 md:gap-3 mb-6 pb-4 border-b border-gray-100">
+                    <button type="button" id="roleAdminBtn" class="role-tab active">
+                        <i class="fas fa-user-cog"></i>
+                        <span>অ্যাডমিন</span>
                     </button>
-                    <button type="button" id="roleTeacherBtn" class="role-tab px-6 py-2 rounded-lg font-semibold transition bg-gray-200 text-gray-600 hover:bg-gray-300">
-                        <i class="fas fa-chalkboard-teacher mr-2"></i> শিক্ষক
+                    <button type="button" id="roleTeacherBtn" class="role-tab inactive">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <span>শিক্ষক</span>
                     </button>
-                    <!-- ✅ Accountant Tab যোগ করা হয়েছে -->
-                    <button type="button" id="roleAccountantBtn" class="role-tab px-6 py-2 rounded-lg font-semibold transition bg-gray-200 text-gray-600 hover:bg-gray-300">
-                        <i class="fas fa-calculator mr-2"></i> অ্যাকাউন্ট্যান্ট
+                    <button type="button" id="roleAccountantBtn" class="role-tab inactive">
+                        <i class="fas fa-calculator"></i>
+                        <span>অ্যাকাউন্ট্যান্ট</span>
                     </button>
                 </div>
 
-                <form id="userForm" class="space-y-6">
+                <form id="userForm" class="space-y-5">
                     <input type="hidden" id="selectedRole" value="admin">
-                    
-                    <!-- Image Upload Section -->
-                    <div class="flex flex-col items-center mb-5">
-                        <img id="createImagePreview" src="https://ui-avatars.com/api/?name=New&background=3b82f6&color=fff" class="w-24 h-24 rounded-full object-cover border-4 border-gray-100 shadow-sm mb-2 bg-blue-50" alt="Preview" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=New&background=3b82f6&color=fff';">
-                        <label class="bg-primary text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-700 transition text-sm">
-                            <i class="fas fa-camera mr-1"></i> ছবি নির্বাচন করুন
+
+                    <!-- Image Upload -->
+                    <div class="flex flex-col items-center">
+                        <div class="upload-wrapper">
+                            <img id="createImagePreview" 
+                                 src="https://ui-avatars.com/api/?name=New&background=6366f1&color=fff&bold=true&size=200" 
+                                 class="upload-img" 
+                                 alt="Preview" 
+                                 referrerpolicy="no-referrer" 
+                                 onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=New&background=6366f1&color=fff&bold=true&size=200';">
+                        </div>
+                        <label class="upload-btn mt-3">
+                            <i class="fas fa-camera"></i> ছবি নির্বাচন করুন
                             <input type="file" id="createImageFile" accept="image/*" class="hidden">
                         </label>
                     </div>
 
-                    <!-- Basic Information -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Basic Info -->
+                    <div class="form-grid">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">
-                                <i class="fas fa-user text-primary mr-1"></i> পূর্ণ নাম <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" id="fullName" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary/40" placeholder="পূর্ণ নাম লিখুন" required>
+                            <label class="field-label"><i class="fas fa-user"></i> পূর্ণ নাম <span class="required">*</span></label>
+                            <input type="text" id="fullName" class="field-input" placeholder="পূর্ণ নাম লিখুন" required>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">
-                                <i class="fas fa-phone-alt text-primary mr-1"></i> মোবাইল নম্বর <span class="text-red-500">*</span>
-                            </label>
-                            <input type="tel" id="phone" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="01XXXXXXXXX" required>
+                            <label class="field-label"><i class="fas fa-phone-alt"></i> মোবাইল নম্বর <span class="required">*</span></label>
+                            <input type="tel" id="phone" class="field-input" placeholder="01XXXXXXXXX" required>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">
-                                <i class="fas fa-key text-primary mr-1"></i> পাসওয়ার্ড <span class="text-red-500">*</span>
-                            </label>
-                            <input type="password" id="password" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="কমপক্ষে ৬ অক্ষর" required>
-                            <p class="text-xs text-gray-400 mt-1">ন্যূনতম ৬ অক্ষর</p>
+                            <label class="field-label"><i class="fas fa-key"></i> পাসওয়ার্ড <span class="required">*</span></label>
+                            <input type="password" id="password" class="field-input" placeholder="কমপক্ষে ৬ অক্ষর" required>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">
-                                <i class="fas fa-envelope text-primary mr-1"></i> ইমেইল
-                            </label>
-                            <input type="email" id="email" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="example@school.com">
+                            <label class="field-label"><i class="fas fa-envelope"></i> ইমেইল</label>
+                            <input type="email" id="email" class="field-input" placeholder="example@school.com">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">
-                                <i class="fas fa-venus-mars text-primary mr-1"></i> লিঙ্গ
-                            </label>
-                            <select id="gender" class="w-full border border-gray-300 rounded-lg p-2.5">
+                            <label class="field-label"><i class="fas fa-venus-mars"></i> লিঙ্গ</label>
+                            <select id="gender" class="field-select">
                                 <option value="">নির্বাচন</option>
                                 <option value="Male">পুরুষ</option>
                                 <option value="Female">মহিলা</option>
@@ -309,143 +1054,167 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">
-                                <i class="fas fa-calendar-alt text-primary mr-1"></i> জন্ম তারিখ
-                            </label>
-                            <input type="date" id="dob" class="w-full border border-gray-300 rounded-lg p-2.5">
+                            <label class="field-label"><i class="fas fa-calendar-alt"></i> জন্ম তারিখ</label>
+                            <input type="date" id="dob" class="field-input">
                         </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">
-                                <i class="fas fa-map-marker-alt text-primary mr-1"></i> ঠিকানা
-                            </label>
-                            <input type="text" id="address" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="বিস্তারিত ঠিকানা">
+                        <div class="full-span">
+                            <label class="field-label"><i class="fas fa-map-marker-alt"></i> ঠিকানা</label>
+                            <input type="text" id="address" class="field-input" placeholder="বিস্তারিত ঠিকানা">
                         </div>
                     </div>
 
-                    <!-- Teacher Specific Fields -->
-                    <div id="teacherFields" class="hidden border-t pt-5 mt-2">
-                        <h3 class="font-bold text-gray-800 mb-4"><i class="fas fa-chalkboard text-primary mr-2"></i> শিক্ষক সংক্রান্ত তথ্য</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">শিক্ষক আইডি</label><input type="text" id="employeeId" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="TCH-001"></div>
-                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">বিভাগ</label><input type="text" id="department" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="বিজ্ঞান, গণিত..."></div>
-                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">শিক্ষাগত যোগ্যতা</label><input type="text" id="qualification" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="এম.এসসি, বি.এড"></div>
-                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">যোগদানের তারিখ</label><input type="date" id="joiningDate" class="w-full border border-gray-300 rounded-lg p-2.5"></div>
+                    <!-- Teacher Fields -->
+                    <div id="teacherFields" class="hidden">
+                        <div class="section-divider">
+                            <div class="section-icon emerald"><i class="fas fa-chalkboard"></i></div>
+                            <span class="section-title-text">শিক্ষক সংক্রান্ত তথ্য</span>
+                        </div>
+                        <div class="form-grid mt-4">
+                            <div>
+                                <label class="field-label"><i class="fas fa-id-badge"></i> শিক্ষক আইডি</label>
+                                <input type="text" id="employeeId" class="field-input" placeholder="TCH-001">
+                            </div>
+                            <div>
+                                <label class="field-label"><i class="fas fa-book"></i> বিভাগ</label>
+                                <input type="text" id="department" class="field-input" placeholder="বিজ্ঞান, গণিত...">
+                            </div>
+                            <div>
+                                <label class="field-label"><i class="fas fa-award"></i> শিক্ষাগত যোগ্যতা</label>
+                                <input type="text" id="qualification" class="field-input" placeholder="এম.এসসি, বি.এড">
+                            </div>
+                            <div>
+                                <label class="field-label"><i class="fas fa-calendar-check"></i> যোগদানের তারিখ</label>
+                                <input type="date" id="joiningDate" class="field-input">
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Admin Specific Fields -->
-                    <div id="adminFields" class="border-t pt-5 mt-2">
-                        <h3 class="font-bold text-gray-800 mb-4"><i class="fas fa-user-shield text-primary mr-2"></i> অ্যাডমিন তথ্য</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">অ্যাডমিন টাইপ</label><select id="adminType" class="w-full border border-gray-300 rounded-lg p-2.5"><option value="admin">অ্যাডমিন</option><option value="superadmin">সুপার অ্যাডমিন</option></select></div>
-                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">অ্যাক্সেস লেভেল</label><select id="accessLevel" class="w-full border border-gray-300 rounded-lg p-2.5"><option value="full">সম্পূর্ণ অ্যাক্সেস</option><option value="limited">সীমিত অ্যাক্সেস</option><option value="readonly">শুধুমাত্র দেখার অনুমতি</option></select></div>
+                    <!-- Admin Fields -->
+                    <div id="adminFields">
+                        <div class="section-divider">
+                            <div class="section-icon indigo"><i class="fas fa-user-shield"></i></div>
+                            <span class="section-title-text">অ্যাডমিন তথ্য</span>
+                        </div>
+                        <div class="form-grid mt-4">
+                            <div>
+                                <label class="field-label"><i class="fas fa-shield-alt"></i> অ্যাডমিন টাইপ</label>
+                                <select id="adminType" class="field-select">
+                                    <option value="admin">অ্যাডমিন</option>
+                                    <option value="superadmin">সুপার অ্যাডমিন</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="field-label"><i class="fas fa-key"></i> অ্যাক্সেস লেভেল</label>
+                                <select id="accessLevel" class="field-select">
+                                    <option value="full">সম্পূর্ণ অ্যাক্সেস</option>
+                                    <option value="limited">সীমিত অ্যাক্সেস</option>
+                                    <option value="readonly">শুধুমাত্র দেখার অনুমতি</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- ✅ Accountant Specific Fields -->
-                    <div id="accountantFields" class="hidden border-t pt-5 mt-2">
-                        <h3 class="font-bold text-gray-800 mb-4"><i class="fas fa-calculator text-primary mr-2"></i> অ্যাকাউন্ট্যান্ট সংক্রান্ত তথ্য</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">অ্যাকাউন্ট্যান্ট আইডি</label><input type="text" id="accountId" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="ACC-001"></div>
-                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">বিভাগ</label><input type="text" id="accDepartment" class="w-full border border-gray-300 rounded-lg p-2.5" placeholder="অ্যাকাউন্টস, হিসাব..."></div>
-                            <div><label class="block text-sm font-semibold text-gray-700 mb-1">যোগদানের তারিখ</label><input type="date" id="accJoiningDate" class="w-full border border-gray-300 rounded-lg p-2.5"></div>
+                    <!-- Accountant Fields -->
+                    <div id="accountantFields" class="hidden">
+                        <div class="section-divider">
+                            <div class="section-icon amber"><i class="fas fa-calculator"></i></div>
+                            <span class="section-title-text">অ্যাকাউন্ট্যান্ট তথ্য</span>
+                        </div>
+                        <div class="form-grid mt-4">
+                            <div>
+                                <label class="field-label"><i class="fas fa-id-badge"></i> অ্যাকাউন্ট্যান্ট আইডি</label>
+                                <input type="text" id="accountId" class="field-input" placeholder="ACC-001">
+                            </div>
+                            <div>
+                                <label class="field-label"><i class="fas fa-book"></i> বিভাগ</label>
+                                <input type="text" id="accDepartment" class="field-input" placeholder="অ্যাকাউন্টস, হিসাব...">
+                            </div>
+                            <div class="full-span">
+                                <label class="field-label"><i class="fas fa-calendar-check"></i> যোগদানের তারিখ</label>
+                                <input type="date" id="accJoiningDate" class="field-input">
+                            </div>
                         </div>
                     </div>
 
-                    <div class="flex justify-end pt-4 border-t">
-                        <button type="submit" id="submitBtn" class="px-6 py-2.5 bg-success text-white rounded-xl hover:bg-green-700 transition font-medium">
-                            <i class="fas fa-save mr-2"></i> একাউন্ট তৈরি করুন
+                    <div class="flex justify-end pt-4 border-t border-gray-100">
+                        <button type="submit" id="submitBtn" class="btn btn-success w-full sm:w-auto">
+                            <i class="fas fa-save"></i>
+                            একাউন্ট তৈরি করুন
                         </button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Users List Table -->
-        <div style="display:none" class="bg-white rounded-2xl shadow-md overflow-hidden">
-            <div class="p-5 border-b bg-gray-50 flex justify-between items-center flex-wrap gap-2">
-                <h3 class="font-bold text-gray-800"><i class="fas fa-users text-primary mr-2"></i> সকল ব্যবহারকারী</h3>
-                <div class="flex gap-2 items-center">
-                    <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full"><i class="fas fa-circle text-[8px] mr-1"></i>সক্রিয়</span>
-                    <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full"><i class="fas fa-circle text-[8px] mr-1"></i>নিষ্ক্রিয়</span>
-                    <div class="text-xs text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm ml-2"><i class="fas fa-sync-alt mr-1"></i> রিয়েল টাইম</div>
+        <!-- USERS LIST CARD -->
+        <div class="glass-card animate-fade-up" style="animation-delay: 0.15s;">
+            <div class="p-5 border-b border-gray-100 bg-gradient-to-r from-slate-50 to-indigo-50/50 flex justify-between items-center flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+                         style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 6px 16px rgba(99,102,241,0.3);">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-800 text-base md:text-lg">সকল ব্যবহারকারী</h3>
+                        <p class="text-xs text-gray-500 mt-0.5">রিয়েল টাইম আপডেট</p>
+                    </div>
+                </div>
+                <div class="flex gap-2 items-center flex-wrap">
+                    <span class="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-bold flex items-center gap-1.5">
+                        <span class="status-dot" style="background: #10b981;"></span>
+                        সক্রিয়
+                    </span>
+                    <span class="text-xs bg-red-100 text-red-600 px-2.5 py-1 rounded-full font-bold flex items-center gap-1.5">
+                        <span class="status-dot" style="background: #ef4444;"></span>
+                        নিষ্ক্রিয়
+                    </span>
                 </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-100">
-                        <tr class="text-left text-sm font-semibold text-gray-600">
-                            <th class="px-5 py-3 w-12">#</th>
-                            <th class="px-5 py-3 w-16">ছবি</th>
-                            <th class="px-5 py-3">নাম</th>
-                            <th class="px-5 py-3">মোবাইল</th>
-                            <th class="px-5 py-3">ইমেইল</th>
-                            <th class="px-5 py-3">ভূমিকা</th>
-                            <th class="px-5 py-3">স্ট্যাটাস</th>
-                            <th class="px-5 py-3 text-center w-36">অ্যাকশন</th>
-                         </tr>
+
+            <!-- Desktop Table -->
+            <div class="hidden md:block overflow-x-auto">
+                <table class="w-full user-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th style="width: 60px;">ছবি</th>
+                            <th>নাম</th>
+                            <th>মোবাইল</th>
+                            <th>ইমেইল</th>
+                            <th>ভূমিকা</th>
+                            <th>স্ট্যাটাস</th>
+                            <th style="width: 130px; text-align: center;">অ্যাকশন</th>
+                        </tr>
                     </thead>
                     <tbody id="usersTableBody">
-                        <tr><td colspan="8" class="text-center py-10 text-gray-400"><i class="fas fa-spinner fa-spin text-2xl"></i> ডাটা লোড হচ্ছে...</td></tr>
+                        <tr><td colspan="8" class="text-center py-12">
+                            <div class="inline-block w-10 h-10 border-4 border-indigo-100 border-t-indigo-500 rounded-full animate-spin"></div>
+                            <p class="mt-3 text-gray-400 text-sm">ডাটা লোড হচ্ছে...</p>
+                        </td></tr>
                     </tbody>
-                 </table>
+                </table>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div class="md:hidden p-3" id="usersMobileContainer">
+                <div class="text-center py-12">
+                    <div class="inline-block w-10 h-10 border-4 border-indigo-100 border-t-indigo-500 rounded-full animate-spin"></div>
+                    <p class="mt-3 text-gray-400 text-sm">ডাটা লোড হচ্ছে...</p>
+                </div>
             </div>
         </div>
-        
-        <div class="mt-4 text-xs text-gray-400 text-center border-t pt-4">✅ যে কোনো শিক্ষক বা অ্যাকাউন্ট্যান্ট তৈরি হলে স্বয়ংক্রিয়ভাবে তালিকায় যুক্ত হবে।</div>
 
-        <!-- ===== Login Page Code Section ===== -->
-        <div style="display:none"class="bg-white rounded-2xl shadow-md overflow-hidden mt-8">
-            <button onclick="toggleLoginCode()" class="w-full p-5 border-b bg-indigo-50 flex justify-between items-center hover:bg-indigo-100 transition cursor-pointer">
-                <h3 class="font-bold text-indigo-800 flex items-center gap-2">
-                    <i class="fas fa-code text-indigo-600"></i> 
-                    লগইন পেজে যোগ করার জন্য কোড (ইনঅ্যাক্টিভ ইউজার ব্লক করতে)
-                </h3>
-                <i id="loginCodeArrow" class="fas fa-chevron-down text-indigo-600 transition-transform"></i>
-            </button>
-            <div id="loginCodeSection" class="hidden p-5 bg-gray-900 text-green-400 text-sm font-mono overflow-x-auto">
-                <p class="text-gray-500 mb-3">// 👇 আপনার লগইন পেজের signInWithEmailAndPassword এর পরে এই কোড যোগ করুন</p>
-<pre class="whitespace-pre-wrap text-xs leading-relaxed">
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-
-const db = getFirestore();
-
-async function handleLogin(email, password) {
-    try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const uid = userCredential.user.uid;
-
-        const userDoc = await getDoc(doc(db, "users", uid));
-        
-        if (userDoc.exists()) {
-            const userData = userDoc.data();
-            
-            if (userData.status === "inactive") {
-                await auth.signOut();
-                showToast("আপনার অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে।", "error");
-                return;
-            }
-            
-            window.location.href = "dashboard.html";
-        } else {
-            await auth.signOut();
-            showToast("ব্যবহারকারীর তথ্য পাওয়া যায়নি।", "error");
-        }
-    } catch (error) {
-        showToast("লগইন ব্যর্থ: " + error.message, "error");
-    }
-}
-</pre>
-                <button onclick="copyLoginCode()" class="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition text-xs font-sans">
-                    <i class="fas fa-copy mr-1"></i> কোড কপি করুন
-                </button>
-            </div>
+        <!-- INFO NOTE -->
+        <div class="mt-5 p-4 rounded-xl text-xs text-center font-medium animate-fade-up" style="animation-delay: 0.2s; background: linear-gradient(135deg, #eef2ff, #e0e7ff); border: 1px solid #c7d2fe; color: #3730a3;">
+            <i class="fas fa-info-circle mr-1"></i>
+            যে কোনো শিক্ষক বা অ্যাকাউন্ট্যান্ট তৈরি হলে স্বয়ংক্রিয়ভাবে তালিকায় যুক্ত হবে।
         </div>
+
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         import { getFirestore, collection, serverTimestamp, query, orderBy, getDocs, doc, setDoc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         
         const firebaseConfig = {
@@ -460,13 +1229,11 @@ async function handleLogin(email, password) {
         };
         
         const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-// ✅ সেকেন্ডারি অ্যাপ — নতুন ইউজার তৈরি করতে ব্যবহৃত হবে
-// এতে বর্তমান অ্যাডমিনের লগইন সেশন নিরাপদ থাকবে, লগআউট হবে না
-const secondaryApp = initializeApp(firebaseConfig, "Secondary");
-const secondaryAuth = getAuth(secondaryApp);
+        const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+        const secondaryAuth = getAuth(secondaryApp);
 
         const CLOUD_NAME = "dhvtgzy5x"; 
         const UPLOAD_PRESET = "Rosenews"; 
@@ -484,12 +1251,22 @@ const secondaryAuth = getAuth(secondaryApp);
             const toast = document.getElementById('toast');
             const toastText = document.getElementById('toast-text');
             const toastIcon = document.getElementById('toast-icon');
-            const toastBorder = toast.querySelector('div');
-            toastIcon.className = type === 'success' ? 'fas fa-check-circle text-success text-lg' : 'fas fa-exclamation-circle text-danger text-lg';
-            toastBorder.className = `bg-white rounded-lg shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 ${type === 'success' ? 'border-success' : 'border-danger'} toast-slide`;
+            const toastBox = document.getElementById('toastBox');
+            const iconWrap = document.getElementById('toastIconWrap');
+            
+            if (type === 'success') {
+                toastIcon.className = 'fas fa-check-circle text-success text-base';
+                toastBox.className = 'bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-success ring-1 ring-black/5';
+                iconWrap.className = 'w-9 h-9 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0';
+            } else {
+                toastIcon.className = 'fas fa-exclamation-circle text-danger text-base';
+                toastBox.className = 'bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-danger ring-1 ring-black/5';
+                iconWrap.className = 'w-9 h-9 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0';
+            }
+            
             toastText.innerText = message;
             toast.classList.remove('hidden');
-            toast.style.display = 'flex';
+            toast.style.display = 'block';
             setTimeout(() => {
                 toast.classList.add('hidden');
                 setTimeout(() => { toast.style.display = 'none'; }, 300);
@@ -498,7 +1275,12 @@ const secondaryAuth = getAuth(secondaryApp);
         
         window.hideToast = () => document.getElementById('toast').classList.add('hidden');
         
-        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m])); }
+        function escapeHtml(str) { 
+            if (!str) return ''; 
+            return String(str).replace(/[&<>"]/g, m => ({ 
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' 
+            }[m])); 
+        }
 
         async function uploadImageToCloudinary(file) {
             if (!file) return null;
@@ -516,6 +1298,7 @@ const secondaryAuth = getAuth(secondaryApp);
             }
         }
 
+        // Image preview handlers
         document.getElementById('createImageFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -534,7 +1317,6 @@ const secondaryAuth = getAuth(secondaryApp);
             }
         });
 
-        // ===== Edit Modal Status Toggle Handler =====
         window.handleEditStatusToggle = function(checkbox) {
             const statusText = document.getElementById('editStatusText');
             const warningBox = document.getElementById('editStatusWarning');
@@ -542,13 +1324,13 @@ const secondaryAuth = getAuth(secondaryApp);
             
             if (checkbox.checked) {
                 hiddenInput.value = 'active';
-                statusText.className = 'text-xs text-green-600 mt-1 font-medium';
-                statusText.innerHTML = '<i class="fas fa-check-circle"></i> এই অ্যাকাউন্টটি সক্রিয় আছে — ইউজার লগইন করতে পারবে';
+                statusText.className = 'text-xs text-green-600 mt-1.5 font-medium flex items-center gap-1.5';
+                statusText.innerHTML = '<i class="fas fa-check-circle"></i> অ্যাকাউন্ট সক্রিয় — ইউজার লগইন করতে পারবে';
                 warningBox.classList.add('hidden');
             } else {
                 hiddenInput.value = 'inactive';
-                statusText.className = 'text-xs text-red-600 mt-1 font-medium';
-                statusText.innerHTML = '<i class="fas fa-ban"></i> এই অ্যাকাউন্টটি নিষ্ক্রিয় থাকবে — ইউজার লগইন করতে পারবে না';
+                statusText.className = 'text-xs text-red-600 mt-1.5 font-medium flex items-center gap-1.5';
+                statusText.innerHTML = '<i class="fas fa-ban"></i> অ্যাকাউন্ট নিষ্ক্রিয় থাকবে — ইউজার লগইন করতে পারবে না';
                 warningBox.classList.remove('hidden');
             }
         };
@@ -581,6 +1363,7 @@ const secondaryAuth = getAuth(secondaryApp);
             }
         }
         
+        // Form Submit
         document.getElementById('userForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const fullName = document.getElementById('fullName').value.trim();
@@ -601,25 +1384,30 @@ const secondaryAuth = getAuth(secondaryApp);
             
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> তৈরি হচ্ছে...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> তৈরি হচ্ছে...';
             
             try {
                 let photoURL = null;
                 if (imageFile) { photoURL = await uploadImageToCloudinary(imageFile); }
                 const userEmail = email || generateEmailFromPhone(phone, role);
-                // ✅ মূল অথ (auth) এর বদলে সেকেন্ডারি অথ (secondaryAuth) ব্যবহার করা হচ্ছে
-const userCredential = await createUserWithEmailAndPassword(secondaryAuth, userEmail, password);
-const authUid = userCredential.user.uid;
-
-// ✅ সেকেন্ডারি ইনস্ট্যান্স থেকে নতুন ইউজারকে সাথে সাথে সাইনআউট করে দিচ্ছি (ক্লিনআপ)
-// এতে অ্যাডমিনের সেশনে কোনো প্রভাব পড়বে না
-await secondaryAuth.signOut();
+                
+                const userCredential = await createUserWithEmailAndPassword(secondaryAuth, userEmail, password);
+                const authUid = userCredential.user.uid;
+                await secondaryAuth.signOut();
                 
                 const userData = {
-                    uid: authUid, name: fullName, email: userEmail, phone: phone, role: role,
+                    uid: authUid, 
+                    name: fullName, 
+                    email: userEmail, 
+                    phone: phone, 
+                    role: role,
                     photoURL: photoURL,
-                    gender: gender || null, dateOfBirth: dob || null, address: address || null,
-                    status: 'active', createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+                    gender: gender || null, 
+                    dateOfBirth: dob || null, 
+                    address: address || null,
+                    status: 'active', 
+                    createdAt: serverTimestamp(), 
+                    updatedAt: serverTimestamp()
                 };
                 
                 if (role === 'teacher') {
@@ -637,17 +1425,15 @@ await secondaryAuth.signOut();
                         employeeId: employeeId, department: department, qualification: qualification,
                         joiningDate: joiningDate, uid: authUid, role: 'teacher', status: 'active'
                     }, authUid);
-                    showToast(`🎉 শিক্ষক তৈরি! ইমেইল: ${userEmail} | পাস: ${password}`, 'success');
+                    showToast(`শিক্ষক তৈরি! ইমেইল: ${userEmail}`, 'success');
                 } else if (role === 'admin') {
                     const adminType = document.getElementById('adminType').value;
                     userData.adminType = adminType;
                     userData.accessLevel = document.getElementById('accessLevel').value;
                     if (adminType === 'superadmin') userData.role = 'superadmin';
                     await setDoc(doc(db, 'users', authUid), userData);
-                    showToast(`✅ অ্যাডমিন তৈরি! ইমেইল: ${userEmail} | পাস: ${password}`, 'success');
-                } 
-                // ✅ Accountant Creation Logic
-                else if (role === 'accountant') {
+                    showToast(`অ্যাডমিন তৈরি! ইমেইল: ${userEmail}`, 'success');
+                } else if (role === 'accountant') {
                     const accountId = document.getElementById('accountId').value || `ACC-${phone.slice(-4)}`;
                     const accDepartment = document.getElementById('accDepartment').value || '';
                     const accJoiningDate = document.getElementById('accJoiningDate').value || new Date().toISOString().split('T')[0];
@@ -655,11 +1441,11 @@ await secondaryAuth.signOut();
                     userData.department = accDepartment;
                     userData.joiningDate = accJoiningDate;
                     await setDoc(doc(db, 'users', authUid), userData);
-                    showToast(`✅ অ্যাকাউন্ট্যান্ট তৈরি! ইমেইল: ${userEmail} | পাস: ${password}`, 'success');
+                    showToast(`অ্যাকাউন্ট্যান্ট তৈরি! ইমেইল: ${userEmail}`, 'success');
                 }
                 
                 document.getElementById('userForm').reset();
-                document.getElementById('createImagePreview').src = `https://ui-avatars.com/api/?name=New&background=3b82f6&color=fff`;
+                document.getElementById('createImagePreview').src = `https://ui-avatars.com/api/?name=New&background=6366f1&color=fff&bold=true&size=200`;
                 document.getElementById('adminType').value = 'admin';
                 document.getElementById('accessLevel').value = 'full';
                 await loadAllUsers();
@@ -669,7 +1455,7 @@ await secondaryAuth.signOut();
                 showToast(errorMsg, 'error');
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i> একাউন্ট তৈরি করুন';
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> একাউন্ট তৈরি করুন';
             }
         });
         
@@ -678,12 +1464,22 @@ await secondaryAuth.signOut();
                 const usersSnapshot = await getDocs(query(collection(db, 'users'), orderBy('createdAt', 'desc')));
                 allUsers = [];
                 usersSnapshot.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
-                renderUsersTable();
+                updateStats();
+                renderUsersList();
                 await ensureAllTeachersInCollection();
             } catch (error) {
                 console.error('Error loading users:', error);
                 document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="8" class="text-center py-10 text-red-400">লোড করতে ব্যর্থ হয়েছে</td></tr>';
+                document.getElementById('usersMobileContainer').innerHTML = '<div class="text-center py-10 text-red-400">লোড করতে ব্যর্থ হয়েছে</div>';
             }
+        }
+
+        function updateStats() {
+            const activeUsers = allUsers.filter(u => u.role !== 'parent');
+            document.getElementById('stat-admins').textContent = activeUsers.filter(u => u.role === 'admin' || u.role === 'superadmin').length;
+            document.getElementById('stat-teachers').textContent = activeUsers.filter(u => u.role === 'teacher').length;
+            document.getElementById('stat-accountants').textContent = activeUsers.filter(u => u.role === 'accountant').length;
+            document.getElementById('stat-inactive').textContent = activeUsers.filter(u => u.status === 'inactive').length;
         }
         
         async function ensureAllTeachersInCollection() {
@@ -695,7 +1491,7 @@ await secondaryAuth.signOut();
                     await syncTeacherToTeachersCollection({
                         name: teacher.name, phone: teacher.phone, email: teacher.email,
                         photoURL: teacher.photoURL || null,
-                        employeeId: teacher.employeeId || `TCH-${teacher.phone?.slice(-4)}`,
+                        employeeId: teacher.employeeId || `TCH-${teacher.phone?.slice(-5)}`,
                         department: teacher.department || '', qualification: teacher.qualification || '',
                         joiningDate: teacher.joiningDate || '', uid: teacher.id, role: 'teacher',
                         status: teacher.status || 'active'
@@ -703,81 +1499,159 @@ await secondaryAuth.signOut();
                 }
             }
         }
+
+        // Get role config
+        function getRoleConfig(role) {
+            const config = {
+                'admin': { icon: 'fa-user-cog', class: 'admin', display: 'অ্যাডমিন' },
+                'superadmin': { icon: 'fa-user-shield', class: 'superadmin', display: 'সুপার অ্যাডমিন' },
+                'teacher': { icon: 'fa-chalkboard-teacher', class: 'teacher', display: 'শিক্ষক' },
+                'accountant': { icon: 'fa-calculator', class: 'accountant', display: 'অ্যাকাউন্ট্যান্ট' }
+            };
+            return config[role] || { icon: 'fa-user', class: 'admin', display: role };
+        }
         
-        function renderUsersTable() {
-            const tbody = document.getElementById('usersTableBody');
-            if (allUsers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-10 text-gray-400">কোন ব্যবহারকারী নেই</td></tr>';
+        function renderUsersList() {
+            const usersToShow = allUsers.filter(u => u.role !== 'parent');
+            
+            if (usersToShow.length === 0) {
+                const emptyHtml = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-users-slash"></i>
+                        </div>
+                        <p class="text-base font-bold text-gray-600">কোন ব্যবহারকারী নেই</p>
+                        <p class="text-xs text-gray-400 mt-1">উপরের ফর্ম থেকে নতুন ইউজার তৈরি করুন</p>
+                    </div>
+                `;
+                document.getElementById('usersTableBody').innerHTML = `<tr><td colspan="8">${emptyHtml}</td></tr>`;
+                document.getElementById('usersMobileContainer').innerHTML = emptyHtml;
                 return;
             }
             
-            tbody.innerHTML = '';
-            allUsers.forEach((user, index) => {
-                if (user.role === 'parent') return;
-                
-                // ✅ Role Display Configuration with Accountant
-                const roleConfig = {
-                    'admin': { icon: 'fa-user-cog', color: 'bg-blue-100 text-blue-700', display: 'অ্যাডমিন' },
-                    'superadmin': { icon: 'fa-user-shield', color: 'bg-purple-100 text-purple-700', display: 'সুপার অ্যাডমিন' },
-                    'teacher': { icon: 'fa-chalkboard-teacher', color: 'bg-green-100 text-green-700', display: 'শিক্ষক' },
-                    'accountant': { icon: 'fa-calculator', color: 'bg-orange-100 text-orange-700', display: 'অ্যাকাউন্ট্যান্ট' }
-                };
-                
-                const roleInfo = roleConfig[user.role] || { icon: 'fa-user', color: 'bg-gray-100 text-gray-700', display: user.role };
+            // Desktop Table
+            let tableHtml = '';
+            let mobileHtml = '';
+            
+            usersToShow.forEach((user, index) => {
+                const roleInfo = getRoleConfig(user.role);
                 const isActive = user.status === 'active';
-                
-                const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=3b82f6&color=fff`;
+                const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=6366f1&color=fff&bold=true&size=128`;
                 const imgSrc = user.photoURL || defaultImg;
                 
-                const row = document.createElement('tr');
-                row.className = `user-row border-b border-gray-100 ${!isActive ? 'inactive-user' : 'hover:bg-gray-50'}`;
-                row.innerHTML = `
-                    <td class="px-5 py-3 text-sm text-gray-500">${index + 1}</td>
-                    <td class="px-5 py-3">
-                        <div class="relative">
-                            <img src="${imgSrc}" alt="${escapeHtml(user.name)}" class="w-10 h-10 rounded-full object-cover border-2 ${isActive ? 'border-gray-200' : 'border-red-300 opacity-60'} shadow-sm bg-blue-50" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=U&background=3b82f6&color=fff';">
-                            ${!isActive ? '<span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center"><i class="fas fa-times text-white text-[7px]"></i></span>' : ''}
+                // Desktop Row
+                tableHtml += `
+                    <tr class="${!isActive ? 'inactive-user' : ''}">
+                        <td class="text-gray-500 font-semibold text-sm">${index + 1}</td>
+                        <td>
+                            <div class="relative">
+                                <img src="${imgSrc}" 
+                                     class="w-10 h-10 rounded-full object-cover border-2 ${isActive ? 'border-gray-200' : 'border-red-300 opacity-60'} shadow-sm bg-blue-50" 
+                                     referrerpolicy="no-referrer" 
+                                     onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=U&background=6366f1&color=fff&bold=true&size=128';">
+                                ${!isActive ? '<span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border-2 border-white"><i class="fas fa-times text-white text-[7px]"></i></span>' : ''}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="font-bold ${isActive ? 'text-gray-800' : 'text-gray-400 line-through'} text-sm">${escapeHtml(user.name || 'N/A')}</div>
+                        </td>
+                        <td class="text-sm ${isActive ? 'text-gray-700' : 'text-gray-400'} font-medium">${escapeHtml(user.phone || 'N/A')}</td>
+                        <td class="text-xs ${isActive ? 'text-gray-500' : 'text-gray-400'}">${escapeHtml(user.email || 'N/A')}</td>
+                        <td>
+                            <span class="role-badge ${roleInfo.class}">
+                                <i class="fas ${roleInfo.icon}"></i>
+                                ${roleInfo.display}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-badge ${isActive ? 'active' : 'inactive'}">
+                                <span class="status-dot"></span>
+                                ${isActive ? 'সক্রিয়' : 'নিষ্ক্রিয়'}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <div class="flex gap-1.5 justify-center">
+                                <button class="action-btn power-toggle ${isActive ? 'power-active' : 'power-inactive'}" 
+                                    data-id="${user.id}" data-uid="${user.uid}" data-role="${user.role}" data-status="${user.status}" data-name="${escapeHtml(user.name)}"
+                                    title="${isActive ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন'}">
+                                    <i class="fas fa-power-off"></i>
+                                </button>
+                                <button class="action-btn edit edit-user-btn" 
+                                    data-id="${user.id}" data-uid="${user.uid}" data-role="${user.role}" title="সম্পাদনা">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete delete-user-btn" 
+                                    data-id="${user.id}" data-uid="${user.uid}" data-name="${escapeHtml(user.name)}" title="মুছুন">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                
+                // Mobile Card
+                mobileHtml += `
+                    <div class="user-card ${!isActive ? 'inactive-user' : ''}">
+                        <div class="flex items-start gap-3 mb-3">
+                            <div class="relative flex-shrink-0">
+                                <img src="${imgSrc}" 
+                                     class="w-14 h-14 rounded-xl object-cover border-2 ${isActive ? 'border-gray-200' : 'border-red-300 opacity-60'} shadow-sm bg-blue-50" 
+                                     referrerpolicy="no-referrer" 
+                                     onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=U&background=6366f1&color=fff&bold=true&size=128';">
+                                ${!isActive ? '<span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white"><i class="fas fa-times text-white text-[9px]"></i></span>' : ''}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="w-6 h-6 rounded-md bg-indigo-50 text-indigo-700 font-bold text-[10px] flex items-center justify-center flex-shrink-0">${index + 1}</span>
+                                    <p class="font-bold ${isActive ? 'text-gray-800' : 'text-gray-400 line-through'} truncate text-sm">${escapeHtml(user.name || 'N/A')}</p>
+                                </div>
+                                <span class="role-badge ${roleInfo.class} mb-1.5" style="font-size: 9px; padding: 3px 8px;">
+                                    <i class="fas ${roleInfo.icon}"></i>
+                                    ${roleInfo.display}
+                                </span>
+                                <div class="text-xs text-gray-500 mt-1.5 space-y-0.5">
+                                    <div class="flex items-center gap-1.5 truncate"><i class="fas fa-phone text-indigo-400"></i> ${escapeHtml(user.phone || 'N/A')}</div>
+                                    <div class="flex items-center gap-1.5 truncate"><i class="fas fa-envelope text-indigo-400"></i> ${escapeHtml(user.email || 'N/A')}</div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1.5 flex-shrink-0">
+                                <span class="status-badge ${isActive ? 'active' : 'inactive'}" style="font-size: 8px; padding: 3px 8px;">
+                                    <span class="status-dot"></span>
+                                    ${isActive ? 'সক্রিয়' : 'নিষ্ক্রিয়'}
+                                </span>
+                            </div>
                         </div>
-                    </td>
-                    <td class="px-5 py-3">
-                        <div class="font-semibold ${isActive ? 'text-gray-800' : 'text-gray-400 line-through'}">${escapeHtml(user.name || 'N/A')}</div>
-                    </td>
-                    <td class="px-5 py-3 text-sm ${isActive ? '' : 'text-gray-400'}">${escapeHtml(user.phone || 'N/A')}</td>
-                    <td class="px-5 py-3 text-sm ${isActive ? 'text-gray-500' : 'text-gray-400'}">${escapeHtml(user.email || 'N/A')}</td>
-                    <td class="px-5 py-3"><span class="text-xs px-2 py-1 rounded-full ${roleInfo.color}"><i class="fas ${roleInfo.icon} mr-1"></i> ${roleInfo.display}</span></td>
-                    <td class="px-5 py-3">
-                        <span class="text-xs px-2.5 py-1 rounded-full font-medium ${isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}">
-                            ${isActive ? '<i class="fas fa-check-circle mr-1 pulse-dot"></i>সক্রিয়' : '<i class="fas fa-ban mr-1"></i>নিষ্ক্রিয়'}
-                        </span>
-                    </td>
-                    <td class="px-5 py-3 text-center">
-                        <div class="flex gap-1.5 justify-center">
-                            <button class="power-toggle p-2 rounded-lg transition ${isActive ? 'is-active' : 'is-inactive'}" 
+                        <div class="flex gap-2 pt-3 border-t border-gray-100">
+                            <button class="power-toggle ${isActive ? 'power-active' : 'power-inactive'} flex-1 action-btn" 
                                 data-id="${user.id}" data-uid="${user.uid}" data-role="${user.role}" data-status="${user.status}" data-name="${escapeHtml(user.name)}"
-                                title="${isActive ? 'অ্যাকাউন্ট নিষ্ক্রিয় করুন' : 'অ্যাকাউন্ট সক্রিয় করুন'}">
-                                <i class="fas fa-power-off"></i>
+                                title="${isActive ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন'}"
+                                style="width: auto; height: 38px;">
+                                <i class="fas fa-power-off mr-1.5"></i> <span class="text-xs font-bold">${isActive ? 'নিষ্ক্রিয়' : 'সক্রিয়'}</span>
                             </button>
-                            <button class="edit-user-btn bg-primary/10 text-primary hover:bg-primary hover:text-white p-2 rounded-lg transition" 
-                                data-id="${user.id}" data-uid="${user.uid}" data-role="${user.role}" title="সম্পাদনা করুন">
-                                <i class="fas fa-edit"></i>
+                            <button class="edit-user-btn action-btn edit" 
+                                data-id="${user.id}" data-uid="${user.uid}" data-role="${user.role}" title="সম্পাদনা"
+                                style="width: auto; height: 38px; padding: 0 16px;">
+                                <i class="fas fa-edit mr-1.5"></i> <span class="text-xs font-bold">এডিট</span>
                             </button>
-                            <button class="delete-user-btn bg-red-100 text-danger hover:bg-danger hover:text-white p-2 rounded-lg transition" 
-                                data-id="${user.id}" data-uid="${user.uid}" data-name="${escapeHtml(user.name)}" title="মুছুন">
+                            <button class="delete-user-btn action-btn delete" 
+                                data-id="${user.id}" data-uid="${user.uid}" data-name="${escapeHtml(user.name)}" title="মুছুন"
+                                style="width: 38px; height: 38px;">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
-                    </td>
+                    </div>
                 `;
-                tbody.appendChild(row);
             });
             
-            // Event listeners
+            document.getElementById('usersTableBody').innerHTML = tableHtml;
+            document.getElementById('usersMobileContainer').innerHTML = mobileHtml;
+            
+            // Attach events
             document.querySelectorAll('.edit-user-btn').forEach(btn => btn.addEventListener('click', () => openEditModal(btn.dataset.id, btn.dataset.uid, btn.dataset.role)));
             document.querySelectorAll('.delete-user-btn').forEach(btn => btn.addEventListener('click', () => openDeleteModal(btn.dataset.id, btn.dataset.uid, btn.dataset.name)));
             document.querySelectorAll('.power-toggle').forEach(btn => btn.addEventListener('click', () => openStatusToggleModal(btn.dataset.id, btn.dataset.uid, btn.dataset.role, btn.dataset.status, btn.dataset.name)));
         }
         
-        // ===== Status Toggle from Table =====
         function openStatusToggleModal(userId, authUid, role, currentStatus, userName) {
             pendingToggleId = userId;
             pendingToggleRole = role;
@@ -791,23 +1665,25 @@ await secondaryAuth.signOut();
             const confirmBtn = document.getElementById('confirmStatusToggle');
             
             if (pendingToggleNewStatus === 'inactive') {
-                icon.className = 'w-10 h-10 rounded-full flex items-center justify-center bg-red-100';
-                icon.innerHTML = '<i class="fas fa-power-off text-danger"></i>';
+                icon.className = 'modal-header-icon red';
+                icon.innerHTML = '<i class="fas fa-power-off"></i>';
                 title.textContent = 'অ্যাকাউন্ট নিষ্ক্রিয় করুন';
                 message.innerHTML = `আপনি কি <strong>${escapeHtml(userName)}</strong> এর অ্যাকাউন্ট নিষ্ক্রিয় করতে চান?`;
-                warning.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i> অ্যাকাউন্ট নিষ্ক্রিয় হলে এই ইউজার আর লগইন করতে পারবে না!';
-                warning.className = 'text-sm text-orange-600 mb-4 bg-orange-50 p-2.5 rounded-lg border border-orange-200';
-                confirmBtn.className = 'px-4 py-2 bg-danger text-white rounded-lg hover:bg-red-700 transition';
-                confirmBtn.innerHTML = '<i class="fas fa-power-off mr-1"></i> নিষ্ক্রিয় করুন';
+                warning.className = 'text-xs mb-6 p-3 rounded-xl border flex items-start gap-2 bg-orange-50 border-orange-200 text-orange-700';
+                warning.innerHTML = '<i class="fas fa-exclamation-triangle mt-0.5 flex-shrink-0"></i> <span>অ্যাকাউন্ট নিষ্ক্রিয় হলে এই ইউজার আর লগইন করতে পারবে না!</span>';
+                confirmBtn.className = 'btn btn-danger w-full sm:w-auto';
+                confirmBtn.innerHTML = '<i class="fas fa-power-off"></i> নিষ্ক্রিয় করুন';
             } else {
-                icon.className = 'w-10 h-10 rounded-full flex items-center justify-center bg-green-100';
-                icon.innerHTML = '<i class="fas fa-power-off text-success"></i>';
+                icon.className = 'modal-header-icon';
+                icon.style.background = 'linear-gradient(135deg, #10b981, #0d9488)';
+                icon.style.boxShadow = '0 6px 16px rgba(16,185,129,0.35)';
+                icon.innerHTML = '<i class="fas fa-power-off"></i>';
                 title.textContent = 'অ্যাকাউন্ট সক্রিয় করুন';
                 message.innerHTML = `আপনি কি <strong>${escapeHtml(userName)}</strong> এর অ্যাকাউন্ট আবার সক্রিয় করতে চান?`;
-                warning.innerHTML = '<i class="fas fa-check-circle mr-1 text-green-600"></i> অ্যাকাউন্ট সক্রিয় হলে এই ইউজার আবার লগইন করতে পারবে!';
-                warning.className = 'text-sm text-green-600 mb-4 bg-green-50 p-2.5 rounded-lg border border-green-200';
-                confirmBtn.className = 'px-4 py-2 bg-success text-white rounded-lg hover:bg-green-700 transition';
-                confirmBtn.innerHTML = '<i class="fas fa-power-off mr-1"></i> সক্রিয় করুন';
+                warning.className = 'text-xs mb-6 p-3 rounded-xl border flex items-start gap-2 bg-green-50 border-green-200 text-green-700';
+                warning.innerHTML = '<i class="fas fa-check-circle mt-0.5 flex-shrink-0"></i> <span>অ্যাকাউন্ট সক্রিয় হলে এই ইউজার আবার লগইন করতে পারবে!</span>';
+                confirmBtn.className = 'btn btn-success w-full sm:w-auto';
+                confirmBtn.innerHTML = '<i class="fas fa-power-off"></i> সক্রিয় করুন';
             }
             
             document.getElementById('statusToggleModal').classList.remove('hidden');
@@ -823,8 +1699,9 @@ await secondaryAuth.signOut();
             if (!pendingToggleId) return;
             
             const confirmBtn = document.getElementById('confirmStatusToggle');
+            const originalClass = confirmBtn.className;
             confirmBtn.disabled = true;
-            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> আপডেট হচ্ছে...';
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> আপডেট হচ্ছে...';
             
             try {
                 await updateDoc(doc(db, 'users', pendingToggleId), {
@@ -840,7 +1717,7 @@ await secondaryAuth.signOut();
                 }
                 
                 const statusText = pendingToggleNewStatus === 'active' ? 'সক্রিয়' : 'নিষ্ক্রিয়';
-                showToast(`✅ ${pendingToggleUserName} এর অ্যাকাউন্ট ${statusText} করা হয়েছে!`, 'success');
+                showToast(`${pendingToggleUserName} এর অ্যাকাউন্ট ${statusText} করা হয়েছে!`, 'success');
                 
                 document.getElementById('statusToggleModal').classList.add('hidden');
                 await loadAllUsers();
@@ -848,12 +1725,12 @@ await secondaryAuth.signOut();
                 showToast('স্ট্যাটাস পরিবর্তনে সমস্যা: ' + error.message, 'error');
             } finally {
                 confirmBtn.disabled = false;
+                confirmBtn.className = originalClass;
                 pendingToggleId = null;
                 pendingToggleNewStatus = null;
             }
         };
         
-        // Close status modal on backdrop click
         document.getElementById('statusToggleModal').addEventListener('click', (e) => {
             if (e.target === document.getElementById('statusToggleModal')) {
                 document.getElementById('statusToggleModal').classList.add('hidden');
@@ -879,7 +1756,7 @@ await secondaryAuth.signOut();
             document.getElementById('editStatusValue').value = user.status || 'active';
             window.handleEditStatusToggle(toggleCheckbox);
             
-            const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=3b82f6&color=fff`;
+            const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=6366f1&color=fff&bold=true&size=200`;
             document.getElementById('editImagePreview').src = user.photoURL || defaultImg;
             document.getElementById('editImageFile').value = '';
             
@@ -892,7 +1769,7 @@ await secondaryAuth.signOut();
             e.preventDefault();
             const editBtn = document.getElementById('editSubmitBtn');
             editBtn.disabled = true;
-            editBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> আপডেট হচ্ছে...';
+            editBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> আপডেট হচ্ছে...';
 
             const userId = document.getElementById('editUserId').value;
             const userRole = document.getElementById('editUserRole').value;
@@ -929,15 +1806,15 @@ await secondaryAuth.signOut();
                     await setDoc(doc(db, 'teachers', userId), teacherUpdate, { merge: true });
                 }
 
-                const statusMsg = newStatus === 'active' ? ' (সক্রিয়)' : ' (নিষ্ক্রিয় — লগইন ব্লক)';
-                showToast('তথ্য হালনাগাদ হয়েছে' + statusMsg);
+                const statusMsg = newStatus === 'active' ? ' (সক্রিয়)' : ' (নিষ্ক্রিয়)';
+                showToast('তথ্য হালনাগাদ হয়েছে' + statusMsg, 'success');
                 closeEditModal();
                 await loadAllUsers();
             } catch (error) {
                 showToast('ত্রুটি: ' + error.message, 'error');
             } finally {
                 editBtn.disabled = false;
-                editBtn.innerHTML = '<i class="fas fa-save mr-1"></i> হালনাগাদ করুন';
+                editBtn.innerHTML = '<i class="fas fa-save"></i> হালনাগাদ করুন';
             }
         });
         
@@ -956,22 +1833,26 @@ await secondaryAuth.signOut();
         
         document.getElementById('confirmDelete').onclick = async () => {
             if (pendingDeleteId) {
+                const confirmBtn = document.getElementById('confirmDelete');
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> মুছছে...';
                 try {
                     await deleteDoc(doc(db, 'users', pendingDeleteId));
                     await deleteDoc(doc(db, 'teachers', pendingDeleteId)).catch(()=>{});
-                    showToast('ব্যবহারকারী মুছে ফেলা হয়েছে');
+                    showToast('ব্যবহারকারী মুছে ফেলা হয়েছে', 'success');
                     document.getElementById('deleteModal').classList.add('hidden');
                     await loadAllUsers();
                 } catch (error) {
                     showToast('মুছতে সমস্যা: ' + error.message, 'error');
                 } finally {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '<i class="fas fa-trash-alt"></i> মুছুন';
                     pendingDeleteId = null;
                     pendingDeleteAuthId = null;
                 }
             }
         };
         
-        // ✅ Role Tab Switching Logic
         function switchRole(role) {
             currentRole = role;
             document.getElementById('selectedRole').value = role;
@@ -984,9 +1865,9 @@ await secondaryAuth.signOut();
             
             Object.keys(btns).forEach(key => {
                 if (key === role) {
-                    btns[key].className = 'role-tab px-6 py-2 rounded-lg font-semibold transition bg-primary text-white';
+                    btns[key].className = 'role-tab active';
                 } else {
-                    btns[key].className = 'role-tab px-6 py-2 rounded-lg font-semibold transition bg-gray-200 text-gray-600 hover:bg-gray-300';
+                    btns[key].className = 'role-tab inactive';
                 }
             });
 
@@ -1006,60 +1887,28 @@ await secondaryAuth.signOut();
         async function loadCurrentSession() {
             try {
                 const sessionDoc = await getDoc(doc(db, "config", "activeSession"));
-                if (sessionDoc.exists()) document.getElementById('current-session-badge').innerHTML = `<i class="fas fa-calendar-alt mr-1"></i>${sessionDoc.data().sessionName || "২০২৫-২০২৬"}`;
+                if (sessionDoc.exists()) {
+                    document.getElementById('current-session-badge').textContent = sessionDoc.data().sessionName || "২০২৫-২০২৬";
+                }
             } catch(e) {}
         }
         
-        document.getElementById('editModal').addEventListener('click', (e) => { if (e.target === document.getElementById('editModal')) closeEditModal(); });
-        document.getElementById('deleteModal').addEventListener('click', (e) => { if (e.target === document.getElementById('deleteModal')) { document.getElementById('deleteModal').classList.add('hidden'); pendingDeleteId = null; } });
+        document.getElementById('editModal').addEventListener('click', (e) => { 
+            if (e.target === document.getElementById('editModal')) closeEditModal(); 
+        });
         
-        // ===== Login Code Section Toggle =====
-        window.toggleLoginCode = function() {
-            const section = document.getElementById('loginCodeSection');
-            const arrow = document.getElementById('loginCodeArrow');
-            section.classList.toggle('hidden');
-            arrow.style.transform = section.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-        };
+        document.getElementById('deleteModal').addEventListener('click', (e) => { 
+            if (e.target === document.getElementById('deleteModal')) { 
+                document.getElementById('deleteModal').classList.add('hidden'); 
+                pendingDeleteId = null; 
+            } 
+        });
         
-        window.copyLoginCode = function() {
-            const codeText = `import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-
-const db = getFirestore();
-
-async function handleLogin(email, password) {
-    try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const uid = userCredential.user.uid;
-
-        const userDoc = await getDoc(doc(db, "users", uid));
-        
-        if (userDoc.exists()) {
-            const userData = userDoc.data();
-            
-            if (userData.status === "inactive") {
-                await auth.signOut();
-                alert("আপনার অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে।");
-                return;
-            }
-            
-            window.location.href = "dashboard.html";
-        } else {
-            await auth.signOut();
-            alert("ব্যবহারকারীর তথ্য পাওয়া যায়নি।");
-        }
-    } catch (error) {
-        alert("লগইন ব্যর্থ: " + error.message);
-    }
-}`;
-            navigator.clipboard.writeText(codeText).then(() => {
-                showToast('কোড কপি হয়েছে! আপনার লগইন পেজে পেস্ট করুন।');
-            }).catch(() => {
-                showToast('কপি করতে সমস্যা হয়েছে', 'error');
-            });
-        };
-        
-        loadCurrentSession();
-        await loadAllUsers();
+        // Init
+        (async () => {
+            await loadCurrentSession();
+            await loadAllUsers();
+        })();
     </script>
 </body>
 </html>
