@@ -73,6 +73,30 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
+        /* ========== FULL WIDTH WRAPPER ========== */
+        .full-wrapper {
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        @media (min-width: 768px) {
+            .full-wrapper { padding: 0 40px; }
+        }
+
+        @media (min-width: 1024px) {
+            .full-wrapper { padding: 0 60px; }
+        }
+
+        @media (min-width: 1280px) {
+            .full-wrapper { padding: 0 80px; }
+        }
+
+        @media (min-width: 1536px) {
+            .full-wrapper { padding: 0 120px; }
+        }
+
         /* ========== HEADER ========== */
         .site-header {
             background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
@@ -241,58 +265,50 @@
             100% { transform: translateX(-200%); }
         }
 
-        /* ========== HERO SECTION — CLEAN, FULL WIDTH ========== */
+        /* ========== HERO SECTION — Full Width, Image Full Fit ========== */
         .hero-section {
             width: 100%;
             position: relative;
             overflow: hidden;
-            background: #0f172a;
+            background: transparent;
+            line-height: 0;
         }
 
         .hero-section.hidden-hero {
-            display: none;
+            display: none !important;
         }
 
+        /* Image wrapper — width based height */
         .hero-image-wrapper {
             width: 100%;
             position: relative;
             line-height: 0;
-            min-height: 500px;
+            display: block;
         }
 
-        @media (min-width: 768px) {
-            .hero-image-wrapper { min-height: 600px; }
-        }
-
-        @media (min-width: 1024px) {
-            .hero-image-wrapper { min-height: 700px; }
-        }
-
+        /* Image — natural aspect ratio, full width */
         .hero-image {
             width: 100%;
-            height: 100%;
-            min-height: 500px;
-            max-height: 850px;
-            object-fit: cover;
+            height: auto;
             display: block;
-            position: absolute;
-            top: 0;
-            left: 0;
+            object-fit: contain;
+            object-position: center top;
         }
 
-        @media (min-width: 768px) {
-            .hero-image { min-height: 600px; }
+        /* Fallback for very tall images — cap max height on huge screens */
+        @media (min-width: 1600px) {
+            .hero-image {
+                max-height: 900px;
+                object-fit: cover;
+                object-position: center center;
+            }
         }
 
-        @media (min-width: 1024px) {
-            .hero-image { min-height: 700px; }
-        }
-
-        /* Hero text overlay — soft gradient only at bottom-left, not covering image */
+        /* Hero text overlay — soft gradient at left side */
         .hero-text-overlay {
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(15,23,42,0.55) 0%, rgba(15,23,42,0.15) 35%, transparent 65%);
+            background: linear-gradient(135deg, rgba(15,23,42,0.7) 0%, rgba(15,23,42,0.25) 35%, transparent 70%);
             z-index: 2;
             pointer-events: none;
         }
@@ -320,35 +336,35 @@
         }
 
         .hero-content-inner {
-            max-width: 700px;
-            animation: heroFadeIn 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            max-width: 800px;
+            animation: heroFadeIn 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
         @keyframes heroFadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .hero-title-clean {
-            font-size: 34px;
+            font-size: 32px;
             font-weight: 900;
-            line-height: 1.1;
+            line-height: 1.15;
             color: #ffffff;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
             letter-spacing: -1px;
-            text-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.4);
+            text-shadow: 0 4px 30px rgba(0,0,0,0.7), 0 2px 10px rgba(0,0,0,0.6);
         }
 
         @media (min-width: 640px) {
-            .hero-title-clean { font-size: 48px; margin-bottom: 18px; }
+            .hero-title-clean { font-size: 52px; margin-bottom: 20px; }
         }
 
         @media (min-width: 1024px) {
-            .hero-title-clean { font-size: 64px; letter-spacing: -2px; margin-bottom: 22px; }
+            .hero-title-clean { font-size: 72px; letter-spacing: -2.5px; margin-bottom: 24px; }
         }
 
         .hero-title-clean .hero-accent {
-            background: linear-gradient(135deg, #fcd34d, #f59e0b);
+            background: linear-gradient(135deg, #fcd34d, #f59e0b, #d97706);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -357,20 +373,20 @@
 
         .hero-description-clean {
             font-size: 15px;
-            line-height: 1.65;
+            line-height: 1.7;
             color: #f1f5f9;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
             font-weight: 400;
-            max-width: 540px;
-            text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+            max-width: 600px;
+            text-shadow: 0 2px 14px rgba(0,0,0,0.7);
         }
 
         @media (min-width: 640px) {
-            .hero-description-clean { font-size: 17px; margin-bottom: 28px; }
+            .hero-description-clean { font-size: 18px; margin-bottom: 34px; }
         }
 
         @media (min-width: 1024px) {
-            .hero-description-clean { font-size: 19px; margin-bottom: 32px; }
+            .hero-description-clean { font-size: 20px; margin-bottom: 40px; }
         }
 
         .hero-cta-clean {
@@ -380,56 +396,107 @@
             background: linear-gradient(135deg, #059669 0%, #10b981 100%);
             color: white;
             font-weight: 800;
-            padding: 13px 26px;
+            padding: 14px 30px;
             border-radius: 50px;
             font-size: 14px;
             transition: var(--transition);
-            box-shadow: 0 10px 30px rgba(5,150,105,0.5);
+            box-shadow: 0 14px 40px rgba(5,150,105,0.55);
             text-decoration: none;
             letter-spacing: 0.3px;
-            border: 2px solid rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.25);
         }
 
         @media (min-width: 640px) {
-            .hero-cta-clean { padding: 15px 32px; font-size: 15px; }
+            .hero-cta-clean { padding: 17px 38px; font-size: 16px; }
         }
 
         .hero-cta-clean:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 16px 40px rgba(5,150,105,0.65);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 50px rgba(5,150,105,0.7);
         }
 
         .hero-cta-clean i { transition: transform 0.3s ease; }
-        .hero-cta-clean:hover i { transform: translateX(4px); }
+        .hero-cta-clean:hover i { transform: translateX(5px); }
 
-        /* Hero Loading Skeleton */
+        /* Hero loading skeleton */
         .hero-loading {
             width: 100%;
-            height: 500px;
+            height: 60vh;
+            min-height: 400px;
             background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
             background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
+            animation: shimmer 1.2s infinite;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-
-        @media (min-width: 768px) { .hero-loading { height: 600px; } }
-        @media (min-width: 1024px) { .hero-loading { height: 700px; } }
 
         @keyframes shimmer {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
 
+        /* ========== SCROLL ANIMATIONS ========== */
+        .scroll-animate,
+        .scroll-animate-left,
+        .scroll-animate-right,
+        .scroll-animate-scale {
+            will-change: opacity, transform;
+        }
+
+        .scroll-animate {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .scroll-animate.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .scroll-animate-left {
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .scroll-animate-left.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .scroll-animate-right {
+            opacity: 0;
+            transform: translateX(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .scroll-animate-right.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .scroll-animate-scale {
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.6s ease-out, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .scroll-animate-scale.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
         /* ========== CARDS ========== */
         .content-card {
             background: white;
-            border-radius: 18px;
+            border-radius: 20px;
             box-shadow: 0 4px 24px rgba(15,23,42,0.06);
             border: 1px solid rgba(226,232,240,0.6);
-            transition: var(--transition);
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
             overflow: hidden;
+            contain: layout style paint;
         }
 
         .content-card:hover {
@@ -439,34 +506,6 @@
 
         .content-card-accent-top { border-top: 4px solid var(--primary); }
         .content-card-accent-left { border-left: 4px solid var(--primary); }
-
-        .section-title {
-            font-size: 22px;
-            font-weight: 800;
-            color: #0f172a;
-            letter-spacing: -0.4px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        @media (min-width: 768px) {
-            .section-title { font-size: 28px; }
-        }
-
-        .section-title .title-icon-badge {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #059669, #10b981);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 16px;
-            flex-shrink: 0;
-            box-shadow: 0 6px 16px rgba(5,150,105,0.3);
-        }
 
         /* ========== PRINCIPAL ========== */
         .principal-image-wrapper {
@@ -494,17 +533,17 @@
             bottom: 0; left: 0; right: 0;
             background: linear-gradient(0deg, rgba(15,23,42,0.9) 0%, transparent 100%);
             color: white;
-            padding: 20px 16px 16px;
+            padding: 22px 18px 18px;
         }
 
         .principal-info-overlay h4 {
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 800;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
 
         .principal-info-overlay p {
-            font-size: 12px;
+            font-size: 13px;
             color: #fcd34d;
             font-weight: 600;
             letter-spacing: 0.3px;
@@ -513,15 +552,16 @@
         /* ========== STAT CARDS ========== */
         .stat-card {
             background: white;
-            border-radius: 18px;
-            padding: 20px 16px;
+            border-radius: 20px;
+            padding: 24px 18px;
             text-align: center;
             box-shadow: 0 4px 20px rgba(15,23,42,0.06);
             border: 1px solid rgba(226,232,240,0.6);
             border-bottom: 4px solid var(--primary);
-            transition: var(--transition);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
             position: relative;
             overflow: hidden;
+            contain: layout style paint;
         }
 
         .stat-card::before {
@@ -535,24 +575,24 @@
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 32px rgba(5,150,105,0.15);
+            transform: translateY(-8px);
+            box-shadow: 0 16px 40px rgba(5,150,105,0.18);
             border-bottom-color: var(--accent);
         }
 
-        .stat-card:hover::before { transform: scale(1.5); }
+        .stat-card:hover::before { transform: scale(1.8); }
 
         .stat-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: 14px;
+            width: 58px;
+            height: 58px;
+            border-radius: 16px;
             background: linear-gradient(135deg, #ecfdf5, #d1fae5);
             color: var(--primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
-            margin: 0 auto 12px;
+            font-size: 24px;
+            margin: 0 auto 14px;
             position: relative;
             z-index: 1;
             transition: var(--transition);
@@ -561,28 +601,29 @@
         .stat-card:hover .stat-icon {
             background: linear-gradient(135deg, #059669, #10b981);
             color: white;
-            transform: scale(1.1) rotate(-5deg);
+            transform: scale(1.15) rotate(-8deg);
+            box-shadow: 0 8px 24px rgba(5,150,105,0.35);
         }
 
         .stat-value {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 900;
             color: var(--primary);
             line-height: 1.1;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.8px;
             position: relative;
             z-index: 1;
         }
 
         @media (min-width: 768px) {
-            .stat-value { font-size: 30px; }
+            .stat-value { font-size: 36px; }
         }
 
         .stat-label {
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text-secondary);
             font-weight: 600;
-            margin-top: 4px;
+            margin-top: 6px;
             position: relative;
             z-index: 1;
         }
@@ -590,13 +631,14 @@
         /* ========== PROGRAMS ========== */
         .program-card {
             background: white;
-            border-radius: 18px;
-            padding: 24px 20px;
+            border-radius: 20px;
+            padding: 32px 26px;
             box-shadow: 0 4px 20px rgba(15,23,42,0.06);
             border: 1px solid rgba(226,232,240,0.6);
-            transition: var(--transition);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             position: relative;
             overflow: hidden;
+            contain: layout style paint;
         }
 
         .program-card::before {
@@ -607,56 +649,71 @@
             background: linear-gradient(90deg, #059669, #10b981, #f59e0b);
             transform: scaleX(0);
             transform-origin: left;
-            transition: transform 0.4s ease;
+            transition: transform 0.5s ease;
         }
 
         .program-card:hover::before { transform: scaleX(1); }
 
         .program-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 16px 40px rgba(5,150,105,0.15);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(5,150,105,0.18);
         }
 
-        .program-card i {
-            font-size: 36px;
-            background: linear-gradient(135deg, #059669, #f59e0b);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 14px;
-            display: block;
+        .program-icon-wrapper {
+            width: 72px;
+            height: 72px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
             transition: var(--transition);
         }
 
-        .program-card:hover i { transform: scale(1.15) rotate(-5deg); }
+        .program-card:hover .program-icon-wrapper {
+            background: linear-gradient(135deg, #059669, #10b981);
+            transform: scale(1.08) rotate(-5deg);
+            box-shadow: 0 10px 24px rgba(5,150,105,0.35);
+        }
+
+        .program-card i {
+            font-size: 32px;
+            color: var(--primary);
+            transition: var(--transition);
+        }
+
+        .program-card:hover i {
+            color: white;
+        }
 
         .program-card h4 {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 800;
             color: var(--primary);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             letter-spacing: -0.3px;
         }
 
         .program-card p {
-            font-size: 14px;
+            font-size: 15px;
             color: var(--text-secondary);
-            line-height: 1.65;
+            line-height: 1.7;
         }
 
         /* ========== BUTTON ========== */
         .btn-primary {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             background: linear-gradient(135deg, #059669, #047857);
             color: white;
             font-weight: 700;
-            padding: 13px 28px;
-            border-radius: 12px;
-            font-size: 14px;
+            padding: 15px 34px;
+            border-radius: 14px;
+            font-size: 15px;
             transition: var(--transition);
-            box-shadow: 0 6px 20px rgba(5,150,105,0.35);
+            box-shadow: 0 8px 24px rgba(5,150,105,0.35);
             text-decoration: none;
             letter-spacing: 0.3px;
             border: none;
@@ -664,13 +721,13 @@
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(5,150,105,0.45);
+            transform: translateY(-3px);
+            box-shadow: 0 14px 38px rgba(5,150,105,0.5);
         }
 
         /* ========== NOTICES ========== */
         .notice-item {
-            padding: 14px 12px;
+            padding: 16px 14px;
             border-bottom: 1px dashed #e2e8f0;
             transition: var(--transition);
             cursor: pointer;
@@ -682,13 +739,13 @@
 
         .notice-item:hover {
             background: linear-gradient(90deg, #ecfdf5 0%, #d1fae5 100%);
-            padding-left: 20px;
+            padding-left: 22px;
         }
 
         .notice-item .title {
             font-weight: 700;
             color: #0f172a;
-            font-size: 14px;
+            font-size: 15px;
             line-height: 1.4;
             margin-bottom: 6px;
             transition: var(--transition);
@@ -700,17 +757,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-secondary);
         }
 
         .notice-item .badge-new {
             background: linear-gradient(135deg, #ef4444, #dc2626);
             color: white;
-            padding: 2px 8px;
+            padding: 3px 10px;
             border-radius: 50px;
             font-weight: 800;
-            font-size: 9px;
+            font-size: 10px;
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
@@ -719,43 +776,43 @@
         .contact-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px;
-            border-radius: 12px;
+            gap: 14px;
+            padding: 14px;
+            border-radius: 14px;
             background: #f8fafc;
             transition: var(--transition);
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .contact-item:hover {
             background: linear-gradient(135deg, #ecfdf5, #d1fae5);
-            transform: translateX(4px);
+            transform: translateX(6px);
         }
 
         .contact-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 11px;
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
             background: linear-gradient(135deg, #059669, #10b981);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 15px;
+            font-size: 17px;
             flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(5,150,105,0.25);
+            box-shadow: 0 4px 14px rgba(5,150,105,0.3);
         }
 
         /* ========== GALLERY ========== */
         .gallery-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+            gap: 10px;
         }
 
         .gallery-image {
             aspect-ratio: 1;
-            border-radius: 12px;
+            border-radius: 14px;
             overflow: hidden;
             cursor: pointer;
             transition: var(--transition);
@@ -767,7 +824,7 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(5,150,105,0.3), transparent);
+            background: linear-gradient(135deg, rgba(5,150,105,0.35), transparent);
             opacity: 0;
             transition: var(--transition);
         }
@@ -781,7 +838,7 @@
             transition: var(--transition);
         }
 
-        .gallery-image:hover { transform: scale(1.08); z-index: 2; }
+        .gallery-image:hover { transform: scale(1.1); z-index: 2; }
         .gallery-image:hover img { transform: scale(1.15); }
 
         /* ========== LOADER ========== */
@@ -789,140 +846,15 @@
             border: 3px solid #e2e8f0;
             border-top: 3px solid var(--primary);
             border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            animation: spin 1s linear infinite;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.8s linear infinite;
             margin: 20px auto;
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        /* ========== FOOTER ========== */
-        .site-footer {
-            background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #065f46 100%);
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .site-footer::before {
-            content: '';
-            position: absolute;
-            top: -40%; right: -10%;
-            width: 400px; height: 400px;
-            background: rgba(245,158,11,0.08);
-            border-radius: 50%;
-        }
-
-        .footer-content { position: relative; z-index: 1; }
-
-        .footer-title {
-            font-size: 16px;
-            font-weight: 800;
-            color: #fcd34d;
-            margin-bottom: 16px;
-            letter-spacing: 0.3px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .footer-title::before {
-            content: '';
-            width: 4px;
-            height: 18px;
-            background: #fcd34d;
-            border-radius: 2px;
-        }
-
-        .footer-link {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #d1fae5;
-            font-size: 13.5px;
-            padding: 8px 0;
-            transition: var(--transition);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .footer-link:hover {
-            color: #fcd34d;
-            transform: translateX(5px);
-        }
-
-        .footer-link i { font-size: 10px; opacity: 0.7; }
-
-        .social-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 16px;
-            transition: var(--transition);
-            text-decoration: none;
-        }
-
-        .social-icon:hover {
-            background: #f59e0b;
-            color: #0f172a;
-            transform: translateY(-4px) scale(1.05);
-            box-shadow: 0 10px 24px rgba(245,158,11,0.4);
-            border-color: transparent;
-        }
-
-        /* ========== ANIMATIONS ========== */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
-            opacity: 0;
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animate-fade-up {
-            animation: fadeInUp 0.6s ease forwards;
-            opacity: 0;
-        }
-
-        /* ========== RESPONSIVE ========== */
-        @media (max-width: 640px) {
-            .nav-logo-icon { width: 40px; height: 40px; font-size: 18px; border-radius: 12px; }
-            .hero-title-clean { font-size: 28px; }
-            .hero-description-clean { font-size: 14px; }
-            .hero-cta-clean { padding: 11px 22px; font-size: 13px; }
-            .section-title { font-size: 18px; }
-            .section-title .title-icon-badge { width: 36px; height: 36px; font-size: 14px; border-radius: 10px; }
-            .stat-card { padding: 16px 12px; }
-            .stat-icon { width: 44px; height: 44px; font-size: 18px; }
-            .stat-value { font-size: 20px; }
-            .stat-label { font-size: 11px; }
-            .program-card { padding: 20px 16px; }
-            .program-card i { font-size: 30px; }
-            .program-card h4 { font-size: 16px; }
-        }
-
-        @media (max-width: 400px) {
-            .hero-title-clean { font-size: 24px; }
-            .hero-content-clean { padding: 0 18px; }
-            .stat-value { font-size: 18px; }
         }
 
         .section-loader {
@@ -937,14 +869,116 @@
             gap: 12px;
         }
 
-        /* ========== NEW ROW HIGHLIGHT ========== */
-        @keyframes highlightNew {
-            0% { background: linear-gradient(90deg, #d1fae5, #a7f3d0); }
-            100% { background: transparent; }
+        /* ========== FOOTER ========== */
+        .site-footer {
+            background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #065f46 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
         }
 
-        .new-highlight {
-            animation: highlightNew 3s ease forwards;
+        .site-footer::before {
+            content: '';
+            position: absolute;
+            top: -40%; right: -10%;
+            width: 500px; height: 500px;
+            background: rgba(245,158,11,0.08);
+            border-radius: 50%;
+        }
+
+        .site-footer::after {
+            content: '';
+            position: absolute;
+            bottom: -50%; left: -10%;
+            width: 400px; height: 400px;
+            background: rgba(5,150,105,0.15);
+            border-radius: 50%;
+        }
+
+        .footer-content { position: relative; z-index: 1; }
+
+        .footer-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: #fcd34d;
+            margin-bottom: 18px;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: #fcd34d;
+            border-radius: 2px;
+        }
+
+        .footer-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #d1fae5;
+            font-size: 14px;
+            padding: 9px 0;
+            transition: var(--transition);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-link:hover {
+            color: #fcd34d;
+            transform: translateX(6px);
+        }
+
+        .footer-link i { font-size: 11px; opacity: 0.7; }
+
+        .social-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .social-icon:hover {
+            background: #f59e0b;
+            color: #0f172a;
+            transform: translateY(-5px) scale(1.08);
+            box-shadow: 0 12px 28px rgba(245,158,11,0.5);
+            border-color: transparent;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 640px) {
+            .nav-logo-icon { width: 40px; height: 40px; font-size: 18px; border-radius: 12px; }
+            .hero-title-clean { font-size: 28px; }
+            .hero-description-clean { font-size: 14px; }
+            .hero-cta-clean { padding: 12px 22px; font-size: 13px; }
+            .stat-card { padding: 18px 14px; }
+            .stat-icon { width: 48px; height: 48px; font-size: 20px; }
+            .stat-value { font-size: 24px; }
+            .stat-label { font-size: 12px; }
+            .program-card { padding: 24px 20px; }
+            .program-icon-wrapper { width: 60px; height: 60px; border-radius: 16px; }
+            .program-card i { font-size: 26px; }
+            .program-card h4 { font-size: 17px; }
+        }
+
+        @media (max-width: 400px) {
+            .hero-title-clean { font-size: 24px; }
+            .hero-content-clean { padding: 0 18px; }
+            .stat-value { font-size: 22px; }
         }
 
         /* ========== TOAST ========== */
@@ -966,13 +1000,21 @@
             color: #065f46;
             transform: translateY(100px);
             opacity: 0;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
             pointer-events: none;
         }
 
         #live-toast.show {
             transform: translateY(0);
             opacity: 1;
+        }
+
+        /* ========== SKELETON FOR FAST LOADING ========== */
+        .skeleton-text {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.2s infinite;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -982,7 +1024,7 @@
     <!-- ============ HEADER ============ -->
     <header class="site-header">
         <div class="top-info-bar py-2 hidden md:block">
-            <div class="container mx-auto px-4 flex justify-end gap-6 text-xs text-white/90">
+            <div class="full-wrapper flex justify-end gap-6 text-xs text-white/90">
                 <span class="flex items-center gap-2">
                     <i class="fas fa-phone text-yellow-300"></i>
                     <span id="top-phone" class="font-medium">+880 1712-345678</span>
@@ -995,7 +1037,7 @@
             </div>
         </div>
         
-        <nav class="container mx-auto px-4 py-3.5 flex justify-between items-center">
+        <nav class="full-wrapper py-4 flex justify-between items-center">
             <div class="flex items-center gap-3 min-w-0">
                 <div class="nav-logo-icon">
                     <i class="fas fa-graduation-cap"></i>
@@ -1044,8 +1086,8 @@
     </header>
 
     <!-- ============ NOTICE MARQUEE ============ -->
-    <div class="notice-bar text-white py-2.5" id="notice-bar-section">
-        <div class="container mx-auto px-4 flex items-center gap-4">
+    <div class="notice-bar text-white py-3" id="notice-bar-section">
+        <div class="full-wrapper flex items-center gap-4">
             <span class="notice-badge">
                 <i class="fas fa-bullhorn"></i>
                 নোটিশ
@@ -1063,25 +1105,23 @@
     <!-- ============ MAIN ============ -->
     <main class="flex-1">
         
-        <!-- ============ HERO SECTION — Hidden if no image ============ -->
+        <!-- ============ HERO SECTION — Full Image Width, No Crop ============ -->
         <section class="hero-section hidden-hero" id="hero-section">
             <div class="hero-image-wrapper" id="hero-wrapper">
-                <!-- Loading placeholder until image loads -->
                 <div class="hero-loading" id="hero-loading">
                     <div class="loader" style="width: 50px; height: 50px; border-width: 4px;"></div>
                 </div>
 
-                <!-- Actual Image -->
                 <img id="hero-slide" 
                      src="" 
                      alt="School Hero" 
                      class="hero-image" 
-                     style="display:none;">
+                     style="display:none;"
+                     loading="eager"
+                     fetchpriority="high">
 
-                <!-- Soft gradient overlay (only bottom-left corner, image stays clear) -->
                 <div class="hero-text-overlay"></div>
 
-                <!-- Clean Text Overlay — no card, just beautiful text -->
                 <div class="hero-content-clean">
                     <div class="hero-content-inner">
                         <h1 id="hero-title" class="hero-title-clean">
@@ -1099,197 +1139,207 @@
             </div>
         </section>
 
-        <!-- ============ MAIN GRID ============ -->
-        <div class="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-12 mt-12" id="main-content">
-
-            <!-- Left Column -->
-            <div class="lg:col-span-2 space-y-8">
-                
-                <!-- Welcome Section -->
-                <section class="content-card content-card-accent-top p-6 md:p-8 animate-fade-up" style="animation-delay: 0.1s;">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
-                            <i class="fas fa-hand-sparkles"></i>
+        <!-- ============ WELCOME SECTION ============ -->
+        <section class="py-16 md:py-24">
+            <div class="full-wrapper">
+                <div class="content-card content-card-accent-top p-6 md:p-12 scroll-animate">
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                            <i class="fas fa-hand-sparkles text-xl"></i>
                         </div>
                         <div>
-                            <h3 id="welcome-title" class="text-xl md:text-2xl font-extrabold text-emerald-700 tracking-tight">আমাদের বিদ্যানিকেতনে স্বাগতম</h3>
-                            <p class="text-xs text-slate-500 mt-0.5 font-medium">প্রধান শিক্ষকের বার্তা</p>
+                            <h3 id="welcome-title" class="text-2xl md:text-4xl font-extrabold text-emerald-700 tracking-tight">আমাদের বিদ্যানিকেতনে স্বাগতম</h3>
+                            <p class="text-sm md:text-base text-slate-500 mt-1 font-medium">প্রধান শিক্ষকের বার্তা</p>
                         </div>
                     </div>
                     
-                    <div class="flex flex-col md:flex-row gap-6 items-start">
-                        <div class="principal-image-wrapper w-full md:w-64 md:h-80">
-                            <img id="principal-image" src="https://res.cloudinary.com/demo/image/upload/v1600000000/principal.jpg" alt="প্রধান শিক্ষকের ছবি" />
+                    <div class="flex flex-col lg:flex-row gap-8 items-start">
+                        <div class="principal-image-wrapper w-full lg:w-80 lg:h-96 scroll-animate-left">
+                            <img id="principal-image" src="https://res.cloudinary.com/demo/image/upload/v1600000000/principal.jpg" alt="প্রধান শিক্ষকের ছবি" loading="lazy" />
                             <div class="principal-info-overlay">
                                 <h4 id="principal-name">ড. মোঃ আব্দুল করিম</h4>
                                 <p id="principal-designation">প্রধান শিক্ষক</p>
                             </div>
                         </div>
-                        <div class="flex-1 min-w-0">
-                            <p id="welcome-message" class="text-slate-600 leading-relaxed text-sm md:text-base">
+                        <div class="flex-1 min-w-0 scroll-animate-right">
+                            <p id="welcome-message" class="text-slate-600 leading-relaxed text-base md:text-lg">
                                 অন্যরকম বিদ্যানিকেতন-এ আমরা শুধু পাঠ্যপুস্তক-ভিত্তিক শিক্ষাদান নয়, বরং শিক্ষার্থীদের ভেতরের সুপ্ত সম্ভাবনাকে বিকশিত করার উপর জোর দেই। আমাদের লক্ষ্য একটি মানবিক, বিজ্ঞানমনস্ক এবং সৃজনশীল প্রজন্ম তৈরি করা। 
                                 <br><br>
                                 অত্যাধুনিক সুবিধা, অভিজ্ঞ শিক্ষক এবং একটি বন্ধুত্বপূর্ণ পরিবেশ আপনার সন্তানের শিক্ষাজীবনের জন্য আদর্শ ভিত্তি তৈরি করবে।
                             </p>
-                            <div class="md:hidden mt-4 bg-gradient-to-r from-emerald-50 to-yellow-50 p-4 rounded-xl border-l-4 border-emerald-500">
+                            <div class="lg:hidden mt-6 bg-gradient-to-r from-emerald-50 to-yellow-50 p-5 rounded-2xl border-l-4 border-emerald-500">
                                 <p class="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-1">প্রধান শিক্ষক</p>
-                                <h4 id="mobile-principal-name" class="text-base font-bold text-slate-800">ড. মোঃ আব্দুল করিম</h4>
-                                <p id="mobile-principal-designation" class="text-xs text-slate-600 font-medium">প্রধান শিক্ষক</p>
+                                <h4 id="mobile-principal-name" class="text-lg font-bold text-slate-800">ড. মোঃ আব্দুল করিম</h4>
+                                <p id="mobile-principal-designation" class="text-sm text-slate-600 font-medium">প্রধান শিক্ষক</p>
                             </div>
-                            <a href="#" class="mt-5 inline-flex items-center gap-2 font-bold text-emerald-600 hover:text-emerald-800 text-sm transition-all hover:gap-3 group">
+                            <a href="#" class="mt-6 inline-flex items-center gap-2 font-bold text-emerald-600 hover:text-emerald-800 transition-all hover:gap-3 group">
                                 <span>প্রধান শিক্ষকের বার্তা পড়ুন</span>
-                                <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
+                                <i class="fas fa-arrow-right transition-transform group-hover:translate-x-1"></i>
                             </a>
                         </div>
                     </div>
-                </section>
-                
-                <!-- Statistics -->
-                <section class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 animate-fade-up" style="animation-delay: 0.2s;">
-                    <div class="stat-card">
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ STATISTICS ============ -->
+        <section class="py-16 md:py-20 bg-gradient-to-br from-slate-50 to-emerald-50/40">
+            <div class="full-wrapper">
+                <div class="text-center mb-12 scroll-animate">
+                    <h3 class="text-3xl md:text-5xl font-extrabold text-slate-800 tracking-tight mb-4">আমাদের অর্জন</h3>
+                    <p class="text-base md:text-lg text-slate-500 max-w-2xl mx-auto">সংখ্যায় আমাদের প্রতিষ্ঠানের অগ্রযাত্রা</p>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                    <div class="stat-card scroll-animate-scale" style="transition-delay: 0.05s;">
                         <div class="stat-icon"><i class="fas fa-users"></i></div>
                         <p id="student-count" class="stat-value">২,৫০০+</p>
                         <p class="stat-label">শিক্ষার্থী</p>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card scroll-animate-scale" style="transition-delay: 0.1s;">
                         <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                         <p id="teacher-count" class="stat-value">১০০+</p>
                         <p class="stat-label">অভিজ্ঞ শিক্ষক</p>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card scroll-animate-scale" style="transition-delay: 0.15s;">
                         <div class="stat-icon"><i class="fas fa-award"></i></div>
                         <p id="club-count" class="stat-value">২৫+</p>
                         <p class="stat-label">ক্লাব ও কার্যক্রম</p>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card scroll-animate-scale" style="transition-delay: 0.2s;">
                         <div class="stat-icon"><i class="fas fa-star"></i></div>
                         <p id="pass-rate" class="stat-value">৯৯%</p>
                         <p class="stat-label">পাশের হার</p>
                     </div>
-                </section>
-
-                <!-- Programs -->
-                <section class="animate-fade-up" style="animation-delay: 0.3s;">
-                    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-                        <h3 class="section-title">
-                            <span class="title-icon-badge"><i class="fas fa-book-reader"></i></span>
-                            আমাদের শিক্ষণ প্রোগ্রাম
-                        </h3>
-                    </div>
-                    <div id="programs-container" class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div class="md:col-span-3">
-                            <div class="section-loader">
-                                <div class="loader"></div>
-                                <span>লোড হচ্ছে...</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="text-center mt-8">
-                        <a href="#" class="btn-primary">
-                            <i class="fas fa-arrow-right"></i>
-                            বিস্তারিত প্রোগ্রাম জানুন
-                        </a>
-                    </div>
-                </section>
+                </div>
             </div>
+        </section>
 
-            <!-- Right Sidebar -->
-            <aside class="lg:col-span-1 space-y-6">
-                
-                <!-- Notices -->
-                <div class="content-card content-card-accent-left p-5 md:p-6 animate-fade-up" style="animation-delay: 0.15s;">
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
-                            <i class="fas fa-bullhorn text-sm"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-extrabold text-emerald-700 tracking-tight">গুরুত্বপূর্ণ নোটিশ</h3>
-                            <p class="text-xs text-slate-500 font-medium">সর্বশেষ আপডেট</p>
-                        </div>
+        <!-- ============ PROGRAMS ============ -->
+        <section class="py-16 md:py-24">
+            <div class="full-wrapper">
+                <div class="text-center mb-12 scroll-animate">
+                    <div class="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-emerald-50 border border-emerald-200 mb-4">
+                        <i class="fas fa-book-reader text-emerald-600"></i>
+                        <span class="text-sm font-bold text-emerald-700 uppercase tracking-wider">আমাদের কার্যক্রম</span>
                     </div>
-                    <ul id="notices-list" class="space-y-1">
-                        <li>
-                            <div class="section-loader" style="padding: 20px;">
-                                <div class="loader"></div>
-                            </div>
-                        </li>
-                    </ul>
-                    <a href="all-notice.html" class="mt-4 inline-flex items-center gap-2 font-bold text-emerald-600 hover:text-emerald-800 text-xs transition-all hover:gap-3 group">
-                        <span>সকল নোটিশ দেখুন</span>
-                        <i class="fas fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1"></i>
+                    <h3 class="text-3xl md:text-5xl font-extrabold text-slate-800 tracking-tight mb-4">শিক্ষণ প্রোগ্রাম</h3>
+                    <p class="text-base md:text-lg text-slate-500 max-w-2xl mx-auto">বিজ্ঞান, প্রযুক্তি ও সৃজনশীলতার সমন্বয়ে একটি আধুনিক শিক্ষা</p>
+                </div>
+                <div id="programs-container" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+                <div class="text-center mt-14 scroll-animate">
+                    <a href="#" class="btn-primary">
+                        <i class="fas fa-arrow-right"></i>
+                        বিস্তারিত প্রোগ্রাম জানুন
                     </a>
                 </div>
+            </div>
+        </section>
 
-                <!-- Contact -->
-                <div class="content-card content-card-accent-left p-5 md:p-6 animate-fade-up" style="animation-delay: 0.25s; border-left-color: #f59e0b;">
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
-                            <i class="fas fa-headset text-sm"></i>
+        <!-- ============ NOTICES + CONTACT + GALLERY ============ -->
+        <section class="py-16 md:py-24 bg-gradient-to-b from-slate-50 to-white">
+            <div class="full-wrapper">
+                <div class="text-center mb-12 scroll-animate">
+                    <h3 class="text-3xl md:text-5xl font-extrabold text-slate-800 tracking-tight mb-4">সর্বশেষ তথ্য</h3>
+                    <p class="text-base md:text-lg text-slate-500">নোটিশ, যোগাযোগ ও গ্যালারি</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+
+                    <!-- Notices -->
+                    <div class="content-card content-card-accent-left p-6 md:p-8 scroll-animate-left">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                                <i class="fas fa-bullhorn text-base"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-extrabold text-emerald-700 tracking-tight">গুরুত্বপূর্ণ নোটিশ</h3>
+                                <p class="text-xs text-slate-500 font-medium">সর্বশেষ আপডেট</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-extrabold text-amber-600 tracking-tight">যোগাযোগ</h3>
-                            <p class="text-xs text-slate-500 font-medium">আমাদের সাথে যোগাযোগ করুন</p>
+                        <ul id="notices-list" class="space-y-1">
+                            <li>
+                                <div class="section-loader" style="padding: 20px;">
+                                    <div class="loader"></div>
+                                </div>
+                            </li>
+                        </ul>
+                        <a href="all-notice.html" class="mt-5 inline-flex items-center gap-2 font-bold text-emerald-600 hover:text-emerald-800 text-sm transition-all hover:gap-3 group">
+                            <span>সকল নোটিশ দেখুন</span>
+                            <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
+                        </a>
+                    </div>
+
+                    <!-- Contact -->
+                    <div class="content-card p-6 md:p-8 scroll-animate" style="border-left: 4px solid #f59e0b;">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
+                                <i class="fas fa-headset text-base"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-extrabold text-amber-600 tracking-tight">যোগাযোগ</h3>
+                                <p class="text-xs text-slate-500 font-medium">আমাদের সাথে যোগাযোগ করুন</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="contact-item">
+                                <div class="contact-icon"><i class="fas fa-phone-alt"></i></div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">ফোন</p>
+                                    <p id="contact-phone" class="text-sm font-bold text-slate-700 truncate">+880 1712-345678</p>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <div class="contact-icon" style="background: linear-gradient(135deg, #3b82f6, #6366f1);"><i class="fas fa-envelope"></i></div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">ইমেইল</p>
+                                    <p id="contact-email" class="text-sm font-bold text-slate-700 truncate">info@onnorokom.edu</p>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <div class="contact-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);"><i class="fas fa-map-marker-alt"></i></div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">ঠিকানা</p>
+                                    <p id="contact-address" class="text-sm font-bold text-slate-700">বাড়ি #৭, রোড #৯, ধানমন্ডি, ঢাকা-১২০৫</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <div class="contact-item">
-                            <div class="contact-icon"><i class="fas fa-phone-alt"></i></div>
-                            <div class="min-w-0 flex-1">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">ফোন</p>
-                                <p id="contact-phone" class="text-sm font-bold text-slate-700 truncate">+880 1712-345678</p>
+
+                    <!-- Gallery -->
+                    <div class="content-card p-6 md:p-8 scroll-animate-right" style="border-left: 4px solid #ef4444;">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center text-white shadow-lg shadow-red-500/30">
+                                <i class="fas fa-images text-base"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-extrabold text-red-600 tracking-tight">গ্যালারি</h3>
+                                <p class="text-xs text-slate-500 font-medium">আমাদের মুহূর্ত</p>
                             </div>
                         </div>
-                        <div class="contact-item">
-                            <div class="contact-icon" style="background: linear-gradient(135deg, #3b82f6, #6366f1);"><i class="fas fa-envelope"></i></div>
-                            <div class="min-w-0 flex-1">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">ইমেইল</p>
-                                <p id="contact-email" class="text-sm font-bold text-slate-700 truncate">info@onnorokom.edu</p>
-                            </div>
-                        </div>
-                        <div class="contact-item">
-                            <div class="contact-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);"><i class="fas fa-map-marker-alt"></i></div>
-                            <div class="min-w-0 flex-1">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">ঠিকানা</p>
-                                <p id="contact-address" class="text-sm font-bold text-slate-700">বাড়ি #৭, রোড #৯, ধানমন্ডি, ঢাকা-১২০৫</p>
+                        <div id="gallery-container" class="gallery-grid">
+                            <div class="section-loader col-span-3" style="padding: 20px;">
+                                <div class="loader"></div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Gallery -->
-                <div class="content-card content-card-accent-left p-5 md:p-6 animate-fade-up" style="animation-delay: 0.35s; border-left-color: #ef4444;">
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center text-white shadow-lg shadow-red-500/30">
-                            <i class="fas fa-images text-sm"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-extrabold text-red-600 tracking-tight">গ্যালারি</h3>
-                            <p class="text-xs text-slate-500 font-medium">আমাদের মুহূর্ত</p>
-                        </div>
-                    </div>
-                    <div id="gallery-container" class="gallery-grid">
-                        <div class="section-loader col-span-3" style="padding: 20px;">
-                            <div class="loader"></div>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-        </div>
+            </div>
+        </section>
     </main>
     
-    <!-- ============ FOOTER ============ -->
-    <footer class="site-footer mt-12 pt-12 pb-6">
-        <div class="footer-content container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 border-b border-emerald-700/40 pb-8 mb-6">
+    <!-- ========== FOOTER ========== -->
+    <footer class="site-footer pt-16 pb-8">
+        <div class="footer-content full-wrapper">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 border-b border-emerald-700/40 pb-10 mb-8">
                 
                 <div>
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-11 h-11 rounded-xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center">
-                            <i class="fas fa-graduation-cap text-yellow-300 text-lg"></i>
+                    <div class="flex items-center gap-4 mb-5">
+                        <div class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center">
+                            <i class="fas fa-graduation-cap text-yellow-300 text-2xl"></i>
                         </div>
-                        <h4 class="text-base font-extrabold text-yellow-300 tracking-tight">ONNO ROKOM<br>BIDDYANIKETON</h4>
+                        <h4 class="text-lg font-extrabold text-yellow-300 tracking-tight leading-tight">ONNO ROKOM<br>BIDDYANIKETON</h4>
                     </div>
-                    <p class="text-xs text-emerald-100 leading-relaxed opacity-90">
+                    <p class="text-sm text-emerald-100 leading-relaxed opacity-90">
                         একটি সৃজনশীল ও আধুনিক শিক্ষাপ্রতিষ্ঠান, যা শিক্ষার্থীদের ভবিষ্যতের জন্য প্রস্তুত করে।
                     </p>
                 </div>
@@ -1306,8 +1356,8 @@
 
                 <div>
                     <h4 class="footer-title">সোশ্যাল মিডিয়া</h4>
-                    <p class="text-xs text-emerald-100 opacity-80 mb-4">আমাদের ফলো করুন</p>
-                    <div class="flex gap-2.5 flex-wrap">
+                    <p class="text-sm text-emerald-100 opacity-80 mb-5">আমাদের ফলো করুন</p>
+                    <div class="flex gap-3 flex-wrap">
                         <a href="#" class="social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" class="social-icon" title="YouTube"><i class="fab fa-youtube"></i></a>
                         <a href="#" class="social-icon" title="Twitter"><i class="fab fa-twitter"></i></a>
@@ -1316,7 +1366,7 @@
                 </div>
             </div>
 
-            <div class="text-center text-xs text-emerald-200 opacity-70">
+            <div class="text-center text-sm text-emerald-200 opacity-70">
                 &copy; ২০২৫ <span class="font-bold text-yellow-300">ONNO ROKOM BIDDYANIKETON</span>. সর্বস্বত্ব সংরক্ষিত।
             </div>
         </div>
@@ -1344,6 +1394,22 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
+        // ========== FAST LOCAL CACHE (instant render) ==========
+        const CACHE_KEY = 'homeDataCache_v1';
+        
+        function getCachedData() {
+            try {
+                const raw = localStorage.getItem(CACHE_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch(e) { return null; }
+        }
+
+        function setCachedData(data) {
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+            } catch(e) {}
+        }
+
         // ========== Scroll Position Memory ==========
         const SCROLL_KEY = 'homeScrollPosition';
 
@@ -1357,27 +1423,22 @@
             try {
                 const saved = sessionStorage.getItem(SCROLL_KEY);
                 if (saved && !isNaN(parseInt(saved))) {
-                    const pos = parseInt(saved);
-                    // Wait for content to render
                     setTimeout(() => {
-                        window.scrollTo(0, pos);
-                    }, 100);
+                        window.scrollTo(0, parseInt(saved));
+                    }, 50);
                 }
             } catch(e) {}
         }
 
-        // Save scroll on scroll (throttled)
         let scrollTimeout;
         window.addEventListener('scroll', function() {
             if (scrollTimeout) clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(saveScrollPosition, 150);
+            scrollTimeout = setTimeout(saveScrollPosition, 200);
         }, { passive: true });
 
-        // Save before leaving the page
         window.addEventListener('beforeunload', saveScrollPosition);
         window.addEventListener('pagehide', saveScrollPosition);
 
-        // Save when clicking any internal link
         document.addEventListener('click', function(e) {
             const link = e.target.closest('a');
             if (link && link.href && !link.href.startsWith('javascript') && !link.getAttribute('href').startsWith('#')) {
@@ -1385,24 +1446,45 @@
             }
         });
 
-        // Restore on load
         window.addEventListener('load', function() {
             restoreScrollPosition();
+            setTimeout(checkScrollAnimations, 100);
         });
 
-        // Restore on back/forward navigation (pageshow)
         window.addEventListener('pageshow', function(e) {
             if (e.persisted) {
                 restoreScrollPosition();
+                setTimeout(checkScrollAnimations, 100);
             }
         });
 
-        // ========== Live Toast Helper ==========
+        // ========== Scroll Animations (optimized) ==========
+        let animationFrameId = null;
+        function checkScrollAnimations() {
+            if (animationFrameId) return;
+            animationFrameId = requestAnimationFrame(() => {
+                const elements = document.querySelectorAll('.scroll-animate:not(.visible), .scroll-animate-left:not(.visible), .scroll-animate-right:not(.visible), .scroll-animate-scale:not(.visible)');
+                const windowHeight = window.innerHeight;
+                const triggerPoint = windowHeight * 0.9;
+                
+                elements.forEach(el => {
+                    const rect = el.getBoundingClientRect();
+                    if (rect.top < triggerPoint && rect.bottom > 0) {
+                        el.classList.add('visible');
+                    }
+                });
+                animationFrameId = null;
+            });
+        }
+
+        window.addEventListener('scroll', checkScrollAnimations, { passive: true });
+        window.addEventListener('resize', checkScrollAnimations);
+
+        // ========== Live Toast ==========
         let toastTimeout;
         function showLiveToast(message) {
             const toast = document.getElementById('live-toast');
-            const toastText = document.getElementById('live-toast-text');
-            toastText.textContent = message;
+            toast.textContent = message;
             toast.classList.add('show');
             if (toastTimeout) clearTimeout(toastTimeout);
             toastTimeout = setTimeout(() => {
@@ -1418,31 +1500,171 @@
             icon.className = menu.classList.contains('hidden') ? 'fas fa-bars' : 'fas fa-times';
         });
 
-        // ========== Hero Image Handling ==========
-        function setupHeroVisibility(hasImage) {
-            const heroSection = document.getElementById('hero-section');
+        // ========== Render Functions (used by both cache and realtime) ==========
+        function renderHero(data) {
             const heroImage = document.getElementById('hero-slide');
             const heroLoading = document.getElementById('hero-loading');
             
-            if (hasImage) {
-                heroSection.classList.remove('hidden-hero');
-                heroImage.style.display = 'block';
-                heroLoading.style.display = 'none';
+            if (data && data.backgroundImage) {
+                const img = new Image();
+                img.onload = function() {
+                    heroImage.src = data.backgroundImage;
+                    heroImage.style.display = 'block';
+                    heroLoading.style.display = 'none';
+                    document.getElementById('hero-section').classList.remove('hidden-hero');
+                };
+                img.onerror = function() {
+                    document.getElementById('hero-section').classList.add('hidden-hero');
+                };
+                img.src = data.backgroundImage;
+                
+                if (data.title) {
+                    document.getElementById('hero-title').innerHTML = data.title.replace(
+                        /(আনন্দময়|শিক্ষা|সেরা|শ্রেষ্ঠ)/, 
+                        '<span class="hero-accent">$1</span>'
+                    );
+                }
+                if (data.description) document.getElementById('hero-description').textContent = data.description;
             } else {
-                heroSection.classList.add('hidden-hero');
+                document.getElementById('hero-section').classList.add('hidden-hero');
             }
         }
 
-        // ========== Track previous data for change detection ==========
+        function renderPrincipal(data) {
+            if (!data) return;
+            if (data.image) {
+                const img = document.getElementById('principal-image');
+                img.onerror = function() {
+                    this.src = 'https://ui-avatars.com/api/?name=P&background=059669&color=fff&bold=true&size=200';
+                };
+                img.src = data.image;
+            }
+            if (data.name) {
+                document.getElementById('principal-name').textContent = data.name;
+                document.getElementById('mobile-principal-name').textContent = data.name;
+            }
+            if (data.designation) {
+                document.getElementById('principal-designation').textContent = data.designation;
+                document.getElementById('mobile-principal-designation').textContent = data.designation;
+            }
+            if (data.message) document.getElementById('welcome-message').innerHTML = data.message;
+            if (data.welcomeTitle) document.getElementById('welcome-title').textContent = data.welcomeTitle;
+        }
+
+        function renderContact(data) {
+            if (!data) return;
+            document.getElementById('top-phone').textContent = data.phone || '';
+            document.getElementById('top-email').textContent = data.email || '';
+            document.getElementById('contact-phone').textContent = data.phone || '';
+            document.getElementById('contact-email').textContent = data.email || '';
+            document.getElementById('contact-address').textContent = data.address || '';
+        }
+
+        function renderStatistics(data) {
+            if (!data) return;
+            document.getElementById('student-count').textContent = data.students || '0';
+            document.getElementById('teacher-count').textContent = data.teachers || '0';
+            document.getElementById('club-count').textContent = data.clubs || '0';
+            document.getElementById('pass-rate').textContent = data.passRate || '0%';
+        }
+
+        function renderPrograms(data) {
+            const container = document.getElementById('programs-container');
+            if (data) {
+                container.innerHTML = '';
+                Object.keys(data).forEach((key, index) => {
+                    const program = data[key];
+                    const el = document.createElement('div');
+                    el.className = 'program-card scroll-animate-scale';
+                    el.style.transitionDelay = `${Math.min(index * 0.1, 0.4)}s`;
+                    el.innerHTML = `
+                        <div class="program-icon-wrapper">
+                            <i class="${program.icon || 'fas fa-book'}"></i>
+                        </div>
+                        <h4>${escapeHtml(program.title)}</h4>
+                        <p>${escapeHtml(program.description)}</p>
+                    `;
+                    container.appendChild(el);
+                });
+                requestAnimationFrame(checkScrollAnimations);
+            } else {
+                container.innerHTML = '<div class="md:col-span-3 text-center text-slate-400 py-10 text-sm">কোন প্রোগ্রাম পাওয়া যায়নি</div>';
+            }
+        }
+
+        function renderNotices(data) {
+            const list = document.getElementById('notices-list');
+            if (data) {
+                list.innerHTML = '';
+                const arr = Object.entries(data).map(([key, value]) => ({ id: key, ...value })).reverse();
+                
+                arr.forEach((notice) => {
+                    const el = document.createElement('li');
+                    el.className = 'notice-item';
+                    el.setAttribute('data-notice-id', notice.id);
+                    el.innerHTML = `
+                        <div class="title">${escapeHtml(notice.title)}</div>
+                        <div class="meta">
+                            <span><i class="far fa-calendar-alt mr-1"></i> ${escapeHtml(notice.date)}</span>
+                            ${notice.isNew ? '<span class="badge-new">নতুন</span>' : ''}
+                        </div>
+                    `;
+                    el.addEventListener('click', function() {
+                        window.location.href = `notice-view.html?id=${notice.id}`;
+                    });
+                    list.appendChild(el);
+                });
+            } else {
+                list.innerHTML = '<li class="text-slate-400 text-center py-6 text-sm font-medium"><i class="fas fa-inbox mr-2"></i> কোন নোটিশ পাওয়া যায়নি</li>';
+            }
+        }
+
+        function renderGallery(data) {
+            const container = document.getElementById('gallery-container');
+            let images = [];
+            
+            if (data) {
+                images = Object.entries(data).map(([key, value]) => ({ id: key, ...value }));
+            }
+            
+            if (images.length === 0) {
+                images = [
+                    { url: 'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event1.jpg' },
+                    { url: 'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event2.jpg' },
+                    { url: 'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event3.jpg' },
+                    { url: 'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event4.jpg' },
+                    { url: 'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event5.jpg' },
+                    { url: 'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event6.jpg' }
+                ];
+            }
+            
+            container.innerHTML = '';
+            images.slice(0, 6).forEach((image, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'gallery-image fade-in';
+                wrapper.style.animationDelay = `${index * 0.05}s`;
+                wrapper.innerHTML = `<img src="${image.url}" alt="Gallery ${index + 1}" loading="lazy" />`;
+                container.appendChild(wrapper);
+            });
+        }
+
+        function renderMarquee(data) {
+            if (data && data.text) {
+                document.getElementById('marquee-content').textContent = data.text;
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"]/g, m => ({ 
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' 
+            }[m]));
+        }
+
+        // ========== Track previous data ==========
         let previousData = {
-            hero: null,
-            principal: null,
-            contact: null,
-            statistics: null,
-            programs: null,
-            notices: null,
-            gallery: null,
-            marquee: null
+            hero: null, principal: null, contact: null, statistics: null,
+            programs: null, notices: null, gallery: null, marquee: null
         };
 
         function hasChanged(key, newData) {
@@ -1453,207 +1675,102 @@
             return changed;
         }
 
-        // ========== REAL-TIME LISTENERS — Instant Updates, No Reload ==========
+        // ========== Real-time Listeners ==========
         function setupRealtimeListeners() {
-            // Hero — Realtime
             database.ref('hero').on('value', (snapshot) => {
-                const heroData = snapshot.val();
-                if (hasChanged('hero', heroData) && Object.keys(previousData).length > 0) {
-                    // Only show toast if not initial load
-                }
-                
-                const heroImage = document.getElementById('hero-slide');
-                const heroLoading = document.getElementById('hero-loading');
-                
-                if (heroData && heroData.backgroundImage) {
-                    // Preload image then show
-                    const img = new Image();
-                    img.onload = function() {
-                        heroImage.src = heroData.backgroundImage;
-                        heroImage.style.display = 'block';
-                        heroLoading.style.display = 'none';
-                        document.getElementById('hero-section').classList.remove('hidden-hero');
-                    };
-                    img.onerror = function() {
-                        // Image failed to load — hide hero
-                        document.getElementById('hero-section').classList.add('hidden-hero');
-                    };
-                    img.src = heroData.backgroundImage;
-                    
-                    if (heroData.title) {
-                        document.getElementById('hero-title').innerHTML = heroData.title.replace(
-                            /(আনন্দময়|শিক্ষা|সেরা|শ্রেষ্ঠ)/, 
-                            '<span class="hero-accent">$1</span>'
-                        );
-                    }
-                    if (heroData.description) document.getElementById('hero-description').textContent = heroData.description;
-                } else {
-                    // No image → hide hero section
-                    document.getElementById('hero-section').classList.add('hidden-hero');
-                }
+                const data = snapshot.val();
+                if (hasChanged('hero', data)) renderHero(data);
             });
 
-            // Principal — Realtime
             database.ref('principal').on('value', (snapshot) => {
                 const data = snapshot.val();
-                if (!data) return;
-                hasChanged('principal', data);
-                
-                if (data.image) {
-                    const img = document.getElementById('principal-image');
-                    img.onerror = function() {
-                        this.src = 'https://ui-avatars.com/api/?name=P&background=059669&color=fff&bold=true&size=200';
-                    };
-                    img.src = data.image;
-                }
-                if (data.name) {
-                    document.getElementById('principal-name').textContent = data.name;
-                    document.getElementById('mobile-principal-name').textContent = data.name;
-                }
-                if (data.designation) {
-                    document.getElementById('principal-designation').textContent = data.designation;
-                    document.getElementById('mobile-principal-designation').textContent = data.designation;
-                }
-                if (data.message) document.getElementById('welcome-message').innerHTML = data.message;
-                if (data.welcomeTitle) document.getElementById('welcome-title').textContent = data.welcomeTitle;
+                if (hasChanged('principal', data)) renderPrincipal(data);
             });
 
-            // Contact — Realtime
             database.ref('contact').on('value', (snapshot) => {
                 const data = snapshot.val();
-                if (!data) return;
-                hasChanged('contact', data);
-                
-                document.getElementById('top-phone').textContent = data.phone || '';
-                document.getElementById('top-email').textContent = data.email || '';
-                document.getElementById('contact-phone').textContent = data.phone || '';
-                document.getElementById('contact-email').textContent = data.email || '';
-                document.getElementById('contact-address').textContent = data.address || '';
+                if (hasChanged('contact', data)) renderContact(data);
             });
 
-            // Statistics — Realtime
             database.ref('statistics').on('value', (snapshot) => {
                 const data = snapshot.val();
-                if (!data) return;
-                hasChanged('statistics', data);
-                
-                document.getElementById('student-count').textContent = data.students || '0';
-                document.getElementById('teacher-count').textContent = data.teachers || '0';
-                document.getElementById('club-count').textContent = data.clubs || '0';
-                document.getElementById('pass-rate').textContent = data.passRate || '0%';
+                if (hasChanged('statistics', data)) renderStatistics(data);
             });
 
-            // Programs — Realtime
             database.ref('programs').on('value', (snapshot) => {
                 const data = snapshot.val();
-                hasChanged('programs', data);
-                
-                const container = document.getElementById('programs-container');
-                if (data) {
-                    container.innerHTML = '';
-                    Object.keys(data).forEach((key, index) => {
-                        const program = data[key];
-                        const el = document.createElement('div');
-                        el.className = 'program-card fade-in';
-                        el.style.animationDelay = `${index * 0.1}s`;
-                        el.innerHTML = `
-                            <i class="${program.icon || 'fas fa-book'}"></i>
-                            <h4>${escapeHtml(program.title)}</h4>
-                            <p>${escapeHtml(program.description)}</p>
-                        `;
-                        container.appendChild(el);
-                    });
-                } else {
-                    container.innerHTML = '<div class="md:col-span-3 text-center text-slate-400 py-10 text-sm">কোন প্রোগ্রাম পাওয়া যায়নি</div>';
-                }
+                if (hasChanged('programs', data)) renderPrograms(data);
             });
 
-            // Notices — Realtime
             database.ref('notices').orderByKey().limitToLast(10).on('value', (snapshot) => {
                 const data = snapshot.val();
-                hasChanged('notices', data);
-                
-                const list = document.getElementById('notices-list');
-                if (data) {
-                    list.innerHTML = '';
-                    const arr = Object.entries(data).map(([key, value]) => ({ id: key, ...value })).reverse();
-                    
-                    arr.forEach((notice, index) => {
-                        const el = document.createElement('li');
-                        el.className = 'notice-item fade-in';
-                        el.style.animationDelay = `${index * 0.05}s`;
-                        el.setAttribute('data-notice-id', notice.id);
-                        el.innerHTML = `
-                            <div class="title">${escapeHtml(notice.title)}</div>
-                            <div class="meta">
-                                <span><i class="far fa-calendar-alt mr-1"></i> ${escapeHtml(notice.date)}</span>
-                                ${notice.isNew ? '<span class="badge-new">নতুন</span>' : ''}
-                            </div>
-                        `;
-                        el.addEventListener('click', function() {
-                            window.location.href = `notice-view.html?id=${notice.id}`;
-                        });
-                        list.appendChild(el);
-                    });
-                } else {
-                    list.innerHTML = '<li class="text-slate-400 text-center py-6 text-sm font-medium"><i class="fas fa-inbox mr-2"></i> কোন নোটিশ পাওয়া যায়নি</li>';
-                }
+                if (hasChanged('notices', data)) renderNotices(data);
             });
 
-            // Gallery — Realtime
             database.ref('gallery').on('value', (snapshot) => {
                 const data = snapshot.val();
-                hasChanged('gallery', data);
-                
-                const container = document.getElementById('gallery-container');
-                let images = [];
-                
-                if (data) {
-                    images = Object.entries(data).map(([key, value]) => ({ id: key, ...value }));
-                }
-                
-                if (images.length === 0) {
-                    images = [
-                        { url: 'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event1.jpg' },
-                        { url: 'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event2.jpg' },
-                        { url: 'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event3.jpg' },
-                        { url: 'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event4.jpg' },
-                        { url: 'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event5.jpg' },
-                        { url: 'https://res.cloudinary.com/demo/image/upload/v1600000000/school_event6.jpg' }
-                    ];
-                }
-                
-                container.innerHTML = '';
-                images.slice(0, 6).forEach((image, index) => {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'gallery-image fade-in';
-                    wrapper.style.animationDelay = `${index * 0.05}s`;
-                    wrapper.innerHTML = `<img src="${image.url}" alt="Gallery ${index + 1}" loading="lazy" />`;
-                    container.appendChild(wrapper);
-                });
+                if (hasChanged('gallery', data)) renderGallery(data);
             });
 
-            // Marquee — Realtime
             database.ref('marquee').on('value', (snapshot) => {
                 const data = snapshot.val();
-                hasChanged('marquee', data);
-                
-                if (data && data.text) {
-                    document.getElementById('marquee-content').textContent = data.text;
-                }
+                if (hasChanged('marquee', data)) renderMarquee(data);
             });
         }
 
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str).replace(/[&<>"]/g, m => ({ 
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' 
-            }[m]));
-        }
-
-        // ========== Initialize ==========
+        // ========== Initialize with Cache (Instant Load) ==========
         document.addEventListener('DOMContentLoaded', function() {
+            // 1. INSTANT RENDER from cache
+            const cached = getCachedData();
+            if (cached) {
+                try {
+                    if (cached.hero) renderHero(cached.hero);
+                    if (cached.principal) renderPrincipal(cached.principal);
+                    if (cached.contact) renderContact(cached.contact);
+                    if (cached.statistics) renderStatistics(cached.statistics);
+                    if (cached.programs) renderPrograms(cached.programs);
+                    if (cached.notices) renderNotices(cached.notices);
+                    if (cached.gallery) renderGallery(cached.gallery);
+                    if (cached.marquee) renderMarquee(cached.marquee);
+                } catch(e) {}
+            }
+
+            // 2. Attach realtime listeners (updates come instantly)
             setupRealtimeListeners();
+
+            // 3. Save to cache when data updates (for next visit)
+            setTimeout(() => {
+                const dataToCache = {
+                    hero: previousData.hero,
+                    principal: previousData.principal,
+                    contact: previousData.contact,
+                    statistics: previousData.statistics,
+                    programs: previousData.programs,
+                    notices: previousData.notices,
+                    gallery: previousData.gallery,
+                    marquee: previousData.marquee
+                };
+                setCachedData(dataToCache);
+            }, 1500);
+
+            // 4. Run initial scroll check
+            setTimeout(checkScrollAnimations, 200);
+            setTimeout(checkScrollAnimations, 800);
+        });
+
+        // Save cache on page hide
+        window.addEventListener('pagehide', function() {
+            const dataToCache = {
+                hero: previousData.hero,
+                principal: previousData.principal,
+                contact: previousData.contact,
+                statistics: previousData.statistics,
+                programs: previousData.programs,
+                notices: previousData.notices,
+                gallery: previousData.gallery,
+                marquee: previousData.marquee
+            };
+            setCachedData(dataToCache);
         });
     </script>
 
