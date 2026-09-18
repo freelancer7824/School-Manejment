@@ -2,18 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Parents Management | Incremental Sync | Local Cache</title>
-    <!-- Tailwind + Font Awesome -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#6366f1">
+    <title>Parents Management | Realtime Sync</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Hind Siliguri', 'system-ui', 'sans-serif']
+                    },
                     colors: {
-                        primary: '#3b82f6',
-                        secondary: '#6b7280',
+                        primary: '#6366f1',
+                        primaryDark: '#4f46e5',
                         success: '#10b981',
                         warning: '#f59e0b',
                         danger: '#ef4444'
@@ -23,145 +27,1004 @@
         }
     </script>
     <style>
-        body { background: #f0f2f5; font-family: 'Inter', system-ui, sans-serif; }
-        .parent-row { transition: all 0.2s ease; }
-        .parent-row:hover { background-color: #f8fafc; transform: translateX(2px); }
-        .modal-backdrop { backdrop-filter: blur(3px); background-color: rgba(0,0,0,0.5); }
-        .dropdown-menu { transition: all 0.15s; }
-        .student-link { transition: all 0.2s; }
-        .student-link:hover { background-color: #dbeafe; transform: scale(1.02); }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f1f5f9;
+            --border: #e2e8f0;
+            --radius: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+
+        body {
+            font-family: 'Inter', 'Hind Siliguri', system-ui, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            color: #0f172a;
+            -webkit-font-smoothing: antialiased;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(99,102,241,0.06) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(139,92,246,0.05) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* ========== PAGE HEADER ========== */
+        .page-header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            border-radius: 20px;
+            padding: 22px 20px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 22px;
+            box-shadow: 0 12px 32px rgba(99,102,241,0.28);
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -60%; right: -15%;
+            width: 220px; height: 220px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: -70%; left: -10%;
+            width: 180px; height: 180px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 50%;
+        }
+
+        .page-header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .back-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 15px;
+            transition: var(--transition);
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-3px);
+        }
+
+        .brand-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .session-pill {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+        }
+
+        /* ========== REALTIME BADGE ========== */
+        .realtime-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #047857;
+            border: 1px solid #6ee7b7;
+            white-space: nowrap;
+        }
+
+        .realtime-badge .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.25);
+            animation: pulse-dot 1.8s ease-in-out infinite;
+        }
+
+        .realtime-badge.connecting {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #b45309;
+            border-color: #fcd34d;
+        }
+
+        .realtime-badge.connecting .dot {
+            background: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245,158,11,0.25);
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.6; }
+        }
+
+        /* ========== GLASS CARD ========== */
+        .glass-card {
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 24px rgba(15,23,42,0.06);
+            transition: var(--transition);
+            overflow: hidden;
+        }
+
+        /* ========== FILTER SECTION ========== */
+        .filter-section {
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-bottom: 7px;
+        }
+
+        .filter-label i { color: var(--primary); font-size: 0.7rem; }
+
+        .filter-input, .filter-select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background: #fafbfc;
+            color: #0f172a;
+            transition: var(--transition);
+            outline: none;
+            font-family: inherit;
+        }
+
+        .filter-input:focus, .filter-select:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+        }
+
+        .filter-input:disabled, .filter-select:disabled {
+            background: #f1f5f9;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .filter-input::placeholder { color: #94a3b8; }
+
+        /* ========== BUTTONS ========== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            box-shadow: 0 6px 18px rgba(99,102,241,0.35);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(99,102,241,0.45);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #0d9488);
+            color: white;
+            box-shadow: 0 6px 18px rgba(16,185,129,0.35);
+        }
+
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(16,185,129,0.45);
+        }
+
+        .btn-ghost {
+            background: #f1f5f9;
+            color: #334155;
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-ghost:hover:not(:disabled) {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 6px 18px rgba(239,68,68,0.35);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(239,68,68,0.45);
+        }
+
+        /* ========== TABLE ========== */
+        .parent-table thead th {
+            background: linear-gradient(135deg, #f8fafc, #eef2ff);
+            color: #64748b;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .parent-table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: var(--transition);
+        }
+
+        .parent-table tbody tr:hover {
+            background: linear-gradient(90deg, #f8fafc 0%, #eef2ff 100%);
+            transform: translateX(2px);
+        }
+
+        .parent-table tbody td {
+            padding: 14px 16px;
+            vertical-align: top;
+        }
+
+        /* ========== PARENT CARDS (Mobile) ========== */
+        .parent-card {
+            background: white;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+            box-shadow: 0 2px 12px rgba(15,23,42,0.04);
+        }
+
+        .parent-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #6366f1, #8b5cf6, #ec4899);
+            opacity: 0.85;
+        }
+
+        .parent-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(99,102,241,0.12);
+        }
+
+        /* ========== STUDENT BADGES ========== */
+        .student-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: #1d4ed8;
+            margin-right: 4px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            border: 1px solid #bfdbfe;
+        }
+
+        /* ========== AVATAR ========== */
+        .parent-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 16px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(99,102,241,0.25);
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        }
+
+        /* ========== ACTION BUTTONS ========== */
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .action-btn:hover { transform: translateY(-2px); }
+        .action-btn:active { transform: scale(0.95); }
+
+        .action-btn.menu { 
+            background: #f1f5f9; 
+            color: #64748b; 
+        }
+        .action-btn.menu:hover { 
+            background: #e2e8f0; 
+            color: #334155; 
+        }
+
+        /* ========== DROPDOWN ========== */
+        .dropdown-menu {
+            transition: opacity 0.15s, transform 0.15s;
+            transform-origin: top right;
+        }
+
+        .dropdown-menu.hidden {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+            visibility: hidden;
+            display: block !important;
+        }
+
+        .dropdown-menu:not(.hidden) {
+            opacity: 1;
+            transform: scale(1);
+            visibility: visible;
+        }
+
+        /* ========== MODAL ========== */
+        .modal-backdrop {
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            background-color: rgba(15,23,42,0.55);
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal-content {
+            animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-header-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .modal-header-icon.indigo {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            box-shadow: 0 6px 16px rgba(99,102,241,0.35);
+        }
+
+        .modal-header-icon.red {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 6px 16px rgba(239,68,68,0.35);
+        }
+
+        /* ========== TOAST ========== */
+        #toast { animation: toastIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== EMPTY STATE ========== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state-icon {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #eef2ff, #f3e8ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 36px;
+            color: #a5b4fc;
+        }
+
+        /* ========== PAGINATION ========== */
+        .page-btn {
+            min-width: 36px;
+            height: 36px;
+            padding: 0 10px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #4f46e5;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-btn:hover:not(:disabled):not(.active) {
+            background: #eef2ff;
+            border-color: #c7d2fe;
+        }
+
+        .page-btn.active {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* ========== FORM FIELDS ========== */
+        .field-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        .field-label i { 
+            color: var(--primary); 
+            font-size: 0.72rem; 
+            width: 14px; 
+            text-align: center; 
+        }
+
+        .field-label .required { 
+            color: var(--danger); 
+            margin-left: 2px; 
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background: #fafbfc;
+            color: #0f172a;
+            transition: var(--transition);
+            outline: none;
+            font-family: inherit;
+        }
+
+        .field-input:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+        }
+
+        /* ========== STUDENT LINK CARD ========== */
+        .student-link {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f8fafc, #eef2ff);
+            border: 1px solid #e2e8f0;
+            transition: var(--transition);
+        }
+
+        .student-link:hover {
+            transform: translateX(3px);
+            border-color: #c7d2fe;
+            box-shadow: 0 4px 16px rgba(99,102,241,0.12);
+        }
+
+        /* ========== ANIMATIONS ========== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-up {
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes itemFade {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-item {
+            animation: itemFade 0.35s ease-out forwards;
+            opacity: 0;
+        }
+
+        /* New row highlight */
+        @keyframes highlightNew {
+            0% { background: linear-gradient(90deg, #d1fae5, #a7f3d0); }
+            100% { background: transparent; }
+        }
+
+        .new-row-highlight {
+            animation: highlightNew 3s ease forwards;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 640px) {
+            .page-header { padding: 18px 16px; border-radius: 16px; }
+            .brand-icon { width: 46px; height: 46px; font-size: 18px; border-radius: 13px; }
+            .back-btn { width: 38px; height: 38px; border-radius: 12px; }
+            .session-pill { padding: 6px 12px; font-size: 10px; }
+            .filter-section { padding: 16px; }
+        }
+
+        @media (max-width: 400px) {
+            .brand-icon { width: 42px; height: 42px; font-size: 16px; }
+        }
+
+        /* ========== FORM GRID ========== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        @media (min-width: 640px) {
+            .form-grid { grid-template-columns: 1fr 1fr; }
+            .form-grid .full-span { grid-column: 1 / -1; }
+        }
+
+        /* ========== STAT MINI ========== */
+        .stat-mini {
+            padding: 12px 16px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .stat-mini:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(15,23,42,0.06);
+        }
+
+        .stat-mini-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
     </style>
 </head>
-<body class="min-h-screen antialiased p-4 md:p-6">
+<body class="min-h-screen p-3 md:p-6 lg:p-8">
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed top-20 right-4 z-50 hidden transition-all duration-300">
-        <div class="bg-white rounded-lg shadow-xl px-4 py-3 flex items-center gap-3 border-l-4 border-success">
-            <i id="toast-icon" class="fas fa-check-circle text-success text-lg"></i>
-            <p id="toast-text" class="text-gray-700 text-sm font-medium">Operation successful</p>
-            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    <div id="toast" class="fixed top-4 right-4 left-4 md:left-auto z-[100001] hidden max-w-sm mx-auto md:mx-0">
+        <div id="toastBox" class="bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-success ring-1 ring-black/5">
+            <div id="toastIconWrap" class="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                <i id="toast-icon" class="fas fa-check-circle text-success text-base"></i>
+            </div>
+            <p id="toast-text" class="text-gray-700 text-sm font-semibold flex-1">Operation successful</p>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600 transition p-1 flex-shrink-0">
+                <i class="fas fa-times text-sm"></i>
+            </button>
         </div>
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop transition-all">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                    <i class="fas fa-trash-alt text-danger"></i>
+    <div id="deleteModal" class="hidden fixed inset-0 z-[100001] flex items-center justify-center modal-backdrop p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full modal-content ring-1 ring-black/5 overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center gap-4 mb-5">
+                    <div class="modal-header-icon red">
+                        <i class="fas fa-trash-alt"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-extrabold text-gray-800">Delete Parent</h3>
+                        <p class="text-xs text-gray-500">This action cannot be undone</p>
+                    </div>
                 </div>
-                <h3 class="text-lg font-bold text-gray-800">Delete Parent</h3>
-            </div>
-            <p class="text-gray-600 mb-2">Permanently delete <strong id="deleteParentName"></strong>?</p>
-            <p class="text-sm text-gray-500 mb-4">This will also unlink all associated students.</p>
-            <div class="flex justify-end gap-3">
-                <button id="cancelDelete" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancel</button>
-                <button id="confirmDelete" class="px-4 py-2 bg-danger text-white rounded-lg hover:bg-red-700 transition">Delete</button>
+                <p class="text-gray-600 mb-3 text-sm">Permanently delete <strong id="deleteParentName" class="text-gray-900"></strong>?</p>
+                <p class="text-xs text-gray-500 mb-6 bg-red-50 p-3 rounded-xl border border-red-100 flex items-start gap-2">
+                    <i class="fas fa-exclamation-triangle text-red-500 mt-0.5 flex-shrink-0"></i>
+                    <span>This will also unlink all associated students from this parent.</span>
+                </p>
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+                    <button id="cancelDelete" class="btn btn-ghost w-full sm:w-auto">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button id="confirmDelete" class="btn btn-danger w-full sm:w-auto">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Edit Parent Modal -->
-    <div id="editModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-auto">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-auto">
-            <div class="p-5 border-b flex justify-between items-center">
-                <h3 class="text-xl font-bold"><i class="fas fa-edit text-primary mr-2"></i> Edit Parent</h3>
-                <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-            </div>
-            <form id="editParentForm" class="p-5 space-y-4">
-                <input type="hidden" id="editParentId">
-                <div class="grid grid-cols-2 gap-3">
-                    <div><label class="block text-sm font-semibold text-gray-700">Father Name</label><input type="text" id="editFatherName" class="w-full border rounded-lg p-2.5"></div>
-                    <div><label class="block text-sm font-semibold text-gray-700">Father Phone</label><input type="tel" id="editFatherPhone" class="w-full border rounded-lg p-2.5"></div>
-                    <div><label class="block text-sm font-semibold text-gray-700">Mother Name</label><input type="text" id="editMotherName" class="w-full border rounded-lg p-2.5"></div>
-                    <div><label class="block text-sm font-semibold text-gray-700">Mother Phone</label><input type="tel" id="editMotherPhone" class="w-full border rounded-lg p-2.5"></div>
+    <div id="editModal" class="hidden fixed inset-0 z-[100001] flex items-start md:items-center justify-center modal-backdrop p-3 md:p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full my-4 md:my-0 modal-content ring-1 ring-black/5">
+            <div class="p-5 md:p-6 border-b border-gray-100 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="modal-header-icon indigo">
+                        <i class="fas fa-user-edit"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-extrabold text-gray-800">Edit Parent</h3>
+                        <p class="text-xs text-gray-500">Update guardian information</p>
+                    </div>
                 </div>
-                <div><label class="block text-sm font-semibold text-gray-700">Guardian Name *</label><input type="text" id="editGuardianName" class="w-full border rounded-lg p-2.5" required></div>
-                <div><label class="block text-sm font-semibold text-gray-700">Guardian Phone *</label><input type="tel" id="editGuardianPhone" class="w-full border rounded-lg p-2.5" required></div>
-                <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded-lg">Cancel</button>
-                    <button type="submit" class="px-5 py-2 bg-primary text-white rounded-lg hover:bg-blue-700"><i class="fas fa-save mr-1"></i> Update</button>
+                <button onclick="closeEditModal()" class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition text-xl flex-shrink-0">&times;</button>
+            </div>
+
+            <form id="editParentForm" class="p-5 md:p-6 space-y-5">
+                <input type="hidden" id="editParentId">
+
+                <!-- Parents Section -->
+                <div class="pt-1">
+                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white flex-shrink-0"
+                             style="background: linear-gradient(135deg, #3b82f6, #6366f1);">
+                            <i class="fas fa-user-friends text-xs"></i>
+                        </div>
+                        <span class="text-sm font-bold text-slate-800">Parents Information</span>
+                    </div>
+                    <div class="form-grid">
+                        <div>
+                            <label class="field-label"><i class="fas fa-male"></i> Father Name</label>
+                            <input type="text" id="editFatherName" class="field-input">
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-phone-alt"></i> Father Phone</label>
+                            <input type="tel" id="editFatherPhone" class="field-input">
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-female"></i> Mother Name</label>
+                            <input type="text" id="editMotherName" class="field-input">
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-phone-alt"></i> Mother Phone</label>
+                            <input type="tel" id="editMotherPhone" class="field-input">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guardian Section -->
+                <div class="pt-4 border-t border-gray-100">
+                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white flex-shrink-0"
+                             style="background: linear-gradient(135deg, #10b981, #0d9488);">
+                            <i class="fas fa-user-shield text-xs"></i>
+                        </div>
+                        <span class="text-sm font-bold text-slate-800">Guardian (Primary Contact)</span>
+                    </div>
+                    <div class="form-grid">
+                        <div>
+                            <label class="field-label"><i class="fas fa-user"></i> Guardian Name <span class="required">*</span></label>
+                            <input type="text" id="editGuardianName" class="field-input" required>
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-phone"></i> Guardian Phone <span class="required">*</span></label>
+                            <input type="tel" id="editGuardianPhone" class="field-input" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-5 border-t border-gray-100">
+                    <button type="button" onclick="closeEditModal()" class="btn btn-ghost w-full sm:w-auto">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" id="editSubmitBtn" class="btn btn-primary w-full sm:w-auto">
+                        <i class="fas fa-save"></i> Update
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- View Students Modal (Linked Students) -->
-    <div id="studentsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4 overflow-auto">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-auto max-h-[80vh] overflow-y-auto">
-            <div class="p-5 border-b sticky top-0 bg-white flex justify-between items-center">
-                <h3 class="text-xl font-bold"><i class="fas fa-user-graduate text-primary mr-2"></i> Linked Students</h3>
-                <button onclick="closeStudentsModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+    <!-- Linked Students Modal -->
+    <div id="studentsModal" class="hidden fixed inset-0 z-[100001] flex items-center justify-center modal-backdrop p-3 md:p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full modal-content ring-1 ring-black/5 my-4 md:my-0 max-h-[90vh] overflow-hidden">
+            <div class="p-5 md:p-6 border-b border-gray-100 flex justify-between items-center" style="background: linear-gradient(135deg, #f8fafc, #eef2ff);">
+                <div class="flex items-center gap-3">
+                    <div class="modal-header-icon indigo">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-extrabold text-gray-800">Linked Students</h3>
+                        <p class="text-xs text-gray-500">Students connected to this parent</p>
+                    </div>
+                </div>
+                <button onclick="closeStudentsModal()" class="w-9 h-9 rounded-full hover:bg-white/60 flex items-center justify-center text-gray-400 hover:text-gray-700 transition text-xl flex-shrink-0">&times;</button>
             </div>
-            <div id="studentsListContent" class="p-5"></div>
+            <div id="studentsListContent" class="p-5 md:p-6 overflow-y-auto" style="max-height: calc(90vh - 100px);"></div>
         </div>
     </div>
 
-    <!-- Main Content -->
+    <!-- MAIN CONTAINER -->
     <div class="max-w-7xl mx-auto">
-        <header class="flex flex-wrap justify-between items-center mb-6 gap-3">
-            <div class="flex items-center gap-3">
-                <a href="admission.html" class="bg-white p-2 rounded-full shadow-sm hover:bg-gray-50 transition">
-                    <i class="fas fa-arrow-left text-primary"></i>
-                </a>
-                <h1 class="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
-                    <span class="bg-primary text-white p-1.5 rounded-lg"><i class="fas fa-users"></i></span> 
-                    Parents Management
-                </h1>
-            </div>
-            <div class="bg-white px-4 py-2 rounded-full shadow-sm text-sm font-medium text-gray-700 border border-gray-200">
-                <i class="fas fa-calendar-alt text-primary mr-1"></i> 
-                <span id="current-session-badge">Loading...</span>
-            </div>
-        </header>
 
-        <!-- Filter Bar -->
-        <div class="bg-white rounded-2xl shadow-md p-5 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div><label class="block text-sm font-semibold text-gray-700 mb-1">Select Class *</label><select id="classFilter" class="w-full border rounded-lg p-2.5"><option value="">-- Select Class --</option></select></div>
-                <div><label class="block text-sm font-semibold text-gray-700 mb-1">Select Section</label><select id="sectionFilter" class="w-full border rounded-lg p-2.5" disabled><option value="">First select class</option></select></div>
-                <div><label class="block text-sm font-semibold text-gray-700 mb-1">Search</label><input type="text" id="searchInput" class="w-full border rounded-lg p-2.5" placeholder="Guardian name, phone..." disabled></div>
-                <div class="flex items-end gap-2">
-                    <button id="refreshBtn" class="w-full bg-gray-100 hover:bg-gray-200 py-2.5 rounded-lg font-medium text-sm"><i class="fas fa-sync-alt mr-1"></i> Sync</button>
-                    <button id="hardRefreshBtn" class="w-full bg-red-100 text-red-700 hover:bg-red-200 py-2.5 rounded-lg font-medium text-sm"><i class="fas fa-database mr-1"></i> Hard Refresh</button>
+        <!-- PAGE HEADER -->
+        <div class="page-header animate-fade-up">
+            <div class="page-header-content">
+                <div class="flex items-center gap-3">
+                    <a href="admission.html" class="back-btn" title="Go back">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div class="brand-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg md:text-2xl lg:text-3xl font-extrabold tracking-tight">Parents Management</h1>
+                        <p class="text-xs md:text-sm opacity-90 mt-0.5 flex items-center gap-1.5">
+                            <i class="fas fa-bolt text-yellow-300"></i>
+                            Realtime sync enabled
+                        </p>
+                    </div>
                 </div>
-            </div>
-            <div class="mt-3 flex justify-between items-center text-sm">
-                <span class="text-gray-500">Total Parents: <span id="totalCount" class="font-bold text-primary">0</span></span>
-                <span id="cacheStatus" class="text-xs bg-blue-100 px-2 py-1 rounded-full"><i class="fas fa-spinner fa-spin"></i> Loading...</span>
+                <div class="session-pill">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="current-session-badge">Loading...</span>
+                </div>
             </div>
         </div>
 
-        <!-- Vertical Table Layout -->
-        <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-            <div class="overflow-y-auto" style="max-height: 65vh;">
-                <table class="w-full">
-                    <thead class="sticky top-0 bg-gray-50 border-b z-10">
-                        <tr class="text-left text-sm font-semibold text-gray-600">
-                            <th class="px-4 py-3 w-12">#</th>
-                            <th class="px-4 py-3">Guardian Info</th>
-                            <th class="px-4 py-3">Father / Mother</th>
-                            <th class="px-4 py-3">Contact Details</th>
-                            <th class="px-4 py-3">Linked Students</th>
-                            <th class="px-4 py-3 text-center w-24">Actions</th>
+        <!-- STATS BAR -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-5 animate-fade-up" style="animation-delay: 0.05s;">
+            <div class="stat-mini">
+                <div class="stat-mini-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Total Parents</p>
+                    <p class="text-lg font-extrabold text-slate-800" id="statTotal">0</p>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-icon" style="background: linear-gradient(135deg, #10b981, #0d9488);">
+                    <i class="fas fa-filter"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Showing</p>
+                    <p class="text-lg font-extrabold text-slate-800" id="statShowing">0</p>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Students</p>
+                    <p class="text-lg font-extrabold text-slate-800" id="statStudents">0</p>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-icon" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Session</p>
+                    <p class="text-sm font-extrabold text-slate-800 truncate" id="statSession">—</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTER SECTION -->
+        <div class="glass-card filter-section animate-fade-up" style="animation-delay: 0.1s;">
+            <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+                         style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 6px 16px rgba(99,102,241,0.3);">
+                        <i class="fas fa-filter text-sm"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-gray-800 text-base">Filter & Search</h2>
+                        <p class="text-xs text-gray-500">Select class to view parents</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="realtimeBadge" class="realtime-badge connecting">
+                        <span class="dot"></span>
+                        <span id="realtimeText">Connecting...</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                <div>
+                    <label class="filter-label"><i class="fas fa-school"></i> Select Class <span class="text-red-500 ml-1">*</span></label>
+                    <select id="classFilter" class="filter-select">
+                        <option value="">-- Select Class --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="filter-label"><i class="fas fa-layer-group"></i> Section</label>
+                    <select id="sectionFilter" class="filter-select" disabled>
+                        <option value="">First select class</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="filter-label"><i class="fas fa-search"></i> Search</label>
+                    <input type="text" id="searchInput" class="filter-input" placeholder="Name, phone..." disabled>
+                </div>
+                <div class="flex items-end">
+                    <button id="refreshBtn" class="btn btn-success w-full">
+                        <i class="fas fa-sync-alt"></i> Sync Now
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-4 flex justify-between items-center text-xs flex-wrap gap-2 pt-3 border-t border-gray-100">
+                <span class="text-gray-500 font-medium">Total Parents: <span id="totalCount" class="font-bold text-indigo-600">0</span></span>
+                <span id="cacheStatus" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-semibold text-[10px]" style="background: linear-gradient(135deg, #eef2ff, #e0e7ff); color: #4f46e5;">
+                    <i class="fas fa-circle text-[6px]"></i> Loading...
+                </span>
+            </div>
+        </div>
+
+        <!-- PARENTS LIST CARD -->
+        <div class="glass-card animate-fade-up" style="animation-delay: 0.15s;">
+            <!-- Desktop Table View -->
+            <div class="hidden md:block overflow-x-auto" style="max-height: 68vh;">
+                <table class="w-full parent-table min-w-[950px]">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th>Guardian Info</th>
+                            <th>Father / Mother</th>
+                            <th>Contact Details</th>
+                            <th>Linked Students</th>
+                            <th style="width: 90px; text-align: center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="parentsTableBody">
-                        <tr><td colspan="6" class="text-center py-10 text-gray-400"><i class="fas fa-spinner fa-spin text-2xl"></i> Loading...</td></tr>
+                        <tr>
+                            <td colspan="6" class="text-center py-16">
+                                <div class="inline-block w-12 h-12 border-4 border-indigo-100 border-t-indigo-500 rounded-full animate-spin"></div>
+                                <p class="mt-3 text-gray-400 text-sm font-medium">Loading...</p>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
-            <!-- Pagination Section -->
-            <div class="flex justify-between items-center p-4 border-t bg-gray-50">
-                <span id="paginationInfo" class="text-sm text-gray-600"></span>
-                <div id="paginationControls" class="flex gap-1 flex-wrap justify-end"></div>
+
+            <!-- Mobile Card View -->
+            <div class="md:hidden p-3" id="parentsMobileContainer">
+                <div class="text-center py-16">
+                    <div class="inline-block w-12 h-12 border-4 border-indigo-100 border-t-indigo-500 rounded-full animate-spin"></div>
+                    <p class="mt-3 text-gray-400 text-sm font-medium">Loading...</p>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex flex-col md:flex-row justify-between items-center p-4 border-t border-gray-100 bg-gradient-to-r from-slate-50 to-indigo-50/50 gap-3">
+                <span id="paginationInfo" class="text-sm text-gray-600 font-medium"></span>
+                <div id="paginationControls" class="flex gap-1 flex-wrap justify-center"></div>
             </div>
         </div>
+
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, collection, query, getDocs, doc, deleteDoc, updateDoc, orderBy, where, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { 
+            getFirestore, collection, query, getDocs, doc, deleteDoc, updateDoc, orderBy, where, getDoc, 
+            onSnapshot, setDoc
+        } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         
         const firebaseConfig = {
             apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
@@ -175,14 +1038,20 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const CACHE_KEY = 'parentManager_cache_v1';
+        const CACHE_KEY = 'parentManager_cache_v2';
         const ITEMS_PER_PAGE = 20;
         
-        let allParents = [], allStudents = [], allClasses = [], sectionsByClass = {}, currentSession = "2025-2026";
+        let allParents = [];
+        let allStudents = [];
+        let allClasses = [];
+        let sectionsByClass = {};
+        let currentSession = "2025-2026";
         let pendingDeleteId = null;
         let currentPage = 1;
+        let activeListeners = [];
+        let previousParentIds = new Set();
         
-        // ===== ক্যাশ হেল্পার =====
+        // ===== Cache Helpers =====
         function getCachedData() {
             try {
                 const raw = localStorage.getItem(CACHE_KEY);
@@ -191,131 +1060,189 @@
             } catch { return null; }
         }
 
-        function setCachedData(data, lastSyncTime) {
+        function setCachedData(data) {
             try {
                 localStorage.setItem(CACHE_KEY, JSON.stringify({ 
                     data, 
-                    lastSyncTime: lastSyncTime || new Date().toISOString(),
                     timestamp: Date.now() 
                 }));
-                document.getElementById('cacheStatus').innerHTML = '<i class="fas fa-check-circle text-green-600"></i> Cache Active | Synced';
             } catch (e) {
-                console.error("LocalStorage full, clearing cache");
                 localStorage.removeItem(CACHE_KEY);
             }
         }
 
-        function clearCache() {
-            localStorage.removeItem(CACHE_KEY);
-            document.getElementById('cacheStatus').innerHTML = '<i class="fas fa-times-circle text-red-600"></i> Cache Cleared';
+        function updateCacheStatus(text, color = 'indigo') {
+            const el = document.getElementById('cacheStatus');
+            if (!el) return;
+            const colors = {
+                indigo: 'background: linear-gradient(135deg, #eef2ff, #e0e7ff); color: #4f46e5;',
+                green: 'background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #047857;',
+                amber: 'background: linear-gradient(135deg, #fef3c7, #fde68a); color: #b45309;'
+            };
+            el.style.cssText = colors[color] || colors.indigo;
+            el.innerHTML = text;
         }
 
+        function updateRealtimeStatus(text, active = true) {
+            const badge = document.getElementById('realtimeBadge');
+            const txt = document.getElementById('realtimeText');
+            if (txt) txt.textContent = text;
+            if (badge) {
+                badge.className = active ? 'realtime-badge' : 'realtime-badge connecting';
+            }
+        }
+
+        function detachAllListeners() {
+            activeListeners.forEach(fn => { try { fn(); } catch(e){} });
+            activeListeners = [];
+        }
+        
         function showToast(msg, type='success') { 
             const t = document.getElementById('toast'); 
-            document.getElementById('toast-text').innerText = msg; 
-            document.getElementById('toast-icon').className = type==='success' ? 'fas fa-check-circle text-success text-lg' : 'fas fa-exclamation-circle text-danger text-lg';
-            t.classList.remove('hidden'); t.style.display='flex'; 
-            setTimeout(()=>{ t.classList.add('hidden'); }, 3000); 
+            const textEl = document.getElementById('toast-text'); 
+            const icon = document.getElementById('toast-icon');
+            const box = document.getElementById('toastBox');
+            const wrap = document.getElementById('toastIconWrap');
+            
+            textEl.innerText = msg; 
+            
+            if (type === 'success') {
+                icon.className = 'fas fa-check-circle text-success text-base';
+                box.className = 'bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-success ring-1 ring-black/5';
+                wrap.className = 'w-9 h-9 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0';
+            } else {
+                icon.className = 'fas fa-exclamation-circle text-danger text-base';
+                box.className = 'bg-white rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3 border-l-4 border-danger ring-1 ring-black/5';
+                wrap.className = 'w-9 h-9 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0';
+            }
+            
+            t.classList.remove('hidden'); 
+            t.style.display='block'; 
+            setTimeout(()=>{ 
+                t.classList.add('hidden'); 
+                setTimeout(()=>{ t.style.display='none'; }, 300); 
+            }, 3500); 
         }
         window.hideToast = () => document.getElementById('toast').classList.add('hidden');
         
-        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+        function escapeHtml(str) { 
+            if(!str) return ''; 
+            return String(str).replace(/[&<>"]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[m])); 
+        }
+
+        function getInitials(name) {
+            if (!name) return '?';
+            const parts = name.trim().split(' ');
+            if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+            return name.substring(0, 2).toUpperCase();
+        }
 
         async function loadCurrentSession() {
             try {
                 const s = await getDoc(doc(db, "config", "activeSession"));
                 if(s.exists()) currentSession = s.data().sessionName || "2025-2026";
-                document.getElementById('current-session-badge').innerHTML = `${currentSession}`;
+                document.getElementById('current-session-badge').innerHTML = `<i class="fas fa-calendar-alt mr-1"></i>${currentSession}`;
+                document.getElementById('statSession').textContent = currentSession;
             } catch(e) {}
         }
         
         async function loadClasses() {
             const snap = await getDocs(query(collection(db, "classes"), orderBy("order")));
-            allClasses = []; const select = document.getElementById('classFilter');
+            allClasses = []; 
+            const select = document.getElementById('classFilter');
             select.innerHTML = '<option value="">-- Select Class --</option>';
-            snap.forEach(d => { allClasses.push({ id: d.id, name: d.data().name }); select.appendChild(new Option(d.data().name, d.id)); });
+            snap.forEach(d => { 
+                allClasses.push({ id: d.id, name: d.data().name }); 
+                select.appendChild(new Option(d.data().name, d.id)); 
+            });
         }
         
         async function loadSectionsForClass(cid) {
             if(!cid) return [];
             const snap = await getDocs(query(collection(db, "sections"), where("classId", "==", cid)));
-            const secs = []; snap.forEach(d => secs.push({ id: d.id, name: d.data().name }));
-            sectionsByClass[cid] = secs; return secs;
+            const secs = []; 
+            snap.forEach(d => secs.push({ id: d.id, name: d.data().name }));
+            sectionsByClass[cid] = secs; 
+            return secs;
         }
-        
-        async function loadParents(isHardRefresh = false) {
+
+        // ========== REALTIME LISTENERS ==========
+        async function setupRealtimeListeners() {
+            detachAllListeners();
+
+            updateRealtimeStatus('Connecting...', false);
+            updateCacheStatus('<i class="fas fa-sync fa-spin"></i> Live sync...', 'amber');
+
+            // Seed from cache
             const cached = getCachedData();
-            const lastSyncTime = (cached?.lastSyncTime && !isHardRefresh) ? cached.lastSyncTime : '1970-01-01T00:00:00.000Z';
-            let existingParents = isHardRefresh ? [] : [...allParents];
+            if (cached?.data) {
+                allParents = cached.data.allParents || [];
+                allStudents = cached.data.allStudents || [];
+                previousParentIds = new Set(allParents.map(p => p.id));
+                updateStats();
+            }
 
             try {
-                let q;
-                if (!isHardRefresh && lastSyncTime !== '1970-01-01T00:00:00.000Z') {
-                    q = query(collection(db, "parents"), where("updatedAt", ">=", lastSyncTime));
-                } else {
-                    q = query(collection(db, "parents"));
-                }
-                
-                const snap = await getDocs(q);
-                const newUpdates = [];
-                snap.forEach(d => newUpdates.push({ id: d.id, ...d.data() }));
-                
-                if (newUpdates.length > 0) {
-                    newUpdates.forEach(newPar => {
-                        const idx = existingParents.findIndex(p => p.id === newPar.id);
-                        if (idx !== -1) existingParents[idx] = newPar;
-                        else existingParents.push(newPar);
-                    });
-                }
-                allParents = existingParents;
-            } catch(e) { console.error(e); }
-            return allParents;
-        }
-        
-        async function loadStudents(isHardRefresh = false) {
-            const cached = getCachedData();
-            const lastSyncTime = (cached?.lastSyncTime && !isHardRefresh) ? cached.lastSyncTime : '1970-01-01T00:00:00.000Z';
-            let existingStudents = isHardRefresh ? [] : [...allStudents];
+                // Listen to parents collection
+                const parentsUnsub = onSnapshot(collection(db, "parents"), (snap) => {
+                    allParents = [];
+                    snap.forEach(d => allParents.push({ id: d.id, ...d.data() }));
+                    
+                    const currentIds = new Set(allParents.map(p => p.id));
+                    const newIds = [...currentIds].filter(id => !previousParentIds.has(id));
+                    
+                    if (newIds.length > 0 && previousParentIds.size > 0) {
+                        showToast(`✨ ${newIds.length} new parent(s) added`, 'success');
+                    }
+                    
+                    previousParentIds = currentIds;
+                    
+                    updateStats();
+                    filterAndRender(newIds);
+                    setCachedData({ allParents, allStudents, allClasses, currentSession });
+                    updateRealtimeStatus('Live', true);
+                    updateCacheStatus(`<i class="fas fa-bolt"></i> Live | ${allParents.length} parents`, 'green');
+                }, (error) => {
+                    console.error('Parents listener error:', error);
+                    updateRealtimeStatus('Error', false);
+                });
+                activeListeners.push(parentsUnsub);
 
-            try {
+                // Listen to all classes -> students subcollections
                 const classesSnap = await getDocs(collection(db, "classes"));
-                const studentPromises = classesSnap.docs.map(async classDoc => {
+                classesSnap.docs.forEach(classDoc => {
                     const classId = classDoc.id;
                     const studRef = collection(db, `current_session/${currentSession}/classes/${classId}/students`);
                     
-                    let q;
-                    if (!isHardRefresh && lastSyncTime !== '1970-01-01T00:00:00.000Z') {
-                        q = query(studRef, where("updatedAt", ">=", lastSyncTime));
-                    } else {
-                        q = query(studRef);
-                    }
-                    
-                    const studSnap = await getDocs(q);
-                    const classStudents = [];
-                    studSnap.forEach(docSnap => {
-                        const data = docSnap.data();
-                        if (data.promotedToNextSession === true) return;
-                        classStudents.push({
-                            id: docSnap.id, ...data, classId: data.classId || classId,
-                            _sessionPath: `current_session/${currentSession}/classes/${classId}/students`
+                    const unsub = onSnapshot(studRef, (snap) => {
+                        // Remove existing students of this class
+                        allStudents = allStudents.filter(s => s.classId !== classId);
+                        snap.forEach(docSnap => {
+                            const data = docSnap.data();
+                            if (data.promotedToNextSession === true) return;
+                            allStudents.push({
+                                id: docSnap.id, 
+                                ...data, 
+                                classId: data.classId || classId,
+                                _sessionPath: `current_session/${currentSession}/classes/${classId}/students`
+                            });
                         });
-                    });
-                    return classStudents;
+                        filterAndRender();
+                        setCachedData({ allParents, allStudents, allClasses, currentSession });
+                    }, (err) => console.warn('Student listener error:', err));
+                    activeListeners.push(unsub);
                 });
 
-                const results = await Promise.all(studentPromises);
-                const newUpdates = results.flat();
-                
-                if (newUpdates.length > 0) {
-                    newUpdates.forEach(newStud => {
-                        const idx = existingStudents.findIndex(s => s.id === newStud.id);
-                        if (idx !== -1) existingStudents[idx] = newStud;
-                        else existingStudents.push(newStud);
-                    });
-                }
-                allStudents = existingStudents;
-            } catch(e) { console.error(e); }
-            return allStudents;
+            } catch (e) {
+                console.error('Realtime setup error:', e);
+                updateRealtimeStatus('Error', false);
+            }
+        }
+        
+        function updateStats() {
+            document.getElementById('statTotal').textContent = allParents.length;
+            document.getElementById('statStudents').textContent = allStudents.length;
+            document.getElementById('statSession').textContent = currentSession;
         }
         
         function getLinkedStudents(parentId) {
@@ -324,7 +1251,11 @@
         
         async function updateSectionDropdown(classId) {
             const secSelect = document.getElementById('sectionFilter');
-            if(!classId) { secSelect.innerHTML = '<option value="">First select class</option>'; secSelect.disabled=true; return; }
+            if(!classId) { 
+                secSelect.innerHTML = '<option value="">First select class</option>'; 
+                secSelect.disabled=true; 
+                return; 
+            }
             let secs = sectionsByClass[classId];
             if(!secs) secs = await loadSectionsForClass(classId);
             secSelect.disabled=false;
@@ -332,27 +1263,33 @@
             secs.forEach(s => secSelect.appendChild(new Option(s.name, s.name)));
         }
         
-        async function filterAndRender() {
+        function filterAndRender(newIds = []) {
             const classId = document.getElementById('classFilter').value;
             const section = document.getElementById('sectionFilter').value;
-            const search = document.getElementById('searchInput').value.toLowerCase();
+            const search = document.getElementById('searchInput').value.toLowerCase().trim();
             
             let filtered = [...allParents];
             
-            // ক্লাস সিলেক্ট করা বাধ্যতামূলক
             if(!classId) {
-                document.getElementById('parentsTableBody').innerHTML = `<tr><td colspan="6" class="text-center py-16 text-gray-400"><i class="fas fa-hand-pointer text-4xl mb-3 block"></i>Please select a class to view parents</td></tr>`;
+                const emptyHtml = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-hand-pointer"></i></div>
+                        <p class="text-base font-bold text-gray-600">Please select a class</p>
+                        <p class="text-xs text-gray-400 mt-1">Choose a class to view parents</p>
+                    </div>
+                `;
+                document.getElementById('parentsTableBody').innerHTML = `<tr><td colspan="6">${emptyHtml}</td></tr>`;
+                document.getElementById('parentsMobileContainer').innerHTML = emptyHtml;
                 document.getElementById('paginationControls').innerHTML = '';
                 document.getElementById('paginationInfo').innerText = '';
                 document.getElementById('totalCount').innerText = '0';
-                
+                document.getElementById('statShowing').textContent = '0';
                 document.getElementById('searchInput').disabled = true;
                 return;
             }
             
             document.getElementById('searchInput').disabled = false;
 
-            // Filter parents based on their linked students' class/section
             let filteredStudentIds = [...allStudents];
             if(classId) filteredStudentIds = filteredStudentIds.filter(s => s.classId === classId);
             if(section) filteredStudentIds = filteredStudentIds.filter(s => s.section === section);
@@ -369,13 +1306,23 @@
             }
             
             document.getElementById('totalCount').innerText = filtered.length;
-            await renderTableRows(filtered);
+            document.getElementById('statShowing').textContent = filtered.length;
+            renderTableRows(filtered, newIds);
         }
         
-        async function renderTableRows(parents) {
-            const tbody = document.getElementById('parentsTableBody');
+        function renderTableRows(parents, newIds = []) {
+            const newIdSet = new Set(newIds);
+            
             if(!parents.length) { 
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-gray-400"><i class="fas fa-user-friends text-4xl mb-2 block"></i>No parents found for this class</td></tr>`; 
+                const emptyHtml = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-user-friends"></i></div>
+                        <p class="text-base font-bold text-gray-600">No parents found</p>
+                        <p class="text-xs text-gray-400 mt-1">Try a different filter or search term</p>
+                    </div>
+                `;
+                document.getElementById('parentsTableBody').innerHTML = `<tr><td colspan="6">${emptyHtml}</td></tr>`;
+                document.getElementById('parentsMobileContainer').innerHTML = emptyHtml;
                 document.getElementById('paginationControls').innerHTML = '';
                 document.getElementById('paginationInfo').innerText = '';
                 return; 
@@ -388,70 +1335,193 @@
             const endIdx = startIdx + ITEMS_PER_PAGE;
             const paginatedData = parents.slice(startIdx, endIdx);
 
-            tbody.innerHTML = '';
+            let tableHtml = '';
+            let mobileHtml = '';
+            
             for(let i=0; i<paginatedData.length; i++) {
                 const p = paginatedData[i];
                 const globalIdx = startIdx + i + 1;
                 const linkedStudents = getLinkedStudents(p.id);
-                const studentsHtml = linkedStudents.length > 0 ? 
-                    `<div class="space-y-1">${linkedStudents.slice(0,2).map(s => `<div class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded inline-block mr-1 mb-1">${escapeHtml(s.fullName)} (${escapeHtml(s.className)}-${escapeHtml(s.section)})</div>`).join('')}${linkedStudents.length > 2 ? `<div class="text-xs text-gray-400">+${linkedStudents.length-2} more</div>` : ''}</div>` :
-                    '<span class="text-xs text-gray-400">No students linked</span>';
+                const isNew = newIdSet.has(p.id);
+                const initials = getInitials(p.guardianName || 'P');
+                const delay = Math.min(i * 0.03, 0.6);
                 
-                const row = document.createElement('tr');
-                row.className = 'parent-row border-b border-gray-100 hover:bg-gray-50';
-                row.innerHTML = `
-                    <td class="px-4 py-3 text-sm text-gray-500 font-medium align-top">${globalIdx}</td>
-                    <td class="px-4 py-3 align-top">
-                        <div>
-                            <div class="font-semibold text-gray-800">${escapeHtml(p.guardianName || 'N/A')}</div>
-                            <div class="text-xs text-gray-400 mt-0.5"><i class="fas fa-user-shield"></i> Primary Guardian</div>
-                        </div>
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                        <div class="text-sm space-y-1">
-                            <div><i class="fas fa-male text-gray-400 w-4"></i> ${escapeHtml(p.fatherName || 'N/A')}</div>
-                            <div><i class="fas fa-female text-gray-400 w-4"></i> ${escapeHtml(p.motherName || 'N/A')}</div>
-                        </div>
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                        <div class="text-sm space-y-1">
-                            <div><i class="fas fa-phone-alt text-gray-400 w-4"></i> ${escapeHtml(p.guardianPhone || 'N/A')}</div>
-                            <div><i class="fas fa-envelope text-gray-400 w-4"></i> <span class="text-xs">${escapeHtml(p.loginEmail || 'N/A')}</span></div>
-                        </div>
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                        <button class="view-students-btn text-primary text-sm hover:underline flex items-center gap-1" data-parent="${p.id}" data-name="${escapeHtml(p.guardianName)}">
-                            <i class="fas fa-user-graduate"></i> ${linkedStudents.length} Student(s)
-                        </button>
-                        <div class="mt-1">${studentsHtml}</div>
-                    </td>
-                    <td class="px-4 py-3 text-center align-top">
-                        <div class="relative inline-block">
-                            <button class="action-dropdown-btn p-2 hover:bg-gray-100 rounded-full transition" data-id="${p.id}"><i class="fas fa-ellipsis-v text-gray-500"></i></button>
-                            <div id="dropdown-${p.id}" class="dropdown-menu hidden absolute right-0 mt-1 w-36 bg-white rounded-xl shadow-xl border z-20 overflow-hidden">
-                                <button class="edit-parent-btn w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"><i class="fas fa-edit text-warning"></i> Edit</button>
-                                <hr class="my-1">
-                                <button class="delete-parent-btn w-full text-left px-3 py-2 text-sm text-danger hover:bg-red-50 flex items-center gap-2"><i class="fas fa-trash-alt"></i> Delete</button>
+                const studentCountBadge = linkedStudents.length > 0 ?
+                    `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #047857;">
+                        <i class="fas fa-user-graduate"></i> ${linkedStudents.length}
+                    </span>` :
+                    `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold" style="background: #f1f5f9; color: #64748b;">
+                        <i class="fas fa-user-slash"></i> 0
+                    </span>`;
+
+                // Desktop row
+                tableHtml += `
+                    <tr class="${isNew ? 'new-row-highlight' : ''} animate-item" style="animation-delay: ${delay}s;">
+                        <td class="text-gray-500 font-bold text-sm">${globalIdx}</td>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <div class="parent-avatar">${initials}</div>
+                                <div class="min-w-0">
+                                    <div class="font-bold text-gray-800 text-sm truncate">${escapeHtml(p.guardianName || 'N/A')}</div>
+                                    <div class="text-[10px] text-indigo-500 font-semibold uppercase tracking-wide mt-0.5 flex items-center gap-1">
+                                        <i class="fas fa-user-shield"></i> Primary Guardian
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-xs space-y-1">
+                                <div class="flex items-center gap-1.5 text-gray-700">
+                                    <i class="fas fa-male text-blue-500 w-3"></i> 
+                                    <span class="font-medium truncate">${escapeHtml(p.fatherName || 'N/A')}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 text-gray-700">
+                                    <i class="fas fa-female text-pink-500 w-3"></i> 
+                                    <span class="font-medium truncate">${escapeHtml(p.motherName || 'N/A')}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-xs space-y-1">
+                                <div class="flex items-center gap-1.5 text-gray-700">
+                                    <i class="fas fa-phone text-emerald-500 w-3"></i>
+                                    <span class="font-semibold">${escapeHtml(p.guardianPhone || 'N/A')}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 text-gray-500 truncate">
+                                    <i class="fas fa-envelope text-indigo-400 w-3"></i>
+                                    <span class="truncate">${escapeHtml(p.loginEmail || 'N/A')}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex flex-wrap items-center gap-1.5 mb-2">
+                                ${studentCountBadge}
+                            </div>
+                            ${linkedStudents.length > 0 ? `
+                                <div class="flex flex-wrap gap-1">
+                                    ${linkedStudents.slice(0, 2).map(s => 
+                                        `<span class="student-badge">
+                                            <i class="fas fa-user-graduate"></i>
+                                            ${escapeHtml(s.fullName?.split(' ')[0] || '')}
+                                        </span>`
+                                    ).join('')}
+                                    ${linkedStudents.length > 2 ? `<span class="text-[10px] text-gray-400 font-semibold self-center">+${linkedStudents.length - 2}</span>` : ''}
+                                </div>
+                            ` : ''}
+                            ${linkedStudents.length > 0 ? `
+                                <button class="view-students-btn text-indigo-600 text-[11px] font-bold hover:underline flex items-center gap-1 mt-2" 
+                                        data-parent="${p.id}" data-name="${escapeHtml(p.guardianName)}">
+                                    <i class="fas fa-external-link-alt text-[9px]"></i> View All
+                                </button>
+                            ` : ''}
+                        </td>
+                        <td class="text-center">
+                            <div class="relative inline-block">
+                                <button class="action-btn menu action-dropdown-btn" data-id="${p.id}" title="Actions">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <div id="dropdown-${p.id}" class="dropdown-menu hidden absolute right-0 mt-1 w-40 bg-white rounded-xl shadow-2xl border border-gray-100 z-30 overflow-hidden">
+                                    <button class="edit-parent-btn w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-indigo-50 flex items-center gap-2.5 transition">
+                                        <i class="fas fa-edit text-amber-500 w-4"></i> Edit
+                                    </button>
+                                    <hr class="border-gray-100">
+                                    <button class="delete-parent-btn w-full text-left px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 flex items-center gap-2.5 transition">
+                                        <i class="fas fa-trash-alt w-4"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                
+                // Mobile card
+                mobileHtml += `
+                    <div class="parent-card ${isNew ? 'new-row-highlight' : ''} animate-item" style="animation-delay: ${delay}s;">
+                        <div class="flex items-start gap-3 mb-3">
+                            <div class="parent-avatar">${initials}</div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-md font-bold text-[10px] flex-shrink-0" style="background:#eef2ff; color:#4f46e5;">${globalIdx}</span>
+                                    <p class="font-bold text-gray-800 truncate text-sm">${escapeHtml(p.guardianName || 'N/A')}</p>
+                                </div>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold" style="background: linear-gradient(135deg, #eef2ff, #e0e7ff); color: #4f46e5;">
+                                    <i class="fas fa-user-shield"></i> Primary Guardian
+                                </span>
+                            </div>
+                            <div class="relative flex-shrink-0">
+                                <button class="action-btn menu action-dropdown-btn" data-id="${p.id}" title="Actions">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <div id="dropdown-m-${p.id}" class="dropdown-menu hidden absolute right-0 mt-1 w-40 bg-white rounded-xl shadow-2xl border border-gray-100 z-30 overflow-hidden">
+                                    <button class="edit-parent-btn-m w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-indigo-50 flex items-center gap-2.5 transition">
+                                        <i class="fas fa-edit text-amber-500 w-4"></i> Edit
+                                    </button>
+                                    <hr class="border-gray-100">
+                                    <button class="delete-parent-btn-m w-full text-left px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 flex items-center gap-2.5 transition">
+                                        <i class="fas fa-trash-alt w-4"></i> Delete
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </td>
+                        
+                        <div class="grid grid-cols-2 gap-2 mb-3">
+                            <div class="p-2.5 rounded-lg" style="background: #eff6ff;">
+                                <p class="text-[9px] font-bold text-blue-600 uppercase tracking-wide mb-0.5">Father</p>
+                                <p class="text-xs font-bold text-gray-800 truncate">${escapeHtml(p.fatherName || 'N/A')}</p>
+                            </div>
+                            <div class="p-2.5 rounded-lg" style="background: #fce7f3;">
+                                <p class="text-[9px] font-bold text-pink-600 uppercase tracking-wide mb-0.5">Mother</p>
+                                <p class="text-xs font-bold text-gray-800 truncate">${escapeHtml(p.motherName || 'N/A')}</p>
+                            </div>
+                            <div class="p-2.5 rounded-lg" style="background: #d1fae5;">
+                                <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-wide mb-0.5">Phone</p>
+                                <p class="text-xs font-bold text-gray-800 truncate">${escapeHtml(p.guardianPhone || 'N/A')}</p>
+                            </div>
+                            <div class="p-2.5 rounded-lg" style="background: #f3e8ff;">
+                                <p class="text-[9px] font-bold text-purple-600 uppercase tracking-wide mb-0.5">Students</p>
+                                <p class="text-xs font-bold text-gray-800 truncate">${linkedStudents.length} linked</p>
+                            </div>
+                        </div>
+
+                        ${linkedStudents.length > 0 ? `
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                ${linkedStudents.slice(0, 2).map(s => 
+                                    `<span class="student-badge">
+                                        <i class="fas fa-user-graduate"></i>
+                                        ${escapeHtml(s.fullName?.split(' ')[0] || '')} (${escapeHtml(s.className || '')})
+                                    </span>`
+                                ).join('')}
+                                ${linkedStudents.length > 2 ? `<span class="text-[10px] text-gray-400 font-semibold self-center">+${linkedStudents.length - 2}</span>` : ''}
+                            </div>
+                        ` : ''}
+                        
+                        ${linkedStudents.length > 0 ? `
+                            <button class="view-students-btn w-full py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"
+                                    data-parent="${p.id}" data-name="${escapeHtml(p.guardianName)}"
+                                    style="background: linear-gradient(135deg, #eef2ff, #e0e7ff); color: #4f46e5;">
+                                <i class="fas fa-eye"></i> View All Students
+                            </button>
+                        ` : ''}
+                    </div>
                 `;
-                tbody.appendChild(row);
             }
+            
+            document.getElementById('parentsTableBody').innerHTML = tableHtml;
+            document.getElementById('parentsMobileContainer').innerHTML = mobileHtml;
+            
             attachRowEvents();
             renderPagination(totalPages, parents.length);
         }
 
-        // ===== পেজিনেশন কন্ট্রোল রেন্ডার =====
         function renderPagination(totalPages, totalItems) {
-            document.getElementById('paginationInfo').innerText = `Page ${currentPage} of ${totalPages} (Total: ${totalItems})`;
+            document.getElementById('paginationInfo').innerText = `Page ${currentPage} of ${totalPages} (${totalItems} total)`;
             const controls = document.getElementById('paginationControls');
             controls.innerHTML = '';
             if (totalPages <= 1) return;
 
             const prevBtn = document.createElement('button');
             prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
-            prevBtn.className = `px-3 py-1 border rounded ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`;
+            prevBtn.className = 'page-btn';
             prevBtn.disabled = currentPage === 1;
             prevBtn.onclick = () => { if(currentPage > 1) goToPage(currentPage - 1); };
             controls.appendChild(prevBtn);
@@ -461,21 +1531,21 @@
             if(endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
 
             if(startPage > 1) {
-                 controls.innerHTML += `<button class="px-3 py-1 border rounded hover:bg-gray-100" onclick="goToPage(1)">1</button>`;
-                 if(startPage > 2) controls.innerHTML += `<span class="px-2">...</span>`;
+                controls.innerHTML += `<button class="page-btn" onclick="goToPage(1)">1</button>`;
+                if(startPage > 2) controls.innerHTML += `<span class="px-1.5 text-gray-400 font-bold self-center">...</span>`;
             }
             for(let i = startPage; i <= endPage; i++) {
-                 const activeClass = i === currentPage ? 'bg-primary text-white' : 'hover:bg-gray-100';
-                 controls.innerHTML += `<button class="px-3 py-1 border rounded ${activeClass}" onclick="goToPage(${i})">${i}</button>`;
+                const activeClass = i === currentPage ? 'active' : '';
+                controls.innerHTML += `<button class="page-btn ${activeClass}" onclick="goToPage(${i})">${i}</button>`;
             }
             if(endPage < totalPages) {
-                 if(endPage < totalPages - 1) controls.innerHTML += `<span class="px-2">...</span>`;
-                 controls.innerHTML += `<button class="px-3 py-1 border rounded hover:bg-gray-100" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+                if(endPage < totalPages - 1) controls.innerHTML += `<span class="px-1.5 text-gray-400 font-bold self-center">...</span>`;
+                controls.innerHTML += `<button class="page-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
             }
 
             const nextBtn = document.createElement('button');
             nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
-            nextBtn.className = `px-3 py-1 border rounded ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`;
+            nextBtn.className = 'page-btn';
             nextBtn.disabled = currentPage === totalPages;
             nextBtn.onclick = () => { if(currentPage < totalPages) goToPage(currentPage + 1); };
             controls.appendChild(nextBtn);
@@ -484,31 +1554,79 @@
         window.goToPage = (page) => {
             currentPage = page;
             filterAndRender();
-            document.querySelector('.overflow-y-auto').scrollTop = 0;
+            document.querySelector('.overflow-y-auto')?.scrollTo({ top: 0, behavior: 'smooth' });
         };
         
         function attachRowEvents() {
+            // Desktop dropdowns
             document.querySelectorAll('.action-dropdown-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => { e.stopPropagation(); const id = btn.dataset.id; toggleDropdown(id); });
+                btn.addEventListener('click', (e) => { 
+                    e.stopPropagation(); 
+                    const id = btn.dataset.id; 
+                    toggleDropdown(id, false); 
+                });
             });
+            // Mobile dropdowns
+            document.querySelectorAll('.action-dropdown-btn').forEach(btn => {
+                // Already handled above
+            });
+            
             document.querySelectorAll('.edit-parent-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => { const id = btn.closest('[id^="dropdown-"]')?.id.split('-')[1]; if(id) openEditModal(id); });
+                btn.addEventListener('click', (e) => { 
+                    e.stopPropagation();
+                    const id = btn.closest('[id^="dropdown-"]')?.id.replace('dropdown-', '').replace('m-', ''); 
+                    if(id) openEditModal(id); 
+                });
             });
+            document.querySelectorAll('.edit-parent-btn-m').forEach(btn => {
+                btn.addEventListener('click', (e) => { 
+                    e.stopPropagation();
+                    const id = btn.closest('[id^="dropdown-m-"]')?.id.replace('dropdown-m-', ''); 
+                    if(id) openEditModal(id); 
+                });
+            });
+            
             document.querySelectorAll('.delete-parent-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => { const id = btn.closest('[id^="dropdown-"]')?.id.split('-')[1]; const parent = allParents.find(p=>p.id===id); if(parent) openDeleteModal(id, parent.guardianName); });
+                btn.addEventListener('click', (e) => { 
+                    e.stopPropagation();
+                    const id = btn.closest('[id^="dropdown-"]')?.id.replace('dropdown-', '').replace('m-', ''); 
+                    const parent = allParents.find(p=>p.id===id); 
+                    if(parent) openDeleteModal(id, parent.guardianName); 
+                });
             });
+            document.querySelectorAll('.delete-parent-btn-m').forEach(btn => {
+                btn.addEventListener('click', (e) => { 
+                    e.stopPropagation();
+                    const id = btn.closest('[id^="dropdown-m-"]')?.id.replace('dropdown-m-', ''); 
+                    const parent = allParents.find(p=>p.id===id); 
+                    if(parent) openDeleteModal(id, parent.guardianName); 
+                });
+            });
+            
             document.querySelectorAll('.view-students-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => { const parentId = btn.dataset.parent; const parentName = btn.dataset.name; openStudentsModal(parentId, parentName); });
+                btn.addEventListener('click', (e) => { 
+                    const parentId = btn.dataset.parent; 
+                    const parentName = btn.dataset.name; 
+                    openStudentsModal(parentId, parentName); 
+                });
             });
         }
         
-        function toggleDropdown(id) {
-            const dropdown = document.getElementById(`dropdown-${id}`);
+        function toggleDropdown(id, isMobile) {
+            const dropdown = document.getElementById(`dropdown-${isMobile ? 'm-' : ''}${id}`);
             if(!dropdown) return;
             const isOpen = !dropdown.classList.contains('hidden');
             document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.add('hidden'));
             if(!isOpen) dropdown.classList.remove('hidden');
-            setTimeout(() => { document.addEventListener('click', function closeDrop(e) { if(!dropdown.contains(e.target) && !e.target.closest('.action-dropdown-btn')) { dropdown.classList.add('hidden'); document.removeEventListener('click', closeDrop); } }); }, 10);
+            
+            setTimeout(() => { 
+                document.addEventListener('click', function closeDrop(e) { 
+                    if(!dropdown.contains(e.target) && !e.target.closest('.action-dropdown-btn')) { 
+                        dropdown.classList.add('hidden'); 
+                        document.removeEventListener('click', closeDrop); 
+                    } 
+                }); 
+            }, 10);
         }
         
         async function openEditModal(parentId) {
@@ -529,6 +1647,10 @@
         document.getElementById('editParentForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('editParentId').value;
+            const submitBtn = document.getElementById('editSubmitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            
             const updateData = {
                 fatherName: document.getElementById('editFatherName').value,
                 fatherPhone: document.getElementById('editFatherPhone').value,
@@ -536,19 +1658,13 @@
                 motherPhone: document.getElementById('editMotherPhone').value,
                 guardianName: document.getElementById('editGuardianName').value,
                 guardianPhone: document.getElementById('editGuardianPhone').value,
-                updatedAt: new Date().toISOString() // ইনক্রিমেন্টাল সিঙ্কের জন্য
+                updatedAt: new Date().toISOString()
             };
+            
             try {
                 await updateDoc(doc(db, "parents", id), updateData);
                 
-                // লোকাল ক্যাশে সাথে সাথে আপডেট করা
-                const pIdx = allParents.findIndex(p => p.id === id);
-                if(pIdx !== -1) {
-                    allParents[pIdx] = { ...allParents[pIdx], ...updateData };
-                    setCachedData({ allParents, allStudents, allClasses, currentSession });
-                }
-
-                // Also update the parent name in students sub-collection
+                // Also update linked students' parent info
                 const linkedStudents = getLinkedStudents(id);
                 for(const student of linkedStudents) {
                     if(student._sessionPath) {
@@ -557,47 +1673,101 @@
                             parentPhone: updateData.guardianPhone,
                             updatedAt: new Date().toISOString()
                         });
-                        // স্টুডেন্ট লোকাল ক্যাশে আপডেট
-                        const sIdx = allStudents.findIndex(s => s.id === student.id);
-                        if(sIdx !== -1) {
-                            allStudents[sIdx].parentName = updateData.guardianName;
-                            allStudents[sIdx].parentPhone = updateData.guardianPhone;
-                        }
                     }
                 }
-                setCachedData({ allParents, allStudents, allClasses, currentSession }); // আপডেটেড স্টুডেন্ট ক্যাশে সেভ
 
-                showToast("Parent updated successfully!");
+                showToast("Parent updated successfully!", 'success');
                 closeEditModal();
-                await filterAndRender();
-            } catch(err) { showToast(err.message, 'error'); }
+                // Realtime listener will auto-update UI
+            } catch(err) { 
+                showToast(err.message, 'error'); 
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Update';
+            }
         });
         
         async function openStudentsModal(parentId, parentName) {
             const linkedStudents = getLinkedStudents(parentId);
             const container = document.getElementById('studentsListContent');
+            
             if(linkedStudents.length === 0) {
-                container.innerHTML = `<div class="text-center py-8 text-gray-400"><i class="fas fa-user-graduate text-4xl mb-2 block"></i>No students linked to ${escapeHtml(parentName)}</div>`;
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-user-graduate"></i></div>
+                        <p class="text-base font-bold text-gray-600">No students linked</p>
+                        <p class="text-xs text-gray-400 mt-1">No students connected to ${escapeHtml(parentName)}</p>
+                    </div>
+                `;
             } else {
-                container.innerHTML = `<p class="text-sm text-gray-600 mb-3">${linkedStudents.length} student(s) linked to <strong>${escapeHtml(parentName)}</strong></p>
-                    <div class="space-y-2">${linkedStudents.map(s => `
-                        <div class="student-link bg-gray-50 p-3 rounded-lg flex justify-between items-center">
-                            <div><div class="font-semibold">${escapeHtml(s.fullName)}</div><div class="text-xs text-gray-500">${escapeHtml(s.className)} - ${escapeHtml(s.section)} | Roll: ${escapeHtml(s.rollNumber)}</div></div>
-                            <a href="student-management.html?student=${s.id}" class="text-primary text-sm hover:underline"><i class="fas fa-external-link-alt"></i> View</a>
-                        </div>`).join('')}</div>`;
+                container.innerHTML = `
+                    <div class="mb-4 p-3 rounded-xl flex items-center gap-3" style="background: linear-gradient(135deg, #eef2ff, #e0e7ff);">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-slate-800">${linkedStudents.length} student(s) linked</p>
+                            <p class="text-xs text-slate-500">Connected to ${escapeHtml(parentName)}</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        ${linkedStudents.map(s => {
+                            const initials = getInitials(s.fullName);
+                            const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(s.fullName || 'S')}&background=6366f1&color=fff&bold=true`;
+                            const imgSrc = s.profileImage || s.passportPhotoURL || defaultImg;
+                            return `
+                                <div class="student-link">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <img src="${imgSrc}" class="w-10 h-10 rounded-lg object-cover border-2 border-white shadow-sm flex-shrink-0" 
+                                             referrerpolicy="no-referrer"
+                                             onerror="this.src='${defaultImg}'">
+                                        <div class="min-w-0">
+                                            <p class="font-bold text-gray-800 text-sm truncate">${escapeHtml(s.fullName)}</p>
+                                            <p class="text-xs text-gray-500">
+                                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold" style="background:#dbeafe; color:#1d4ed8;">
+                                                    ${escapeHtml(s.className || '—')}
+                                                </span>
+                                                <span class="mx-1">•</span>
+                                                ${escapeHtml(s.section || '—')}
+                                                <span class="mx-1">•</span>
+                                                Roll: ${escapeHtml(s.rollNumber || '—')}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <a href="student-management.html?student=${s.id}" class="text-indigo-600 hover:text-indigo-800 text-xs font-bold flex items-center gap-1 flex-shrink-0">
+                                        <span class="hidden sm:inline">View</span>
+                                        <i class="fas fa-external-link-alt"></i>
+                                    </a>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
             }
             document.getElementById('studentsModal').classList.remove('hidden');
         }
         
         window.closeStudentsModal = () => document.getElementById('studentsModal').classList.add('hidden');
         
-        function openDeleteModal(id, name) { pendingDeleteId = id; document.getElementById('deleteParentName').innerText = name; document.getElementById('deleteModal').classList.remove('hidden'); }
+        function openDeleteModal(id, name) { 
+            pendingDeleteId = id; 
+            document.getElementById('deleteParentName').innerText = name; 
+            document.getElementById('deleteModal').classList.remove('hidden'); 
+        }
         
-        document.getElementById('cancelDelete').onclick = () => { document.getElementById('deleteModal').classList.add('hidden'); pendingDeleteId=null; };
+        document.getElementById('cancelDelete').onclick = () => { 
+            document.getElementById('deleteModal').classList.add('hidden'); 
+            pendingDeleteId=null; 
+        };
+        
         document.getElementById('confirmDelete').onclick = async () => {
             if(pendingDeleteId) {
+                const confirmBtn = document.getElementById('confirmDelete');
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+                
                 try {
-                    // First, unlink students (set parentID to null)
+                    // Unlink students
                     const linkedStudents = getLinkedStudents(pendingDeleteId);
                     for(const student of linkedStudents) {
                         if(student._sessionPath) {
@@ -607,38 +1777,28 @@
                             });
                         }
                     }
-                    // Delete parent document
+                    // Delete parent
                     await deleteDoc(doc(db, "parents", pendingDeleteId));
-                    
-                    // লোকাল ক্যাশ থেকে ডিলিট করা
-                    allParents = allParents.filter(p => p.id !== pendingDeleteId);
-                    allStudents = allStudents.map(s => s.parentID === pendingDeleteId ? {...s, parentID: null, parentName: null, parentPhone: null} : s);
-                    setCachedData({ allParents, allStudents, allClasses, currentSession });
 
-                    showToast("Parent deleted and students unlinked!");
+                    showToast("Parent deleted and students unlinked!", 'success');
                     document.getElementById('deleteModal').classList.add('hidden');
                     pendingDeleteId = null;
-                    await filterAndRender();
-                } catch(err) { showToast(err.message, 'error'); }
+                    // Realtime listener will auto-update UI
+                } catch(err) { 
+                    showToast(err.message, 'error'); 
+                } finally {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
+                }
             }
         };
         
-        async function refreshIncremental() { 
-            document.getElementById('cacheStatus').innerHTML = '<i class="fas fa-sync fa-spin text-blue-600"></i> Syncing...';
-            await Promise.all([loadParents(false), loadStudents(false)]); 
-            setCachedData({ allParents, allStudents, allClasses, currentSession }, new Date().toISOString());
-            await filterAndRender(); 
-        }
-
-        async function hardRefreshAll() { 
-            clearCache();
-            sectionsByClass = {};
-            document.getElementById('cacheStatus').innerHTML = '<i class="fas fa-database fa-spin text-blue-600"></i> Full Refresh...';
-            await Promise.all([loadParents(true), loadStudents(true)]); 
-            setCachedData({ allParents, allStudents, allClasses, currentSession }, new Date().toISOString());
-            await filterAndRender(); 
+        async function refreshRealtime() { 
+            showToast('Reconnecting live listeners...', 'success');
+            await setupRealtimeListeners();
         }
         
+        // ===== Event Bindings =====
         document.getElementById('classFilter').addEventListener('change', async (e) => { 
             currentPage = 1;
             await updateSectionDropdown(e.target.value); 
@@ -647,13 +1807,25 @@
         document.getElementById('sectionFilter').addEventListener('change', () => { currentPage = 1; filterAndRender(); });
         document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; filterAndRender(); });
         
-        document.getElementById('refreshBtn').onclick = () => refreshIncremental();
-        document.getElementById('hardRefreshBtn').onclick = () => hardRefreshAll();
+        document.getElementById('refreshBtn').onclick = () => refreshRealtime();
         
-        [document.getElementById('editModal'), document.getElementById('studentsModal'), document.getElementById('deleteModal')].forEach(m => m.addEventListener('click', (e) => { if(e.target===m) { m.classList.add('hidden'); if(m.id==='deleteModal') pendingDeleteId=null; } }));
+        [document.getElementById('editModal'), document.getElementById('studentsModal'), document.getElementById('deleteModal')].forEach(m => 
+            m.addEventListener('click', (e) => { 
+                if(e.target===m) { 
+                    m.classList.add('hidden'); 
+                    if(m.id==='deleteModal') pendingDeleteId=null; 
+                } 
+            })
+        );
+
+        // Cleanup on unload
+        window.addEventListener('beforeunload', () => {
+            detachAllListeners();
+        });
         
+        // ===== INIT =====
         async function init() {
-            // ১. লোকাল স্টোরেজ থেকে ডাটা তৎক্ষণাৎ লোড
+            // 1. Load from cache first for instant UI
             const cached = getCachedData();
             if (cached && cached.data) {
                 allParents = cached.data.allParents || [];
@@ -661,23 +1833,23 @@
                 allClasses = cached.data.allClasses || [];
                 currentSession = cached.data.currentSession || currentSession;
                 
-                document.getElementById('current-session-badge').innerHTML = currentSession;
+                document.getElementById('current-session-badge').innerHTML = `<i class="fas fa-calendar-alt mr-1"></i>${currentSession}`;
+                document.getElementById('statSession').textContent = currentSession;
+                
                 const select = document.getElementById('classFilter');
                 select.innerHTML = '<option value="">-- Select Class --</option>';
                 allClasses.forEach(c => select.appendChild(new Option(c.name, c.id)));
                 
-                document.getElementById('cacheStatus').innerHTML = '<i class="fas fa-check-circle text-green-600"></i> Cache Loaded';
-                await filterAndRender();
+                updateCacheStatus(`<i class="fas fa-database"></i> Cache loaded (${allParents.length})`, 'indigo');
+                updateStats();
+                filterAndRender();
             }
 
-            // ২. ফায়ারবেস থেকে বেস ডাটা লোড
+            // 2. Load base data from Firebase
             await Promise.all([loadCurrentSession(), loadClasses()]);
             
-            // ৩. শুধুমাত্র নতুন আপডেটেড ডাটা ফায়ারবেস থেকে আনা (Incremental)
-            await Promise.all([loadParents(cached ? false : true), loadStudents(cached ? false : true)]);
-            setCachedData({ allParents, allStudents, allClasses, currentSession }, new Date().toISOString());
-            
-            await filterAndRender(); 
+            // 3. Setup realtime listeners — UI will stay in sync FOREVER!
+            await setupRealtimeListeners();
         }
 
         init();
