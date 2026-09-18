@@ -2,641 +2,1128 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#059669">
     <title>ONNO ROKOM BIDDYANIKETON - সেটিংস</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-    
-    <!-- Cloudinary Widget -->
     <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Hind Siliguri', 'sans-serif']
+                    },
+                    colors: {
+                        primary: '#059669',
+                        primaryDark: '#047857',
+                        accent: '#f59e0b'
+                    }
+                }
+            }
+        }
+    </script>
     
     <style>
         :root {
-            --primary-color: #008779;
-            --primary-dark: #00695c;
-            --secondary-accent: #ffc107;
-            --background-color: #f0f4f8;
-            --sidebar-bg: #1f2937;
+            --primary: #059669;
+            --primary-dark: #047857;
+            --primary-light: #10b981;
+            --accent: #f59e0b;
+            --accent-dark: #d97706;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--background-color);
+            font-family: 'Inter', 'Hind Siliguri', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(5,150,105,0.05) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(245,158,11,0.04) 0%, transparent 40%);
+            background-attachment: fixed;
+            min-height: 100vh;
         }
 
-        .primary-bg { background-color: var(--primary-color); }
-        .primary-text { color: var(--primary-color); }
-        .primary-hover:hover { background-color: var(--primary-dark); }
-        .accent-bg { background-color: var(--secondary-accent); }
-        .accent-text { color: var(--secondary-accent); }
-        
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* ========== PAGE HEADER ========== */
+        .page-header {
+            background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
+            border-radius: 20px;
+            padding: 24px 22px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 22px;
+            box-shadow: 0 12px 32px rgba(5,150,105,0.3);
         }
 
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -60%; right: -15%;
+            width: 240px; height: 240px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: -70%; left: -10%;
+            width: 200px; height: 200px;
+            background: rgba(245,158,11,0.15);
+            border-radius: 50%;
+        }
+
+        .page-header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            color: #fcd34d;
+        }
+
+        /* ========== TAB NAVIGATION ========== */
+        .tabs-wrapper {
+            background: white;
+            border-radius: 18px 18px 0 0;
+            border: 1px solid var(--border);
+            border-bottom: none;
+            padding: 8px 8px 0;
+            overflow-x: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+
+        .tabs-wrapper::-webkit-scrollbar { height: 4px; }
+        .tabs-wrapper::-webkit-scrollbar-track { background: transparent; }
+        .tabs-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .tabs-container {
+            display: flex;
+            gap: 6px;
+            min-width: max-content;
+            padding-bottom: 8px;
+        }
+
+        .tab-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 18px;
+            border-radius: 12px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #64748b;
+            background: transparent;
+            border: 1.5px solid transparent;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            font-family: inherit;
+            letter-spacing: 0.1px;
+        }
+
+        .tab-button i {
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .tab-button:hover:not(.active) {
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            color: var(--primary);
+            border-color: #a7f3d0;
+            transform: translateY(-2px);
+        }
+
+        .tab-button:hover:not(.active) i {
+            color: var(--primary);
+            transform: scale(1.15);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 6px 18px rgba(5,150,105,0.35);
+        }
+
+        .tab-button.active i {
+            color: #fcd34d;
+        }
+
+        /* ========== MAIN CARD ========== */
+        .main-card {
+            background: white;
+            border-radius: 0 0 20px 20px;
+            border: 1px solid var(--border);
+            border-top: none;
+            box-shadow: 0 4px 24px rgba(15,23,42,0.06);
+            overflow: hidden;
+        }
+
+        /* ========== TAB CONTENT ========== */
         .tab-content {
             display: none;
+            padding: 24px 22px;
+            animation: fadeSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
+
+        @media (min-width: 768px) {
+            .tab-content { padding: 32px; }
+        }
+
         .tab-content.active {
             display: block;
         }
-        
-        .tab-button {
-            transition: all 0.3s ease;
+
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        
-        .tab-button.active {
-            background-color: var(--primary-color);
+
+        /* ========== SECTION TITLE ========== */
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 14px;
+            margin-bottom: 22px;
+            border-bottom: 2px solid #f1f5f9;
+            letter-spacing: -0.3px;
+        }
+
+        @media (min-width: 768px) {
+            .section-title { font-size: 1.5rem; }
+        }
+
+        .section-title .title-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #059669, #10b981);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
+            font-size: 16px;
+            flex-shrink: 0;
+            box-shadow: 0 6px 16px rgba(5,150,105,0.3);
         }
-        
-        .tab-button:hover:not(.active) {
-            background-color: #e5e7eb;
-            color: var(--primary-color);
+
+        /* ========== FORM FIELDS ========== */
+        .field-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 7px;
         }
-        
+
+        .field-label i {
+            color: var(--primary);
+            font-size: 0.72rem;
+            width: 14px;
+            text-align: center;
+        }
+
+        .field-input, .field-textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background: #fafbfc;
+            color: var(--text-primary);
+            transition: var(--transition);
+            outline: none;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .field-input:focus, .field-textarea:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(5,150,105,0.1);
+        }
+
+        .field-input::placeholder, .field-textarea::placeholder { color: #94a3b8; }
+
+        /* ========== BUTTONS ========== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 22px;
+            border-radius: 12px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            white-space: nowrap;
+            letter-spacing: 0.2px;
+        }
+
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white;
+            box-shadow: 0 6px 18px rgba(5,150,105,0.35);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(5,150,105,0.45);
+        }
+
+        .btn-ghost {
+            background: #f1f5f9;
+            color: #334155;
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-ghost:hover:not(:disabled) {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        .btn-blue {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: white;
+            box-shadow: 0 6px 18px rgba(59,130,246,0.35);
+        }
+
+        .btn-blue:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(59,130,246,0.45);
+        }
+
+        .btn-green {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 6px 18px rgba(16,185,129,0.35);
+        }
+
+        .btn-green:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(16,185,129,0.45);
+        }
+
+        .btn-sm {
+            padding: 8px 14px;
+            font-size: 0.72rem;
+            border-radius: 10px;
+        }
+
+        /* ========== IMAGE PREVIEW ========== */
         .image-preview {
             max-height: 200px;
+            width: auto;
             object-fit: cover;
+            border-radius: 14px;
+            box-shadow: 0 6px 20px rgba(15,23,42,0.12);
+            transition: var(--transition);
         }
-        
-        .drag-drop-area {
-            border: 2px dashed #cbd5e0;
-            border-radius: 0.5rem;
-            transition: all 0.3s ease;
+
+        .image-preview:hover {
+            transform: scale(1.02);
         }
-        
-        .drag-drop-area.dragover {
-            border-color: var(--primary-color);
-            background-color: rgba(0, 135, 121, 0.05);
+
+        .image-container {
+            position: relative;
+            display: inline-block;
         }
-        
-        .cloudinary-image {
-            transition: all 0.3s ease;
-        }
-        
-        .cloudinary-image:hover {
-            transform: scale(1.05);
-        }
-        
+
         .image-actions {
             opacity: 0;
-            transition: all 0.3s ease;
+            transition: var(--transition);
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 6px;
         }
-        
+
         .image-container:hover .image-actions {
             opacity: 1;
         }
-        
+
+        .image-action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.8rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+
+        .image-action-btn.edit { background: linear-gradient(135deg, #3b82f6, #6366f1); }
+        .image-action-btn.delete { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .image-action-btn:hover { transform: scale(1.1) rotate(-5deg); }
+
+        /* ========== LIST ITEMS ========== */
+        .list-item {
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            transition: var(--transition);
+            margin-bottom: 12px;
+        }
+
+        .list-item:hover {
+            border-color: #a7f3d0;
+            box-shadow: 0 8px 24px rgba(5,150,105,0.1);
+            transform: translateY(-2px);
+        }
+
+        .list-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .list-item-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 4px;
+            word-break: break-word;
+        }
+
+        .list-item-desc {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .list-item-date {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .list-item-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        /* ========== POPUP MODAL ========== */
         .popup-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            inset: 0;
+            background-color: rgba(15,23,42,0.55);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            padding: 16px;
+            animation: fadeIn 0.2s ease;
         }
-        
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .popup-overlay.active {
+            display: flex;
+        }
+
         .popup-content {
             background: white;
-            border-radius: 0.5rem;
-            padding: 2rem;
+            border-radius: 24px;
+            padding: 24px;
             max-width: 90%;
-            width: 500px;
+            width: 560px;
             max-height: 90vh;
             overflow-y: auto;
+            box-shadow: 0 24px 60px rgba(15,23,42,0.3);
+            animation: popupSlideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        
-        .hover-effect {
-            transition: all 0.3s ease;
+
+        @keyframes popupSlideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        
-        .hover-effect:hover {
-            background-color: #f3f4f6;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+        /* ========== GALLERY GRID ========== */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
         }
-        
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-            transition: all 0.3s ease;
+
+        @media (min-width: 640px) {
+            .gallery-grid { grid-template-columns: repeat(3, 1fr); }
         }
-        
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
-            transform: translateY(-1px);
+
+        @media (min-width: 1024px) {
+            .gallery-grid { grid-template-columns: repeat(4, 1fr); }
         }
-        
-        .btn-secondary {
-            background-color: #6b7280;
-            color: white;
-            transition: all 0.3s ease;
+
+        .gallery-image-item {
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(15,23,42,0.08);
+            transition: var(--transition);
+            aspect-ratio: 1;
         }
-        
-        .btn-secondary:hover {
-            background-color: #4b5563;
-            transform: translateY(-1px);
+
+        .gallery-image-item:hover {
+            transform: scale(1.03);
+            box-shadow: 0 12px 32px rgba(5,150,105,0.15);
+        }
+
+        .gallery-image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-image-item .image-actions {
+            opacity: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.7) 100%);
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+            padding: 10px;
+            transition: var(--transition);
+        }
+
+        .gallery-image-item:hover .image-actions {
+            opacity: 1;
+        }
+
+        /* ========== INFO BOX ========== */
+        .info-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #fcd34d;
+            border-radius: 14px;
+            padding: 14px 16px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .info-box i {
+            color: #d97706;
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .info-box-text {
+            font-size: 0.78rem;
+            color: #92400e;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .info-box-text strong {
+            display: block;
+            font-weight: 800;
+            margin-bottom: 3px;
+            color: #78350f;
+        }
+
+        /* ========== LOADER ========== */
+        .loader {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid #d1fae5;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 640px) {
+            .page-header { padding: 20px 16px; border-radius: 16px; }
+            .brand-icon { width: 46px; height: 46px; font-size: 20px; border-radius: 13px; }
+            .tab-button { padding: 9px 14px; font-size: 0.75rem; gap: 6px; }
+            .tab-button i { font-size: 0.75rem; }
+            .section-title { font-size: 1.05rem; }
+            .section-title .title-icon { width: 34px; height: 34px; font-size: 14px; border-radius: 10px; }
+            .tab-content { padding: 18px 14px; }
+            .field-input, .field-textarea { padding: 11px 12px; font-size: 0.82rem; }
+            .btn { padding: 11px 16px; font-size: 0.78rem; }
+            .popup-content { padding: 20px 16px; border-radius: 20px; }
+            .list-item { padding: 14px; border-radius: 12px; flex-direction: column; }
+            .list-item-actions { width: 100%; justify-content: flex-end; }
+        }
+
+        @media (max-width: 400px) {
+            .tab-button span.tab-label { display: none; }
+            .tab-button { padding: 10px 12px; }
+            .tab-button i { font-size: 0.9rem; }
+        }
+
+        /* ========== ANIMATIONS ========== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-up {
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
         }
     </style>
 </head>
 
-<body class="min-h-screen flex flex-col">
-<section class="hide" style="display:none">
-    <header class="primary-bg text-white shadow-lg sticky top-0 z-50">
-        <div class="bg-black bg-opacity-10 py-2 text-xs hidden md:block">
-            <div class="container mx-auto px-4 flex justify-end space-x-6">
-                <span class="flex items-center"><i class="fas fa-phone mr-2 accent-text"></i> +880 1712-345678</span>
-                <span class="flex items-center"><i class="fas fa-envelope mr-2 accent-text"></i> info@onnorokom.edu</span>
-            </div>
-        </div>
-        
-        <nav class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <i class="fas fa-graduation-cap text-3xl accent-text"></i>
-                <a href="home.html" class="text-xl font-black">ONNO ROKOM BIDDYANIKETON</a>
-            </div>
+<body class="min-h-screen p-3 md:p-6 lg:p-8">
 
-            <ul class="hidden md:flex space-x-6 text-sm font-semibold">
-                <li><a href="home.html" class="py-2 hover:border-b-2 hover:border-yellow-500">হোম</a></li>
-                <li><a href="#" class="py-2 hover:border-b-2 hover:border-yellow-500">আমাদের সম্পর্কে</a></li>
-                <li><a href="#" class="py-2 hover:border-b-2 hover:border-yellow-500">একাডেমিক</a></li>
-                <li><a href="all-notice.html" class="py-2 hover:border-b-2 hover:border-yellow-500">নোটিশ</a></li>
-                <li><a href="#" class="py-2 hover:border-b-2 hover:border-yellow-500">গ্যালারি</a></li>
-                <li><a href="#" class="py-2 hover:border-b-2 hover:border-yellow-500">যোগাযোগ</a></li>
-                <li>
-                    <a href="setting.html" class="py-2 border-b-2 border-yellow-500">সেটিংস</a>
-                </li>
-                <li>
-                    <a href="../Auth/login.html" class="accent-bg text-black px-4 py-2 rounded-lg ml-2 hover:bg-yellow-600 transition">
-                        লগআউট
-                    </a>
-                </li>
-            </ul>
+    <div class="max-w-7xl mx-auto">
 
-            <button id="mobile-menu-button" class="md:hidden text-2xl">
-                <i class="fas fa-bars"></i>
-            </button>
-        </nav>
-
-        <div id="mobile-menu" class="hidden md:hidden absolute w-full bg-white text-gray-800 shadow-xl">
-            <ul class="flex flex-col p-4 text-base">
-                <li><a href="home.html" class="block py-2 hover:bg-gray-100 px-4">হোম</a></li>
-                <li><a href="#" class="block py-2 hover:bg-gray-100 px-4">আমাদের সম্পর্কে</a></li>
-                <li><a href="#" class="block py-2 hover:bg-gray-100 px-4">একাডেমিক</a></li>
-                <li><a href="all-notice.html" class="block py-2 hover:bg-gray-100 px-4">নোটিশ</a></li>
-                <li><a href="#" class="block py-2 hover:bg-gray-100 px-4">গ্যালারি</a></li>
-                <li><a href="#" class="block py-2 hover:bg-gray-100 px-4">যোগাযোগ</a></li>
-                <li><a href="setting.html" class="block py-2 border-l-4 border-yellow-500 px-4 bg-gray-100">সেটিংস</a></li>
-                <li><a href="../Auth/login.html" class="block mt-2 text-center primary-bg text-white py-2 rounded-lg primary-hover">লগআউট</a></li>
-            </ul>
-        </div>
-    </header>
-</section>
-    <main class="flex-1 py-8">
-        <div class="container mx-auto px-4">
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div class="primary-bg text-white p-6">
-                    <h1 class="text-3xl font-bold flex items-center">
-                        <i class="fas fa-cog mr-3 accent-text"></i> 
-                        অ্যাডমিন সেটিংস প্যানেল
-                    </h1>
-                    <p class="mt-2 text-gray-200">এখান থেকে আপনি ওয়েবসাইটের সকল তথ্য আপডেট, এডিট এবং ডিলিট করতে পারবেন</p>
-                </div>
-                
-                <!-- Tab Navigation -->
-                <div class="border-b">
-                    <div class="flex overflow-x-auto">
-                        <button class="tab-button py-4 px-6 font-medium text-gray-600 active" data-tab="hero">
-                            <i class="fas fa-image mr-2"></i> হিরো সেকশন
-                        </button>
-                        <button class="tab-button py-4 px-6 font-medium text-gray-600" data-tab="principal">
-                            <i class="fas fa-user-tie mr-2"></i> প্রধান শিক্ষক
-                        </button>
-                        <button class="tab-button py-4 px-6 font-medium text-gray-600" data-tab="statistics">
-                            <i class="fas fa-chart-bar mr-2"></i> পরিসংখ্যান
-                        </button>
-                        <button class="tab-button py-4 px-6 font-medium text-gray-600" data-tab="programs">
-                            <i class="fas fa-book-open mr-2"></i> প্রোগ্রাম
-                        </button>
-                        <button class="tab-button py-4 px-6 font-medium text-gray-600" data-tab="notices">
-                            <i class="fas fa-bullhorn mr-2"></i> নোটিশ
-                        </button>
-                        <button class="tab-button py-4 px-6 font-medium text-gray-600" data-tab="marquee">
-                            <i class="fas fa-scroll mr-2"></i> স্ক্রলিং নোটিশ
-                        </button>
-                        <button class="tab-button py-4 px-6 font-medium text-gray-600" data-tab="gallery">
-                            <i class="fas fa-images mr-2"></i> গ্যালারি
-                        </button>
-                        <button class="tab-button py-4 px-6 font-medium text-gray-600" data-tab="contact">
-                            <i class="fas fa-address-book mr-2"></i> যোগাযোগ
-                        </button>
-                        
-                        <button class="tab-button py-4 px-6 font-medium text-gray-600" onclick="schoolname()">
-                            <i class="fas fa-address-book mr-2"></i> স্কুলের নাম
-                        </button>
-                        
+        <!-- ========== PAGE HEADER ========== -->
+        <div class="page-header animate-fade-up">
+            <div class="page-header-content">
+                <div class="flex items-center gap-4 flex-wrap">
+                    <div class="brand-icon">
+                        <i class="fas fa-cog"></i>
                     </div>
-                </div>
-                
-                <!-- Tab Contents -->
-                <div class="p-6">
-                    
-                    <!-- Hero Section Tab -->
-                    <div id="hero-tab" class="tab-content active">
-                        <h2 class="text-2xl font-bold mb-6 primary-text">হিরো সেকশন ম্যানেজমেন্ট</h2>
-                        
-                        <form id="hero-form" class="space-y-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">হিরো টাইটেল</label>
-                                    <input type="text" id="hero-title" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" placeholder="হিরো সেকশনের টাইটেল">
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">হিরো ডেসক্রিপশন</label>
-                                    <textarea id="hero-description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" placeholder="হিরো সেকশনের বর্ণনা"></textarea>
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">হিরো ব্যাকগ্রাউন্ড ইমেজ</label>
-                                
-                                <div class="mb-4">
-                                    <button type="button" id="upload-hero-image" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                                        <i class="fas fa-cloud-upload-alt mr-2"></i> ক্লাউডিনারি থেকে ইমেজ সিলেক্ট করুন
-                                    </button>
-                                </div>
-                                
-                                <div id="hero-image-preview" class="mt-4 hidden">
-                                    <div class="image-container relative inline-block">
-                                        <img src="" alt="Preview" class="image-preview rounded-lg shadow-md cloudinary-image">
-                                        <div class="image-actions absolute top-2 right-2 flex space-x-2">
-                                            <button type="button" class="change-hero-image bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button type="button" class="remove-hero-image bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <input type="hidden" id="hero-image-url">
-                                    <input type="hidden" id="hero-image-public-id">
-                                </div>
-                            </div>
-                            
-                            <div class="flex justify-end space-x-4 pt-4">
-                                <button type="button" id="reset-hero" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">রিসেট</button>
-                                <button type="submit" class="px-6 py-2 primary-bg text-white rounded-lg primary-hover transition">সেভ করুন</button>
-                            </div>
-                        </form>
+                    <div>
+                        <h1 class="text-xl md:text-2xl lg:text-3xl font-extrabold tracking-tight">
+                            অ্যাডমিন সেটিংস প্যানেল
+                        </h1>
+                        <p class="text-xs md:text-sm opacity-90 mt-1 flex items-center gap-1.5">
+                            <i class="fas fa-circle text-[8px] text-yellow-300"></i>
+                            ওয়েবসাইটের সকল তথ্য আপডেট, এডিট এবং ডিলিট করুন
+                        </p>
                     </div>
-                    
-                    <!-- Principal Section Tab -->
-                    <div id="principal-tab" class="tab-content">
-                        <h2 class="text-2xl font-bold mb-6 primary-text">প্রধান শিক্ষক ম্যানেজমেন্ট</h2>
-                        
-                        <form id="principal-form" class="space-y-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">প্রধান শিক্ষকের নাম</label>
-                                    <input type="text" id="principal-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" placeholder="প্রধান শিক্ষকের নাম">
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">পদবী</label>
-                                    <input type="text" id="principal-designation" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" placeholder="পদবী">
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">প্রধান শিক্ষকের বার্তা</label>
-                                <textarea id="principal-message" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" placeholder="প্রধান শিক্ষকের বার্তা"></textarea>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">প্রধান শিক্ষকের ছবি</label>
-                                
-                                <div class="mb-4">
-                                    <button type="button" id="upload-principal-image" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                                        <i class="fas fa-cloud-upload-alt mr-2"></i> ক্লাউডিনারি থেকে ইমেজ সিলেক্ট করুন
-                                    </button>
-                                </div>
-                                
-                                <div id="principal-image-preview" class="mt-4 hidden">
-                                    <div class="image-container relative inline-block">
-                                        <img src="" alt="Preview" class="image-preview rounded-lg shadow-md cloudinary-image">
-                                        <div class="image-actions absolute top-2 right-2 flex space-x-2">
-                                            <button type="button" class="change-principal-image bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button type="button" class="remove-principal-image bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <input type="hidden" id="principal-image-url">
-                                    <input type="hidden" id="principal-image-public-id">
-                                </div>
-                            </div>
-                            
-                            <div class="flex justify-end space-x-4 pt-4">
-                                <button type="button" id="reset-principal" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">রিসেট</button>
-                                <button type="submit" class="px-6 py-2 primary-bg text-white rounded-lg primary-hover transition">সেভ করুন</button>
-                            </div>
-                        </form>
-                    </div>
-                    
-                    <!-- Statistics Tab -->
-                    <div id="statistics-tab" class="tab-content">
-                        <h2 class="text-2xl font-bold mb-6 primary-text">পরিসংখ্যান ম্যানেজমেন্ট</h2>
-                        
-                        <form id="statistics-form" class="space-y-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">শিক্ষার্থীর সংখ্যা</label>
-                                    <input type="text" id="student-count" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" placeholder="২,৫০০+">
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">শিক্ষকের সংখ্যা</label>
-                                    <input type="text" id="teacher-count" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" placeholder="১০০+">
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">ক্লাব ও কার্যক্রম</label>
-                                    <input type="text" id="club-count" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" placeholder="২৫+">
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">পাশের হার</label>
-                                    <input type="text" id="pass-rate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" placeholder="৯৯%">
-                                </div>
-                            </div>
-                            
-                            <div class="flex justify-end space-x-4 pt-4">
-                                <button type="button" id="reset-statistics" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">রিসেট</button>
-                                <button type="submit" class="px-6 py-2 primary-bg text-white rounded-lg primary-hover transition">সেভ করুন</button>
-                            </div>
-                        </form>
-                    </div>
-                    
-                    <!-- Programs Tab -->
-                    <div id="programs-tab" class="tab-content">
-                        <h2 class="text-2xl font-bold mb-6 primary-text">প্রোগ্রাম ম্যানেজমেন্ট</h2>
-                        
-                        <div class="mb-6 flex justify-between items-center">
-                            <h3 class="text-xl font-semibold text-gray-700">সকল প্রোগ্রাম</h3>
-                            <button id="add-program" class="px-4 py-2 primary-bg text-white rounded-lg primary-hover transition">
-                                <i class="fas fa-plus mr-2"></i> নতুন প্রোগ্রাম
-                            </button>
-                        </div>
-                        
-                        <div id="programs-list" class="space-y-4 mb-8">
-                            <!-- Programs will be loaded here -->
-                            <div class="loader text-center py-8">
-                                <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-color"></div>
-                                <p class="mt-2 text-gray-500">প্রোগ্রাম লোড হচ্ছে...</p>
-                            </div>
-                        </div>
-                        
-                        <!-- Add/Edit Program Form -->
-                        <div id="program-form-container" class="bg-gray-50 p-6 rounded-lg hidden">
-                            <h3 class="text-xl font-semibold mb-4 primary-text" id="program-form-title">নতুন প্রোগ্রাম যোগ করুন</h3>
-                            
-                            <form id="program-form" class="space-y-4">
-                                <input type="hidden" id="program-id">
-                                
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">প্রোগ্রাম টাইটেল</label>
-                                        <input type="text" id="program-title" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" required>
-                                    </div>
-                                    
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">আইকন ক্লাস (FontAwesome)</label>
-                                        <input type="text" id="program-icon" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" placeholder="fas fa-book" required>
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">প্রোগ্রাম বর্ণনা</label>
-                                    <textarea id="program-description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" required></textarea>
-                                </div>
-                                
-                                <div class="flex justify-end space-x-4 pt-2">
-                                    <button type="button" id="cancel-program" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">বাতিল</button>
-                                    <button type="submit" class="px-6 py-2 primary-bg text-white rounded-lg primary-hover transition">সেভ করুন</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    
-                    <!-- Notices Tab -->
-                    <div id="notices-tab" class="tab-content">
-                        <h2 class="text-2xl font-bold mb-6 primary-text">নোটিশ ম্যানেজমেন্ট</h2>
-                        
-                        <div class="mb-6 flex justify-between items-center">
-                            <h3 class="text-xl font-semibold text-gray-700">সকল নোটিশ</h3>
-                            <button id="add-notice" class="px-4 py-2 primary-bg text-white rounded-lg primary-hover transition">
-                                <i class="fas fa-plus mr-2"></i> নতুন নোটিশ
-                            </button>
-                        </div>
-                        
-                        <div id="notices-list" class="space-y-4 mb-8">
-                            <!-- Notices will be loaded here -->
-                            <div class="loader text-center py-8">
-                                <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-color"></div>
-                                <p class="mt-2 text-gray-500">নোটিশ লোড হচ্ছে...</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Marquee Tab -->
-                    <div id="marquee-tab" class="tab-content">
-                        <h2 class="text-2xl font-bold mb-6 primary-text">স্ক্রলিং নোটিশ ম্যানেজমেন্ট</h2>
-                        
-                        <form id="marquee-form" class="space-y-6">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">স্ক্রলিং নোটিশ টেক্সট</label>
-                                <textarea id="marquee-text" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" placeholder="আপনার স্ক্রলিং নোটিশ টেক্সট এখানে লিখুন..."></textarea>
-                                <p class="text-sm text-gray-500 mt-1">নোট: আপনি একাধিক নোটিশ যোগ করতে পারেন। প্রতিটি নোটিশের মধ্যে • • • ব্যবহার করুন</p>
-                            </div>
-                            
-                            <div class="flex justify-end space-x-4 pt-4">
-                                <button type="button" id="reset-marquee" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">রিসেট</button>
-                                <button type="submit" class="px-6 py-2 primary-bg text-white rounded-lg primary-hover transition">সেভ করুন</button>
-                            </div>
-                        </form>
-                    </div>
-                    
-                    <!-- Gallery Tab -->
-                    <div id="gallery-tab" class="tab-content">
-                        <h2 class="text-2xl font-bold mb-6 primary-text">গ্যালারি ম্যানেজমেন্ট</h2>
-                        
-                        <div class="mb-6">
-                            <h3 class="text-xl font-semibold text-gray-700 mb-4">গ্যালারি ইমেজ ম্যানেজমেন্ট</h3>
-                            
-                            <div class="flex flex-wrap gap-4 mb-6">
-                                <button id="upload-gallery-images" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                                    <i class="fas fa-cloud-upload-alt mr-2"></i> নতুন ইমেজ আপলোড
-                                </button>
-                                <button id="refresh-gallery" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-                                    <i class="fas fa-sync-alt mr-2"></i> গ্যালারি রিফ্রেশ
-                                </button>
-                            </div>
-                            
-                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                                <div class="flex items-start">
-                                    <i class="fas fa-info-circle text-yellow-500 mt-1 mr-3"></i>
-                                    <div>
-                                        <h4 class="font-semibold text-yellow-800">গ্যালারি ম্যানেজমেন্ট গাইড</h4>
-                                        <p class="text-yellow-700 text-sm mt-1">আপনি ইমেজ আপলোড, এডিট এবং ডিলিট করতে পারবেন। প্রতিটি ইমেজের উপর হোভার করলে এডিট এবং ডিলিট বাটন দেখতে পাবেন।</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h3 class="text-xl font-semibold text-gray-700 mb-4">গ্যালারি ইমেজসমূহ</h3>
-                            
-                            <div id="gallery-images-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                <!-- Gallery images will be loaded here -->
-                                <div class="loader text-center py-8 col-span-2 md:col-span-3 lg:col-span-4">
-                                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-color"></div>
-                                    <p class="mt-2 text-gray-500">গ্যালারি ইমেজ লোড হচ্ছে...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Contact Tab -->
-                    <div id="contact-tab" class="tab-content">
-                        <h2 class="text-2xl font-bold mb-6 primary-text">যোগাযোগ তথ্য ম্যানেজমেন্ট</h2>
-                        
-                        <form id="contact-form" class="space-y-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">ফোন নম্বর</label>
-                                    <input type="text" id="contact-phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" placeholder="+880 1712-345678">
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">ইমেইল</label>
-                                    <input type="email" id="contact-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" placeholder="info@onnorokom.edu">
-                                </div>
-                                
-                                <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">ঠিকানা</label>
-                                    <textarea id="contact-address" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" placeholder="বাড়ি #৭, রোড #৯, ধানমন্ডি, ঢাকা-১২০৫"></textarea>
-                                </div>
-                            </div>
-                            
-                            <div class="flex justify-end space-x-4 pt-4">
-                                <button type="button" id="reset-contact" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">রিসেট</button>
-                                <button type="submit" class="px-6 py-2 primary-bg text-white rounded-lg primary-hover transition">সেভ করুন</button>
-                            </div>
-                        </form>
-                    </div>
-                    
                 </div>
             </div>
         </div>
-    </main>
-    
-    <!-- Notice Popup -->
-    <div id="notice-popup" class="popup-overlay">
-        <div class="popup-content">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-semibold primary-text" id="popup-notice-title">নতুন নোটিশ যোগ করুন</h3>
-                <button id="close-popup" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times text-xl"></i>
+
+        <!-- ========== TABS ========== -->
+        <div class="tabs-wrapper animate-fade-up" style="animation-delay:0.05s">
+            <div class="tabs-container">
+                <button class="tab-button active" data-tab="hero">
+                    <i class="fas fa-image"></i>
+                    <span class="tab-label">হিরো সেকশন</span>
+                </button>
+                <button class="tab-button" data-tab="principal">
+                    <i class="fas fa-user-tie"></i>
+                    <span class="tab-label">প্রধান শিক্ষক</span>
+                </button>
+                <button class="tab-button" data-tab="statistics">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="tab-label">পরিসংখ্যান</span>
+                </button>
+                <button class="tab-button" data-tab="programs">
+                    <i class="fas fa-book-open"></i>
+                    <span class="tab-label">প্রোগ্রাম</span>
+                </button>
+                <button class="tab-button" data-tab="notices">
+                    <i class="fas fa-bullhorn"></i>
+                    <span class="tab-label">নোটিশ</span>
+                </button>
+                <button class="tab-button" data-tab="marquee">
+                    <i class="fas fa-scroll"></i>
+                    <span class="tab-label">স্ক্রলিং</span>
+                </button>
+                <button class="tab-button" data-tab="gallery">
+                    <i class="fas fa-images"></i>
+                    <span class="tab-label">গ্যালারি</span>
+                </button>
+                <button class="tab-button" data-tab="contact">
+                    <i class="fas fa-address-book"></i>
+                    <span class="tab-label">যোগাযোগ</span>
+                </button>
+                <button class="tab-button" onclick="schoolname()">
+                    <i class="fas fa-school"></i>
+                    <span class="tab-label">স্কুলের নাম</span>
                 </button>
             </div>
-            
-            <form id="popup-notice-form" class="space-y-4">
-                <input type="hidden" id="popup-notice-id">
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">নোটিশ টাইটেল</label>
-                    <input type="text" id="popup-notice-title-input" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" required>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        </div>
+
+        <!-- ========== MAIN CARD ========== -->
+        <div class="main-card animate-fade-up" style="animation-delay:0.1s">
+
+            <!-- ========== HERO SECTION TAB ========== -->
+            <div id="hero-tab" class="tab-content active">
+                <h2 class="section-title">
+                    <span class="title-icon"><i class="fas fa-image"></i></span>
+                    হিরো সেকশন ম্যানেজমেন্ট
+                </h2>
+
+                <form id="hero-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="field-label"><i class="fas fa-heading"></i> হিরো টাইটেল</label>
+                            <input type="text" id="hero-title" class="field-input" placeholder="হিরো সেকশনের টাইটেল">
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-align-left"></i> হিরো ডেসক্রিপশন</label>
+                            <textarea id="hero-description" rows="3" class="field-textarea" placeholder="হিরো সেকশনের বর্ণনা"></textarea>
+                        </div>
+                    </div>
+
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">তারিখ</label>
-                        <input type="date" id="popup-notice-date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" required>
+                        <label class="field-label"><i class="fas fa-cloud-upload-alt"></i> হিরো ব্যাকগ্রাউন্ড ইমেজ</label>
+                        <div class="mb-3">
+                            <button type="button" id="upload-hero-image" class="btn btn-blue">
+                                <i class="fas fa-cloud-upload-alt"></i> ক্লাউডিনারি থেকে ইমেজ সিলেক্ট করুন
+                            </button>
+                        </div>
+                        <div id="hero-image-preview" class="hidden mt-3">
+                            <div class="image-container">
+                                <img src="" alt="Preview" class="image-preview">
+                                <div class="image-actions">
+                                    <button type="button" class="image-action-btn edit change-hero-image" title="Change">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="image-action-btn delete remove-hero-image" title="Remove">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <input type="hidden" id="hero-image-url">
+                            <input type="hidden" id="hero-image-public-id">
+                        </div>
                     </div>
-                    
-                    <div class="flex items-center">
-                        <input type="checkbox" id="popup-notice-isNew" class="h-4 w-4 text-primary-color focus:ring-primary-color border-gray-300 rounded">
-                        <label for="popup-notice-isNew" class="ml-2 block text-sm text-gray-700">নতুন হিসেবে চিহ্নিত করুন</label>
+
+                    <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
+                        <button type="button" id="reset-hero" class="btn btn-ghost w-full sm:w-auto">
+                            <i class="fas fa-redo"></i> রিসেট
+                        </button>
+                        <button type="submit" class="btn btn-primary w-full sm:w-auto">
+                            <i class="fas fa-save"></i> সেভ করুন
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ========== PRINCIPAL TAB ========== -->
+            <div id="principal-tab" class="tab-content">
+                <h2 class="section-title">
+                    <span class="title-icon"><i class="fas fa-user-tie"></i></span>
+                    প্রধান শিক্ষক ম্যানেজমেন্ট
+                </h2>
+
+                <form id="principal-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="field-label"><i class="fas fa-user"></i> প্রধান শিক্ষকের নাম</label>
+                            <input type="text" id="principal-name" class="field-input" placeholder="প্রধান শিক্ষকের নাম">
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-briefcase"></i> পদবী</label>
+                            <input type="text" id="principal-designation" class="field-input" placeholder="পদবী">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="field-label"><i class="fas fa-comment-dots"></i> প্রধান শিক্ষকের বার্তা</label>
+                        <textarea id="principal-message" rows="4" class="field-textarea" placeholder="প্রধান শিক্ষকের বার্তা"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="field-label"><i class="fas fa-camera"></i> প্রধান শিক্ষকের ছবি</label>
+                        <div class="mb-3">
+                            <button type="button" id="upload-principal-image" class="btn btn-blue">
+                                <i class="fas fa-cloud-upload-alt"></i> ক্লাউডিনারি থেকে ইমেজ সিলেক্ট করুন
+                            </button>
+                        </div>
+                        <div id="principal-image-preview" class="hidden mt-3">
+                            <div class="image-container">
+                                <img src="" alt="Preview" class="image-preview">
+                                <div class="image-actions">
+                                    <button type="button" class="image-action-btn edit change-principal-image" title="Change">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="image-action-btn delete remove-principal-image" title="Remove">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <input type="hidden" id="principal-image-url">
+                            <input type="hidden" id="principal-image-public-id">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
+                        <button type="button" id="reset-principal" class="btn btn-ghost w-full sm:w-auto">
+                            <i class="fas fa-redo"></i> রিসেট
+                        </button>
+                        <button type="submit" class="btn btn-primary w-full sm:w-auto">
+                            <i class="fas fa-save"></i> সেভ করুন
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ========== STATISTICS TAB ========== -->
+            <div id="statistics-tab" class="tab-content">
+                <h2 class="section-title">
+                    <span class="title-icon"><i class="fas fa-chart-bar"></i></span>
+                    পরিসংখ্যান ম্যানেজমেন্ট
+                </h2>
+
+                <form id="statistics-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="field-label"><i class="fas fa-user-graduate"></i> শিক্ষার্থীর সংখ্যা</label>
+                            <input type="text" id="student-count" class="field-input" placeholder="২,৫০০+">
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-chalkboard-teacher"></i> শিক্ষকের সংখ্যা</label>
+                            <input type="text" id="teacher-count" class="field-input" placeholder="১০০+">
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-award"></i> ক্লাব ও কার্যক্রম</label>
+                            <input type="text" id="club-count" class="field-input" placeholder="২৫+">
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-star"></i> পাশের হার</label>
+                            <input type="text" id="pass-rate" class="field-input" placeholder="৯৯%">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
+                        <button type="button" id="reset-statistics" class="btn btn-ghost w-full sm:w-auto">
+                            <i class="fas fa-redo"></i> রিসেট
+                        </button>
+                        <button type="submit" class="btn btn-primary w-full sm:w-auto">
+                            <i class="fas fa-save"></i> সেভ করুন
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ========== PROGRAMS TAB ========== -->
+            <div id="programs-tab" class="tab-content">
+                <h2 class="section-title">
+                    <span class="title-icon"><i class="fas fa-book-open"></i></span>
+                    প্রোগ্রাম ম্যানেজমেন্ট
+                </h2>
+
+                <div class="flex justify-between items-center mb-5 flex-wrap gap-3">
+                    <h3 class="text-base md:text-lg font-bold text-gray-700">সকল প্রোগ্রাম</h3>
+                    <button id="add-program" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> নতুন প্রোগ্রাম
+                    </button>
+                </div>
+
+                <div id="programs-list" class="mb-6">
+                    <div class="text-center py-12">
+                        <div class="loader"></div>
+                        <p class="mt-3 text-gray-500 text-sm font-medium">প্রোগ্রাম লোড হচ্ছে...</p>
                     </div>
                 </div>
-                
+
+                <div id="program-form-container" class="hidden p-5 rounded-2xl" style="background: linear-gradient(135deg, #f8fafc, #ecfdf5); border: 2px solid #d1fae5;">
+                    <h3 class="text-base font-extrabold mb-4 text-emerald-700 flex items-center gap-2" id="program-form-title">
+                        <i class="fas fa-plus-circle"></i> নতুন প্রোগ্রাম যোগ করুন
+                    </h3>
+
+                    <form id="program-form" class="space-y-4">
+                        <input type="hidden" id="program-id">
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="field-label"><i class="fas fa-heading"></i> প্রোগ্রাম টাইটেল</label>
+                                <input type="text" id="program-title" class="field-input" required>
+                            </div>
+                            <div>
+                                <label class="field-label"><i class="fas fa-icons"></i> আইকন ক্লাস (FontAwesome)</label>
+                                <input type="text" id="program-icon" class="field-input" placeholder="fas fa-book" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="field-label"><i class="fas fa-align-left"></i> প্রোগ্রাম বর্ণনা</label>
+                            <textarea id="program-description" rows="3" class="field-textarea" required></textarea>
+                        </div>
+
+                        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-3">
+                            <button type="button" id="cancel-program" class="btn btn-ghost w-full sm:w-auto">
+                                <i class="fas fa-times"></i> বাতিল
+                            </button>
+                            <button type="submit" class="btn btn-primary w-full sm:w-auto">
+                                <i class="fas fa-save"></i> সেভ করুন
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ========== NOTICES TAB ========== -->
+            <div id="notices-tab" class="tab-content">
+                <h2 class="section-title">
+                    <span class="title-icon"><i class="fas fa-bullhorn"></i></span>
+                    নোটিশ ম্যানেজমেন্ট
+                </h2>
+
+                <div class="flex justify-between items-center mb-5 flex-wrap gap-3">
+                    <h3 class="text-base md:text-lg font-bold text-gray-700">সকল নোটিশ</h3>
+                    <button id="add-notice" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> নতুন নোটিশ
+                    </button>
+                </div>
+
+                <div id="notices-list">
+                    <div class="text-center py-12">
+                        <div class="loader"></div>
+                        <p class="mt-3 text-gray-500 text-sm font-medium">নোটিশ লোড হচ্ছে...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== MARQUEE TAB ========== -->
+            <div id="marquee-tab" class="tab-content">
+                <h2 class="section-title">
+                    <span class="title-icon"><i class="fas fa-scroll"></i></span>
+                    স্ক্রলিং নোটিশ ম্যানেজমেন্ট
+                </h2>
+
+                <form id="marquee-form" class="space-y-6">
+                    <div>
+                        <label class="field-label"><i class="fas fa-text-width"></i> স্ক্রলিং নোটিশ টেক্সট</label>
+                        <textarea id="marquee-text" rows="4" class="field-textarea" placeholder="আপনার স্ক্রলিং নোটিশ টেক্সট এখানে লিখুন..."></textarea>
+                        <p class="text-xs text-gray-500 mt-2 flex items-center gap-1.5">
+                            <i class="fas fa-info-circle text-emerald-500"></i>
+                            একাধিক নোটিশ যোগ করতে • • • ব্যবহার করুন
+                        </p>
+                    </div>
+
+                    <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
+                        <button type="button" id="reset-marquee" class="btn btn-ghost w-full sm:w-auto">
+                            <i class="fas fa-redo"></i> রিসেট
+                        </button>
+                        <button type="submit" class="btn btn-primary w-full sm:w-auto">
+                            <i class="fas fa-save"></i> সেভ করুন
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ========== GALLERY TAB ========== -->
+            <div id="gallery-tab" class="tab-content">
+                <h2 class="section-title">
+                    <span class="title-icon"><i class="fas fa-images"></i></span>
+                    গ্যালারি ম্যানেজমেন্ট
+                </h2>
+
+                <div class="flex flex-wrap gap-3 mb-5">
+                    <button id="upload-gallery-images" class="btn btn-blue">
+                        <i class="fas fa-cloud-upload-alt"></i> নতুন ইমেজ আপলোড
+                    </button>
+                    <button id="refresh-gallery" class="btn btn-green">
+                        <i class="fas fa-sync-alt"></i> গ্যালারি রিফ্রেশ
+                    </button>
+                </div>
+
+                <div class="info-box">
+                    <i class="fas fa-info-circle"></i>
+                    <div class="info-box-text">
+                        <strong>গ্যালারি ম্যানেজমেন্ট গাইড</strong>
+                        ইমেজ আপলোড, এডিট এবং ডিলিট করতে পারবেন। প্রতিটি ইমেজের উপর হোভার করলে এডিট এবং ডিলিট বাটন দেখতে পাবেন।
+                    </div>
+                </div>
+
+                <h3 class="text-base md:text-lg font-bold text-gray-700 mb-4">গ্যালারি ইমেজসমূহ</h3>
+
+                <div id="gallery-images-container" class="gallery-grid">
+                    <div class="col-span-full text-center py-12">
+                        <div class="loader"></div>
+                        <p class="mt-3 text-gray-500 text-sm font-medium">গ্যালারি ইমেজ লোড হচ্ছে...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== CONTACT TAB ========== -->
+            <div id="contact-tab" class="tab-content">
+                <h2 class="section-title">
+                    <span class="title-icon"><i class="fas fa-address-book"></i></span>
+                    যোগাযোগ তথ্য ম্যানেজমেন্ট
+                </h2>
+
+                <form id="contact-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="field-label"><i class="fas fa-phone"></i> ফোন নম্বর</label>
+                            <input type="text" id="contact-phone" class="field-input" placeholder="+880 1712-345678">
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-envelope"></i> ইমেইল</label>
+                            <input type="email" id="contact-email" class="field-input" placeholder="info@onnorokom.edu">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="field-label"><i class="fas fa-map-marker-alt"></i> ঠিকানা</label>
+                            <textarea id="contact-address" rows="3" class="field-textarea" placeholder="বাড়ি #৭, রোড #৯, ধানমন্ডি, ঢাকা-১২০৫"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
+                        <button type="button" id="reset-contact" class="btn btn-ghost w-full sm:w-auto">
+                            <i class="fas fa-redo"></i> রিসেট
+                        </button>
+                        <button type="submit" class="btn btn-primary w-full sm:w-auto">
+                            <i class="fas fa-save"></i> সেভ করুন
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ========== NOTICE POPUP ========== -->
+    <div id="notice-popup" class="popup-overlay">
+        <div class="popup-content">
+            <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+                         style="background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 6px 16px rgba(5,150,105,0.3);">
+                        <i class="fas fa-bullhorn text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-extrabold text-gray-800" id="popup-notice-title">নতুন নোটিশ যোগ করুন</h3>
+                        <p class="text-xs text-gray-500">নোটিশ তথ্য পূরণ করুন</p>
+                    </div>
+                </div>
+                <button id="close-popup" class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition text-xl flex-shrink-0">
+                    &times;
+                </button>
+            </div>
+
+            <form id="popup-notice-form" class="space-y-5">
+                <input type="hidden" id="popup-notice-id">
+
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">নোটিশ বর্ণনা</label>
-                    <textarea id="popup-notice-description" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-color focus:border-transparent" required></textarea>
+                    <label class="field-label"><i class="fas fa-heading"></i> নোটিশ টাইটেল</label>
+                    <input type="text" id="popup-notice-title-input" class="field-input" required>
                 </div>
-                
-                <div class="flex justify-end space-x-4 pt-2">
-                    <button type="button" id="cancel-popup-notice" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">বাতিল</button>
-                    <button type="submit" class="px-6 py-2 primary-bg text-white rounded-lg primary-hover transition">সেভ করুন</button>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="field-label"><i class="fas fa-calendar"></i> তারিখ</label>
+                        <input type="date" id="popup-notice-date" class="field-input" required>
+                    </div>
+                    <div class="flex items-end">
+                        <label class="flex items-center gap-2 cursor-pointer pb-3">
+                            <input type="checkbox" id="popup-notice-isNew" class="w-4 h-4 accent-emerald-600 rounded">
+                            <span class="text-sm font-semibold text-gray-700">নতুন হিসেবে চিহ্নিত করুন</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="field-label"><i class="fas fa-align-left"></i> নোটিশ বর্ণনা</label>
+                    <textarea id="popup-notice-description" rows="4" class="field-textarea" required></textarea>
+                </div>
+
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
+                    <button type="button" id="cancel-popup-notice" class="btn btn-ghost w-full sm:w-auto">
+                        <i class="fas fa-times"></i> বাতিল
+                    </button>
+                    <button type="submit" class="btn btn-primary w-full sm:w-auto">
+                        <i class="fas fa-save"></i> সেভ করুন
+                    </button>
                 </div>
             </form>
         </div>
     </div>
-    
-    <footer class="primary-bg text-white mt-12 pt-10 pb-6">
-        <div class="container mx-auto px-4 text-center text-sm text-gray-400 pt-4">
-            &copy; ২০২৫ ONNO ROKOM BIDDYANIKETON. সর্বস্বত্ব সংরক্ষিত।
-        </div>
-    </footer>
 
-    <!-- Cloudinary Upload Widget Script -->
     <script>
-        // Firebase কনফিগারেশন
+        // Firebase Configuration
         const firebaseConfig = {
-  apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
-  authDomain: "school-menejment.firebaseapp.com",
-  projectId: "school-menejment",
-  storageBucket: "school-menejment.firebasestorage.app",
-  messagingSenderId: "348342436525",
-  appId: "1:348342436525:web:41fc72cb02f824baa3bc24",
-  measurementId: "G-GS91N1J5SH"
-};
+            apiKey: "AIzaSyCA6d95VTLNo_FAEzJCoOzuEhHCl5LeSqk",
+            authDomain: "school-menejment.firebaseapp.com",
+            projectId: "school-menejment",
+            storageBucket: "school-menejment.firebasestorage.app",
+            messagingSenderId: "348342436525",
+            appId: "1:348342436525:web:41fc72cb02f824baa3bc24",
+            measurementId: "G-GS91N1J5SH"
+        };
 
-        // Firebase ইনিশিয়ালাইজেশন
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // Cloudinary Configuration
         const cloudinaryConfig = {
-            cloudName: 'dhvtgzy5x', // Replace with your cloud name
-            uploadPreset: 'Rosenews' // Replace with your upload preset
+            cloudName: 'dhvtgzy5x',
+            uploadPreset: 'Rosenews'
         };
 
-        // Global Variables
         let editingProgramId = null;
         let editingNoticeId = null;
         let myWidget = null;
+        let currentUploadContext = null;
 
-        // DOM Content Loaded
+        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             initializeTabs();
             initializeEventListeners();
@@ -646,21 +1133,15 @@
 
         // Tab Management
         function initializeTabs() {
-            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabButtons = document.querySelectorAll('.tab-button[data-tab]');
             
             tabButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const tabId = this.getAttribute('data-tab');
                     
-                    // Remove active class from all tabs and contents
-                    document.querySelectorAll('.tab-button').forEach(btn => {
-                        btn.classList.remove('active');
-                    });
-                    document.querySelectorAll('.tab-content').forEach(content => {
-                        content.classList.remove('active');
-                    });
+                    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
                     
-                    // Add active class to current tab and content
                     this.classList.add('active');
                     document.getElementById(`${tabId}-tab`).classList.add('active');
                 });
@@ -669,12 +1150,6 @@
 
         // Event Listeners
         function initializeEventListeners() {
-            // Mobile menu toggle
-            document.getElementById('mobile-menu-button').addEventListener('click', function() {
-                document.getElementById('mobile-menu').classList.toggle('hidden');
-            });
-            
-            // Form submissions
             document.getElementById('hero-form').addEventListener('submit', saveHeroData);
             document.getElementById('principal-form').addEventListener('submit', savePrincipalData);
             document.getElementById('statistics-form').addEventListener('submit', saveStatisticsData);
@@ -683,36 +1158,34 @@
             document.getElementById('contact-form').addEventListener('submit', saveContactData);
             document.getElementById('popup-notice-form').addEventListener('submit', savePopupNoticeData);
             
-            // Reset buttons
             document.getElementById('reset-hero').addEventListener('click', resetHeroForm);
             document.getElementById('reset-principal').addEventListener('click', resetPrincipalForm);
             document.getElementById('reset-statistics').addEventListener('click', resetStatisticsForm);
             document.getElementById('reset-marquee').addEventListener('click', resetMarqueeForm);
             document.getElementById('reset-contact').addEventListener('click', resetContactForm);
             
-            // Program management
             document.getElementById('add-program').addEventListener('click', showProgramForm);
             document.getElementById('cancel-program').addEventListener('click', hideProgramForm);
-            
-            // Notice management
             document.getElementById('add-notice').addEventListener('click', showNoticePopup);
             
-            // Popup management
             document.getElementById('close-popup').addEventListener('click', hideNoticePopup);
             document.getElementById('cancel-popup-notice').addEventListener('click', hideNoticePopup);
             
-            // Gallery management
             document.getElementById('upload-gallery-images').addEventListener('click', openGalleryUploadWidget);
             document.getElementById('refresh-gallery').addEventListener('click', loadGalleryData);
             
-            // Hero image management
             document.getElementById('upload-hero-image').addEventListener('click', openHeroUploadWidget);
-            
-            // Principal image management
             document.getElementById('upload-principal-image').addEventListener('click', openPrincipalUploadWidget);
+
+            // Close popup on outside click
+            document.getElementById('notice-popup').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('notice-popup')) {
+                    hideNoticePopup();
+                }
+            });
         }
 
-        // Cloudinary Widget Initialization
+        // Cloudinary Widget
         function initializeCloudinaryWidget() {
             myWidget = cloudinary.createUploadWidget({
                 cloudName: cloudinaryConfig.cloudName,
@@ -720,84 +1193,51 @@
                 multiple: true,
                 maxFiles: 20,
                 resourceType: 'image',
-                clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif'],
-                maxFileSize: 5000000, // 5MB
+                clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+                maxFileSize: 5000000,
                 showPoweredBy: false,
-                language: 'bn',
-                text: {
-                    bn: {
-                        queue: {
-                            title: "আপনার ফাইলসমূহ",
-                            title_uploading_with_counter: "আপলোড হচ্ছে {{num}}/{{total}}",
-                            title_uploading: "আপলোড হচ্ছে",
-                            mini_title: "ফাইলসমূহ",
-                            mini_title_uploading_with_counter: "আপলোড হচ্ছে {{num}}/{{total}}",
-                            mini_title_uploading: "আপলোড হচ্ছে"
-                        },
-                        uploader: {
-                            browse: "ফাইল সিলেক্ট করুন",
-                            drop: "ফাইলসমূহ এখানে ড্রপ করুন"
-                        }
-                    }
-                }
+                language: 'bn'
             }, (error, result) => {
                 if (!error && result && result.event === "success") {
-                    console.log('Cloudinary upload result:', result);
+                    console.log('Cloudinary upload:', result.info);
                     
-                    // Handle the uploaded image based on context
-                    if (result.info.resource_type === 'image') {
-                        const imageUrl = result.info.secure_url;
-                        const publicId = result.info.public_id;
-                        
-                        // Check which widget was opened
-                        if (document.getElementById('hero-tab').classList.contains('active')) {
-                            // Hero image upload
-                            updateHeroImage(imageUrl, publicId);
-                        } else if (document.getElementById('principal-tab').classList.contains('active')) {
-                            // Principal image upload
-                            updatePrincipalImage(imageUrl, publicId);
-                        } else if (document.getElementById('gallery-tab').classList.contains('active')) {
-                            // Gallery image upload
-                            saveGalleryImage(imageUrl, publicId);
-                        }
+                    const imageUrl = result.info.secure_url;
+                    const publicId = result.info.public_id;
+                    
+                    if (currentUploadContext === 'hero') {
+                        updateHeroImage(imageUrl, publicId);
+                    } else if (currentUploadContext === 'principal') {
+                        updatePrincipalImage(imageUrl, publicId);
+                    } else if (currentUploadContext === 'gallery') {
+                        saveGalleryImage(imageUrl, publicId);
                     }
                 }
                 
                 if (error) {
-                    console.error('Cloudinary upload error:', error);
+                    console.error('Upload error:', error);
                     alert('ইমেজ আপলোডে সমস্যা হয়েছে: ' + error.message);
                 }
             });
         }
 
-        // Open Cloudinary Widget for Hero Image
         function openHeroUploadWidget() {
-            myWidget.update({
-                multiple: false,
-                maxFiles: 1
-            });
+            currentUploadContext = 'hero';
+            myWidget.update({ multiple: false, maxFiles: 1 });
             myWidget.open();
         }
 
-        // Open Cloudinary Widget for Principal Image
         function openPrincipalUploadWidget() {
-            myWidget.update({
-                multiple: false,
-                maxFiles: 1
-            });
+            currentUploadContext = 'principal';
+            myWidget.update({ multiple: false, maxFiles: 1 });
             myWidget.open();
         }
 
-        // Open Cloudinary Widget for Gallery Images
         function openGalleryUploadWidget() {
-            myWidget.update({
-                multiple: true,
-                maxFiles: 20
-            });
+            currentUploadContext = 'gallery';
+            myWidget.update({ multiple: true, maxFiles: 20 });
             myWidget.open();
         }
 
-        // Update Hero Image
         function updateHeroImage(imageUrl, publicId) {
             const preview = document.getElementById('hero-image-preview');
             const img = preview.querySelector('img');
@@ -807,23 +1247,16 @@
             document.getElementById('hero-image-url').value = imageUrl;
             document.getElementById('hero-image-public-id').value = publicId;
             
-            // Add event listeners to action buttons
-            const changeBtn = preview.querySelector('.change-hero-image');
-            const removeBtn = preview.querySelector('.remove-hero-image');
-            
-            changeBtn.onclick = () => openHeroUploadWidget();
-            removeBtn.onclick = () => removeHeroImage();
+            preview.querySelector('.change-hero-image').onclick = () => openHeroUploadWidget();
+            preview.querySelector('.remove-hero-image').onclick = () => removeHeroImage();
         }
 
-        // Remove Hero Image
         function removeHeroImage() {
-            const preview = document.getElementById('hero-image-preview');
-            preview.classList.add('hidden');
+            document.getElementById('hero-image-preview').classList.add('hidden');
             document.getElementById('hero-image-url').value = '';
             document.getElementById('hero-image-public-id').value = '';
         }
 
-        // Update Principal Image
         function updatePrincipalImage(imageUrl, publicId) {
             const preview = document.getElementById('principal-image-preview');
             const img = preview.querySelector('img');
@@ -833,23 +1266,16 @@
             document.getElementById('principal-image-url').value = imageUrl;
             document.getElementById('principal-image-public-id').value = publicId;
             
-            // Add event listeners to action buttons
-            const changeBtn = preview.querySelector('.change-principal-image');
-            const removeBtn = preview.querySelector('.remove-principal-image');
-            
-            changeBtn.onclick = () => openPrincipalUploadWidget();
-            removeBtn.onclick = () => removePrincipalImage();
+            preview.querySelector('.change-principal-image').onclick = () => openPrincipalUploadWidget();
+            preview.querySelector('.remove-principal-image').onclick = () => removePrincipalImage();
         }
 
-        // Remove Principal Image
         function removePrincipalImage() {
-            const preview = document.getElementById('principal-image-preview');
-            preview.classList.add('hidden');
+            document.getElementById('principal-image-preview').classList.add('hidden');
             document.getElementById('principal-image-url').value = '';
             document.getElementById('principal-image-public-id').value = '';
         }
 
-        // Save Gallery Image to Firebase
         function saveGalleryImage(imageUrl, publicId) {
             const newImageRef = database.ref('gallery').push();
             newImageRef.set({
@@ -857,7 +1283,6 @@
                 publicId: publicId,
                 uploadedAt: new Date().toISOString()
             }).then(() => {
-                alert('ইমেজ সফলভাবে গ্যালারিতে সংরক্ষণ করা হয়েছে!');
                 loadGalleryData();
             }).catch(error => {
                 console.error('Error saving gallery image:', error);
@@ -865,7 +1290,7 @@
             });
         }
 
-        // Load All Data from Firebase
+        // Load Data
         function loadAllData() {
             loadHeroData();
             loadPrincipalData();
@@ -877,558 +1302,446 @@
             loadContactData();
         }
 
-        // Load Hero Data
         function loadHeroData() {
             database.ref('hero').once('value').then((snapshot) => {
-                const heroData = snapshot.val();
-                if (heroData) {
-                    document.getElementById('hero-title').value = heroData.title || '';
-                    document.getElementById('hero-description').value = heroData.description || '';
+                const data = snapshot.val();
+                if (data) {
+                    document.getElementById('hero-title').value = data.title || '';
+                    document.getElementById('hero-description').value = data.description || '';
                     
-                    if (heroData.backgroundImage) {
+                    if (data.backgroundImage) {
                         const preview = document.getElementById('hero-image-preview');
-                        const img = preview.querySelector('img');
-                        img.src = heroData.backgroundImage;
+                        preview.querySelector('img').src = data.backgroundImage;
                         preview.classList.remove('hidden');
                         
-                        document.getElementById('hero-image-url').value = heroData.backgroundImage;
-                        document.getElementById('hero-image-public-id').value = heroData.publicId || '';
+                        document.getElementById('hero-image-url').value = data.backgroundImage;
+                        document.getElementById('hero-image-public-id').value = data.publicId || '';
                         
-                        // Add event listeners to action buttons
-                        const changeBtn = preview.querySelector('.change-hero-image');
-                        const removeBtn = preview.querySelector('.remove-hero-image');
-                        
-                        changeBtn.onclick = () => openHeroUploadWidget();
-                        removeBtn.onclick = () => removeHeroImage();
+                        preview.querySelector('.change-hero-image').onclick = () => openHeroUploadWidget();
+                        preview.querySelector('.remove-hero-image').onclick = () => removeHeroImage();
                     }
                 }
             });
         }
 
-        // Load Principal Data
         function loadPrincipalData() {
             database.ref('principal').once('value').then((snapshot) => {
-                const principalData = snapshot.val();
-                if (principalData) {
-                    document.getElementById('principal-name').value = principalData.name || '';
-                    document.getElementById('principal-designation').value = principalData.designation || '';
-                    document.getElementById('principal-message').value = principalData.message || '';
+                const data = snapshot.val();
+                if (data) {
+                    document.getElementById('principal-name').value = data.name || '';
+                    document.getElementById('principal-designation').value = data.designation || '';
+                    document.getElementById('principal-message').value = data.message || '';
                     
-                    if (principalData.image) {
+                    if (data.image) {
                         const preview = document.getElementById('principal-image-preview');
-                        const img = preview.querySelector('img');
-                        img.src = principalData.image;
+                        preview.querySelector('img').src = data.image;
                         preview.classList.remove('hidden');
                         
-                        document.getElementById('principal-image-url').value = principalData.image;
-                        document.getElementById('principal-image-public-id').value = principalData.publicId || '';
+                        document.getElementById('principal-image-url').value = data.image;
+                        document.getElementById('principal-image-public-id').value = data.publicId || '';
                         
-                        // Add event listeners to action buttons
-                        const changeBtn = preview.querySelector('.change-principal-image');
-                        const removeBtn = preview.querySelector('.remove-principal-image');
-                        
-                        changeBtn.onclick = () => openPrincipalUploadWidget();
-                        removeBtn.onclick = () => removePrincipalImage();
+                        preview.querySelector('.change-principal-image').onclick = () => openPrincipalUploadWidget();
+                        preview.querySelector('.remove-principal-image').onclick = () => removePrincipalImage();
                     }
                 }
             });
         }
 
-        // Load Statistics Data
         function loadStatisticsData() {
             database.ref('statistics').once('value').then((snapshot) => {
-                const statsData = snapshot.val();
-                if (statsData) {
-                    document.getElementById('student-count').value = statsData.students || '';
-                    document.getElementById('teacher-count').value = statsData.teachers || '';
-                    document.getElementById('club-count').value = statsData.clubs || '';
-                    document.getElementById('pass-rate').value = statsData.passRate || '';
+                const data = snapshot.val();
+                if (data) {
+                    document.getElementById('student-count').value = data.students || '';
+                    document.getElementById('teacher-count').value = data.teachers || '';
+                    document.getElementById('club-count').value = data.clubs || '';
+                    document.getElementById('pass-rate').value = data.passRate || '';
                 }
             });
         }
 
-        // Load Programs Data
         function loadProgramsData() {
             database.ref('programs').once('value').then((snapshot) => {
-                const programsData = snapshot.val();
-                const programsList = document.getElementById('programs-list');
+                const data = snapshot.val();
+                const list = document.getElementById('programs-list');
                 
-                if (programsData) {
-                    programsList.innerHTML = '';
+                if (data) {
+                    list.innerHTML = '';
                     
-                    Object.keys(programsData).forEach(key => {
-                        const program = programsData[key];
-                        const programElement = document.createElement('div');
-                        programElement.className = 'bg-white p-4 rounded-lg border border-gray-200 flex justify-between items-center fade-in hover-effect';
-                        programElement.innerHTML = `
-                            <div>
-                                <h4 class="font-semibold text-lg primary-text">${program.title}</h4>
-                                <p class="text-gray-600 text-sm mt-1">${program.description}</p>
+                    Object.keys(data).forEach(key => {
+                        const program = data[key];
+                        const el = document.createElement('div');
+                        el.className = 'list-item';
+                        el.innerHTML = `
+                            <div class="list-item-content">
+                                <div class="list-item-title">
+                                    <i class="${program.icon || 'fas fa-book'} mr-2"></i>
+                                    ${escapeHtml(program.title)}
+                                </div>
+                                <div class="list-item-desc">${escapeHtml(program.description)}</div>
                             </div>
-                            <div class="flex space-x-2">
-                                <button class="edit-program px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200" data-id="${key}">
-                                    <i class="fas fa-edit mr-1"></i> এডিট
+                            <div class="list-item-actions">
+                                <button class="btn btn-sm btn-blue edit-program" data-id="${key}">
+                                    <i class="fas fa-edit"></i> এডিট
                                 </button>
-                                <button class="delete-program px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200" data-id="${key}">
-                                    <i class="fas fa-trash mr-1"></i> ডিলিট
-                                </button>
-                            </div>
-                        `;
-                        programsList.appendChild(programElement);
-                    });
-                    
-                    // Add event listeners to edit and delete buttons
-                    document.querySelectorAll('.edit-program').forEach(button => {
-                        button.addEventListener('click', function() {
-                            editProgram(this.getAttribute('data-id'));
-                        });
-                    });
-                    
-                    document.querySelectorAll('.delete-program').forEach(button => {
-                        button.addEventListener('click', function() {
-                            deleteProgram(this.getAttribute('data-id'));
-                        });
-                    });
-                } else {
-                    programsList.innerHTML = '<p class="text-center py-4 text-gray-500">কোন প্রোগ্রাম পাওয়া যায়নি</p>';
-                }
-            });
-        }
-
-        // Load Notices Data
-        function loadNoticesData() {
-            database.ref('notices').once('value').then((snapshot) => {
-                const noticesData = snapshot.val();
-                const noticesList = document.getElementById('notices-list');
-                
-                if (noticesData) {
-                    noticesList.innerHTML = '';
-                    
-                    Object.keys(noticesData).forEach(key => {
-                        const notice = noticesData[key];
-                        const noticeElement = document.createElement('div');
-                        noticeElement.className = 'bg-white p-4 rounded-lg border border-gray-200 flex justify-between items-center fade-in hover-effect';
-                        noticeElement.innerHTML = `
-                            <div>
-                                <h4 class="font-semibold text-lg primary-text">${notice.title}</h4>
-                                <p class="text-gray-600 text-sm mt-1">${notice.description}</p>
-                                <p class="text-gray-500 text-xs mt-2"><i class="far fa-calendar-alt mr-1"></i> ${notice.date}</p>
-                            </div>
-                            <div class="flex space-x-2">
-                                <button class="edit-notice px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200" data-id="${key}">
-                                    <i class="fas fa-edit mr-1"></i> এডিট
-                                </button>
-                                <button class="delete-notice px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200" data-id="${key}">
-                                    <i class="fas fa-trash mr-1"></i> ডিলিট
-                                </button>
-                            </div>
-                        `;
-                        noticesList.appendChild(noticeElement);
-                    });
-                    
-                    // Add event listeners to edit and delete buttons
-                    document.querySelectorAll('.edit-notice').forEach(button => {
-                        button.addEventListener('click', function() {
-                            editNotice(this.getAttribute('data-id'));
-                        });
-                    });
-                    
-                    document.querySelectorAll('.delete-notice').forEach(button => {
-                        button.addEventListener('click', function() {
-                            deleteNotice(this.getAttribute('data-id'));
-                        });
-                    });
-                } else {
-                    noticesList.innerHTML = '<p class="text-center py-4 text-gray-500">কোন নোটিশ পাওয়া যায়নি</p>';
-                }
-            });
-        }
-
-        // Load Marquee Data
-        function loadMarqueeData() {
-            database.ref('marquee').once('value').then((snapshot) => {
-                const marqueeData = snapshot.val();
-                if (marqueeData) {
-                    document.getElementById('marquee-text').value = marqueeData.text || '';
-                }
-            });
-        }
-
-        // Load Gallery Data
-        function loadGalleryData() {
-            database.ref('gallery').once('value').then((snapshot) => {
-                const galleryData = snapshot.val();
-                const galleryContainer = document.getElementById('gallery-images-container');
-                
-                if (galleryData) {
-                    galleryContainer.innerHTML = '';
-                    
-                    Object.keys(galleryData).forEach(key => {
-                        const imageData = galleryData[key];
-                        const imageElement = document.createElement('div');
-                        imageElement.className = 'image-container relative group fade-in';
-                        imageElement.innerHTML = `
-                            <img src="${imageData.url}" alt="Gallery Image" class="w-full h-40 object-cover rounded-lg cloudinary-image">
-                            <div class="image-actions absolute top-2 right-2 flex space-x-2">
-                                <button class="edit-gallery-image bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition" data-id="${key}" data-public-id="${imageData.publicId}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="delete-gallery-image bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition" data-id="${key}" data-public-id="${imageData.publicId}">
+                                <button class="btn btn-sm delete-program" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 4px 12px rgba(239,68,68,0.3);" data-id="${key}">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         `;
-                        galleryContainer.appendChild(imageElement);
+                        list.appendChild(el);
                     });
                     
-                    // Add event listeners to delete buttons
-                    document.querySelectorAll('.delete-gallery-image').forEach(button => {
-                        button.addEventListener('click', function() {
-                            deleteGalleryImage(this.getAttribute('data-id'), this.getAttribute('data-public-id'));
+                    document.querySelectorAll('.edit-program').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            editProgram(this.getAttribute('data-id'));
                         });
                     });
                     
-                    // Add event listeners to edit buttons
-                    document.querySelectorAll('.edit-gallery-image').forEach(button => {
-                        button.addEventListener('click', function() {
-                            editGalleryImage(this.getAttribute('data-id'), this.getAttribute('data-public-id'));
+                    document.querySelectorAll('.delete-program').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            deleteProgram(this.getAttribute('data-id'));
                         });
                     });
                 } else {
-                    galleryContainer.innerHTML = '<p class="text-center py-4 text-gray-500 col-span-2 md:col-span-3 lg:col-span-4">গ্যালারিতে কোন ইমেজ নেই</p>';
+                    list.innerHTML = '<p class="text-center py-8 text-gray-400 text-sm">কোন প্রোগ্রাম পাওয়া যায়নি</p>';
                 }
             });
         }
 
-        // Load Contact Data
+        function loadNoticesData() {
+            database.ref('notices').once('value').then((snapshot) => {
+                const data = snapshot.val();
+                const list = document.getElementById('notices-list');
+                
+                if (data) {
+                    list.innerHTML = '';
+                    
+                    Object.keys(data).forEach(key => {
+                        const notice = data[key];
+                        const el = document.createElement('div');
+                        el.className = 'list-item';
+                        el.innerHTML = `
+                            <div class="list-item-content">
+                                <div class="list-item-title">
+                                    ${notice.isNew ? '<span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-2 align-middle"></span>' : ''}
+                                    ${escapeHtml(notice.title)}
+                                </div>
+                                <div class="list-item-desc">${escapeHtml(notice.description)}</div>
+                                <div class="list-item-date">
+                                    <i class="far fa-calendar-alt"></i>
+                                    ${notice.date}
+                                </div>
+                            </div>
+                            <div class="list-item-actions">
+                                <button class="btn btn-sm btn-blue edit-notice" data-id="${key}">
+                                    <i class="fas fa-edit"></i> এডিট
+                                </button>
+                                <button class="btn btn-sm delete-notice" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 4px 12px rgba(239,68,68,0.3);" data-id="${key}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                        list.appendChild(el);
+                    });
+                    
+                    document.querySelectorAll('.edit-notice').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            editNotice(this.getAttribute('data-id'));
+                        });
+                    });
+                    
+                    document.querySelectorAll('.delete-notice').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            deleteNotice(this.getAttribute('data-id'));
+                        });
+                    });
+                } else {
+                    list.innerHTML = '<p class="text-center py-8 text-gray-400 text-sm">কোন নোটিশ পাওয়া যায়নি</p>';
+                }
+            });
+        }
+
+        function loadMarqueeData() {
+            database.ref('marquee').once('value').then((snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    document.getElementById('marquee-text').value = data.text || '';
+                }
+            });
+        }
+
+        function loadGalleryData() {
+            database.ref('gallery').once('value').then((snapshot) => {
+                const data = snapshot.val();
+                const container = document.getElementById('gallery-images-container');
+                
+                if (data) {
+                    container.innerHTML = '';
+                    
+                    Object.keys(data).forEach(key => {
+                        const image = data[key];
+                        const el = document.createElement('div');
+                        el.className = 'gallery-image-item';
+                        el.innerHTML = `
+                            <img src="${image.url}" alt="Gallery Image" loading="lazy">
+                            <div class="image-actions">
+                                <button class="image-action-btn edit edit-gallery-image" data-id="${key}" title="Replace">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="image-action-btn delete delete-gallery-image" data-id="${key}" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                        container.appendChild(el);
+                    });
+                    
+                    document.querySelectorAll('.delete-gallery-image').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            deleteGalleryImage(this.getAttribute('data-id'));
+                        });
+                    });
+                    
+                    document.querySelectorAll('.edit-gallery-image').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            editGalleryImage(this.getAttribute('data-id'));
+                        });
+                    });
+                } else {
+                    container.innerHTML = '<p class="col-span-full text-center py-8 text-gray-400 text-sm">গ্যালারিতে কোন ইমেজ নেই</p>';
+                }
+            });
+        }
+
         function loadContactData() {
             database.ref('contact').once('value').then((snapshot) => {
-                const contactData = snapshot.val();
-                if (contactData) {
-                    document.getElementById('contact-phone').value = contactData.phone || '';
-                    document.getElementById('contact-email').value = contactData.email || '';
-                    document.getElementById('contact-address').value = contactData.address || '';
+                const data = snapshot.val();
+                if (data) {
+                    document.getElementById('contact-phone').value = data.phone || '';
+                    document.getElementById('contact-email').value = data.email || '';
+                    document.getElementById('contact-address').value = data.address || '';
                 }
             });
         }
 
-        // Save Hero Data
+        // Save Handlers
         function saveHeroData(e) {
             e.preventDefault();
-            
-            const title = document.getElementById('hero-title').value;
-            const description = document.getElementById('hero-description').value;
-            const imageUrl = document.getElementById('hero-image-url').value;
-            const publicId = document.getElementById('hero-image-public-id').value;
-            
             database.ref('hero').set({
-                title: title,
-                description: description,
-                backgroundImage: imageUrl,
-                publicId: publicId
-            }).then(() => {
-                alert('হিরো সেকশন সফলভাবে সেভ করা হয়েছে!');
-            });
+                title: document.getElementById('hero-title').value,
+                description: document.getElementById('hero-description').value,
+                backgroundImage: document.getElementById('hero-image-url').value,
+                publicId: document.getElementById('hero-image-public-id').value
+            }).then(() => alert('হিরো সেকশন সফলভাবে সেভ করা হয়েছে!'));
         }
 
-        // Save Principal Data
         function savePrincipalData(e) {
             e.preventDefault();
-            
-            const name = document.getElementById('principal-name').value;
-            const designation = document.getElementById('principal-designation').value;
-            const message = document.getElementById('principal-message').value;
-            const imageUrl = document.getElementById('principal-image-url').value;
-            const publicId = document.getElementById('principal-image-public-id').value;
-            
             database.ref('principal').set({
-                name: name,
-                designation: designation,
-                message: message,
-                image: imageUrl,
-                publicId: publicId
-            }).then(() => {
-                alert('প্রধান শিক্ষকের তথ্য সফলভাবে সেভ করা হয়েছে!');
-            });
+                name: document.getElementById('principal-name').value,
+                designation: document.getElementById('principal-designation').value,
+                message: document.getElementById('principal-message').value,
+                image: document.getElementById('principal-image-url').value,
+                publicId: document.getElementById('principal-image-public-id').value
+            }).then(() => alert('প্রধান শিক্ষকের তথ্য সফলভাবে সেভ করা হয়েছে!'));
         }
 
-        // Save Statistics Data
         function saveStatisticsData(e) {
             e.preventDefault();
-            
-            const students = document.getElementById('student-count').value;
-            const teachers = document.getElementById('teacher-count').value;
-            const clubs = document.getElementById('club-count').value;
-            const passRate = document.getElementById('pass-rate').value;
-            
             database.ref('statistics').set({
-                students: students,
-                teachers: teachers,
-                clubs: clubs,
-                passRate: passRate
-            }).then(() => {
-                alert('পরিসংখ্যান সফলভাবে সেভ করা হয়েছে!');
-            });
+                students: document.getElementById('student-count').value,
+                teachers: document.getElementById('teacher-count').value,
+                clubs: document.getElementById('club-count').value,
+                passRate: document.getElementById('pass-rate').value
+            }).then(() => alert('পরিসংখ্যান সফলভাবে সেভ করা হয়েছে!'));
         }
 
-        // Save Program Data
         function saveProgramData(e) {
             e.preventDefault();
             
-            const title = document.getElementById('program-title').value;
-            const icon = document.getElementById('program-icon').value;
-            const description = document.getElementById('program-description').value;
+            const data = {
+                title: document.getElementById('program-title').value,
+                icon: document.getElementById('program-icon').value,
+                description: document.getElementById('program-description').value
+            };
             
             if (editingProgramId) {
-                // Update existing program
-                database.ref(`programs/${editingProgramId}`).update({
-                    title: title,
-                    icon: icon,
-                    description: description
-                }).then(() => {
-                    alert('প্রোগ্রাম সফলভাবে আপডেট করা হয়েছে!');
+                database.ref(`programs/${editingProgramId}`).update(data).then(() => {
+                    alert('প্রোগ্রাম সফলভাবে আপডেট করা হয়েছে!');
                     hideProgramForm();
                     loadProgramsData();
                     editingProgramId = null;
                 });
             } else {
-                // Add new program
-                const newProgramRef = database.ref('programs').push();
-                newProgramRef.set({
-                    title: title,
-                    icon: icon,
-                    description: description
-                }).then(() => {
-                    alert('প্রোগ্রাম সফলভাবে যোগ করা হয়েছে!');
+                database.ref('programs').push().set(data).then(() => {
+                    alert('প্রোগ্রাম সফলভাবে যোগ করা হয়েছে!');
                     hideProgramForm();
                     loadProgramsData();
                 });
             }
         }
 
-        // Save Marquee Data
         function saveMarqueeData(e) {
             e.preventDefault();
-            
-            const text = document.getElementById('marquee-text').value;
-            
             database.ref('marquee').set({
-                text: text
-            }).then(() => {
-                alert('স্ক্রলিং নোটিশ সফলভাবে সেভ করা হয়েছে!');
-            });
+                text: document.getElementById('marquee-text').value
+            }).then(() => alert('স্ক্রলিং নোটিশ সফলভাবে সেভ করা হয়েছে!'));
         }
 
-        // Save Contact Data
         function saveContactData(e) {
             e.preventDefault();
-            
-            const phone = document.getElementById('contact-phone').value;
-            const email = document.getElementById('contact-email').value;
-            const address = document.getElementById('contact-address').value;
-            
             database.ref('contact').set({
-                phone: phone,
-                email: email,
-                address: address
-            }).then(() => {
-                alert('যোগাযোগ তথ্য সফলভাবে সেভ করা হয়েছে!');
-            });
+                phone: document.getElementById('contact-phone').value,
+                email: document.getElementById('contact-email').value,
+                address: document.getElementById('contact-address').value
+            }).then(() => alert('যোগাযোগ তথ্য সফলভাবে সেভ করা হয়েছে!'));
         }
 
-        // Show Notice Popup
-        function showNoticePopup() {
-            document.getElementById('notice-popup').style.display = 'flex';
-            document.getElementById('popup-notice-title').textContent = 'নতুন নোটিশ যোগ করুন';
-            document.getElementById('popup-notice-id').value = '';
-            editingNoticeId = null;
-            
-            // Set today's date as default
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('popup-notice-date').value = today;
-        }
-
-        // Hide Notice Popup
-        function hideNoticePopup() {
-            document.getElementById('notice-popup').style.display = 'none';
-            document.getElementById('popup-notice-form').reset();
-            editingNoticeId = null;
-        }
-
-        // Save Popup Notice Data
         function savePopupNoticeData(e) {
             e.preventDefault();
             
-            const title = document.getElementById('popup-notice-title-input').value;
-            const date = document.getElementById('popup-notice-date').value;
-            const isNew = document.getElementById('popup-notice-isNew').checked;
-            const description = document.getElementById('popup-notice-description').value;
+            const data = {
+                title: document.getElementById('popup-notice-title-input').value,
+                date: document.getElementById('popup-notice-date').value,
+                isNew: document.getElementById('popup-notice-isNew').checked,
+                description: document.getElementById('popup-notice-description').value
+            };
             
             if (editingNoticeId) {
-                // Update existing notice
-                database.ref(`notices/${editingNoticeId}`).update({
-                    title: title,
-                    date: date,
-                    isNew: isNew,
-                    description: description
-                }).then(() => {
-                    alert('নোটিশ সফলভাবে আপডেট করা হয়েছে!');
+                database.ref(`notices/${editingNoticeId}`).update(data).then(() => {
+                    alert('নোটিশ সফলভাবে আপডেট করা হয়েছে!');
                     hideNoticePopup();
                     loadNoticesData();
                     editingNoticeId = null;
                 });
             } else {
-                // Add new notice
-                const newNoticeRef = database.ref('notices').push();
-                newNoticeRef.set({
-                    title: title,
-                    date: date,
-                    isNew: isNew,
-                    description: description
-                }).then(() => {
-                    alert('নোটিশ সফলভাবে যোগ করা হয়েছে!');
+                database.ref('notices').push().set(data).then(() => {
+                    alert('নোটিশ সফলভাবে যোগ করা হয়েছে!');
                     hideNoticePopup();
                     loadNoticesData();
                 });
             }
         }
 
-        // Show Program Form
-        function showProgramForm() {
-            document.getElementById('program-form-container').classList.remove('hidden');
-            document.getElementById('program-form-title').textContent = 'নতুন প্রোগ্রাম যোগ করুন';
-            document.getElementById('program-id').value = '';
-            editingProgramId = null;
+        // Popup Handlers
+        function showNoticePopup() {
+            document.getElementById('notice-popup').classList.add('active');
+            document.getElementById('popup-notice-title').textContent = 'নতুন নোটিশ যোগ করুন';
+            document.getElementById('popup-notice-id').value = '';
+            editingNoticeId = null;
             
-            // Scroll to form
-            document.getElementById('program-form-container').scrollIntoView({ behavior: 'smooth' });
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('popup-notice-date').value = today;
         }
 
-        // Hide Program Form
+        function hideNoticePopup() {
+            document.getElementById('notice-popup').classList.remove('active');
+            document.getElementById('popup-notice-form').reset();
+            editingNoticeId = null;
+        }
+
+        function showProgramForm() {
+            document.getElementById('program-form-container').classList.remove('hidden');
+            document.getElementById('program-form-title').innerHTML = '<i class="fas fa-plus-circle"></i> নতুন প্রোগ্রাম যোগ করুন';
+            document.getElementById('program-id').value = '';
+            document.getElementById('program-form').reset();
+            editingProgramId = null;
+            
+            document.getElementById('program-form-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
         function hideProgramForm() {
             document.getElementById('program-form-container').classList.add('hidden');
             document.getElementById('program-form').reset();
             editingProgramId = null;
         }
 
-        // Edit Program
         function editProgram(programId) {
             database.ref(`programs/${programId}`).once('value').then((snapshot) => {
                 const program = snapshot.val();
                 if (program) {
                     document.getElementById('program-form-container').classList.remove('hidden');
-                    document.getElementById('program-form-title').textContent = 'প্রোগ্রাম এডিট করুন';
+                    document.getElementById('program-form-title').innerHTML = '<i class="fas fa-edit"></i> প্রোগ্রাম এডিট করুন';
                     document.getElementById('program-id').value = programId;
                     document.getElementById('program-title').value = program.title;
                     document.getElementById('program-icon').value = program.icon;
                     document.getElementById('program-description').value = program.description;
-                    
                     editingProgramId = programId;
                     
-                    // Scroll to form
-                    document.getElementById('program-form-container').scrollIntoView({ behavior: 'smooth' });
+                    document.getElementById('program-form-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             });
         }
 
-        // Delete Program
         function deleteProgram(programId) {
             if (confirm('আপনি কি এই প্রোগ্রাম ডিলিট করতে চান?')) {
                 database.ref(`programs/${programId}`).remove().then(() => {
-                    alert('প্রোগ্রাম সফলভাবে ডিলিট করা হয়েছে!');
+                    alert('প্রোগ্রাম সফলভাবে ডিলিট করা হয়েছে!');
                     loadProgramsData();
                 });
             }
         }
 
-        // Edit Notice
         function editNotice(noticeId) {
             database.ref(`notices/${noticeId}`).once('value').then((snapshot) => {
                 const notice = snapshot.val();
                 if (notice) {
-                    document.getElementById('notice-popup').style.display = 'flex';
+                    document.getElementById('notice-popup').classList.add('active');
                     document.getElementById('popup-notice-title').textContent = 'নোটিশ এডিট করুন';
                     document.getElementById('popup-notice-id').value = noticeId;
                     document.getElementById('popup-notice-title-input').value = notice.title;
                     document.getElementById('popup-notice-date').value = notice.date;
                     document.getElementById('popup-notice-isNew').checked = notice.isNew || false;
                     document.getElementById('popup-notice-description').value = notice.description;
-                    
                     editingNoticeId = noticeId;
                 }
             });
         }
 
-        // Delete Notice
         function deleteNotice(noticeId) {
             if (confirm('আপনি কি এই নোটিশ ডিলিট করতে চান?')) {
                 database.ref(`notices/${noticeId}`).remove().then(() => {
-                    alert('নোটিশ সফলভাবে ডিলিট করা হয়েছে!');
+                    alert('নোটিশ সফলভাবে ডিলিট করা হয়েছে!');
                     loadNoticesData();
                 });
             }
         }
 
-        // Delete Gallery Image
-        function deleteGalleryImage(imageId, publicId) {
+        function deleteGalleryImage(imageId) {
             if (confirm('আপনি কি এই ইমেজ ডিলিট করতে চান?')) {
-                // Delete from Firebase
                 database.ref(`gallery/${imageId}`).remove().then(() => {
-                    alert('ইমেজ সফলভাবে ডিলিট করা হয়েছে!');
+                    alert('ইমেজ সফলভাবে ডিলিট করা হয়েছে!');
                     loadGalleryData();
-                    
-                    // Note: In a real implementation, you would also delete from Cloudinary
-                    // using the Cloudinary Admin API with the publicId
-                    console.log('Image deleted from Firebase. Public ID for Cloudinary deletion:', publicId);
                 });
             }
         }
 
-        // Edit Gallery Image (Replace with new image)
-        function editGalleryImage(imageId, publicId) {
-            if (confirm('আপনি কি এই ইমেজ রিপ্লেস করতে চান?')) {
-                // Open Cloudinary widget for replacement
+        function editGalleryImage(imageId) {
+            if (confirm('আপনি কি এই ইমেজ রিপ্লেস করতে চান? (নতুন ইমেজ আপলোড করুন)')) {
+                currentUploadContext = 'gallery-replace-' + imageId;
+                myWidget.update({ multiple: false, maxFiles: 1 });
+                
+                // Override callback temporarily
+                const originalCallback = myWidget._options.callback;
                 myWidget.update({
-                    multiple: false,
-                    maxFiles: 1
+                    callback: (error, result) => {
+                        if (!error && result && result.event === "success") {
+                            database.ref(`gallery/${imageId}`).update({
+                                url: result.info.secure_url,
+                                publicId: result.info.public_id,
+                                updatedAt: new Date().toISOString()
+                            }).then(() => {
+                                alert('ইমেজ সফলভাবে রিপ্লেস করা হয়েছে!');
+                                loadGalleryData();
+                                myWidget.update({ callback: originalCallback });
+                            });
+                        } else if (error) {
+                            myWidget.update({ callback: originalCallback });
+                        }
+                    }
                 });
                 
-                // Store the current image ID for replacement
                 myWidget.open();
-                
-                // Set up a one-time event listener for the upload completion
-                const handleUploadComplete = (error, result) => {
-                    if (!error && result && result.event === "success") {
-                        const newImageUrl = result.info.secure_url;
-                        const newPublicId = result.info.public_id;
-                        
-                        // Update the image in Firebase
-                        database.ref(`gallery/${imageId}`).update({
-                            url: newImageUrl,
-                            publicId: newPublicId,
-                            updatedAt: new Date().toISOString()
-                        }).then(() => {
-                            alert('ইমেজ সফলভাবে রিপ্লেস করা হয়েছে!');
-                            loadGalleryData();
-                            
-                            // Note: In a real implementation, you would also delete the old image from Cloudinary
-                            // using the Cloudinary Admin API with the old publicId
-                            console.log('Old image public ID for deletion:', publicId);
-                        });
-                        
-                        // Remove the event listener
-                        myWidget.close();
-                    }
-                };
-                
-                // Temporarily replace the widget callback
-                const originalCallback = myWidget._options.callback;
-                myWidget.update({ callback: handleUploadComplete });
-                
-                // Restore original callback after operation
-                setTimeout(() => {
-                    myWidget.update({ callback: originalCallback });
-                }, 5000);
             }
         }
 
@@ -1447,21 +1760,17 @@
             document.getElementById('principal-image-public-id').value = '';
         }
 
-        function resetStatisticsForm() {
-            document.getElementById('statistics-form').reset();
+        function resetStatisticsForm() { document.getElementById('statistics-form').reset(); }
+        function resetMarqueeForm() { document.getElementById('marquee-form').reset(); }
+        function resetContactForm() { document.getElementById('contact-form').reset(); }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
         }
 
-        function resetMarqueeForm() {
-            document.getElementById('marquee-form').reset();
-        }
-
-        function resetContactForm() {
-            document.getElementById('contact-form').reset();
-        }
-        
-        
-        function schoolname(){
-            window.location.href="../Settings/school-name.html"
+        function schoolname() {
+            window.location.href = "../Settings/school-name.html";
         }
     </script>
 </body>
