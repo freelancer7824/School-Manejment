@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <meta name="theme-color" content="#6366f1">
-    <title>Admission System | Current Session</title>
+    <meta name="theme-color" content="#ffffff">
+    <title>Admit Student | Admission System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '#6366f1',
-                        primaryDark: '#4f46e5',
+                        primary: '#0ea5e9', // Sky blue from screenshot
+                        primaryDark: '#0284c7',
                         secondary: '#64748b',
                         success: '#10b981',
                         warning: '#f59e0b',
                         error: '#ef4444'
                     },
                     fontFamily: {
-                        sans: ['Inter', 'Hind Siliguri', 'sans-serif']
+                        sans: ['Inter', 'sans-serif']
                     }
                 }
             }
@@ -30,14 +30,11 @@
     </script>
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --success: #10b981;
-            --danger: #ef4444;
-            --bg: #f1f5f9;
+            --primary: #0ea5e9;
+            --primary-dark: #0284c7;
+            --bg: #f8fafc;
             --border: #e2e8f0;
-            --radius: 18px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition: all 0.2s ease;
         }
 
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -49,236 +46,208 @@
 
         body { 
             background: var(--bg); 
-            font-family: 'Inter', 'Hind Siliguri', sans-serif;
+            font-family: 'Inter', sans-serif;
             color: #0f172a;
             -webkit-font-smoothing: antialiased;
-            background-image: 
-                radial-gradient(circle at 0% 0%, rgba(99,102,241,0.07) 0%, transparent 40%),
-                radial-gradient(circle at 100% 100%, rgba(139,92,246,0.05) 0%, transparent 40%);
-            background-attachment: fixed;
             min-height: 100vh;
         }
 
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        /* ===== PAGE HEADER ===== */
+        /* ===== PAGE HEADER (Screenshot Style) ===== */
         .page-header {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
-            border-radius: 20px;
-            padding: 24px 22px;
-            color: white;
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 22px;
-            box-shadow: 0 12px 32px rgba(99,102,241,0.28);
-        }
-        .page-header::before {
-            content: '';
-            position: absolute;
-            top: -60%; right: -15%;
-            width: 220px; height: 220px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-        }
-        .page-header::after {
-            content: '';
-            position: absolute;
-            bottom: -70%; left: -10%;
-            width: 180px; height: 180px;
-            background: rgba(255,255,255,0.07);
-            border-radius: 50%;
-        }
-        .page-header-content {
-            position: relative;
-            z-index: 1;
+            background: white;
+            padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 24px;
         }
-        .brand-icon {
-            width: 54px; height: 54px;
-            border-radius: 16px;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255,255,255,0.3);
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-icon {
+            width: 28px;
+            height: 28px;
+            background: #0f172a;
+            color: white;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
-            flex-shrink: 0;
+            font-size: 12px;
         }
-        .session-pill {
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 10px 18px;
-            border-radius: 50px;
-            font-size: 13px;
+        .header-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .header-right {
+            text-align: right;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        .header-right .session-label {
+            font-weight: 500;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .header-right .session-value {
             font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            letter-spacing: 0.2px;
+            color: #0f172a;
         }
 
-        /* ===== MAIN CARD ===== */
+        /* ===== MAIN CARD (Screenshot Style) ===== */
         .main-card {
             background: white;
-            border-radius: 24px;
-            box-shadow: 0 4px 32px rgba(15,23,42,0.08);
-            border: 1px solid rgba(226,232,240,0.6);
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
             overflow: hidden;
+            max-width: 900px;
+            margin: 0 auto;
         }
-        .main-card-body {
-            padding: 22px 20px;
-        }
-        @media (min-width: 768px) {
-            .main-card-body { padding: 32px 36px; }
-        }
-
-        /* ===== STEP INDICATORS ===== */
-        .steps-wrapper {
+        
+        .card-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            position: relative;
-            margin-bottom: 36px;
-            padding: 0 4px;
+            align-items: center;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #1e293b;
+        }
+        .card-actions {
+            display: flex;
+            gap: 12px;
+            color: #64748b;
+        }
+        .card-actions i {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .card-actions i:hover {
+            color: #0f172a;
         }
 
-        .step-item {
-            flex: 1;
+        /* ===== STEP INDICATOR (Screenshot Style) ===== */
+        .stepper-container {
+            padding: 24px 24px 0 24px;
+            position: relative;
+        }
+        .stepper-line {
+            position: absolute;
+            top: 47px; /* Adjust based on circle size */
+            left: 24px;
+            right: 24px;
+            height: 1px;
+            background: #e2e8f0;
+            z-index: 1;
+        }
+        .stepper-line-active {
+            position: absolute;
+            top: 47px;
+            left: 24px;
+            width: 50%; /* 2 steps, so 50% */
+            height: 1px;
+            background: #0ea5e9;
+            z-index: 1;
+        }
+        .stepper-wrapper {
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: space-between;
             position: relative;
             z-index: 2;
         }
-
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
         .step-circle {
             width: 46px;
             height: 46px;
             border-radius: 50%;
-            border: 3px solid #e2e8f0;
             background: white;
+            border: 1px solid #cbd5e1;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 800;
+            font-weight: 500;
             font-size: 1rem;
             color: #94a3b8;
-            transition: var(--transition);
-            position: relative;
-            z-index: 2;
+            transition: all 0.2s;
         }
         .step-circle.active {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            border-color: transparent;
+            background: #0ea5e9;
+            border-color: #0ea5e9;
             color: white;
-            box-shadow: 0 8px 24px rgba(99,102,241,0.4);
-            transform: scale(1.1);
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.2);
         }
         .step-circle.complete {
-            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
-            border-color: transparent;
+            background: #0ea5e9;
+            border-color: #0ea5e9;
             color: white;
-            box-shadow: 0 6px 18px rgba(16,185,129,0.35);
         }
+        .step-circle.complete span { display: none; }
         .step-circle.complete::after {
             content: '\f00c';
             font-family: 'Font Awesome 6 Free';
             font-weight: 900;
-            font-size: 16px;
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
-            border-radius: 50%;
+            font-size: 14px;
         }
-        .step-circle.complete span { display: none; }
-
         .step-label {
-            margin-top: 10px;
-            font-size: 12px;
-            font-weight: 700;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
             color: #64748b;
             text-align: center;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            white-space: nowrap;
         }
-        .step-label i { font-size: 10px; }
-        .step-label.active { color: #6366f1; }
-        .step-label.complete { color: #10b981; }
-
-        .step-connector {
-            position: absolute;
-            top: 23px;
-            left: 50%;
-            right: -50%;
-            height: 3px;
-            background: #e2e8f0;
-            z-index: 1;
-            transition: var(--transition);
+        .step-label.active {
+            color: #0ea5e9;
+            font-weight: 600;
         }
-        .step-connector.complete {
-            background: linear-gradient(90deg, #10b981, #0d9488);
+        .step-label.complete {
+            color: #0ea5e9;
         }
 
-        /* ===== FORM FIELDS ===== */
+        /* ===== FORM FIELDS (Screenshot Style) ===== */
         .field-group {
             margin-bottom: 16px;
         }
-
         .field-label {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            font-size: 0.82rem;
-            font-weight: 700;
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
             color: #334155;
-            margin-bottom: 7px;
-            letter-spacing: 0.1px;
-        }
-        .field-label i {
-            color: #6366f1;
-            font-size: 0.75rem;
-            width: 14px;
-            text-align: center;
+            margin-bottom: 4px;
         }
         .field-label .required {
             color: #ef4444;
             margin-left: 2px;
         }
-
         .field-input,
         .field-select {
             width: 100%;
-            padding: 12px 14px;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            background: #fafbfc;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            background: white;
             color: #0f172a;
-            transition: var(--transition);
+            transition: border-color 0.2s, box-shadow 0.2s;
             outline: none;
             font-family: inherit;
         }
         .field-input:focus,
         .field-select:focus {
-            border-color: #6366f1;
-            background: white;
-            box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
         }
         .field-input::placeholder { color: #94a3b8; }
 
@@ -286,247 +255,166 @@
         .field-select.border-error {
             border-color: #ef4444 !important;
             background-color: #fef2f2 !important;
-            animation: shake 0.35s ease;
         }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-4px); }
-            75% { transform: translateX(4px); }
-        }
-
-        /* ===== IMAGE PREVIEW ===== */
-        .image-preview {
-            width: 88px;
-            height: 88px;
-            border-radius: 16px;
-            object-fit: cover;
-            border: 3px solid white;
-            box-shadow: 0 6px 20px rgba(15,23,42,0.1);
-            background: linear-gradient(135deg, #eef2ff, #ddd6fe);
-            flex-shrink: 0;
-            transition: var(--transition);
-        }
-        .image-preview:hover { transform: scale(1.05); }
-
-        .upload-section {
-            padding: 16px;
-            border: 2px dashed #c7d2fe;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #f8fafc, #eef2ff);
-        }
-
-        /* ===== SECTION DIVIDERS ===== */
-        .section-title {
+        /* ===== FILE UPLOAD (Screenshot Style) ===== */
+        .file-upload-wrapper {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 1rem;
-            font-weight: 800;
-            color: #1e293b;
-            margin: 24px 0 16px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            overflow: hidden;
+            background: white;
         }
-        .section-title .title-icon {
-            width: 34px; height: 34px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .file-upload-text {
+            flex: 1;
+            padding: 10px 12px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .file-upload-btn {
+            background: #0ea5e9;
             color: white;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(99,102,241,0.3);
-            flex-shrink: 0;
+            border: none;
+            padding: 10px 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .file-upload-btn:hover {
+            background: #0284c7;
+        }
+        .file-upload-note {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 6px;
         }
 
-        /* ===== SUBJECT CARDS ===== */
-        .subject-box {
-            background: #f8fafc;
-            border: 2px solid #f1f5f9;
-            border-radius: 14px;
-            padding: 14px;
-            min-height: 100px;
-            transition: var(--transition);
-        }
-        .subject-box:hover {
-            border-color: #c7d2fe;
-            background: #eef2ff;
-        }
-        .subject-box-title {
-            font-size: 0.72rem;
-            font-weight: 800;
-            color: #6366f1;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .subject-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 5px 0;
-            font-size: 0.82rem;
-            cursor: pointer;
-        }
-        .subject-item input {
-            width: 16px;
-            height: 16px;
-            accent-color: #6366f1;
-            cursor: pointer;
-        }
-
-        /* ===== BUTTONS ===== */
+        /* ===== BUTTONS (Screenshot Style) ===== */
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding: 12px 22px;
-            border-radius: 12px;
-            font-size: 0.875rem;
-            font-weight: 700;
+            gap: 6px;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
             border: none;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.2s;
             font-family: inherit;
-            white-space: nowrap;
         }
-        .btn:active { transform: scale(0.97); }
+        .btn:active { transform: scale(0.98); }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .btn-primary {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            background: #0ea5e9;
             color: white;
-            box-shadow: 0 6px 18px rgba(99,102,241,0.35);
         }
         .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 26px rgba(99,102,241,0.45);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
-            color: white;
-            box-shadow: 0 6px 18px rgba(16,185,129,0.35);
-        }
-        .btn-success:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 26px rgba(16,185,129,0.45);
+            background: #0284c7;
         }
 
         .btn-ghost {
-            background: #f1f5f9;
+            background: white;
             color: #334155;
-            border: 2px solid #e2e8f0;
+            border: 1px solid #cbd5e1;
         }
         .btn-ghost:hover:not(:disabled) {
-            background: #e2e8f0;
-            border-color: #cbd5e1;
+            background: #f8fafc;
+            border-color: #94a3b8;
         }
-
-        .btn-danger-outline {
-            background: #fef2f2;
-            color: #dc2626;
-            border: 2px solid #fecaca;
-        }
-        .btn-danger-outline:hover:not(:disabled) {
-            background: #fee2e2;
-        }
-
-        .btn-sm { padding: 9px 14px; font-size: 0.78rem; border-radius: 10px; }
 
         /* ===== MODAL ===== */
         .modal-backdrop {
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            background-color: rgba(15,23,42,0.55);
+            background-color: rgba(15,23,42,0.5);
             animation: fadeIn 0.2s ease;
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .modal-content {
-            animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: slideUp 0.3s ease;
         }
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px) scale(0.96); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* ===== MESSAGE MODAL ICON ===== */
         .msg-icon-success {
-            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            background: #d1fae5;
             color: #047857;
         }
         .msg-icon-error {
-            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            background: #fee2e2;
             color: #b91c1c;
         }
 
         /* ===== PARENT DROPDOWN ===== */
         .parent-dropdown-item {
-            padding: 12px 14px;
+            padding: 10px 14px;
             border-bottom: 1px solid #f1f5f9;
             cursor: pointer;
-            transition: var(--transition);
+            transition: background 0.2s;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
         .parent-dropdown-item:last-child { border-bottom: none; }
         .parent-dropdown-item:hover {
-            background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+            background: #f8fafc;
         }
         .parent-avatar-sm {
-            width: 36px; height: 36px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            width: 32px; height: 32px;
+            border-radius: 4px;
+            background: #e0f2fe;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 13px;
+            color: #0ea5e9;
+            font-size: 12px;
             flex-shrink: 0;
         }
 
         /* ===== INFO BOX ===== */
         .info-box {
-            background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
-            border: 2px solid #c7d2fe;
-            border-radius: 14px;
-            padding: 14px 16px;
-            font-size: 0.82rem;
-            color: #3730a3;
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 4px;
+            padding: 12px 16px;
+            font-size: 0.8rem;
+            color: #0369a1;
             display: flex;
             gap: 10px;
             align-items: flex-start;
         }
-        .info-box i { color: #6366f1; flex-shrink: 0; margin-top: 2px; }
+        .info-box i { color: #0ea5e9; flex-shrink: 0; margin-top: 2px; }
         .info-box code {
             background: white;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.78rem;
-            color: #4338ca;
-            font-weight: 700;
-            border: 1px solid #c7d2fe;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
         }
 
         /* ===== SELECTED PARENT BADGE ===== */
         .selected-parent {
-            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-            border: 2px solid #6ee7b7;
-            border-radius: 12px;
-            padding: 10px 14px;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 4px;
+            padding: 8px 12px;
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             color: #047857;
         }
         .selected-parent i { color: #10b981; }
@@ -534,32 +422,22 @@
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 640px) {
-            .page-header { padding: 20px 16px; border-radius: 16px; }
-            .brand-icon { width: 46px; height: 46px; font-size: 18px; border-radius: 13px; }
-            .session-pill { padding: 8px 14px; font-size: 11px; }
-            .main-card { border-radius: 18px; }
-            .main-card-body { padding: 18px 14px; }
-            .step-circle { width: 38px; height: 38px; font-size: 0.85rem; border-width: 2px; }
-            .step-connector { top: 19px; }
-            .step-label { font-size: 10px; }
-            .step-label span { display: none; }
-            .step-label i { font-size: 12px; }
-            .field-input, .field-select { padding: 11px 12px; font-size: 0.82rem; }
-            .image-preview { width: 74px; height: 74px; border-radius: 14px; }
-            .btn { padding: 11px 16px; font-size: 0.82rem; }
-        }
-
-        @media (max-width: 400px) {
-            .step-label { font-size: 9px; }
-            .btn { padding: 10px 14px; font-size: 0.78rem; gap: 6px; }
+            .page-header { padding: 12px 16px; flex-direction: column; align-items: flex-start; gap: 8px; }
+            .header-right { text-align: left; width: 100%; }
+            .main-card-body { padding: 16px; }
+            .card-header { padding: 12px 16px; }
+            .stepper-container { padding: 16px 16px 0 16px; }
+            .stepper-line, .stepper-line-active { left: 16px; right: 16px; }
+            .field-input, .field-select { padding: 8px 10px; font-size: 0.8rem; }
+            .btn { padding: 8px 16px; font-size: 0.8rem; }
         }
 
         /* ===== ANIMATIONS ===== */
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(16px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fade-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
+        .animate-fade-up { animation: fadeInUp 0.4s ease forwards; opacity: 0; }
 
         /* ===== GRID UTILITY ===== */
         .form-grid {
@@ -570,207 +448,190 @@
         @media (min-width: 640px) {
             .form-grid { grid-template-columns: 1fr 1fr; }
         }
+        @media (min-width: 1024px) {
+            .form-grid { grid-template-columns: 1fr 1fr 1fr 1fr; } /* 4 columns for desktop */
+        }
+        .span-2 { grid-column: span 1; }
+        @media (min-width: 1024px) {
+            .span-2 { grid-column: span 2; }
+        }
     </style>
 </head>
-<body class="min-h-screen p-3 md:p-6 lg:p-8">
+<body class="min-h-screen">
 
     <!-- Global Message Modal -->
     <div id="message-modal" class="hidden fixed inset-0 z-[100001] flex items-center justify-center modal-backdrop p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full modal-content ring-1 ring-black/5 overflow-hidden">
+        <div class="bg-white rounded shadow-xl max-w-md w-full modal-content border border-gray-200 overflow-hidden">
             <div class="p-5 flex items-start gap-4">
-                <div id="msg-icon" class="flex-shrink-0 rounded-2xl p-3 msg-icon-success">
-                    <i class="fas fa-check-circle text-2xl"></i>
+                <div id="msg-icon" class="flex-shrink-0 rounded-full p-2 msg-icon-success">
+                    <i class="fas fa-check-circle text-xl"></i>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h3 id="message-title" class="text-lg font-bold text-gray-800">Success</h3>
+                    <h3 id="message-title" class="text-base font-semibold text-gray-800">Success</h3>
                     <p id="message-content" class="text-gray-600 mt-1 text-sm leading-relaxed">Operation completed.</p>
                 </div>
-                <button onclick="hideMessage()" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition flex-shrink-0">
-                    <i class="fas fa-times"></i>
+                <button onclick="hideMessage()" class="w-6 h-6 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition flex-shrink-0">
+                    <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Main Container -->
-    <div class="max-w-5xl mx-auto">
+    <!-- Page Header (Screenshot Style) -->
+    <div class="page-header animate-fade-up">
+        <div class="header-left">
+            <div class="header-icon">
+                <i class="fas fa-plus"></i>
+            </div>
+            <h1 class="header-title">Admit Student</h1>
+        </div>
+        <div class="header-right">
+            <span class="session-label">Current Session:</span>
+            <span class="session-value" id="current-session-badge">Loading...</span>
+        </div>
+    </div>
 
-        <!-- Page Header -->
-        <div class="page-header animate-fade-up">
-            <div class="page-header-content">
-                <div class="flex items-center gap-3">
-                    <div class="brand-icon">
-                        <i class="fas fa-user-graduate"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-lg md:text-2xl lg:text-3xl font-extrabold tracking-tight">Admit Student</h1>
-                        <p class="text-xs md:text-sm opacity-90 mt-0.5 flex items-center gap-1.5">
-                            <i class="fas fa-circle text-[8px] text-yellow-300"></i>
-                            Current Session Admission
-                        </p>
-                    </div>
-                </div>
-                <div class="session-pill">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span id="current-session-badge">Loading...</span>
+    <!-- Main Container -->
+    <div class="max-w-5xl mx-auto px-4 pb-8">
+
+        <!-- Main Form Card (Screenshot Style) -->
+        <div class="main-card animate-fade-up" style="animation-delay: 0.1s;">
+            
+            <!-- Card Header -->
+            <div class="card-header">
+                <h2 class="card-title">Please fill The form Below To Admit A New Student</h2>
+                <div class="card-actions">
+                    <i class="fas fa-chevron-down"></i>
+                    <i class="fas fa-times"></i>
                 </div>
             </div>
-        </div>
 
-        <!-- Main Form Card -->
-        <div class="main-card animate-fade-up" style="animation-delay: 0.1s;">
-            <div class="main-card-body">
-
-                <!-- Step Indicators -->
-                <div class="steps-wrapper">
+            <!-- Stepper Indicator (Screenshot Style) -->
+            <div class="stepper-container">
+                <div class="stepper-line"></div>
+                <div class="stepper-line-active" id="stepper-line-active"></div>
+                <div class="stepper-wrapper">
                     <div id="step-1-indicator" class="step-item">
                         <div class="step-circle active">
-                            <span>1</span>
+                            <i class="fas fa-pencil-alt text-sm"></i>
                         </div>
-                        <span class="step-label active">
-                            <i class="fas fa-user"></i>
-                            <span>Personal Info</span>
-                        </span>
-                        <div id="step-1-connector" class="step-connector"></div>
+                        <span class="step-label active">Personal data</span>
                     </div>
                     <div id="step-2-indicator" class="step-item">
                         <div class="step-circle">
                             <span>2</span>
                         </div>
-                        <span class="step-label">
-                            <i class="fas fa-chalkboard-user"></i>
-                            <span>Academics & Parent</span>
-                        </span>
+                        <span class="step-label">Student Data</span>
                     </div>
                 </div>
+            </div>
+
+            <div class="main-card-body p-6">
 
                 <form id="admission-form">
                     <!-- ========== STEP 1 ========== -->
                     <div id="step-1-content">
-                        <!-- Section: Personal Information -->
-                        <div class="section-title">
-                            <div class="title-icon"><i class="fas fa-user-circle"></i></div>
-                            Personal Information
-                        </div>
-
+                        
                         <div class="form-grid">
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-user"></i> Full Name <span class="required">*</span></label>
-                                <input type="text" id="fullName" class="field-input" placeholder="Enter full name" required>
+                                <label class="field-label">Full Name: <span class="required">*</span></label>
+                                <input type="text" id="fullName" class="field-input" placeholder="Full Name" required>
+                            </div>
+                            <div class="field-group span-2">
+                                <label class="field-label">Address: <span class="required">*</span></label>
+                                <input type="text" id="address" class="field-input" placeholder="Address" required>
                             </div>
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-map-marker-alt"></i> Address <span class="required">*</span></label>
-                                <input type="text" id="address" class="field-input" placeholder="Permanent address" required>
+                                <label class="field-label">Email address:</label>
+                                <input type="email" id="email" class="field-input" placeholder="Email Address">
                             </div>
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-envelope"></i> Email</label>
-                                <input type="email" id="email" class="field-input" placeholder="student@example.com">
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label"><i class="fas fa-venus-mars"></i> Gender <span class="required">*</span></label>
+                                <label class="field-label">Gender: <span class="required">*</span></label>
                                 <select id="gender" class="field-select" required>
-                                    <option value="">Select gender</option>
+                                    <option value="">Choose..</option>
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
                                     <option value="Other">Other</option>
                                 </select>
                             </div>
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-cake-candles"></i> Date of Birth</label>
+                                <label class="field-label">Phone: <span class="required">*</span></label>
+                                <input type="tel" id="phone" class="field-input" placeholder="" required>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Telephone:</label>
+                                <input type="tel" id="telephone" class="field-input" placeholder="">
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Date of Birth:</label>
                                 <input type="date" id="dateOfBirth" class="field-input">
                             </div>
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-phone-alt"></i> Phone (Student) <span class="required">*</span></label>
-                                <input type="tel" id="phone" class="field-input" placeholder="+880XXXXXXXXX" required>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label"><i class="fas fa-flag"></i> Nationality <span class="required">*</span></label>
+                                <label class="field-label">Nationality: <span class="required">*</span></label>
                                 <select id="nationality" class="field-select" required>
-                                    <option value="">Select nationality</option>
+                                    <option value="">Choose..</option>
                                     <option value="Bangladeshi">Bangladeshi</option>
                                     <option value="Indian">Indian</option>
                                     <option value="American">American</option>
                                 </select>
                             </div>
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-phone-volume"></i> Telephone (Alt)</label>
-                                <input type="tel" id="telephone" class="field-input" placeholder="Home phone">
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label"><i class="fas fa-city"></i> State/Division <span class="required">*</span></label>
+                                <label class="field-label">State: <span class="required">*</span></label>
                                 <select id="state" class="field-select" required>
-                                    <option value="">Choose state</option>
+                                    <option value="">Choose..</option>
                                     <option value="Dhaka">Dhaka</option>
                                     <option value="Chittagong">Chittagong</option>
                                     <option value="Rajshahi">Rajshahi</option>
                                 </select>
                             </div>
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-location-dot"></i> District <span class="required">*</span></label>
+                                <label class="field-label">District: <span class="required">*</span></label>
                                 <select id="district" class="field-select" required>
-                                    <option value="">Select state first</option>
+                                    <option value="">Select State First</option>
                                 </select>
                             </div>
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-droplet"></i> Blood Group</label>
+                                <label class="field-label">Blood Group:</label>
                                 <select id="bloodGroup" class="field-select">
-                                    <option value="">Not specified</option>
+                                    <option value="">Choose..</option>
                                     <option value="A+">A+</option>
                                     <option value="B+">B+</option>
                                     <option value="O+">O+</option>
                                 </select>
                             </div>
-                        </div>
-
-                        <!-- Photo Upload -->
-                        <div class="field-group" style="grid-column: 1 / -1; margin-top: 8px;">
-                            <label class="field-label"><i class="fas fa-camera"></i> Passport Photo <span class="text-xs text-gray-400 font-normal ml-1">(Max 2MB)</span></label>
-                            <div class="upload-section">
-                                <div class="flex items-center gap-4 flex-wrap">
-                                    <img id="imagePreview" src="https://via.placeholder.com/80?text=No+Image" class="image-preview" alt="Preview">
-                                    <div class="flex-1 min-w-[200px]">
-                                        <div class="flex flex-wrap gap-2">
-                                            <button type="button" id="uploadPhotoBtn" class="btn btn-primary btn-sm">
-                                                <i class="fas fa-cloud-upload-alt"></i> Upload Photo
-                                            </button>
-                                            <button type="button" id="removePhotoBtn" class="btn btn-danger-outline btn-sm">
-                                                <i class="fas fa-trash-alt"></i> Remove
-                                            </button>
-                                        </div>
-                                        <p class="text-xs text-gray-500 mt-2 flex items-center gap-1.5">
-                                            <i class="fas fa-info-circle text-indigo-400"></i>
-                                            Supported: JPG, PNG | Max 2MB
-                                        </p>
-                                    </div>
+                            <!-- Passport Photo (Screenshot Style) -->
+                            <div class="field-group span-2">
+                                <label class="field-label">Upload Passport Photo:</label>
+                                <div class="file-upload-wrapper">
+                                    <div class="file-upload-text" id="file-name-display">No file selected</div>
+                                    <button type="button" id="uploadPhotoBtn" class="file-upload-btn">Choose File</button>
                                 </div>
+                                <p class="file-upload-note">Accepted Images: jpeg, png. Max file size 2Mb</p>
+                                <input type="hidden" id="passportPhotoURL" value="">
+                                <!-- Hidden preview for logic -->
+                                <img id="imagePreview" src="" class="hidden" alt="Preview">
                             </div>
-                            <input type="hidden" id="passportPhotoURL" value="">
                         </div>
                     </div>
 
                     <!-- ========== STEP 2 ========== -->
                     <div id="step-2-content" style="display: none;">
-                        <!-- Section: Academic Info -->
-                        <div class="section-title">
-                            <div class="title-icon"><i class="fas fa-graduation-cap"></i></div>
-                            Academic Information
-                        </div>
-
+                        
                         <div class="form-grid">
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-school"></i> Class <span class="required">*</span></label>
+                                <label class="field-label">Class: <span class="required">*</span></label>
                                 <select id="class" class="field-select" required>
-                                    <option value="">Loading classes...</option>
+                                    <option value="">Loading...</option>
                                 </select>
                             </div>
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-layer-group"></i> Section <span class="required">*</span></label>
+                                <label class="field-label">Section: <span class="required">*</span></label>
                                 <select id="section" class="field-select" required>
                                     <option value="">Select class first</option>
                                 </select>
                             </div>
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-flask"></i> Group (if applicable)</label>
+                                <label class="field-label">Group:</label>
                                 <select id="group" class="field-select">
                                     <option value="">None</option>
                                     <option value="Science">Science</option>
@@ -779,7 +640,7 @@
                                 </select>
                             </div>
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-calendar-week"></i> Year Admitted <span class="required">*</span></label>
+                                <label class="field-label">Year Admitted: <span class="required">*</span></label>
                                 <select id="yearAdmitted" class="field-select" required>
                                     <option value="">Select year</option>
                                     <option value="2025">2025</option>
@@ -788,15 +649,15 @@
                                 </select>
                             </div>
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-hashtag"></i> Roll Number <span class="text-xs text-gray-400 font-normal ml-1">(optional)</span></label>
+                                <label class="field-label">Roll Number:</label>
                                 <input type="text" id="rollNumber" class="field-input" placeholder="Class roll">
                             </div>
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-id-card"></i> Admission Number</label>
+                                <label class="field-label">Admission Number:</label>
                                 <input type="text" id="admissionNumber" class="field-input" placeholder="Auto/Manual ID">
                             </div>
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-building"></i> Dormitory</label>
+                                <label class="field-label">Dormitory:</label>
                                 <select id="dormitory" class="field-select">
                                     <option value="">None</option>
                                     <option value="A-Block">A-Block</option>
@@ -804,79 +665,75 @@
                                 </select>
                             </div>
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-bed"></i> Room No.</label>
+                                <label class="field-label">Room No:</label>
                                 <input type="text" id="dormitoryRoomNo" class="field-input" placeholder="Room number">
                             </div>
-                            <div class="field-group" style="grid-column: 1 / -1;">
-                                <label class="field-label"><i class="fas fa-futbol"></i> Sports House</label>
+                            <div class="field-group span-2">
+                                <label class="field-label">Sports House:</label>
                                 <input type="text" id="sportHouse" class="field-input" placeholder="House name">
                             </div>
                         </div>
 
                         <!-- Section: Parent / Guardian -->
-                        <div class="section-title">
-                            <div class="title-icon"><i class="fas fa-users"></i></div>
-                            Parent / Guardian
-                            <button type="button" id="addNewParent" class="ml-auto btn btn-primary btn-sm">
-                                <i class="fas fa-plus-circle"></i> Create Parent
-                            </button>
-                        </div>
-
-                        <div class="field-group" style="position: relative;">
-                            <label class="field-label"><i class="fas fa-user-friends"></i> Select Parent Account <span class="required">*</span></label>
-                            <div class="relative">
-                                <input type="text" id="parentSearchInput" class="field-input" style="padding-right: 42px;" placeholder="Search parent by name or phone..." autocomplete="off">
-                                <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
-                                <div id="parentSuggestDropdown" class="hidden absolute z-50 w-full bg-white border-2 border-indigo-100 rounded-xl shadow-2xl mt-1 max-h-64 overflow-y-auto"></div>
-                            </div>
-                            <div id="parent-info-display" class="selected-parent mt-2 hidden">
-                                <i class="fas fa-check-circle text-base"></i>
-                                <div class="min-w-0 flex-1">
-                                    <span class="text-xs opacity-80">Selected:</span>
-                                    <strong id="selected-parent-name" class="block truncate"></strong>
-                                    <span id="selected-parent-phone" class="text-xs opacity-80"></span>
+                        <div class="mt-6 pt-4 border-t border-gray-200">
+                            <h4 class="text-sm font-semibold text-gray-800 mb-4 flex items-center justify-between">
+                                Parent / Guardian
+                                <button type="button" id="addNewParent" class="btn btn-primary text-xs py-1.5 px-3">
+                                    <i class="fas fa-plus-circle"></i> Create Parent
+                                </button>
+                            </h4>
+                            
+                            <div class="field-group" style="position: relative;">
+                                <label class="field-label">Select Parent Account <span class="required">*</span></label>
+                                <div class="relative">
+                                    <input type="text" id="parentSearchInput" class="field-input" placeholder="Search parent by name or phone..." autocomplete="off">
+                                    <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
+                                    <div id="parentSuggestDropdown" class="hidden absolute z-50 w-full bg-white border border-gray-200 rounded shadow-lg mt-1 max-h-64 overflow-y-auto"></div>
                                 </div>
+                                <div id="parent-info-display" class="selected-parent mt-2 hidden">
+                                    <i class="fas fa-check-circle text-base"></i>
+                                    <div class="min-w-0 flex-1">
+                                        <strong id="selected-parent-name" class="block truncate"></strong>
+                                        <span id="selected-parent-phone" class="text-xs opacity-80"></span>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="parentIdHidden">
                             </div>
-                            <input type="hidden" id="parentIdHidden">
                         </div>
 
                         <!-- Section: Subjects -->
-                        <div class="section-title">
-                            <div class="title-icon"><i class="fas fa-book-open"></i></div>
-                            Subjects
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="subject-box">
-                                <div class="subject-box-title"><i class="fas fa-check-circle"></i> Mandatory</div>
-                                <div id="mandatory-subjects-list" class="space-y-0.5"></div>
-                            </div>
-                            <div class="subject-box">
-                                <div class="subject-box-title"><i class="fas fa-star"></i> Additional / Electives</div>
-                                <div id="additional-subjects-list" class="space-y-0.5"></div>
-                            </div>
-                            <div class="subject-box">
-                                <div class="subject-box-title"><i class="fas fa-bookmark"></i> Fourth Subject</div>
-                                <select id="fourthSubject" class="field-select" style="margin-top: 4px;">
-                                    <option value="">Select</option>
-                                </select>
+                        <div class="mt-6 pt-4 border-t border-gray-200">
+                            <h4 class="text-sm font-semibold text-gray-800 mb-4">Subjects</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="border border-gray-200 rounded p-3 bg-gray-50">
+                                    <div class="text-xs font-bold text-primary uppercase mb-2">Mandatory</div>
+                                    <div id="mandatory-subjects-list" class="space-y-1"></div>
+                                </div>
+                                <div class="border border-gray-200 rounded p-3 bg-gray-50">
+                                    <div class="text-xs font-bold text-primary uppercase mb-2">Additional / Electives</div>
+                                    <div id="additional-subjects-list" class="space-y-1"></div>
+                                </div>
+                                <div class="border border-gray-200 rounded p-3 bg-gray-50">
+                                    <div class="text-xs font-bold text-primary uppercase mb-2">Fourth Subject</div>
+                                    <select id="fourthSubject" class="field-select">
+                                        <option value="">Select</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Navigation Buttons -->
-                    <div class="flex flex-col-reverse sm:flex-row justify-between items-center gap-3 mt-8 pt-5 border-t border-gray-100">
-                        <button type="button" id="prev-btn" class="btn btn-ghost hidden w-full sm:w-auto">
+                    <!-- Navigation Buttons (Screenshot Style) -->
+                    <div class="flex justify-end gap-3 mt-8 pt-5 border-t border-gray-200">
+                        <button type="button" id="prev-btn" class="btn btn-ghost hidden">
                             <i class="fas fa-arrow-left"></i> Previous
                         </button>
-                        <div class="flex gap-3 w-full sm:w-auto sm:ml-auto">
-                            <button type="button" id="next-btn" class="btn btn-primary flex-1 sm:flex-initial">
-                                Next <i class="fas fa-arrow-right"></i>
-                            </button>
-                            <button type="submit" id="submit-btn" class="btn btn-success hidden flex-1 sm:flex-initial">
-                                <i class="fas fa-save"></i> Submit Admission
-                            </button>
-                        </div>
+                        <button type="button" id="next-btn" class="btn btn-primary">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button type="submit" id="submit-btn" class="btn btn-primary hidden">
+                            Submit Admission <i class="fas fa-save"></i>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -885,12 +742,10 @@
 
     <!-- Parent Registration Modal -->
     <div id="parent-modal" class="hidden fixed inset-0 z-[100001] items-center justify-center modal-backdrop p-4 overflow-auto">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full mx-auto my-8 modal-content ring-1 ring-black/5">
-            <div class="p-5 md:p-6 border-b border-gray-100 flex justify-between items-center rounded-t-3xl"
-                 style="background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);">
+        <div class="bg-white rounded shadow-xl max-w-xl w-full mx-auto my-8 modal-content border border-gray-200">
+            <div class="p-5 border-b border-gray-200 flex justify-between items-center">
                 <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0"
-                         style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 6px 16px rgba(99,102,241,0.35);">
+                    <div class="w-10 h-10 rounded flex items-center justify-center text-white bg-primary">
                         <i class="fas fa-user-plus text-sm"></i>
                     </div>
                     <div>
@@ -898,53 +753,50 @@
                         <p class="text-xs text-gray-500">Create a new parent login</p>
                     </div>
                 </div>
-                <button onclick="closeParentModal()" class="w-9 h-9 rounded-full hover:bg-white/60 flex items-center justify-center text-gray-500 hover:text-gray-700 transition text-xl flex-shrink-0">&times;</button>
+                <button onclick="closeParentModal()" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500 transition text-xl">&times;</button>
             </div>
 
-            <form id="parent-form" class="p-5 md:p-6 space-y-5">
-                <!-- Parents Info -->
+            <form id="parent-form" class="p-5 space-y-5">
                 <div>
-                    <h4 class="text-sm font-bold text-indigo-700 mb-3 flex items-center gap-2">
+                    <h4 class="text-sm font-bold text-primary mb-3 flex items-center gap-2">
                         <i class="fas fa-user-friends"></i> Parents Information
                     </h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="field-group" style="margin-bottom: 0;">
-                            <label class="field-label"><i class="fas fa-male"></i> Father's Name</label>
+                            <label class="field-label">Father's Name</label>
                             <input type="text" id="fatherName" class="field-input" placeholder="Father name">
                         </div>
                         <div class="field-group" style="margin-bottom: 0;">
-                            <label class="field-label"><i class="fas fa-phone-alt"></i> Father's Phone</label>
+                            <label class="field-label">Father's Phone</label>
                             <input type="tel" id="fatherPhone" class="field-input" placeholder="01XXXXXXXXX">
                         </div>
                         <div class="field-group" style="margin-bottom: 0;">
-                            <label class="field-label"><i class="fas fa-female"></i> Mother's Name</label>
+                            <label class="field-label">Mother's Name</label>
                             <input type="text" id="motherName" class="field-input" placeholder="Mother name">
                         </div>
                         <div class="field-group" style="margin-bottom: 0;">
-                            <label class="field-label"><i class="fas fa-phone-alt"></i> Mother's Phone</label>
+                            <label class="field-label">Mother's Phone</label>
                             <input type="tel" id="motherPhone" class="field-input" placeholder="01XXXXXXXXX">
                         </div>
                     </div>
                 </div>
 
-                <!-- Guardian Info -->
                 <div class="pt-4 border-t border-gray-100">
                     <h4 class="text-sm font-bold text-emerald-700 mb-3 flex items-center gap-2">
                         <i class="fas fa-user-shield"></i> Guardian (Primary Contact)
                     </h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="field-group" style="margin-bottom: 0;">
-                            <label class="field-label"><i class="fas fa-user"></i> Guardian Name <span class="required">*</span></label>
+                            <label class="field-label">Guardian Name <span class="required">*</span></label>
                             <input type="text" id="guardianName" required class="field-input" placeholder="Guardian name">
                         </div>
                         <div class="field-group" style="margin-bottom: 0;">
-                            <label class="field-label"><i class="fas fa-phone"></i> Guardian Phone <span class="required">*</span></label>
+                            <label class="field-label">Guardian Phone <span class="required">*</span></label>
                             <input type="tel" id="guardianPhone" required class="field-input" placeholder="01XXXXXXXXX">
                         </div>
                     </div>
                 </div>
 
-                <!-- Info Box -->
                 <div class="info-box">
                     <i class="fas fa-info-circle text-base"></i>
                     <div>
@@ -954,7 +806,6 @@
                     </div>
                 </div>
 
-                <!-- Action Buttons -->
                 <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
                     <button type="button" onclick="closeParentModal()" class="btn btn-ghost w-full sm:w-auto">
                         <i class="fas fa-times"></i> Cancel
@@ -987,7 +838,6 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Secondary app — used ONLY for creating parent accounts
         const secondaryApp = initializeApp(firebaseConfig, "Secondary");
         const secondaryAuth = getAuth(secondaryApp);
 
@@ -1001,12 +851,8 @@
         let allClassesData = [];
         let CURRENT_SESSION = "2025-2026";
         
-        // ===== Cloudinary Widget =====
         function initCloudinaryWidget() {
-            if (!window.cloudinary) {
-                console.warn("Cloudinary widget not loaded yet");
-                return;
-            }
+            if (!window.cloudinary) return;
             cloudinaryWidget = window.cloudinary.createUploadWidget({
                 cloudName: CLOUDINARY_CLOUD_NAME,
                 uploadPreset: CLOUDINARY_UPLOAD_PRESET,
@@ -1017,12 +863,12 @@
                 maxImageFileSize: 2000000
             }, (error, result) => {
                 if (!error && result && result.event === "success") {
-                    const imageUrl = result.info.secure_url;
-                    document.getElementById('imagePreview').src = imageUrl;
-                    document.getElementById('passportPhotoURL').value = imageUrl;
+                    document.getElementById('imagePreview').src = result.info.secure_url;
+                    document.getElementById('passportPhotoURL').value = result.info.secure_url;
+                    document.getElementById('file-name-display').innerText = result.info.original_filename || "File selected";
+                    document.getElementById('file-name-display').style.color = "#0f172a";
                     showMsg("Upload Successful!", "Photo uploaded to Cloudinary", true);
                 } else if (error) {
-                    console.error("Cloudinary error:", error);
                     showMsg("Upload Failed", error.message || "File too large? Max 2MB", false);
                 }
             });
@@ -1037,9 +883,8 @@
                     await setDoc(doc(db, "config", "activeSession"), { sessionName: "2025-2026", updatedAt: serverTimestamp() });
                     CURRENT_SESSION = "2025-2026";
                 }
-                document.getElementById('current-session-badge').innerHTML = `<i class="fas fa-calendar-alt mr-1"></i>${CURRENT_SESSION}`;
+                document.getElementById('current-session-badge').innerText = CURRENT_SESSION;
             } catch(e) { 
-                console.warn(e); 
                 CURRENT_SESSION = "2025-2026"; 
                 document.getElementById('current-session-badge').innerText = CURRENT_SESSION; 
             }
@@ -1053,7 +898,7 @@
         const step2Circle = step2Ind.querySelector('.step-circle');
         const step1Label = step1Ind.querySelector('.step-label');
         const step2Label = step2Ind.querySelector('.step-label');
-        const step1Connector = document.getElementById('step-1-connector');
+        const stepperLineActive = document.getElementById('stepper-line-active');
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
         const submitBtn = document.getElementById('submit-btn');
@@ -1063,8 +908,8 @@
             document.getElementById('message-title').innerText = title;
             document.getElementById('message-content').innerText = content;
             const iconDiv = document.getElementById('msg-icon');
-            iconDiv.className = `flex-shrink-0 rounded-2xl p-3 ${isSuccess ? 'msg-icon-success' : 'msg-icon-error'}`;
-            iconDiv.innerHTML = isSuccess ? '<i class="fas fa-check-circle text-2xl"></i>' : '<i class="fas fa-exclamation-circle text-2xl"></i>';
+            iconDiv.className = `flex-shrink-0 rounded-full p-2 ${isSuccess ? 'msg-icon-success' : 'msg-icon-error'}`;
+            iconDiv.innerHTML = isSuccess ? '<i class="fas fa-check-circle text-xl"></i>' : '<i class="fas fa-exclamation-circle text-xl"></i>';
             modal.classList.remove('hidden');
             setTimeout(() => { modal.classList.add('hidden'); }, 5000);
         }
@@ -1077,13 +922,11 @@
 
         function generateEmailFromPhone(phone) {
             const cleanPhone = phone.replace(/[^0-9]/g, '');
-            const lastDigits = cleanPhone.slice(-10);
-            return `parent_${lastDigits}@schoolapp.com`;
+            return `parent_${cleanPhone.slice(-10)}@schoolapp.com`;
         }
         
         function generatePasswordFromPhone(phone) {
-            const cleanPhone = phone.replace(/[^0-9]/g, '');
-            return cleanPhone;
+            return phone.replace(/[^0-9]/g, '');
         }
 
         async function loadClassesAndSubjects() {
@@ -1100,7 +943,7 @@
                     opt.textContent = doc.data().name; 
                     classSelect.appendChild(opt); 
                 });
-            } catch(e) { console.error("Error loading classes:", e); }
+            } catch(e) { console.error(e); }
         }
 
         async function loadSections(classId) {
@@ -1123,10 +966,7 @@
             const additionalDiv = document.getElementById('additional-subjects-list');
             const fourthSelect = document.getElementById('fourthSubject');
             const mandatoryDiv = document.getElementById('mandatory-subjects-list');
-            if (!classId) { 
-                additionalDiv.innerHTML = '<div class="text-gray-400 text-xs py-2">Select class</div>'; 
-                return; 
-            }
+            if (!classId) { additionalDiv.innerHTML = '<div class="text-gray-400 text-xs py-2">Select class</div>'; return; }
             try {
                 const q = query(collection(db, "subjects"), where("classId", "==", classId));
                 const snap = await getDocs(q);
@@ -1155,9 +995,7 @@
                         fourthSelect.appendChild(opt);
                     }
                 });
-                if (additionalDiv.innerHTML === '') {
-                    additionalDiv.innerHTML = '<div class="text-gray-400 text-xs py-2">No additional subjects</div>';
-                }
+                if (additionalDiv.innerHTML === '') additionalDiv.innerHTML = '<div class="text-gray-400 text-xs py-2">No additional subjects</div>';
             } catch(e) { console.error(e); }
         }
 
@@ -1206,38 +1044,25 @@
             document.getElementById('selected-parent-name').innerText = parent.name;
             document.getElementById('selected-parent-phone').innerText = parent.phone;
             document.getElementById('parentIdHidden').value = parent.id;
-            document.getElementById('parentSuggestDropdown').classList.add('hidden');
             document.getElementById('parentSearchInput').classList.remove('border-error');
         }
         
         function escapeHtml(str) { 
             if(!str) return ''; 
-            return str.replace(/[&<>"]/g, function(m){ 
-                if(m==='&') return '&amp;'; 
-                if(m==='<') return '&lt;'; 
-                if(m==='>') return '&gt;'; 
-                if(m==='"') return '&quot;'; 
-                return m;
-            }); 
+            return str.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); 
         }
 
-        // ===== Parent Form =====
         document.getElementById('parent-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const gName = document.getElementById('guardianName').value.trim();
             const gPhone = document.getElementById('guardianPhone').value.trim();
-            if (!gName || !gPhone) { 
-                showMsg("Error", "Guardian name & phone required", false); 
-                return; 
-            }
-            const phoneRegex = /^01[3-9]\d{8}$/;
-            if (!phoneRegex.test(gPhone)) { 
-                showMsg("Invalid Phone", "Enter valid Bangladeshi phone number (e.g., 017XXXXXXXX)", false); 
-                return; 
-            }
+            if (!gName || !gPhone) { showMsg("Error", "Guardian name & phone required", false); return; }
+            if (!/^01[3-9]\d{8}$/.test(gPhone)) { showMsg("Invalid Phone", "Enter valid Bangladeshi phone number", false); return; }
+            
             const saveBtn = document.getElementById('saveParentBtn');
             saveBtn.disabled = true; 
             saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            
             try {
                 const loginEmail = generateEmailFromPhone(gPhone);
                 const password = generatePasswordFromPhone(gPhone);
@@ -1260,19 +1085,13 @@
                 };
                 const docRef = await addDoc(collection(db, "parents"), parentDoc);
                 await setDoc(doc(db, "users", authUid), {
-                    uid: authUid,
-                    email: loginEmail,
-                    phone: gPhone,
-                    name: gName,
-                    role: "parent",
-                    parentId: docRef.id,
-                    createdAt: serverTimestamp()
+                    uid: authUid, email: loginEmail, phone: gPhone, name: gName, role: "parent", parentId: docRef.id, createdAt: serverTimestamp()
                 });
+                
                 await loadParentsList();
                 selectParent({ id: docRef.id, name: gName, phone: gPhone });
                 showMsg("Parent Created!", `Email: ${loginEmail} | Password: ${password}`, true);
                 closeParentModal();
-                document.getElementById('parent-form').reset();
             } catch(err) {
                 showMsg("Creation Failed", err.message, false);
             } finally {
@@ -1281,25 +1100,21 @@
             }
         });
 
-        // ===== Admission Form Submit =====
         document.getElementById('admission-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!selectedParentObj.id) { 
-                showMsg("Missing Parent", "Select or create parent account.", false); 
-                return; 
-            }
-            if (!document.getElementById('class').value || !document.getElementById('section').value) { 
-                showMsg("Incomplete", "Class & section required", false); 
-                return; 
-            }
+            if (!selectedParentObj.id) { showMsg("Missing Parent", "Select or create parent account.", false); return; }
+            if (!document.getElementById('class').value || !document.getElementById('section').value) { showMsg("Incomplete", "Class & section required", false); return; }
+            
             submitBtn.disabled = true; 
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            
             try {
                 const photoURL = document.getElementById('passportPhotoURL').value;
                 const mandatory = Array.from(document.querySelectorAll('input[name="mandatorySubject"]:checked')).map(cb => cb.value);
                 const additional = Array.from(document.querySelectorAll('input[name="additionalSubject"]:checked')).map(cb => cb.value);
                 const fourth = document.getElementById('fourthSubject').value; 
                 if(fourth) additional.push(fourth);
+                
                 const classId = document.getElementById('class').value;
                 const className = document.querySelector('#class option:checked')?.textContent || '';
                 const section = document.getElementById('section').value;
@@ -1335,16 +1150,13 @@
                     status: 'active'
                 };
                 
-                const sessionStudentsRef = collection(db, `current_session/${CURRENT_SESSION}/classes/${classId}/students`);
-                await addDoc(sessionStudentsRef, studentPayload);
-                
+                await addDoc(collection(db, `current_session/${CURRENT_SESSION}/classes/${classId}/students`), studentPayload);
                 await addDoc(collection(db, "students"), studentPayload);
                 
                 const parentRef = doc(db, "parents", selectedParentObj.id);
                 const parentData = (await getDoc(parentRef)).data();
                 if(parentData) {
-                    const sessionParentRef = collection(db, `current_session/${CURRENT_SESSION}/classes/${classId}/parents`);
-                    await addDoc(sessionParentRef, {
+                    await addDoc(collection(db, `current_session/${CURRENT_SESSION}/classes/${classId}/parents`), {
                         parentId: selectedParentObj.id,
                         guardianName: parentData.guardianName,
                         guardianPhone: parentData.guardianPhone,
@@ -1356,8 +1168,10 @@
                 
                 showMsg("Admission Successful 🎉", `Student admitted under session ${CURRENT_SESSION}`, true);
                 document.getElementById('admission-form').reset(); 
-                document.getElementById('imagePreview').src = 'https://via.placeholder.com/80?text=No+Image';
+                document.getElementById('imagePreview').src = '';
                 document.getElementById('passportPhotoURL').value = '';
+                document.getElementById('file-name-display').innerText = 'No file selected';
+                document.getElementById('file-name-display').style.color = '#94a3b8';
                 document.getElementById('parent-info-display').classList.add('hidden'); 
                 document.getElementById('parentSearchInput').value = ''; 
                 document.getElementById('mandatory-subjects-list').innerHTML = '';
@@ -1369,7 +1183,7 @@
                 showMsg("Submit Error", err.message, false); 
             } finally { 
                 submitBtn.disabled = false; 
-                submitBtn.innerHTML = '<i class="fas fa-save"></i> Submit Admission'; 
+                submitBtn.innerHTML = 'Submit Admission <i class="fas fa-save"></i>'; 
             }
         });
 
@@ -1378,24 +1192,15 @@
                 let ok = true; 
                 ['fullName','address','gender','phone','nationality','state','district'].forEach(id => { 
                     const el = document.getElementById(id);
-                    if(!el.value.trim()) { 
-                        el.classList.add('border-error'); 
-                        ok=false; 
-                    } else {
-                        el.classList.remove('border-error'); 
-                    }
+                    if(!el.value.trim()) { el.classList.add('border-error'); ok=false; } 
+                    else { el.classList.remove('border-error'); }
                 }); 
                 return ok; 
             }
             if(step === 2) { 
-                let ok = !!document.getElementById('class').value && 
-                        !!document.getElementById('section').value && 
-                        !!selectedParentObj.id; 
-                if(!selectedParentObj.id) {
-                    document.getElementById('parentSearchInput').classList.add('border-error');
-                } else {
-                    document.getElementById('parentSearchInput').classList.remove('border-error');
-                }
+                let ok = !!document.getElementById('class').value && !!document.getElementById('section').value && !!selectedParentObj.id; 
+                if(!selectedParentObj.id) document.getElementById('parentSearchInput').classList.add('border-error');
+                else document.getElementById('parentSearchInput').classList.remove('border-error');
                 return ok; 
             }
             return true;
@@ -1404,13 +1209,6 @@
         function updateStepUI() {
             step1.style.display = 'none'; 
             step2.style.display = 'none';
-            
-            step1Circle.classList.remove('active','complete'); 
-            step2Circle.classList.remove('active','complete');
-            step1Label.classList.remove('active','complete');
-            step2Label.classList.remove('active','complete');
-            step1Connector.classList.remove('complete');
-            
             prevBtn.classList.add('hidden'); 
             nextBtn.classList.add('hidden'); 
             submitBtn.classList.add('hidden');
@@ -1418,61 +1216,47 @@
             if(currentStep===1) { 
                 step1.style.display = 'block'; 
                 step1Circle.classList.add('active'); 
-                step1Label.classList.add('active');
+                step1Circle.classList.remove('complete');
+                step1Label.classList.add('active'); 
+                step1Label.classList.remove('complete');
+                step2Circle.classList.remove('active', 'complete');
+                step2Label.classList.remove('active', 'complete');
+                stepperLineActive.style.width = '0%';
                 nextBtn.classList.remove('hidden'); 
             } else { 
                 step2.style.display = 'block'; 
+                step1Circle.classList.remove('active');
                 step1Circle.classList.add('complete'); 
+                step1Label.classList.remove('active');
                 step1Label.classList.add('complete');
                 step2Circle.classList.add('active'); 
                 step2Label.classList.add('active');
-                step1Connector.classList.add('complete');
+                stepperLineActive.style.width = '50%';
                 prevBtn.classList.remove('hidden'); 
                 submitBtn.classList.remove('hidden'); 
             }
         }
         
         nextBtn.onclick = () => { 
-            if(validateStep(1)) { 
-                currentStep=2; 
-                updateStepUI(); 
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-                showMsg("Missing Fields", "Please fill all required fields in Personal Info", false); 
-            }
+            if(validateStep(1)) { currentStep=2; updateStepUI(); window.scrollTo({ top: 0, behavior: 'smooth' }); } 
+            else { showMsg("Missing Fields", "Please fill all required fields in Personal Info", false); }
         };
-        prevBtn.onclick = () => { 
-            currentStep=1; 
-            updateStepUI(); 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
+        prevBtn.onclick = () => { currentStep=1; updateStepUI(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
         
         document.getElementById('class').addEventListener('change', async (e) => { 
-            await loadSections(e.target.value); 
-            await loadSubjects(e.target.value); 
+            await loadSections(e.target.value); await loadSubjects(e.target.value); 
         });
         
         document.getElementById('state').addEventListener('change', (e) => { 
             const distSelect = document.getElementById('district'); 
             distSelect.innerHTML = '<option value="">Select District</option>'; 
-            if(e.target.value==='Dhaka') {
-                ['Dhaka North','Dhaka South','Gazipur'].forEach(d=>{let o=document.createElement('option'); o.value=d; o.text=d; distSelect.appendChild(o);});
-            } else if(e.target.value==='Chittagong') {
-                ['Chittagong City',"Cox's Bazar",'Feni'].forEach(d=>{let o=document.createElement('option'); o.value=d; o.text=d; distSelect.appendChild(o);});
-            } else if(e.target.value==='Rajshahi') {
-                ['Rajshahi City','Natore','Bogra'].forEach(d=>{let o=document.createElement('option'); o.value=d; o.text=d; distSelect.appendChild(o);});
-            }
+            const districts = { 'Dhaka': ['Dhaka North','Dhaka South','Gazipur'], 'Chittagong': ['Chittagong City',"Cox's Bazar",'Feni'], 'Rajshahi': ['Rajshahi City','Natore','Bogra'] };
+            if(districts[e.target.value]) districts[e.target.value].forEach(d => { let o = document.createElement('option'); o.value=d; o.text=d; distSelect.appendChild(o); });
         });
         
         document.getElementById('uploadPhotoBtn').addEventListener('click', () => {
             if (cloudinaryWidget) cloudinaryWidget.open();
             else showMsg("Widget Error", "Cloudinary widget not initialized. Please refresh.", false);
-        });
-        
-        document.getElementById('removePhotoBtn').addEventListener('click', () => {
-            document.getElementById('imagePreview').src = 'https://via.placeholder.com/80?text=No+Image';
-            document.getElementById('passportPhotoURL').value = '';
-            showMsg("Image Removed", "Photo has been removed", true);
         });
         
         document.getElementById('parentSearchInput').addEventListener('input', (e)=>{ 
@@ -1483,13 +1267,11 @@
         document.getElementById('addNewParent').addEventListener('click',()=>document.getElementById('parent-modal').classList.remove('hidden'));
         
         document.addEventListener('click',(e)=>{ 
-            if(!document.getElementById('parentSearchInput').contains(e.target) && 
-               !document.getElementById('parentSuggestDropdown').contains(e.target)) {
+            if(!document.getElementById('parentSearchInput').contains(e.target) && !document.getElementById('parentSuggestDropdown').contains(e.target)) {
                 document.getElementById('parentSuggestDropdown').classList.add('hidden'); 
             }
         });
         
-        // Update sample email preview
         document.getElementById('guardianPhone').addEventListener('input', (e) => {
             const phone = e.target.value.replace(/[^0-9]/g, '');
             document.getElementById('sampleEmail').innerText = phone ? `parent_${phone.slice(-10)}@schoolapp.com` : 'parent_phone@schoolapp.com';
